@@ -697,7 +697,7 @@ export function CompanionPage(): JSX.Element {
       onPointerDown={(event) => {
         if (!tauri || event.button !== 0) return;
         const target = event.target as HTMLElement;
-        if (target.closest?.("[data-yuvi-resize-handle]")) return;
+        if (target.closest?.("button, [data-yuvi-resize-handle]")) return;
         // Require movement before the native drag grab so simple clicks never
         // leave an XWayland pointer grab active (fullscreen was the recovery).
         const startX = event.clientX;
@@ -713,9 +713,9 @@ export function CompanionPage(): JSX.Element {
         onModelLifecycle={setModelLifecycle}
         onModelSelection={setModelSelection}
         onPresentationOutcome={submitPresentationOutcome}
-        className="h-full w-full rounded-none"
+        className="relative h-full w-full min-w-0 overflow-hidden rounded-none"
         presentationOnly
-        showFramingToggle={false}
+        showFramingToggle
       />
       {tauri && (
         <button

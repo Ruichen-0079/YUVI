@@ -1,3 +1,4 @@
+import { resolveApiBaseUrl } from "./desktop-runtime.js";
 import { t } from "./locale.js";
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import {
@@ -188,7 +189,7 @@ export function App(): JSX.Element {
   );
 }
 
-function TopStatusBar(props: {
+export function TopStatusBar(props: {
   health: HealthResponse | null;
   loading: boolean;
   error: string | null;
@@ -208,7 +209,7 @@ function TopStatusBar(props: {
         <StatusDot status={status} />
         <div>
           <div className="text-sm font-semibold">{t("Runtime status:")}{" "}{status}</div>
-          <div className="text-xs text-ink-500">{t("Server target http://localhost:6121")}</div>
+          <div className="text-xs text-ink-500">{t("Server target {0}", resolveApiBaseUrl())}</div>
         </div>
       </div>
       <button className="button-secondary" onClick={() => void props.onRefresh()}>{t("Refresh")}</button>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { t } from "./locale.js";
 import {
   controlCompanionWindow,
+  setCompanionLocked,
   getCompanionPresentationState,
   isTauriRuntime,
   subscribeSurfaceChanged,
@@ -43,7 +44,7 @@ export function CompanionAppearanceSettings(): JSX.Element | null {
   const [saving, setSaving] = useState(false);
   const [windowBusy, setWindowBusy] = useState(false);
   const [notice, setNotice] = useState("");
-  const [surface, setSurface] = useState<CompanionPresentationState>({ visible: false });
+  const [surface, setSurface] = useState<CompanionPresentationState>({ visible: false, locked: false });
   const [renderer, setRenderer] = useState<CompanionRendererPresentation | null>(null);
 
   useEffect(() => {
@@ -77,7 +78,7 @@ export function CompanionAppearanceSettings(): JSX.Element | null {
       try {
         const next = await getCompanionPresentationState();
         if (!cancelled)
-          setSurface((current) => (current.visible === next.visible ? current : next));
+          setSurface((current) => (current.visible === next.visible && current.locked === next.locked ? current : next));
       } catch (error) {
         if (!cancelled) setNotice(error instanceof Error ? error.message : String(error));
       }
@@ -190,6 +191,15 @@ export function CompanionAppearanceSettings(): JSX.Element | null {
         <span>{t("Live2D renderer: {0}", rendererLabel)}</span>
       </div>
 
+      <button type="button" className="button-secondary" disabled={windowBusy}
+        onClick={() => {
+          setWindowBusy(true);
+          void setCompanionLocked(!surface.locked).then(setSurface)
+            .catch((error: unknown) => setNotice(String(error)))
+            .finally(() => setWindowBusy(false));
+        }}>
+        {t(surface.locked ? "Unlock Companion" : "Lock Companion")}
+      </button>
       <label className="setting-checkbox">
         <input
           type="checkbox"

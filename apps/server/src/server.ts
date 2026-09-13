@@ -1,3 +1,4 @@
+import { registerConversationHistoryRoutes } from "./routes/conversation-history.js";
 import { registerPeopleVoiceRoutes } from "./routes/people-voices.js";
 import { registerProductRoutes } from "./routes/product.js";
 import websocket from "@fastify/websocket";
@@ -122,6 +123,7 @@ export async function buildServer(config: ServerConfig) {
   await registerPeopleVoiceRoutes(app, context, config);
   await registerSystemRoutes(app, config);
   await registerMessageRoutes(app, context);
+  await registerConversationHistoryRoutes(app, context);
   await registerMessageStreamRoutes(app, context);
   await registerProactiveTurnStreamRoutes(app, context);
   await registerMediaRoutes(app, context);

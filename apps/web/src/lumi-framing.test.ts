@@ -273,3 +273,16 @@ describe("cache keys and DPR", () => {
     expect(getLumiFramingZoom("half")).toBeGreaterThan(getLumiFramingZoom("full"));
   });
 });
+
+describe("Companion full-body resized product windows", () => {
+  it.each([[360, 720], [480, 720], [800, 560], [1000, 600]])("contains and centers without stretching at %sx%s", (width, height) => {
+    const fit = computeLumiFramingTransform("full", width, height, 1, 1.66225);
+    expect(isUniformPixelScale(fit)).toBe(true);
+    expect(fit.viewportWidth).toBe(width);
+    expect(fit.viewportHeight).toBe(height);
+    expect(fit.translateX).toBe(0);
+    expect(fit.translateY).toBe(0);
+    expect(fit.uniformScale).toBeLessThanOrEqual(width - 32);
+    expect(fit.uniformScale * 1.66225).toBeLessThanOrEqual(height - 32);
+  });
+});

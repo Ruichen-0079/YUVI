@@ -1,3 +1,4 @@
+import { useConversationSession, useConversationHistory } from "../use-conversation-history.js";
 import { t } from "../locale.js";
 import { useEffect, useMemo, useReducer, useRef, useState, type MutableRefObject } from "react";
 import {
@@ -90,7 +91,7 @@ let chatMessageSequence = 0;
 
 export function ChatPage(): JSX.Element {
   const [input, setInput] = useState("");
-  const [sessionId, setSessionId] = useState("dashboard");
+  const [sessionId, setSessionId] = useConversationSession("dashboard");
   const [readMemory, setReadMemory] = useState(true);
   const [writeMemory, setWriteMemory] = useState(true);
   const [promptPreview, setPromptPreview] = useState(true);
@@ -106,6 +107,7 @@ export function ChatPage(): JSX.Element {
   const [messages, dispatchMessages] = useReducer(reduceChatMessages, [] as ChatMessage[]);
   const [requestStatus, setRequestStatus] = useState<RequestStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  const historyError = useConversationHistory(sessionId, requestStatus === "sending", dispatchMessages);
   const [lastTraceId, setLastTraceId] = useState<string | null>(null);
   const [voicePlaybackStatus, setVoicePlaybackStatus] = useState<VoicePlaybackStatus>("idle");
   const [actualPlaybackActive, setActualPlaybackActive] = useState(false);
@@ -467,6 +469,7 @@ export function ChatPage(): JSX.Element {
             if (!mountedRef.current || activeRequestRef.current?.id !== requestId) {
               return;
             }
+            if ("traceId" in event) dispatchMessages({ type: "bind-trace", assistantId, traceId: event.traceId });
             if (event.type === "text-delta") {
               if (timingRef.current && timingRef.current.firstTextDeltaAt === undefined) {
                 recordChatTiming(timingRef, { firstTextDeltaAt: performance.now() });
@@ -631,6 +634,7 @@ export function ChatPage(): JSX.Element {
       <div className="grid grid-cols-[1fr_280px] gap-4">
         <Panel title={t("Chat History")} actions={<Pill status={requestStatus} />}>
           <div className="h-[420px] overflow-auto rounded-md border border-ink-100 bg-ink-50 p-3">
+            {historyError && <p role="status">{t("Unable to load chat history. Retrying…")}</p>}
             {messages.length === 0 ? (
               <EmptyState title={t("No chat yet")} message={t("Send a message to exercise the runtime.")} />
             ) : (

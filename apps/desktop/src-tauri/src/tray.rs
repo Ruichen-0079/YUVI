@@ -18,6 +18,8 @@ const TRAY_HIDE_COMPANION: &str = "tray-hide-companion";
 const TRAY_SHOW_SUBTITLE: &str = "tray-show-subtitle";
 const TRAY_HIDE_SUBTITLE: &str = "tray-hide-subtitle";
 const TRAY_UNLOCK_SUBTITLE: &str = "tray-unlock-subtitle";
+const TRAY_LOCK_COMPANION: &str = "tray-lock-companion";
+const TRAY_UNLOCK_COMPANION: &str = "tray-unlock-companion";
 const TRAY_QUIT: &str = "tray-quit";
 
 /// A resolved tray intent. Surface intents carry one presentation command for
@@ -29,6 +31,7 @@ pub(crate) enum TrayCommand {
   WebUI(SurfaceCommand),
   Subtitle(SurfaceCommand),
   SubtitleUnlock,
+  CompanionLock(bool),
   Quit,
 }
 
@@ -45,6 +48,8 @@ pub(crate) fn tray_command(id: &str) -> Option<TrayCommand> {
     TRAY_SHOW_SUBTITLE => Some(TrayCommand::Subtitle(SurfaceCommand::Show)),
     TRAY_HIDE_SUBTITLE => Some(TrayCommand::Subtitle(SurfaceCommand::Hide)),
     TRAY_UNLOCK_SUBTITLE => Some(TrayCommand::SubtitleUnlock),
+    TRAY_LOCK_COMPANION => Some(TrayCommand::CompanionLock(true)),
+    TRAY_UNLOCK_COMPANION => Some(TrayCommand::CompanionLock(false)),
     TRAY_QUIT => Some(TrayCommand::Quit),
     _ => None,
   }
@@ -56,18 +61,19 @@ pub(crate) fn tray_command(id: &str) -> Option<TrayCommand> {
 pub(crate) fn dispatch_tray_menu<S, U, Q>(
   id: &str,
   mut on_surface: S,
-  mut on_subtitle_unlock: U,
+  mut on_lock: U,
   mut on_quit: Q,
 )
 where
   S: FnMut(SurfaceId, SurfaceCommand),
-  U: FnMut(),
+  U: FnMut(SurfaceId, bool),
   Q: FnMut(),
 {
   let Some(command) = tray_command(id) else { return };
   match command {
     TrayCommand::Quit => on_quit(),
-    TrayCommand::SubtitleUnlock => on_subtitle_unlock(),
+    TrayCommand::SubtitleUnlock => on_lock(SurfaceId::Subtitle, false),
+    TrayCommand::CompanionLock(locked) => on_lock(SurfaceId::Companion, locked),
     TrayCommand::Main(command) => on_surface(SurfaceId::Main, command),
     TrayCommand::Companion(command) => on_surface(SurfaceId::Companion, command),
     TrayCommand::WebUI(command) => on_surface(SurfaceId::WebUI, command),
@@ -90,6 +96,8 @@ pub(crate) fn build_tray(app: &AppHandle) -> tauri::Result<()> {
     MenuItem::with_id(app, TRAY_HIDE_SUBTITLE, "Hide Subtitle", true, None::<&str>)?;
   let unlock_subtitle_item =
     MenuItem::with_id(app, TRAY_UNLOCK_SUBTITLE, "Unlock Subtitle", true, None::<&str>)?;
+  let lock_companion = MenuItem::with_id(app, TRAY_LOCK_COMPANION, "Lock Companion", true, None::<&str>)?;
+  let unlock_companion = MenuItem::with_id(app, TRAY_UNLOCK_COMPANION, "Unlock Companion", true, None::<&str>)?;
   let quit = MenuItem::with_id(app, TRAY_QUIT, "Quit", true, None::<&str>)?;
   let menu = Menu::with_items(
     app,
@@ -100,6 +108,8 @@ pub(crate) fn build_tray(app: &AppHandle) -> tauri::Result<()> {
       &hide_webui_item,
       &show_companion_item,
       &hide_companion_item,
+      &lock_companion,
+      &unlock_companion,
       &show_subtitle_item,
       &hide_subtitle_item,
       &unlock_subtitle_item,
@@ -120,9 +130,14 @@ pub(crate) fn build_tray(app: &AppHandle) -> tauri::Result<()> {
             eprintln!("[yuvi-desktop] failed to dispatch tray surface command {surface:?} {command:?}: {error}");
           }
         },
-        || {
-          if let Err(error) = DesktopSurfaceManager::set_subtitle_locked(app, false) {
-            eprintln!("[yuvi-desktop] failed to unlock Subtitle from tray: {error}");
+        |surface, locked| {
+          let result = if surface == SurfaceId::Companion {
+            DesktopSurfaceManager::set_companion_locked(app, locked).map(|_| ())
+          } else {
+            DesktopSurfaceManager::set_subtitle_locked(app, locked).map(|_| ())
+          };
+          if let Err(error) = result {
+            eprintln!("[yuvi-desktop] failed to set surface lock from tray: {error}");
           }
         },
         || crate::request_app_exit(app),
@@ -193,7 +208,7 @@ mod tests {
     dispatch_tray_menu(
       TRAY_QUIT,
       |surface, command| surface_dispatches.push((surface, command)),
-      || subtitle_unlocks += 1,
+      |_, _| subtitle_unlocks += 1,
       || quit_calls += 1,
     );
     assert!(
@@ -235,7 +250,7 @@ mod tests {
       dispatch_tray_menu(
         id,
         |surface, command| surface_dispatches.push((surface, command)),
-        || subtitle_unlocks += 1,
+        |_, _| subtitle_unlocks += 1,
         || quit_calls += 1,
       );
       assert_eq!(quit_calls, 0, "{id} must not touch the lifecycle exit path");
@@ -252,12 +267,22 @@ mod tests {
     dispatch_tray_menu(
       TRAY_UNLOCK_SUBTITLE,
       |surface, command| surface_dispatches.push((surface, command)),
-      || subtitle_unlocks += 1,
+      |_, _| subtitle_unlocks += 1,
       || quit_calls += 1,
     );
     assert!(surface_dispatches.is_empty());
     assert_eq!(subtitle_unlocks, 1);
     assert_eq!(quit_calls, 0);
+  }
+
+  #[test]
+  fn companion_lock_and_unlock_dispatch_only_to_surface_authority() {
+    for (id, locked) in [(super::TRAY_LOCK_COMPANION, true), (super::TRAY_UNLOCK_COMPANION, false)] {
+      let mut locks = Vec::new();
+      dispatch_tray_menu(id, |_, _| panic!("unexpected visibility command"),
+        |surface, value| locks.push((surface, value)), || panic!("unexpected quit"));
+      assert_eq!(locks, vec![(SurfaceId::Companion, locked)]);
+    }
   }
 
   #[test]
@@ -268,7 +293,7 @@ mod tests {
     dispatch_tray_menu(
       "tray-not-a-command",
       |surface, command| surface_dispatches.push((surface, command)),
-      || subtitle_unlocks += 1,
+      |_, _| subtitle_unlocks += 1,
       || quit_calls += 1,
     );
     assert!(surface_dispatches.is_empty());

@@ -148,10 +148,11 @@ export async function controlCompanionWindow(action: CompanionWindowAction): Pro
 
 export type CompanionPresentationState = {
   visible: boolean;
+  locked: boolean;
 };
 
 export async function getCompanionPresentationState(): Promise<CompanionPresentationState> {
-  if (!isTauriRuntime()) return { visible: false };
+  if (!isTauriRuntime()) return { visible: false, locked: false };
   return invokeDesktop<CompanionPresentationState>("get_companion_presentation_state");
 }
 
@@ -179,4 +180,9 @@ export async function getSubtitlePresentationState(): Promise<SubtitlePresentati
 export async function setSubtitleLocked(locked: boolean): Promise<SubtitlePresentationState> {
   if (!isTauriRuntime()) return { visible: false, locked };
   return invokeDesktop<SubtitlePresentationState>("set_subtitle_locked", { locked });
+}
+
+export async function setCompanionLocked(locked: boolean): Promise<CompanionPresentationState> {
+  if (!isTauriRuntime()) return { visible: false, locked };
+  return invokeDesktop<CompanionPresentationState>("set_companion_locked", { locked });
 }

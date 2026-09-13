@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { subscribeSubtitleProjection } from "./subtitle-bus.js";
-import { paginateSubtitleText, subtitlePageDurationMs } from "./subtitle-projection.js";
-import { isTauriRuntime, preloadTauriWindowApi, startWindowDragging, trackWindowDragGesture } from "./tauri-window.js";
+import { subtitlePageCapacity, paginateSubtitleText, subtitlePageDurationMs } from "./subtitle-projection.js";
+import { startWindowResizeDragging, isTauriRuntime, preloadTauriWindowApi, startWindowDragging, trackWindowDragGesture } from "./tauri-window.js";
 
 type VisiblePage = {
   messageId: string;
@@ -35,7 +35,8 @@ export function SubtitlePage(): JSX.Element {
   }, []);
 
   useEffect(() => {
-    return subscribeSubtitleProjection((message) => {
+    const capacity = () => subtitlePageCapacity(window.innerWidth || 720, window.innerHeight || 140);
+    const unsubscribe = subscribeSubtitleProjection((message) => {
       if (message.kind === "clear") {
         clearTimer();
         pagesRef.current = [];
@@ -46,7 +47,7 @@ export function SubtitlePage(): JSX.Element {
         return;
       }
 
-      const pages = paginateSubtitleText(message.text);
+      const pages = paginateSubtitleText(message.text, capacity());
       if (pages.length === 0) {
         clearTimer();
         pagesRef.current = [];
@@ -63,6 +64,16 @@ export function SubtitlePage(): JSX.Element {
       pageIndexRef.current = 0;
       presentPage(0);
     });
+
+    const reflow = () => {
+      const remaining = pagesRef.current.slice(pageIndexRef.current).join("");
+      if (!remaining || !timerRef.current) return;
+      clearTimer();
+      pagesRef.current = paginateSubtitleText(remaining, capacity());
+      presentPage(0);
+    };
+    window.addEventListener("resize", reflow);
+    return () => { unsubscribe(); window.removeEventListener("resize", reflow); clearTimer(); };
 
     function clearTimer(): void {
       if (timerRef.current) {
@@ -107,6 +118,7 @@ export function SubtitlePage(): JSX.Element {
       data-testid="subtitle-surface"
       onPointerDown={(event) => {
         if (!isTauriRuntime() || event.button !== 0) return;
+        if ((event.target as HTMLElement).closest?.("[data-yuvi-resize-handle]")) return;
         event.preventDefault();
         // Same XWayland-safe threshold as Companion: clicks without movement
         // must not enter the native drag grab.
@@ -117,6 +129,12 @@ export function SubtitlePage(): JSX.Element {
         });
       }}
     >
+      {isTauriRuntime() && <button type="button" data-yuvi-resize-handle
+        aria-label="Resize window" className="yuvi-subtitle-resize"
+        onPointerDown={(event) => {
+          event.preventDefault(); event.stopPropagation();
+          void startWindowResizeDragging("SouthEast");
+        }}>◢</button>}
       <div
         className={`yuvi-subtitle-band${visible && page ? " is-visible" : ""}`}
         aria-live="polite"

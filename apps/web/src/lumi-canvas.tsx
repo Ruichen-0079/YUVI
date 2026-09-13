@@ -308,10 +308,10 @@ export const LumiCanvas = forwardRef(function LumiCanvas(
           测试口型
         </button>
       )}
-      {!props.presentationOnly && props.showFramingToggle !== false && (
+      {(props.presentationOnly ? props.showFramingToggle === true : props.showFramingToggle !== false) && (
         <button
           type="button"
-          className="absolute right-2 bottom-2 rounded bg-ink-900/70 px-2 py-1 text-xs text-white"
+          className="absolute left-2 bottom-2 rounded bg-ink-900/70 px-2 py-1 text-xs text-white"
           aria-pressed={framing === "full"}
           onClick={() => setFraming((current) => (current === "half" ? "full" : "half"))}
         >
