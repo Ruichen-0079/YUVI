@@ -50,10 +50,12 @@ import {
 } from "./speech-queue.js";
 import type { SpeechSegmentIdentity } from "./speech-identity.js";
 import {
+  getCompanionPresentationState,
   isTauriRuntime,
   preloadTauriWindowApi,
   startWindowDragging,
   startWindowResizeDragging,
+  subscribeSurfaceChanged,
   trackWindowDragGesture
 } from "./tauri-window.js";
 
@@ -88,6 +90,9 @@ export function CompanionPage(): JSX.Element {
   const [serviceStatus, setServiceStatus] = useState<ServiceStatusState>(initialServiceStatusState);
   const [modelLifecycle, setModelLifecycle] = useState<LumiModelLifecycle>("loading");
   const [modelSelection, setModelSelection] = useState<Live2DModelSelectionProjection | null>(null);
+  // Locked companions are click-through, so the framing toggle would be
+  // unreachable; project the existing surface lock authority onto the toggle.
+  const [surfaceLocked, setSurfaceLocked] = useState(false);
   const rendererPresentation = useMemo(
     () => deriveCompanionRendererPresentation(modelSelection, modelLifecycle),
     [modelLifecycle, modelSelection]
@@ -211,6 +216,20 @@ export function CompanionPage(): JSX.Element {
       )
     );
   }, [capabilityProjection]);
+
+  useEffect(() => {
+    if (!isTauriRuntime()) return;
+    let cancelled = false;
+    const refresh = () => {
+      void getCompanionPresentationState()
+        .then((state) => {
+          if (!cancelled) setSurfaceLocked(state.locked);
+        })
+        .catch(() => undefined);
+    };
+    refresh();
+    return subscribeSurfaceChanged(refresh, () => undefined);
+  }, []);
 
   useEffect(() => {
     const bus = new CompanionBus("companion");
@@ -715,7 +734,7 @@ export function CompanionPage(): JSX.Element {
         onPresentationOutcome={submitPresentationOutcome}
         className="relative h-full w-full min-w-0 overflow-hidden rounded-none"
         presentationOnly
-        showFramingToggle
+        showFramingToggle={!surfaceLocked}
       />
       {tauri && (
         <button
