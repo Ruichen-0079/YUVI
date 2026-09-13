@@ -39,7 +39,7 @@ afterEach(() => {
 describe("controlCompanionWindow", () => {
   it("does not touch Tauri IPC in a browser", async () => {
     await expect(controlCompanionWindow("show_companion")).resolves.toBeUndefined();
-    await expect(getCompanionPresentationState()).resolves.toEqual({ visible: false });
+    await expect(getCompanionPresentationState()).resolves.toEqual({ visible: false, locked: false });
     expect(invoke).not.toHaveBeenCalled();
   });
 

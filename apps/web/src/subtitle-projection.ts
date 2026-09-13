@@ -67,3 +67,10 @@ function findVisualCut(text: string, start: number, windowEnd: number): number {
   }
   return windowEnd;
 }
+
+/** Conservative 28px glyph/1.3 line-height budget, including overlay padding. */
+export function subtitlePageCapacity(width: number, height: number): number {
+  const columns = Math.max(1, Math.floor((width - 28) / 29));
+  const lines = Math.max(1, Math.floor((height - 16) / 36.4));
+  return Math.max(1, Math.min(200, columns * lines));
+}

@@ -1,3 +1,4 @@
+import type { ChatMessage } from "../chat-state.js";
 import { resolveApiBaseUrl } from "../desktop-runtime.js";
 import { withActionDeadline } from "../action-deadline.js";
 import type { EmbodiedPresentationOutcomeReport } from "@companion/protocol";
@@ -998,6 +999,9 @@ export type ProactiveTurnResult = CompletedMessage | ProactiveDecisionEvent;
 export type Live2DModel = { id: string; name: string; model: string; source: "user" | "configured"; url: string };
 export type Live2DModelState = { models: Live2DModel[]; activeId: string | null; activeUrl: string | null; intendedDefault: string };
 export const apiClient = {
+  getConversationHistory(sessionId: string, signal?: AbortSignal): Promise<{ sessionId: string; messages: ChatMessage[] }> {
+    return request(`/v1/conversations/history?sessionId=${encodeURIComponent(sessionId)}`, signalRequestInit(signal));
+  },
   getLive2DModels(signal?: AbortSignal): Promise<Live2DModelState> { return request("/live2d/models", signalRequestInit(signal)); },
   importLive2DZip(input: { name: string; archiveBase64: string }): Promise<Live2DModelState> {
     return request("/live2d/models/import-zip", { method: "POST", body: JSON.stringify(input) });

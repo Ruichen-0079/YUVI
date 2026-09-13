@@ -575,6 +575,8 @@ export class LumiController {
   private presentationProjection: CompanionPresenceProjection = createInitialCompanionPresence();
   private readonly presentationController: LumiPresentationController;
   private disposed = false;
+  private viewport: { width: number; height: number } | null = null;
+  private framing: LumiFraming = "half";
   private readonly seenEffects = new Map<string, EmbodiedPresentationOutcomeReport>();
   private latestSourceAt = -Infinity;
   private readonly visibilityHandler = () => {
@@ -624,6 +626,10 @@ export class LumiController {
         adapter.dispose();
         return;
       }
+      // ResizeObserver can fire before/during asynchronous model loading.
+      // Reapply the latest container size and framing after the adapter is ready.
+      if (this.viewport) adapter.resize(this.viewport.width, this.viewport.height);
+      adapter.setFraming(this.framing);
       this.envelope = this.createEnvelope(adapter);
       adapter.resetMouth();
       this.setModelLifecycle("ready");
@@ -798,10 +804,13 @@ export class LumiController {
   }
 
   resize(width: number, height: number): void {
+    if (this.disposed || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return;
+    this.viewport = { width, height };
     this.adapter?.resize(width, height);
   }
 
   setFraming(framing: LumiFraming): void {
+    this.framing = framing;
     this.adapter?.setFraming(framing);
   }
 

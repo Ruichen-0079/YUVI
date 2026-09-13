@@ -189,7 +189,9 @@ describe("packaged supervisor layout", () => {
     expect(bundled["LIVE2D_CORE_PATH"]).toBe(bundledCore);
 
     // runtimeStart merges Live2D env.
-    const start = resolvePackagedRuntimeStart(layout, {}, "6121");
+    const start = resolvePackagedRuntimeStart(layout, { RUNTIME_MODE: "development", NODE_ENV: "development" }, "16121");
+    expect(start?.env["RUNTIME_MODE"]).toBe("production");
+    expect(start?.env["SERVER_PORT"]).toBe("16121");
     expect(start?.env["LIVE2D_ASSET_ROOT"]).toBe(bundledLive2d);
     expect(start?.env["LIVE2D_CORE_PATH"]).toBe(bundledCore);
   });

@@ -28,6 +28,9 @@ export type StreamingAssistantChatMessage = Omit<ChatMessage, "role" | "status">
 };
 
 export type ChatMessageAction =
+  | { type: "reset" }
+  | { type: "hydrate"; messages: ChatMessage[] }
+  | { type: "bind-trace"; assistantId: string; traceId: string }
   | { type: "append-turn"; user: ChatMessage; assistant: ChatMessage }
   | { type: "append-assistant"; assistant: StreamingAssistantChatMessage }
   | { type: "append-delta"; assistantId: string; text: string; traceId: string }
@@ -45,6 +48,26 @@ export function reduceChatMessages(
   messages: ChatMessage[],
   action: ChatMessageAction
 ): ChatMessage[] {
+  if (action.type === "reset") return [];
+  if (action.type === "hydrate") {
+    // Keep local IDs while their stream callbacks still reference them. Repository
+    // status/content wins once the request is idle; hydration never plays speech.
+    const remaining = [...messages];
+    const restored = action.messages.map((stored) => {
+      const index = remaining.findIndex((local) => local.id === stored.id ||
+        (local.traceId && local.traceId === stored.traceId && local.role === stored.role));
+      if (index < 0) return stored;
+      const local = remaining.splice(index, 1)[0]!;
+      return { ...local, ...stored, id: local.id };
+    });
+    return [...restored, ...remaining];
+  }
+  if (action.type === "bind-trace") {
+    const target = messages.find((message) => message.id === action.assistantId);
+    return messages.map((message) => message.id === action.assistantId ||
+      (target?.requestId && message.requestId === target.requestId)
+      ? { ...message, traceId: action.traceId } : message);
+  }
   if (action.type === "append-turn") {
     return [...messages, action.user, action.assistant];
   }

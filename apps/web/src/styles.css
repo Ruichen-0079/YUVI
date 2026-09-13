@@ -137,6 +137,7 @@
 
 
 .yuvi-subtitle-root {
+  position: relative;
   box-sizing: border-box;
   width: 100%;
   height: 100vh;
@@ -179,10 +180,7 @@
   text-shadow:
     0 1px 2px rgba(0, 0, 0, 0.95),
     0 0 8px rgba(0, 0, 0, 0.65);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  overflow-wrap: anywhere;
   word-break: break-word;
 }
 
@@ -284,3 +282,10 @@ progress { display: block; width: 100%; height: 6px; margin-block: 8px; accent-c
   font-size: 0.75rem;
   color: var(--yuvi-text-muted, #64748b);
 }
+
+.yuvi-subtitle-resize {
+  position: absolute; bottom: 0; right: 0; z-index: 2;
+  width: 24px; height: 24px; cursor: se-resize;
+  color: white; opacity: .3;
+}
+.yuvi-subtitle-resize:hover { opacity: 1; }

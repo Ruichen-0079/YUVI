@@ -169,6 +169,11 @@ fn get_companion_presentation_state(
 }
 
 #[tauri::command]
+fn set_companion_locked(app: tauri::AppHandle, locked: bool) -> Result<crate::desktop_surface::CompanionPresentationState, String> {
+  DesktopSurfaceManager::set_companion_locked(&app, locked)
+}
+
+#[tauri::command]
 fn show_webui(app: tauri::AppHandle) -> Result<(), String> {
   DesktopSurfaceManager::execute(&app, SurfaceId::WebUI, SurfaceCommand::Show)
 }
@@ -271,7 +276,10 @@ pub fn run() {
       archive_drop::record(window, event);
       if matches!(event, tauri::WindowEvent::Moved(_) | tauri::WindowEvent::Resized(_)) {
         DesktopSurfaceManager::persist_companion_geometry(window);
-        DesktopSurfaceManager::persist_subtitle_position(window);
+        DesktopSurfaceManager::persist_subtitle_geometry(window);
+      }
+      if matches!(event, tauri::WindowEvent::Resized(_)) {
+        DesktopSurfaceManager::reapply_overlay_lock(window);
       }
       if let tauri::WindowEvent::CloseRequested { api, .. } = event {
         match lifecycle::window_close_action(window.label(), app_shutdown_started()) {
@@ -298,6 +306,7 @@ pub fn run() {
       toggle_companion,
       reopen_companion,
       get_companion_presentation_state,
+      set_companion_locked,
       show_webui,
       show_subtitle,
       hide_subtitle,

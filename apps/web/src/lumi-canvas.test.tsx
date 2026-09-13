@@ -224,6 +224,7 @@ describe("LumiCanvas normalized projection input", () => {
       })
     );
     expect(markup).toContain("Companion avatar");
+    expect(markup).toContain('data-framing="half"');
     expect(markup).not.toContain("Loading Live2D model");
     expect(markup).not.toContain("测试口型");
     expect(markup).not.toContain("显示全身");

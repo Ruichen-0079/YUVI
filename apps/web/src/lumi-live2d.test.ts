@@ -667,3 +667,29 @@ it("reports expression execution only with a ready model and preserves the effec
   });
   failed.dispose();
 });
+
+describe("Companion resize during asynchronous model load", () => {
+  it.each(["half", "full"] as const)("replays the newest viewport and %s framing after load and reload", async (framing) => {
+    let finish!: () => void;
+    const adapter = {
+      load: vi.fn(() => new Promise<void>((resolve) => { finish = resolve; })),
+      setParameter: vi.fn(), setMouthOpen: vi.fn(), setMouthForm: vi.fn(), setBreath: vi.fn(),
+      setFraming: vi.fn(), resetMouth: vi.fn(), resize: vi.fn(), dispose: vi.fn()
+    };
+    const envelope = { attach: vi.fn(), startPlayback: vi.fn(), detach: vi.fn(), stop: vi.fn(), dispose: vi.fn() };
+    const controller = new LumiController(() => adapter, "model3.json", undefined, () => envelope);
+    controller.resize(480, 720);
+    controller.setFraming(framing);
+    const load = controller.load();
+    controller.resize(800, 560);
+    controller.resize(0, 0); // hidden measurement must not erase the last viewport
+    finish(); await load;
+    expect(adapter.resize).toHaveBeenLastCalledWith(800, 560);
+    expect(adapter.setFraming).toHaveBeenLastCalledWith(framing);
+    const reload = controller.load();
+    controller.resize(1000, 600);
+    finish(); await reload;
+    expect(adapter.resize).toHaveBeenLastCalledWith(1000, 600);
+    controller.dispose();
+  });
+});

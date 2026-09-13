@@ -105,6 +105,8 @@ struct CompanionWindowGeometry {
   y: Option<i32>,
   width: u32,
   height: u32,
+  #[serde(default)]
+  locked: bool,
 }
 
 impl CompanionWindowGeometry {
@@ -168,13 +170,17 @@ fn restore_companion_window_geometry(app: &AppHandle, window: &tauri::WebviewWin
 #[serde(rename_all = "camelCase")]
 pub(crate) struct CompanionPresentationState {
   pub(crate) visible: bool,
+  pub(crate) locked: bool,
 }
 
 const SUBTITLE_WINDOW_STATE_FILE: &str = "subtitle-window.json";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[serde(default)]
 struct SubtitleWindowState {
+  width: u32,
+  height: u32,
   x: Option<i32>,
   y: Option<i32>,
   locked: bool,
@@ -186,12 +192,15 @@ impl Default for SubtitleWindowState {
       x: None,
       y: None,
       locked: false,
+      width: 720,
+      height: 140,
     }
   }
 }
 
 impl SubtitleWindowState {
   fn is_valid(self) -> bool {
+    if !(280..=16_384).contains(&self.width) || !(100..=16_384).contains(&self.height) { return false; }
     match (self.x, self.y) {
       (Some(x), Some(y)) => {
         (-100_000..=100_000).contains(&x) && (-100_000..=100_000).contains(&y)
@@ -242,7 +251,11 @@ fn subtitle_window_state(app: &AppHandle) -> SubtitleWindowState {
 }
 
 fn place_subtitle_window(app: &AppHandle, window: &tauri::WebviewWindow, policy: SubtitleWindowPolicy) {
-  let state = subtitle_window_state(app);
+  let saved = subtitle_state_path(app).ok().and_then(|path| read_subtitle_window_state(&path));
+  let state = saved.unwrap_or_default();
+  if saved.is_some() {
+    let _ = window.set_size(PhysicalSize::new(state.width, state.height));
+  }
   if let (Some(x), Some(y)) = (state.x, state.y) {
     let _ = window.set_position(PhysicalPosition::new(x, y));
     return;
@@ -252,8 +265,9 @@ fn place_subtitle_window(app: &AppHandle, window: &tauri::WebviewWindow, policy:
   if let Ok(Some(monitor)) = window.primary_monitor() {
     let size = monitor.size();
     let scale = monitor.scale_factor();
-    let width = (policy.width * scale) as i32;
-    let height = (policy.height * scale) as i32;
+    let actual = window.inner_size().ok();
+    let width = actual.map(|size| size.width as i32).unwrap_or((policy.width * scale) as i32);
+    let height = actual.map(|size| size.height as i32).unwrap_or((policy.height * scale) as i32);
     let margin = (48.0 * scale) as i32;
     let x = (size.width as i32 - width) / 2;
     let y = (size.height as i32 - height - margin).max(0);
@@ -321,7 +335,7 @@ fn subtitle_window_policy() -> SubtitleWindowPolicy {
     decorations: false,
     transparent: true,
     always_on_top: true,
-    resizable: false,
+    resizable: true,
     skip_taskbar: true,
     focused_on_create: false,
     visible_on_create: false,
@@ -350,8 +364,7 @@ fn build_subtitle_window(app: &AppHandle) -> tauri::Result<tauri::WebviewWindow>
   )
   .title(SurfaceId::Subtitle.window_title())
   .inner_size(policy.width, policy.height)
-  .min_inner_size(policy.width, policy.height)
-  .max_inner_size(policy.width, policy.height)
+  .min_inner_size(280.0, 100.0)
   .decorations(policy.decorations)
   .transparent(policy.transparent)
   .always_on_top(policy.always_on_top)
@@ -453,27 +466,31 @@ impl DesktopSurfaceManager {
       y,
       width: size.width,
       height: size.height,
+      locked: previous.map(|value| value.locked).unwrap_or(false),
     };
     if let Err(error) = write_companion_window_geometry(&path, geometry) {
       eprintln!("[yuvi-desktop] companion geometry persistence skipped: {error}");
     }
   }
 
-  /// Persist Subtitle position only. Lock state remains in the same
+  /// Persist Subtitle geometry. Lock state remains in the same
   /// presentation-only file; Runtime/User settings are untouched.
-  pub(crate) fn persist_subtitle_position(window: &Window) {
+  pub(crate) fn persist_subtitle_geometry(window: &Window) {
     if window.label() != SurfaceId::Subtitle.window_label() {
       return;
     }
-    let Ok(position) = window.outer_position() else {
-      return;
-    };
     let Ok(path) = subtitle_state_path(window.app_handle()) else {
       return;
     };
     let mut state = read_subtitle_window_state(&path).unwrap_or_default();
-    state.x = Some(position.x);
-    state.y = Some(position.y);
+    if let Ok(position) = window.outer_position() {
+      state.x = Some(position.x);
+      state.y = Some(position.y);
+    }
+    if let Ok(size) = window.inner_size() {
+      state.width = size.width;
+      state.height = size.height;
+    }
     if let Err(error) = write_subtitle_window_state(&path, state) {
       eprintln!("[yuvi-desktop] subtitle position persistence skipped: {error}");
     }
@@ -491,6 +508,7 @@ impl DesktopSurfaceManager {
   ) -> Result<CompanionPresentationState, String> {
     Ok(CompanionPresentationState {
       visible: Self::surface_visible(app, SurfaceId::Companion)?,
+      locked: Self::companion_locked(app),
     })
   }
 
@@ -513,18 +531,53 @@ impl DesktopSurfaceManager {
     state.locked = locked;
     write_subtitle_window_state(&path, state)?;
 
-    if let Some(window) = app.get_webview_window(SurfaceId::Subtitle.window_label()) {
-      // Hidden/unrealized GTK windows do not have a dependable input shape.
-      // Persist now; apply immediately only when live, and always re-apply on Show.
-      if window.is_visible().map_err(|error| error.to_string())? {
-        window
-          .set_ignore_cursor_events(locked)
-          .map_err(|error| error.to_string())?;
-      }
-    }
+    Self::apply_surface_lock(app, SurfaceId::Subtitle, locked)?;
     let result = Self::subtitle_presentation_state(app);
     let _ = app.emit("desktop-surface.changed", ());
     result
+  }
+
+  fn companion_locked(app: &AppHandle) -> bool {
+    companion_geometry_path(app).ok()
+      .and_then(|path| read_companion_window_geometry(&path))
+      .map(|state| state.locked).unwrap_or(false)
+  }
+
+  /// Both overlays use the same native input-shape seam. Hidden GTK windows
+  /// reapply the persisted choice after realization in show().
+  fn apply_surface_lock(app: &AppHandle, surface: SurfaceId, locked: bool) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window(surface.window_label()) {
+      if window.is_visible().map_err(|error| error.to_string())? {
+        window.set_ignore_cursor_events(locked).map_err(|error| error.to_string())?;
+      }
+    }
+    Ok(())
+  }
+
+  /// GTK can realize/reconfigure its input region after Show during startup.
+  /// Reassert the persisted overlay input policy on native size events too.
+  pub(crate) fn reapply_overlay_lock(window: &Window) {
+    let app = window.app_handle();
+    let (surface, locked) = match window.label() {
+      "companion" => (SurfaceId::Companion, Self::companion_locked(app)),
+      "subtitle" => (SurfaceId::Subtitle, subtitle_window_state(app).locked),
+      _ => return,
+    };
+    if let Err(error) = Self::apply_surface_lock(app, surface, locked) {
+      eprintln!("[yuvi-desktop] overlay input policy reapply failed: {error}");
+    }
+  }
+
+  pub(crate) fn set_companion_locked(app: &AppHandle, locked: bool) -> Result<CompanionPresentationState, String> {
+    let path = companion_geometry_path(app)?;
+    let mut state = read_companion_window_geometry(&path).unwrap_or(CompanionWindowGeometry {
+      x: None, y: None, width: 480, height: 720, locked: false,
+    });
+    state.locked = locked;
+    write_companion_window_geometry(&path, state)?;
+    Self::apply_surface_lock(app, SurfaceId::Companion, locked)?;
+    let _ = app.emit("desktop-surface.changed", ());
+    Self::companion_presentation_state(app)
   }
 
   /// Apply the configured Companion always-on-top presentation to the live
@@ -546,10 +599,11 @@ impl DesktopSurfaceManager {
       window
         .set_always_on_top(policy)
         .map_err(|error| error.to_string())?;
-      show_window(&window, surface.show_steals_focus())?;
+      show_window(&window, !Self::companion_locked(app))?;
       window
         .set_always_on_top(policy)
-        .map_err(|error| error.to_string())
+        .map_err(|error| error.to_string())?;
+      Self::apply_surface_lock(app, surface, Self::companion_locked(app))
     } else if surface == SurfaceId::Subtitle {
       let locked = subtitle_window_state(app).locked;
       window
@@ -638,6 +692,7 @@ mod tests {
       y: Some(80),
       width: 640,
       height: 900,
+      locked: true,
     };
     write_companion_window_geometry(&path, geometry).expect("write geometry");
     assert_eq!(read_companion_window_geometry(&path), Some(geometry));
@@ -645,7 +700,7 @@ mod tests {
     fs::write(&path, r#"{"x":null,"y":null,"width":640,"height":900}"#).expect("write size-only");
     assert_eq!(
       read_companion_window_geometry(&path),
-      Some(CompanionWindowGeometry { x: None, y: None, width: 640, height: 900 })
+      Some(CompanionWindowGeometry { x: None, y: None, width: 640, height: 900, locked: false })
     );
 
     fs::write(&path, r#"{"x":0,"y":null,"width":640,"height":900}"#).expect("write partial position");
@@ -684,7 +739,7 @@ mod tests {
     assert!(!policy.decorations);
     assert!(policy.transparent);
     assert!(policy.always_on_top);
-    assert!(!policy.resizable);
+    assert!(policy.resizable);
     assert!(policy.skip_taskbar);
     assert!(!policy.focused_on_create);
     assert!(!policy.visible_on_create);
@@ -702,10 +757,15 @@ mod tests {
     let state = SubtitleWindowState {
       x: Some(320),
       y: Some(840),
+      width: 500,
+      height: 240,
       locked: true,
     };
     write_subtitle_window_state(&path, state).expect("write subtitle state");
     assert_eq!(read_subtitle_window_state(&path), Some(state));
+
+    fs::write(&path, r#"{"x":320,"y":840,"locked":true}"#).expect("write legacy");
+    assert_eq!(read_subtitle_window_state(&path), Some(SubtitleWindowState { x: Some(320), y: Some(840), locked: true, ..SubtitleWindowState::default() }));
 
     fs::write(&path, r#"{"x":320,"y":null,"locked":false}"#).expect("write invalid");
     assert_eq!(read_subtitle_window_state(&path), None);

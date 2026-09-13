@@ -1,3 +1,4 @@
+import { useConversationSession, useConversationHistory } from "./use-conversation-history.js";
 import { t } from "./locale.js";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import {
@@ -100,7 +101,7 @@ function createSurfaceId(prefix: string): string {
  */
 
 export function MainPage(): JSX.Element {
-  const [sessionId, setSessionId] = useState("default");
+  const [sessionId, setSessionId] = useConversationSession("default");
   const [readMemory, setReadMemory] = useState(true);
   const [writeMemory, setWriteMemory] = useState(true);
   const [memoryPreferenceState, setMemoryPreferenceState] = useState<"loading" | "ready" | "unavailable">(
@@ -119,6 +120,7 @@ export function MainPage(): JSX.Element {
   const [messages, dispatchMessages] = useReducer(reduceChatMessages, [] as ChatMessage[]);
   const [requestStatus, setRequestStatus] = useState<RequestStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  const historyError = useConversationHistory(sessionId, requestStatus === "sending", dispatchMessages);
   const [voicePlaybackStatus, setVoicePlaybackStatus] = useState<VoicePlaybackStatus>("idle");
   const [actualPlaybackActive, setActualPlaybackActive] = useState(false);
   const [input, setInput] = useState("");
@@ -633,6 +635,7 @@ export function MainPage(): JSX.Element {
             if (!mountedRef.current || !isCurrentRequest(activeRequestRef.current, ownership)) {
               return;
             }
+            if ("traceId" in event) dispatchMessages({ type: "bind-trace", assistantId, traceId: event.traceId });
             if (event.type === "text-delta") {
               dispatchMessages({
                 type: "append-delta",
@@ -1128,6 +1131,7 @@ export function MainPage(): JSX.Element {
             if (!mountedRef.current || !isCurrentRequest(activeRequestRef.current, ownership)) {
               return;
             }
+            if ("traceId" in event) dispatchMessages({ type: "bind-trace", assistantId, traceId: event.traceId });
             if (event.type === "text-delta") {
               dispatchMessages({
                 type: "append-delta",
@@ -1330,6 +1334,7 @@ export function MainPage(): JSX.Element {
       <main className="yuvi-main-chat-shell" aria-label={t("YUVI Chat")}>
         <section className="yuvi-main-thread" aria-label={t("Chat History")}>
           <div className="yuvi-main-thread-inner">
+            {historyError && <p role="status">{t("Unable to load chat history. Retrying…")}</p>}
             {messages.length === 0 ? (
               <div className="yuvi-main-empty">
                 <div className="yuvi-main-empty-mark" aria-hidden="true">

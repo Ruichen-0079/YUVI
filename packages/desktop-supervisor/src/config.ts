@@ -504,6 +504,7 @@ export function resolvePackagedRuntimeStart(
       YUVI_RUNTIME_ENV_DIR: env["YUVI_RUNTIME_ENV_DIR"]?.trim() || layout.configRoot,
       YUVI_RUNTIME_MIGRATIONS_DIR: path.join(runtimeDir, "migrations"),
       YUVI_PACKAGED: "1",
+      RUNTIME_MODE: "production",
       ...live2dEnv
     },
     // Specific marker — not bare "node.exe".
