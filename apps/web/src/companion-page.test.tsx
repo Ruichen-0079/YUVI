@@ -9,7 +9,10 @@ const mockState = vi.hoisted(() => ({
   buses: [] as any[],
   queues: [] as any[],
   projections: [] as any[],
-  controllers: [] as any[]
+  controllers: [] as any[],
+  canvasProps: [] as any[],
+  surfaceStates: [] as any[],
+  surfaceSubscribes: [] as any[]
 }));
 
 vi.mock("./subtitle-bus.js", () => ({
@@ -72,7 +75,12 @@ vi.mock("./companion-voice-sync.js", () => ({
 
 vi.mock("./lumi-canvas.js", async () => {
   const react = await import("react");
-  const LumiCanvas = react.forwardRef((_props: { requestedProjection: any }, ref) => {
+  const LumiCanvas = react.forwardRef((props: any, ref) => {
+    mockState.canvasProps.push(props);
+    const framingToggleVisible =
+      props.presentationOnly === true
+        ? props.showFramingToggle === true
+        : props.showFramingToggle !== false;
     react.useImperativeHandle(ref, () => ({
       handlePlaybackEvent: () => undefined,
       resumeAudio: () => undefined,
@@ -91,7 +99,12 @@ vi.mock("./lumi-canvas.js", async () => {
       getFramingDiagnostics: () => null,
       getDebugInfo: () => ({ instanceId: 0, generation: 0 })
     }));
-    return react.createElement("div", { "aria-label": "Companion avatar" }, "Companion avatar");
+    return react.createElement(
+      "div",
+      { "aria-label": "Companion avatar" },
+      "Companion avatar",
+      framingToggleVisible ? react.createElement("button", { type: "button" }, "显示全身") : null
+    );
   });
   return { LumiCanvas };
 });
@@ -146,7 +159,13 @@ vi.mock("./tauri-window.js", () => ({
     ),
   preloadTauriWindowApi: async () => undefined,
   startWindowDragging: async () => undefined,
-  startWindowResizeDragging: async () => undefined
+  startWindowResizeDragging: async () => undefined,
+  getCompanionPresentationState: async () =>
+    mockState.surfaceStates.at(-1) ?? { locked: false },
+  subscribeSurfaceChanged: (refresh: () => void, onError: (error: unknown) => void) => {
+    mockState.surfaceSubscribes.push({ refresh, onError });
+    return () => undefined;
+  }
 }));
 
 type FakeNode = {
@@ -189,6 +208,7 @@ function installFakeDom(
   options: {
     initialVisibility?: "visible" | "hidden";
     onVisibilityListenerInstall?: () => void;
+    tauri?: boolean;
   } = {}
 ): {
   container: FakeNode;
@@ -258,6 +278,7 @@ function installFakeDom(
     Element: class {},
     Node: class {},
     Document: class {},
+    __TAURI_INTERNALS__: options.tauri ? {} : undefined,
     addEventListener() {},
     removeEventListener() {},
     document: undefined as unknown as FakeDocument
@@ -410,6 +431,9 @@ afterEach(() => {
   mockState.queues.length = 0;
   mockState.projections.length = 0;
   mockState.controllers.length = 0;
+  mockState.canvasProps.length = 0;
+  mockState.surfaceStates.length = 0;
+  mockState.surfaceSubscribes.length = 0;
   delete (globalThis as { window?: unknown }).window;
 });
 
@@ -435,6 +459,39 @@ describe("CompanionPage product overlay", () => {
     expect(markup).toContain("hover:opacity-100");
     expect(markup).not.toContain("Full body");
     expect(markup).not.toContain("Portrait");
+  });
+});
+
+describe("CompanionPage locked framing toggle projection", () => {
+  it("hides the framing toggle while locked and restores it after unlock", async () => {
+    const containsText = (node: FakeNode, text: string): boolean =>
+      (node.nodeValue ?? "").includes(text) ||
+      (node.textContent ?? "").includes(text) ||
+      node.childNodes.some((child) => containsText(child, text));
+    mockState.surfaceStates.push({ locked: true });
+    const mounted = await mountCompanionPage({ tauri: true });
+    const flushSurfaceReads = async () => {
+      await act(async () => {
+        for (let i = 0; i < 4; i += 1) await Promise.resolve();
+      });
+    };
+    try {
+      await flushSurfaceReads();
+      expect(containsText(mounted.container, "显示全身")).toBe(false);
+      expect(mockState.canvasProps.at(-1)?.showFramingToggle).toBe(false);
+
+      mockState.surfaceStates.push({ locked: false });
+      const subscription = mockState.surfaceSubscribes.at(-1);
+      await act(async () => {
+        subscription?.refresh();
+      });
+      await flushSurfaceReads();
+      expect(containsText(mounted.container, "显示全身")).toBe(true);
+      expect(mockState.canvasProps.at(-1)?.showFramingToggle).toBe(true);
+    } finally {
+      await act(async () => mounted.root.unmount());
+      mounted.restore();
+    }
   });
 });
 
