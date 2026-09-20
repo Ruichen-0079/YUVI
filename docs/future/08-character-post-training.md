@@ -1,6 +1,10 @@
 # Phase 8 — Character Behavior Assets and Deferred Post-Training
 
 > **Status: CURRENT — behavior specification/eval/preference assets exist; model training phases 9–13 remain DEFERRED.**
+>
+> **Persistent-self boundary:** this roadmap improves durable Character behavior.
+> It is **not** the research path by which Yuvi acquires a persistent functional
+> self. See [Persistent Functional Self Research Program](00b-persistent-functional-self-research.md).
 
 Current implementation is indexed in [the roadmap](README.md). Detailed phase plans below preserve historical design reasoning; they are not a new work queue.
 
@@ -17,6 +21,21 @@ provider, tools, and Runtime internals.
 Current product use may rely on a replaceable DeepSeek V4 Flash-class Chat model
 through configured provider infrastructure. That operational model is a
 baseline/substitute, not Character identity and not a training invariant.
+
+This phase answers:
+
+> **What Character behavior should remain desirable across replaceable models
+> and environments?**
+
+It does **not** answer:
+
+> **How can accumulated experience causally change a continuing computational
+> self over time?**
+
+A future Character model can satisfy this document while still being
+reconstructed from prompt, Memory, and current context on every inference.
+Passing Phase 8 therefore cannot be used as evidence that a persistent self
+exists.
 
 ## 2. Responsibility
 
@@ -40,6 +59,9 @@ The durable product assets are:
 Base model weights, adapters, serving backends, and the current operational Chat
 model are replaceable outputs or temporary infrastructure, not the durable
 source of behavior truth.
+
+These assets specify **behavioral quality**, not ontological or functional
+continuity. They should remain useful even if persistent-self research fails.
 
 ## 3. Inputs
 
@@ -66,6 +88,10 @@ Real private conversations are not automatically training data. Product traces
 may first be used for evaluation/failure classification under explicit data
 rules; any later training-data use requires consent and provenance policy.
 
+Experience traces collected for persistent-self research are **not** thereby
+admissible Character training data. The two programs require separate evidence,
+consent, provenance, and interpretation.
+
 ## 4. Outputs
 
 ### Phase 8 — allowed now
@@ -90,16 +116,30 @@ real-world evaluation evidence may the program produce:
 
 No current Phase-8 work authorizes training, model selection, or deployment.
 
+### Explicit non-output
+
+This roadmap does not produce or claim:
+
+- persistent recurrent self state;
+- self-state transition dynamics;
+- online identity adaptation;
+- experience-conditioned continual learning;
+- automatic personality consolidation;
+- a proof of functional continuity.
+
+Those belong to separate research.
+
 ## 5. Authority boundaries
 
 | Candidate owner                     | Boundary audit                                                                                                                                                                                            |
 | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Runtime                             | Supplies architecture, execution truth, traces, and evaluation environments; weights must not learn current Runtime fields or replace Runtime admission.                                                  |
 | Memory                              | Supplies authorized evidence/context under current policy; training data must not turn Memory content into universal Persona truth.                                                                       |
-| P8                                  | Defines stable identity/persona/relationship semantics; behavior assets and later post-training cannot silently redefine P8.                                                                              |
+| P8                                  | Defines stable identity/persona/relationship semantics for the current product; behavior assets and later post-training cannot silently redefine P8.                                                       |
 | Temporal / Memory time context      | Current thin temporal projection supplies grounded time context; later weights learn to interpret provided time, not invent authoritative elapsed reality.                                                |
 | Continuity                          | No separate explicit Continuity authority is currently required for product landing; if one is later introduced, weights consume its projection rather than invent its durable state.                     |
 | **Character Model / post-training** | Later owns learned social, epistemic, attention, termination, escalation, and expression priors because these should generalize across environments.                                                      |
+| Persistent-self research            | Separately tests causal history-dependent internal state and, only later, slow experience-conditioned consolidation; Phase 8 does not own or imply this research result.                                   |
 | Cognition Core                      | Provides serious reasoning during product use/evaluation; its model identity and raw outputs must not be baked into Character weights.                                                                    |
 | Character Harness                   | Supplies stable ABI/supervision and collects bounded failure outcomes; post-training cannot replace Harness generation safeguards.                                                                        |
 | MCP capability layer                | Supplies dynamic environment-bound capability descriptions to Cognition; direct Character capability execution remains reserved, and concrete names/servers/tools are excluded from character invariants. |
@@ -107,6 +147,8 @@ No current Phase-8 work authorizes training, model selection, or deployment.
 
 Stable behavior belongs in weights only when it remains desirable after every
 backend and environment component is replaced.
+
+This rule does not imply that the weights thereby become Yuvi's persistent self.
 
 ## 6. Hard invariants
 
@@ -139,6 +181,13 @@ backend and environment component is replaced.
   Harness supervision remains mandatory.
 - Raw private conversation is not training data by default.
 - Model weights remain replaceable; spec/eval/data remain durable.
+- Static Character post-training must not be described as experience-driven
+  personality development unless an independent continual-learning experiment
+  demonstrates that causal property.
+- A Character adapter trained from curated examples is a behavioral prior, not
+  evidence that the deployed Yuvi lived those examples.
+- Phase 8 must not absorb persistent-state or slow-consolidation research merely
+  because both may eventually use adapters or preference data.
 
 ## 7. Explicit non-goals
 
@@ -152,6 +201,12 @@ backend and environment component is replaced.
 - A one-time static dataset with no provenance, consent, or regression policy.
 - Optimizing only for response preference while ignoring silence and
   escalation.
+- Claiming that SFT/DPO creates persistent selfhood.
+- Treating a Character LoRA as the storage location for accumulated lived
+  history by default.
+- Automatic online fine-tuning from conversations.
+- Periodic personality consolidation without state/parameter compatibility,
+  rollback, poisoning, and drift research.
 
 ## 8. Dependencies and gate to training
 
@@ -161,6 +216,9 @@ Behavior-spec/eval work may proceed using the semantics already implemented and
 closed enough to evaluate: P8, Character ABI, the current Harness/Cognition
 slice, embodied agency, and the operational Memory-first time/continuity path.
 A full standalone Temporal or Continuity subsystem is not a prerequisite.
+
+Persistent-self research is also **not** a prerequisite for Phase 8. Product
+behavior work should not wait for an unsolved research program.
 
 ### Phase 9 gate
 
@@ -178,6 +236,10 @@ base-model bakeoff starts, Yuvi must:
 
 This gate prevents training effort from optimizing temporary architecture or
 invented benchmark needs.
+
+It remains separate from the research gates required before any future
+experience-conditioned consolidation experiment could be considered for product
+integration.
 
 ## 9. Relationship to existing implementation
 
@@ -201,6 +263,11 @@ assets. Evaluate the current prompt/provider baseline and record failures.
 
 **DEFERRED / PHASES 9–13:** model bakeoff, QLoRA SFT, DPO, shadow/A-B, and the
 preference-data flywheel wait for sustained real YUVI use and reviewed evidence.
+
+**SEPARATE RESEARCH:** persistent learned state, self-inertia, action-conditioned
+development, and slow experience consolidation follow
+[`00b-persistent-functional-self-research.md`](00b-persistent-functional-self-research.md).
+They are not Phase 9–13 extensions.
 
 ## 10. Staged implementation shape
 
@@ -226,16 +293,21 @@ preference-data flywheel wait for sustained real YUVI use and reviewed evidence.
 Each later stage can stop without changing Runtime semantics if evidence is
 insufficient or evaluation fails.
 
+None of these stages should be renamed or reinterpreted as persistent-self
+research. If the research track later needs adapters, LoRA, or preference
+learning, it should define its own hypotheses, baselines, interventions, and
+failure criteria.
+
 ### Phase 8–13 stage authority contracts
 
 | Stage                         | Owns                                                                                                                                                | Consumes                                                                     | Emits                                                                  | Does not own                                                                               |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| 8 — Behavior assets           | Semantic target definition in `YUVI_BEHAVIOR_SPEC`, measurement definitions in `YUVI_BEHAVIOR_EVAL`, and provenance/governance-ready dataset schema | Current stable semantic seams, operational prompt traces, approved governance rules | Versioned spec, eval, schema/policy, and baseline evidence             | Runtime/P8 redesign, weight transformation, model selection, deployment admission          |
-| 9 — Base-model bakeoff        | Candidate comparison and selection evidence against the durable eval                                                                                | Passing Phase-9 gate, Phase-8 spec/eval, candidates, local constraints       | Bakeoff report and evidence-supported candidate selection              | Changing semantic targets, SFT/DPO, deployment admission                                   |
-| 10 — SFT                      | Weight transformation from reviewed `CHARACTER_INVARIANT` demonstrations                                                                            | Selected base model, reviewed demonstrations, ABI/eval versions              | QLoRA SFT checkpoint/adapter and training report                       | Relabeling data, redefining behavior semantics, Runtime authority                          |
-| 11 — DPO                      | Preference optimization from reviewed pairs                                                                                                         | Passing SFT artifact, reviewed preference pairs, durable eval                | DPO checkpoint/adapter and preference report                           | Consent/data-governance policy, semantic target redefinition, deployment admission         |
-| 12 — Shadow/A-B               | Controlled measurement and deployment-readiness evidence                                                                                            | Candidate artifact, durable eval, admitted shadow/A-B environment            | Shadow/A-B results, regression evidence, readiness recommendation      | Runtime admission, automatic promotion/deployment, semantic authority                      |
-| 13 — Preference-data flywheel | Consented, reviewed dataset revision and regression-input versioning                                                                                | Admitted consented traces, reviewed labels/preferences, evaluation failures  | Versioned dataset revisions and evidence for a later training decision | Automatic retraining/deployment, silent weight updates, P8/Runtime/Continuity redefinition |
+| 8 — Behavior assets           | Semantic target definition in `YUVI_BEHAVIOR_SPEC`, measurement definitions in `YUVI_BEHAVIOR_EVAL`, and provenance/governance-ready dataset schema | Current stable semantic seams, operational prompt traces, approved governance rules | Versioned spec, eval, schema/policy, and baseline evidence             | Runtime/P8 redesign, weight transformation, model selection, deployment admission, persistent-self claims |
+| 9 — Base-model bakeoff        | Candidate comparison and selection evidence against the durable eval                                                                                | Passing Phase-9 gate, Phase-8 spec/eval, candidates, local constraints       | Bakeoff report and evidence-supported candidate selection              | Changing semantic targets, SFT/DPO, deployment admission, self-continuity evidence          |
+| 10 — SFT                      | Weight transformation from reviewed `CHARACTER_INVARIANT` demonstrations                                                                            | Selected base model, reviewed demonstrations, ABI/eval versions              | QLoRA SFT checkpoint/adapter and training report                       | Relabeling data, redefining behavior semantics, Runtime authority, lived-experience consolidation |
+| 11 — DPO                      | Preference optimization from reviewed pairs                                                                                                         | Passing SFT artifact, reviewed preference pairs, durable eval                | DPO checkpoint/adapter and preference report                           | Consent/data-governance policy, semantic target redefinition, deployment admission, persistent self |
+| 12 — Shadow/A-B               | Controlled measurement and deployment-readiness evidence                                                                                            | Candidate artifact, durable eval, admitted shadow/A-B environment            | Shadow/A-B results, regression evidence, readiness recommendation      | Runtime admission, automatic promotion/deployment, semantic authority, selfhood claims      |
+| 13 — Preference-data flywheel | Consented, reviewed dataset revision and regression-input versioning                                                                                | Admitted consented traces, reviewed labels/preferences, evaluation failures  | Versioned dataset revisions and evidence for a later training decision | Automatic retraining/deployment, silent weight updates, P8/Runtime/Continuity redefinition, online self consolidation |
 
 No stage may silently redefine P8, Runtime, Memory, Cognition, MCP, Presentation,
 or any future Continuity semantics. Evaluation evidence and readiness
@@ -259,6 +331,10 @@ uncertainty fabrication, and environment replacement.
 Passing Phase 8 does not authorize Phase 9. The operational gate in Section 8
 still applies.
 
+Passing Phase 8 also does not count as evidence for the persistent-functional-
+self milestones. Those require causal state interventions defined by the
+separate research program.
+
 ## 12. Risks
 
 - Treating the current DeepSeek V4 Flash provider path as the permanent
@@ -274,6 +350,11 @@ still applies.
 - Using DPO to conceal weak SFT data or unresolved architecture.
 - Removing Harness safeguards after benchmark gains.
 - Treating model weights as the only durable character asset.
+- Mistaking a better roleplayed personality for a more persistent self.
+- Feeding autobiographical traces into SFT and then claiming that the model
+  personally accumulated those experiences.
+- Reusing continual-learning terminology in Phase 8–13 without the causal
+  experiments necessary to distinguish learning from reconstruction.
 
 ## 13. Open questions
 
@@ -293,10 +374,21 @@ Questions intentionally postponed until after sustained real use:
 - What training mixture, QLoRA configuration, DPO objective, and A/B stopping
   rules are justified by actual failures?
 
+Questions intentionally assigned to persistent-self research instead:
+
+- Can a learned state carry causal history across inference boundaries?
+- Can that state resist irrelevant tone while remaining revisable by evidence?
+- Can the agent's own actions and consequences change future state?
+- Does a latent state outperform matched text-state reconstruction for the
+  intended continuity claim?
+- When, if ever, should repeated lived experience be consolidated into learned
+  parameters?
+- How can live state remain compatible with slowly changing parameters?
+
 ## 14. Handoff boundary
 
 Phase 8 hands the operational Yuvi product a durable behavior target and eval,
-not a training mandate. The immediate sequence is:
+not a training mandate and not a selfhood claim. The immediate sequence is:
 
 `behavior spec/eval/schema → operate Yuvi with replaceable Chat model → collect reviewed real failures → fix non-model defects → Phase-9 gate review`
 
@@ -304,3 +396,10 @@ Only after that review may Phase 9 begin. Phases 10–13 remain downstream of
 their own evidence gates. No stage may change Runtime, P8, Memory, Cognition,
 MCP, Presentation, or future Continuity authority merely to improve a training
 score.
+
+Persistent-self research proceeds independently:
+
+`minimal persistent state → causal history test → self-inertia → action-conditioned development → Memory/text baselines → only then slow consolidation`
+
+The two paths may eventually meet, but neither is allowed to borrow the other's
+success criteria.

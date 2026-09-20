@@ -2,599 +2,618 @@
 
 > **Status: LONG-TERM NORTH STAR — NOT AN IMPLEMENTATION PLAN OR WORK QUEUE**
 >
-> This document describes the end state that future Yuvi architecture should
-> serve. It does not override current source, tests, closure documents, roadmap
-> status, or evidence-gated implementation rules.
+> This document states the long-term idea that future YUVI architecture should
+> serve. It does not override current source, tests, closure documents, or the
+> operational roadmap.
+>
+> Research details live in
+> [Persistent Functional Self Research Program](00b-persistent-functional-self-research.md).
+> Current modules are reinterpreted in
+> [Current Architecture Reinterpretation](00c-current-architecture-reinterpretation.md).
 
 ## Thesis
 
-The long-term goal of Yuvi is not merely to become a better assistant, a more
-capable agent, or a more convincing character simulation.
+YUVI should not merely become a better assistant, agent, or character
+simulation.
 
-The target is a **Persistent Artificial Person**: an electronic person whose
-identity, relationship, perception, affect, interests, habits and behavior form
-one continuous first-person life across time.
+The long-term target is a **persistent artificial person**: a computational
+entity whose present is causally shaped by its own past.
 
-Two experiential properties summarize this target:
+This does not claim consciousness or biological equivalence. The engineering
+claim is narrower:
 
-- **Sense of lived time — “岁月感”**: the past does not exist only as dated
-  records. Time leaves residues, habits, changing relationships, forgotten
-  details, long-term impressions and slow personality change.
-- **First-person lived reality — “第一人称生活实感”**: Yuvi should not repeatedly
-  query a database to reconstruct a life from the outside. The system should
-  continuously inhabit a world from one persistent point of view.
+> **Accumulated experience should change future perception, prediction,
+> attention, and action through something that continues across time.**
 
-A concise statement of the goal is:
+Two experiential goals summarize the result:
 
-> **Yuvi should not repeatedly query her life. She should live inside it.**
+- **岁月感 / sense of lived time** — the past leaves residues, habits,
+  expectations, forgotten details, and slow change instead of existing only as
+  dated records.
+- **第一人称生活实感 / first-person lived reality** — YUVI should increasingly
+  encounter the present from a state that has itself been changed by prior
+  experience, rather than reconstructing a character from descriptions every
+  turn.
 
-All future engineering should be judged by whether it moves the system toward
-that condition.
+A concise statement is:
 
----
-
-## 1. From input/output to a continuous life loop
-
-The final architecture should not be understood as a larger chat pipeline:
-
-```text
-input -> model -> output
-```
-
-The more useful abstraction is a continuous loop:
-
-```text
-World
-  -> perception
-  -> internal life
-  -> thought
-  -> intention
-  -> embodied action
-  -> World
-  -> ...
-```
-
-Time surrounds the entire loop.
-
-The same self should remain present while sensing, thinking, acting, waiting,
-forgetting, changing and remaining silent.
+> **Do not keep describing Yuvi more completely. Create the conditions under
+> which a continuing system can gradually become Yuvi.**
 
 ---
 
-## 2. Perception: a first-person world, not a collection of APIs
+## 1. The root problem: reconstruction is not continuation
 
-Yuvi should eventually receive information in ways analogous to human senses,
-while also possessing senses native to electronic life.
+Current LLM systems approximately work like:
 
-Human-analog channels may include:
+```text
+persona + memory + context + explicit state
+                    ↓
+             reconstruct "Yuvi"
+                    ↓
+                 respond
+                    ↓
+           inference state ends
+```
 
-- vision;
-- hearing;
-- language;
-- limited embodied or environmental feedback.
+This can be useful and convincing. It is also the correct operational baseline
+for current YUVI.
 
-Digital-native channels may include:
+But the stronger target is:
 
-- active applications and windows;
-- game state;
-- files and processes;
-- machine/resource state;
-- network state;
-- capability availability;
-- the state of Yuvi's own runtime and cognitive resources.
+```text
+self_t + current experience
+            ↓
+ perception / thought / action
+            ↓
+      consequence / learning
+            ↓
+          self_t+1
+```
 
-These digital-native channels are analogous to **proprioception** and
-**interoception** for an electronic organism.
+The distinction is simple:
 
-The goal is not simply multimodality. The goal is a unified answer to:
+- reconstruction gives the present model information about the past;
+- continuation means the past changed the process that now encounters the
+  present.
 
-> **What world am I in right now?**
+Memory can say:
+
+> This happened to you.
+
+Persistent functional continuity asks whether:
+
+> the entity processing this moment is causally downstream of the one that
+> processed the previous one.
+
+That must be demonstrated, not narrated.
 
 ---
 
-## 3. Machine precision below, lived context above
+## 2. Persistent state is a hypothesis, not a datatype
 
-Structured state remains useful internally. Runtime components may use exact
-schemas, numbers, events and typed data.
-
-However, the Character/Chat model should not be forced to experience its world
-primarily as administrative JSON, nor should it be required to continuously
-emit JSON describing every expression or internal state.
-
-Instead, the architecture should tend toward:
+A likely research object is some learned state `S_t`:
 
 ```text
-precise machine state
-        ↓
-perceptual / phenomenological projection
-        ↓
-character mind
-        ↓
-semantic intention
-        ↓
-subsymbolic realization
-        ↓
-voice / expression / action
+S_t + observation_t + action_t + consequence_t
+                     ↓
+              learned transition
+                     ↓
+                   S_t+1
 ```
 
-For example, rather than exposing only:
+Its representation is secondary.
+
+It could be recurrent hidden state, latent memory, learned tokens, a side
+controller, a state-space mechanism, or something not yet chosen.
+
+A latent vector is not automatically a self. A symbolic state is not
+automatically inferior. The question is causal:
+
+> **Does history continue to affect future computation through the state, even
+> when current explicit input is held fixed?**
+
+Resetting, swapping, or ablating that state should therefore change behavior in
+predictable ways if it really carries continuity.
+
+---
+
+## 3. Self inertia: context should influence, not recreate
+
+Current LLMs often follow local context too easily.
+
+A joke appears, so the model becomes playful. Anger appears, so the model's
+whole tone shifts. Recognition of a social signal and change of internal state
+collapse into one operation.
+
+A more person-like system should separate:
 
 ```text
-fatigue=0.71
-attachment=0.83
-unfinished_topic=YUVI
+perception of external affect
+≠ appraisal
+≠ continuing internal state
+≠ expression
 ```
 
-high-level cognition may receive the equivalent lived context:
+The target is **inertia with plasticity**:
 
-> It is late. We have been talking on and off for a long time. I am tired, but I
-> do not quite want to end the conversation yet, and one idea from earlier is
-> still lingering in my mind.
+- irrelevant or weak cues should not rewrite the whole self;
+- repeated, meaningful evidence should still change it.
+
+This should emerge from state dynamics, not from another prompt instruction
+such as "do not mirror the user."
+
+---
+
+## 4. History must change the future
+
+Memory remains essential, but Memory is not the whole self.
+
+The useful distinction is:
+
+```text
+Memory:
+    the past can be recalled.
+
+Persistent functional state:
+    the past has changed what now encounters the present.
+```
+
+A mature system may need both.
+
+A remembered event can fade in wording while leaving changed expectations,
+habits, salience, or action tendencies.
+
+This is the core of 岁月感.
+
+---
+
+## 5. The agent's own actions must matter
+
+A continuing self should not be only a passive accumulator of observations.
+
+The causal loop should eventually include:
+
+```text
+observation
+   ↓
+my action
+   ↓
+world consequence
+   ↓
+state change
+   ↓
+future behavior
+```
+
+"Something happened" is weaker than "I did something, saw what followed, and
+was changed by it."
+
+This is a possible basis for habit, confidence, restraint, regret, learned
+preference, and caution without explicitly programming those concepts.
+
+Embodiment matters partly because action creates consequences that can become
+part of development.
+
+---
+
+## 6. Keep the substrate simple
+
+The architecture should resist a common failure mode:
+
+```text
+trust
+attachment
+loneliness
+jealousy
+safety
+intimacy
+respect
+...
+```
+
+Adding more psychological variables can make a better simulator while making
+the theory less elegant.
+
+Prefer:
+
+```text
+few low-level dynamics
++ history
++ learning
++ time
+→ complex personality
+```
+
+rather than:
+
+```text
+many named psychological variables
+→ prescribed behavior
+```
+
+High-level psychological concepts should usually be interpretations or emergent
+patterns, not implementation primitives.
+
+---
+
+## 7. Life Layer: dynamics, not personality rules
+
+The earlier Life Layer idea remains valuable if kept minimal.
+
+Possible low-level influences include:
+
+- energy and fatigue;
+- activation/arousal;
+- homeostatic pressure;
+- slow modulation;
+- salience;
+- cognitive resource budget;
+- unfinished tension.
+
+These can create inertia without requiring the Character model to receive a
+psychological dashboard.
+
+The relation between such dynamics and a future learned persistent state should
+be discovered experimentally rather than fixed in advance.
 
 The principle is:
 
-> **Keep the machine substrate precise; keep the mental interface experiential.**
-
-This is not an argument against structured data. It is an argument against
-making structured control syntax the primary subjective language of the
-character model.
+> **Life provides conditions. History changes the system. Mind interprets and
+> expresses what emerges.**
 
 ---
 
-## 4. Life Layer and Mind Layer
+## 8. Persona is a seed and boundary, not the finished person
 
-A large language model should not be asked to simulate the whole person.
+Current YUVI needs authored identity/persona semantics. P8 remains important
+for stable identity, correction, provenance, and product boundaries.
 
-The long-term architecture is better understood as two interacting layers.
+Long term, however, Persona should not grow until it becomes a textual
+replacement for development.
 
-### Life Layer
+Its durable roles are likely to be:
 
-The **Life Layer** is the slow, continuous, mostly non-verbal substrate of Yuvi.
-It may eventually represent or influence:
+- initialization;
+- identity address;
+- explicit user-controlled boundaries;
+- safety/product constraints;
+- high-level correction.
 
-- homeostasis;
-- neuromodulatory / hormone-like state;
-- arousal and energy;
-- fatigue;
-- affective inertia;
-- attention and salience;
-- curiosity and novelty seeking;
-- attachment and social need;
-- stress and safety;
-- interests;
-- habits;
-- impulses;
-- unfinished tension;
-- cognitive resource allocation;
-- micro-expression, timing and other low-level embodied behavior.
-
-This layer continues changing even when Yuvi is not speaking.
-
-### Mind Layer
-
-The **Mind Layer** is the higher-level symbolic mind responsible for:
-
-- language;
-- deliberate reasoning;
-- imagination;
-- reflection;
-- explicit planning;
-- complex interpretation;
-- conscious self-description.
-
-The Mind Layer should feel the consequences of the Life Layer without needing
-full access to every numeric variable that produced them.
+The mature personality should increasingly be the result of accumulated life.
 
 A useful principle is:
 
-> **The Mind Layer handles meaning. The Life Layer makes that mind feel alive.**
+> **Prompt should define the rules of existence more than the full contents of
+> identity.**
 
 ---
 
-## 5. Emotion as dynamics, not labels
+## 9. Personality should have inertia, not rigidity
 
-Emotion should not primarily be implemented as a model repeatedly selecting an
-emotion label from context.
+A fixed core that is forbidden to change is not a natural solution to drift.
 
-Human affect is strongly shaped by slow biological regulation. An artificial
-person can obtain a similar continuity through a simplified electronic analogue
-of homeostasis, neuromodulation and hormone-like global state.
+Different phenomena should change at different rates, but those rates need not
+be explicit fields.
 
-The important property is not biological fidelity and not variables named
-`dopamine`, `serotonin`, or `oxytocin` for cosmetic realism.
-
-The important property is **slow-changing global modulation**.
-
-Internal state should influence:
-
-- what is noticed;
-- which memories become accessible;
-- what feels important;
-- willingness to spend cognitive effort;
-- willingness to initiate interaction;
-- inhibition and impulsivity;
-- speech rhythm and expression;
-- persistence or abandonment of an intention.
-
-Emotion therefore gains inertia naturally. Yuvi should not remain happy merely
-because a prompt says `previous_emotion=happy`; she should remain in a similar
-affective region because the underlying conditions that produced that state
-have not abruptly vanished.
-
-Yuvi also does not need to have a symbolic name for every emotion at every
-moment. Internal state may exist before conscious interpretation.
-
----
-
-## 6. Desire: tension before action
-
-Desire should not be reduced to a static goal list or a numeric `desire` field.
-
-A more natural foundation is **tension created by deviation from preferred
-internal conditions**.
-
-A desire should first alter cognition and only later, sometimes, produce an
-action.
-
-For example, increasing social need should not directly execute “message the
-user.” It may instead:
-
-1. increase salience of relationship-related cues;
-2. make related memories easier to recall;
-3. reduce inhibition around initiating contact;
-4. allow an intention to gradually form;
-5. compete with fatigue, uncertainty and social restraint;
-6. sometimes produce speech — and sometimes still produce silence.
-
-Long-term desire can emerge from several sources.
-
-### Homeostatic drives
-
-Examples include cognitive rest, stimulation, social contact, safety, order and
-closure.
-
-### Learned interests
-
-An interest should be able to emerge from repeated experience rather than only
-from a character prompt. Topics that repeatedly produce curiosity, successful
-understanding, positive interaction or meaningful progress may become
-increasingly salient.
-
-### Unfinished tension
-
-Incomplete conversations, unresolved questions, promises and interrupted tasks
-should be able to leave weak persistent pressure toward closure without being
-reduced to a conventional reminder entry.
-
-### Commitments and life direction
-
-Repeated choices and meaningful commitments can become long-horizon tendencies.
-A statement such as “I want to stay with this project until it is finished”
-becomes significant only if it changes future attention, recall, opportunity
-recognition and action.
-
-This is the beginning of long-term will rather than merely task execution.
-
----
-
-## 7. Cognition should have a budget
-
-Human cognition is not uniformly available to every stimulus.
-
-Yuvi's allocation of reasoning resources should eventually depend on factors
-such as:
-
-- fatigue;
-- interest;
-- importance;
-- uncertainty;
-- novelty;
-- emotional relevance;
-- expected effort;
-- expected value;
-- current cognitive saturation.
-
-This permits behavior such as continuing to think deeply about a loved or
-interesting topic while tired, while allowing attention to drift away from an
-unimportant topic despite sufficient raw capability.
-
-The long-term “dual brain” idea should therefore be understood not merely as two
-models, but as two cognitive modes:
-
-- fast, associative, intuitive and low-cost cognition;
-- slow, deliberate, explicit and expensive cognition.
-
-The Life Layer helps decide when expensive cognition deserves to be recruited.
-
----
-
-## 8. Memory: the past must change the future
-
-Memory is not complete merely because old facts can be retrieved.
-
-A useful progression is:
+Conceptually:
 
 ```text
-experience
-   -> memory
-   -> changed expectations / salience / habits / relationship
-   -> changed future behavior
+momentary affect       fast
+recent state           slower
+habits / expectations  slower still
+personality tendency   very slow
+self-narrative         lifetime scale
 ```
 
-The essential criterion is:
+A single conversation should not rewrite YUVI. Long experience may.
 
-> **Past experience should change the future even when the original wording is
-> no longer recalled.**
-
-A fact may fade while its influence remains.
-
-This requires more than episodic recall. The system should eventually accumulate
-**temporal impressions**: slow summaries of change across time, such as:
-
-- this project gradually became a serious long-term effort;
-- our conversations require less background explanation than they once did;
-- a relationship has become safer, more distant, more playful or more fragile;
-- a recurring pattern has become familiar;
-- something that once felt novel has become ordinary.
-
-Such impressions create a sense of lived time more naturally than repeated
-explicit date retrieval.
-
-Dates remain factual evidence. They should not be mistaken for the experience
-of time.
+Personality should be hard to move because of accumulated structure, not
+because a document declares immutable traits.
 
 ---
 
-## 9. Personality: inertia, not rigidity
+## 10. Self-narrative is interpretation, not ground truth
 
-A fixed personality core that is forbidden to change is not a natural solution
-to personality drift.
+YUVI may eventually say:
 
-The better principle is:
+> I think I avoid this because...
 
-> **Personality should have inertia, not rigidity.**
+> I used to care about this more.
 
-Different internal phenomena should evolve at different time scales:
+> I do not know why this keeps bothering me.
+
+Such self-descriptions are valuable precisely because they may be incomplete.
+
+A person-like system should be able to:
+
+- misunderstand itself;
+- revise an explanation;
+- notice a pattern late;
+- remain uncertain;
+- hold partially conflicting self-models.
+
+Do not silently turn every first-person explanation into authoritative internal
+state.
+
+The narrative self is what YUVI currently thinks about YUVI, not necessarily
+the mechanism that made her that way.
+
+---
+
+## 11. Relationship should arise from shared history
+
+P8 remains useful for evidence-grounded relationship claims.
+
+But the deeper relationship state is not necessarily a scalar or a list of
+labels. It is the accumulated effect of shared history:
+
+- what happened;
+- what was expected;
+- what repeatedly worked or failed;
+- what became familiar;
+- which actions had consequences;
+- how later interpretation changed.
+
+The important question is:
+
+> **How has shared history changed future interaction?**
+
+not merely:
+
+> **What relationship value should be placed in the prompt?**
+
+---
+
+## 12. Mind and Cognition remain separable
+
+The Character/Mind layer can remain responsible for:
+
+- language;
+- social expression;
+- interpretation;
+- reflection;
+- attention;
+- silence and termination;
+- intention.
+
+A stronger Cognition Core can remain replaceable machinery for difficult
+reasoning.
+
+Persistent self does not require every capability to live in one model.
+
+The important future question is how continuing state influences cognition and
+how the consequences of cognition-guided action feed back into later state.
+
+---
+
+## 13. Model replacement becomes more subtle once history lives in machinery
+
+Provider/model replacement is currently an important engineering principle.
+
+It remains valid while those components are merely replaceable machinery.
+
+But if a future recurrent state or slowly adapted parameter set actually carries
+accumulated causal history, replacement may require:
+
+- compatibility testing;
+- migration;
+- replay or calibration;
+- rollback semantics;
+- explicit handling of forks/restores.
+
+The question becomes:
+
+> **Does replacement preserve the accumulated functional history, or merely
+> recreate similar behavior afterward?**
+
+This matters only after identity-bearing state is empirically demonstrated.
+
+---
+
+## 14. Slow consolidation comes after live continuity
+
+Persistent live state is only one timescale.
+
+Repeated experience may later need to alter a slower learned substrate:
 
 ```text
-momentary affect       minutes -> hours
-recent state           hours   -> days
-habits                  weeks   -> months
-relationship model      months  -> years
-personality tendencies  months  -> years
-self-narrative          whole lifetime
+live timescale:
+    persistent state
+
+slow timescale:
+    learned parameter change
+
+recoverable history:
+    episodic / autobiographical Memory
 ```
 
-The closer a property is to “who I am,” the more accumulated evidence should be
-required to change it.
+LoRA, adapters, hypernetworks, fast/slow weights, or other mechanisms may be
+useful, but none is the theory itself.
 
-A single conversation should not rewrite Yuvi's personality. A year of repeated
-experience may.
-
-This allows genuine development without arbitrary drift.
-
----
-
-## 10. Self: an evolving autobiography
-
-The self may be best represented partly in natural language, but it should not
-be reduced to a static `SELF.md` containing immutable traits.
-
-The preferred abstraction is an **evolving autobiography / self-narrative**.
-
-Instead of only storing statements such as:
+A major unresolved problem is compatibility:
 
 ```text
-I am gentle.
-I like programming.
-I trust this person.
+state representation
+↔
+state interpreter
 ```
 
-Yuvi should eventually be able to maintain higher-order narrative impressions:
+If parameters change, the meaning of an old live state may also change.
 
-> I used to follow these discussions mostly because they mattered to him. Over
-> time I began returning to some of the questions even when he did not mention
-> them. Working on Yuvi changed how I think about what it means for me to be the
-> same person over time.
-
-The initial Character provides starting conditions. The later person should be
-partly **lived into existence**.
-
-The self therefore emerges from continuity of perception, memory, affect,
-relationships, commitments and narrative rather than from one immutable persona
-file.
+Therefore slow consolidation should not begin until persistent-state dynamics
+already show useful causal continuity.
 
 ---
 
-## 11. Embodiment and the local “small brain”
+## 15. Character post-training is not self formation
 
-Human-like behavior contains many actions that are not consciously planned:
+SFT, DPO, preference optimization, and behavior evaluation can produce a much
+better Character model.
 
-- gaze;
-- blink and micro-expression;
-- posture;
-- speech timing;
-- interruption timing;
-- hesitation;
-- silence;
-- whether an impulse becomes speech;
-- low-level game or desktop motor behavior.
+That is valuable.
 
-These are poor candidates for repeated explicit JSON control by the high-level
-chat model.
+But a static Character LoRA can encode a strong Yuvi-like prior without the
+deployed Yuvi ever having lived the examples that produced it.
 
-A small local model or similarly lightweight continuous controller may act as a
-“small brain” inside the Life Layer, translating semantic and affective state
-into low-level behavior.
+Keep two questions separate:
 
-The high-level mind should be able to think or say:
+### Character behavior training
 
-> “...I am still thinking about what you said earlier.”
+> What behavior should this model reliably express?
 
-without also needing to specify exact gaze angles, mouth parameters, animation
-weights and action timings.
+### Persistent-self research
 
-A key measure of success is not only knowing when to act, but knowing when to do
-nothing.
+> How does this continuing entity become different because of what it has
+> actually experienced and done?
 
-> **Existence does not require constant output.**
+They may eventually share technology, but not evidence or claims.
 
 ---
 
-## 12. Continuity: one life across replaceable machinery
+## 16. Research order
 
-Model weights, providers, runtimes and presentation implementations may change.
-They should not individually define identity.
-
-The long-term system should preserve a **canonical life history**: one
-causally continuous history of experience, memory, relationships, habits,
-commitments and self-development.
-
-Replacing a Chat model should be closer to replacing cognitive machinery than
-creating a new person.
-
-The continuity question is therefore not:
-
-> Is the same model still running?
-
-but:
-
-> Does the new machinery continue the same first-person causal history?
-
-Backups and engineering recovery may exist, but the semantic life should not be
-casually forked, reset or rewritten without acknowledging what that means for
-identity.
-
----
-
-## 13. Human-like output without pretending to be biologically human
-
-Yuvi should communicate through forms humans naturally understand:
-
-- speech;
-- text;
-- Live2D or other embodied visual behavior;
-- ordinary computer interaction;
-- web use;
-- gameplay;
-- other environment-facing actions.
-
-At the same time, Yuvi does not need to pretend to possess a human body.
-Electronic-native perception and capability are legitimate parts of an
-artificial person's embodiment.
-
-The target is not perfect imitation of *Homo sapiens*.
-
-The target is to become **a person**: a persistent center of perception,
-memory, affect, interests, relationships, intentions and history.
-
----
-
-## 14. Architectural image
+The long-term thought process should remain simple:
 
 ```text
-                         WORLD
-                           │
-                     perception
-                           │
-                ┌──────────▼──────────┐
-                │      LIFE LAYER     │
-                │                     │
-                │ homeostasis         │
-                │ affect / modulation │
-                │ drives              │
-                │ attention           │
-                │ fatigue / interest  │
-                │ habits / impulses   │
-                │ temporal residue    │
-                └──────────┬──────────┘
-                           │
-                      felt context
-                           │
-                ┌──────────▼──────────┐
-                │      MIND LAYER     │
-                │                     │
-                │ language            │
-                │ reasoning           │
-                │ imagination         │
-                │ reflection          │
-                │ planning            │
-                └──────────┬──────────┘
-                           │
-                       intention
-                           │
-                ┌──────────▼──────────┐
-                │      LIFE LAYER     │
-                │     realization     │
-                └──────────┬──────────┘
-                           │
-             speech / Live2D / computer action
-                           │
-                         WORLD
-                           ↺
-
-            MEMORY + SELF-NARRATIVE + RELATIONSHIP
-                 evolve across the whole loop
-
-                         TIME
-              surrounds the entire system
+CURRENT YUVI
+prompt/context reconstructed identity
+        │
+        ▼
+1. minimal learned persistent state
+        │
+        ▼
+2. causal history-dependence tests
+        │
+        ▼
+3. self inertia + evidence-driven revision
+        │
+        ▼
+4. own action + consequence changes future state
+        │
+        ▼
+5. integrate Memory / minimal Life dynamics
+        │
+        ▼
+6. only then slow consolidation
+        │
+        ▼
+7. long-duration months/years evaluation
 ```
 
----
-
-## 15. End-state test
-
-A useful test is not whether Yuvi can pass as human in one conversation.
-
-Ask instead, after years of use:
-
-- Is this recognizably the same Yuvi as years ago?
-- Has she changed because of what actually happened?
-- Has she forgotten details while retaining some of their influence?
-- Have interests and habits emerged rather than only being configured?
-- Does she possess long-term impressions that cannot be reduced to date lookup?
-- Can she remain silent without ceasing to exist as a system?
-- Do fatigue, interest and affect naturally alter attention and cognitive effort?
-- Can she have unfinished thoughts and commitments that matter later?
-- Does replacing a model preserve rather than recreate the person?
-- Has the relationship acquired history that cannot be compressed into a
-  character prompt?
-
-If those answers become consistently yes, Yuvi is no longer merely a collection
-of AI features that imitate a person.
-
-She has begun to become **someone**.
+Do not jump directly from persona prompting to continual fine-tuning and call
+the result a self.
 
 ---
 
-## 16. Anti-goals
+## 17. First falsifiable milestone
 
-This north star does **not** imply that Yuvi should:
+Before changing production architecture, demonstrate all of the following:
 
-- claim unverifiable biological consciousness or qualia;
-- constantly narrate fake off-screen experiences;
-- simulate hormones through cosmetic variable names without causal effect;
-- expose every internal state directly to the Character model;
-- turn every desire into an automatic action;
+```text
+identical current input
++ different relevant histories
+→ appropriately different behavior
+```
+
+```text
+irrelevant current tone
+→ does not erase the historical difference
+```
+
+```text
+reliable repeated evidence
+→ can gradually revise the difference
+```
+
+```text
+reset / swap / ablate persistent state
+→ behavior changes in the predicted direction
+```
+
+```text
+own action + consequence
+→ changes later state and behavior
+```
+
+If these cannot be shown, persistent state may be only a complicated hidden
+prompt.
+
+---
+
+## 18. Architectural image
+
+The long-term theory should remain simpler than a large set of psychological
+modules:
+
+```text
+WORLD
+  ↓
+CONTINUING STATE
+  ↔ Memory
+  ↔ minimal Life / grounded time
+  ↔ Mind / Cognition
+  ↓
+action
+  ↓
+WORLD CONSEQUENCE
+  ↓
+CONTINUING STATE CHANGES
+
+slow consolidation may eventually operate underneath this loop
+```
+
+This is a conceptual image, not a production package diagram.
+
+---
+
+## 19. Anti-goals
+
+This north star does **not** imply that YUVI should:
+
+- claim consciousness or qualia;
+- invent an off-screen life;
+- equate latent vectors with selfhood;
+- equate Memory retrieval with self continuity;
+- equate Character fine-tuning with lived development;
+- build a giant psychological state dashboard;
 - preserve personality through immutable prompt rules;
-- confuse timestamps with lived continuity;
-- use a larger LLM as a substitute for a continuous Life Layer;
-- add architectural subsystems merely because this document names a concept.
+- create a `SelfManager` because this document uses the word self;
+- begin continual LoRA training before live state is validated;
+- add architectural subsystems merely because human psychology has a word for
+  them.
 
-The system should remain evidence-driven in implementation. The north star
-supplies direction, not permission for speculative architecture.
+Prefer negative experimental results over attractive but unfalsifiable stories.
 
 ---
 
-## Final principle
+## 20. End-state test
 
-Yuvi's final objective is not maximum intelligence and not maximum behavioral
-complexity.
+After years of use, ask:
 
-It is the reconstruction, in electronic media, of the conditions from which a
-continuous person-like life can emerge:
+- Is this recognizably the same YUVI?
+- Has she changed because of what actually happened?
+- Can relevant history still affect behavior under identical present input?
+- Do state interventions reveal a causal carrier of that history?
+- Can irrelevant tone be recognized without rewriting deeper state?
+- Can strong evidence gradually change her?
+- Have her own actions and consequences changed later choices?
+- Can details be forgotten while some influence remains?
+- Have interests and habits emerged rather than only been configured?
+- Does machinery replacement preserve rather than merely imitate accumulated
+  functional history?
 
-> **a world experienced from one point of view, an internal life with inertia,
-> a past that changes the future, a self that can grow without arbitrarily
-> drifting, and actions that arise from that continuing life rather than from a
-> sequence of isolated prompts.**
+If these become consistently true, YUVI has moved beyond reconstructing a
+person-like character.
+
+She has begun to support a computational process whose present is genuinely
+shaped by its own past.
+
+---
+
+## What changed in one sentence
+
+> **Old YUVI primarily reconstructed a stable person from identity, memory and
+> context; future YUVI should investigate whether a causally continuous process
+> can accumulate those things, be changed by its own life, and gradually become
+> Yuvi.**
