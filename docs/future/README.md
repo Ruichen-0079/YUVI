@@ -15,6 +15,15 @@ authoritative for implemented behavior. In particular, [P4 Linux-first](../p4-li
 [Providers](../providers.md), [Prompt Pipeline](../prompt-pipeline.md), and the
 current Runtime contracts take precedence over older roadmap status text.
 
+The long-term philosophical north star is [Artificial Person North Star](00-artificial-person-north-star.md).
+Its new persistent-functional-self research path is intentionally **separate**
+from this operational roadmap; see
+[Persistent Functional Self Research Program](00b-persistent-functional-self-research.md)
+and
+[Current Architecture Reinterpretation](00c-current-architecture-reinterpretation.md).
+Those documents do not reopen closed phases or authorize production persistent-state
+infrastructure.
+
 Linux daily-use and local speech are closed by [Campaign B](campaign-b-closure.md).
 [Campaign C](campaign-c-closure.md) rebaselines Linux local services / Memory: the
 remaining follow-up exposes existing Supervisor diagnostics when Runtime is down.
@@ -59,6 +68,7 @@ installation seam, Chinese UI and objective interaction acceptance.
 | Linux packaged daily deployment | CLOSED | [Linux release gate](linux-release-gate-closure.md); private model/sidecar prerequisites remain external |
 | Behavior assets | CURRENT | specification, evaluation and preference schema in this directory |
 | Character training | DEFERRED | requires reviewed sustained usage evidence |
+| Persistent functional self research | RESEARCH / ISOLATED | `00b`; no production authority |
 | Dream | CURRENT | event-driven consolidation; real idle scheduling remains DEFERRED |
 | Memory maintenance | CURRENT | explicit opt-in, OFF by default; no automatic startup/periodic sweep |
 | Prompt caching | CURRENT | invariant prefix plus provider-bound time-last layout; H measurements distinguish budget protection from prefix stability |
@@ -80,6 +90,13 @@ voice/visual behavior, a character-specific language model, and a separate
 strong cognition core for reliable work. Yuvi should have independent access
 to admitted capabilities without making today's tool inventory part of her
 identity.
+
+The longer-term research north star now asks an additional question that this
+product roadmap does not answer by itself: whether some learned state can remain
+causally continuous across inference boundaries, resist irrelevant contextual
+overwrite, be revised by evidence, and be changed by the agent's own actions and
+consequences. That question is tested separately before it can alter product
+architecture.
 
 The character surface should do less rational work than a general assistant.
 It should primarily express Yuvi's character, decide what deserves attention,
@@ -124,7 +141,15 @@ the replaceable baseline against which behavior is evaluated.
 daily use and enough reviewed evidence exists to distinguish model-behavior
 failures from Memory, prompt, Runtime, provider, or presentation defects.
 
+**PARALLEL RESEARCH / NOT PRODUCT AUTHORITY:** the persistent-self program may
+prototype minimal learned recurrent state, self-inertia, action-conditioned
+state development, and later slow consolidation. It must remain isolated until
+its causal milestones outperform strong prompt/text-state/Memory baselines and
+an explicit integration decision is made.
+
 ## Expected sequence
+
+### Operational product sequence
 
 1. Keep the closed P8 / Character ABI / Harness / Cognition / embodiment
    boundaries stable; do not reopen them without a proven regression or an
@@ -138,13 +163,27 @@ failures from Memory, prompt, Runtime, provider, or presentation defects.
 4. Add a Temporal or Continuity semantic atom only when a repeatable failure
    cannot be solved by the current context/time projection; never build a
    generic manager pre-emptively.
-5. Build Phase 8 behavior spec, eval, and dataset-governance assets.
+5. Maintain Phase 8 behavior spec, eval, and dataset-governance assets.
 6. Land and operate Yuvi using the replaceable DeepSeek V4 Flash-class Chat
    path plus the existing separate Cognition path.
 7. Accumulate reviewed real-use evaluation evidence and fix non-model defects.
 8. Only after the operational gate passes, consider Phase 9 base-model bakeoff,
    then evidence-gated Phase 10 SFT, Phase 11 DPO, Phase 12 shadow/A-B, and
    Phase 13 preference-data flywheel.
+
+### Parallel persistent-self research sequence
+
+This is not inserted into the production phase numbering:
+
+1. minimal persistent learned state;
+2. causal history-dependence under identical current input;
+3. state reset/swap/ablation tests;
+4. self-inertia against irrelevant tone/context shifts;
+5. gradual revision under reliable evidence;
+6. own-action + consequence conditioned development;
+7. comparison against text-state and Memory baselines;
+8. only then, slow parameter consolidation and state/parameter compatibility;
+9. long-duration months/years evaluation.
 
 Data/evaluation collection may begin earlier when provenance and labeling are
 sound. Raw private conversation is not training data by default. Post-training
@@ -157,6 +196,10 @@ The semantic ownership map remains valid even when an owner is currently only
 reserved. “Owner” means where that meaning must live if/when it is explicitly
 implemented; it does not require a dedicated service, manager, table, or phase
 before product evidence needs it.
+
+The persistent-self research track is deliberately **not** added as a new owner
+in this table. It has no product semantic authority until an explicit future
+migration is justified.
 
 | Layer                | Semantic responsibility                                                                                                                                                 | Must not absorb                                                                                               |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
@@ -338,8 +381,17 @@ baseline. Full Temporal/Continuity work is gap-driven. Likewise, do not begin
 Phases 9–13 merely because Phase 8 assets exist; the sustained real-use gate is
 mandatory.
 
+The same discipline applies to persistent-self research: do not create
+`SelfManager`, `PersonalityEngine`, `AttachmentEngine`, `IdentityVectorStore`,
+or automatic continual-training services merely because the north star now
+mentions persistent state. Research prototypes must first establish causal
+value in isolation.
+
 ## Document map
 
+0. [Artificial Person North Star](00-artificial-person-north-star.md)
+   - [Persistent Functional Self Research Program](00b-persistent-functional-self-research.md)
+   - [Current Architecture Reinterpretation](00c-current-architecture-reinterpretation.md)
 1. [P8 Identity, Persona, and Relationship](01-p8-identity-persona-relationship.md)
 2. [Character ABI and Cognition Boundary](02-character-abi-and-cognition-boundary.md)
 3. [Temporal Substrate](03-temporal-substrate.md)
@@ -370,3 +422,10 @@ not automatically “next” merely because the old roadmap numbered it earlier.
 Likewise, the formal post-training roadmap is split: Phase 8 behavior assets may
 proceed now, while Phases 9–13 remain intentionally deferred until sustained
 real YUVI usage produces reviewed evidence.
+
+The new persistent-functional-self documents add a second kind of tension that
+should remain explicit rather than be prematurely resolved: current YUVI uses
+prompt/context reconstruction because that is what today's product can run,
+while the long-term research program tests whether causal state continuity can
+provide something qualitatively stronger. Until those experiments pass, the
+operational roadmap remains authoritative.
