@@ -1,13 +1,6 @@
 # Phase 1 — P8 Identity, Persona, and Relationship
 
 > **Status: CLOSED — P8 through P8-1F is implemented; later speculative extensions are GAP-DRIVEN.**
->
-> **Long-term interpretation:** P8 remains the current product authority for
-> stable identity, authored persona constraints, correction, and evidence-grounded
-> relationship meaning. Under the persistent-functional-self north star, P8 is
-> **not** assumed to be the complete causal source of a mature Yuvi's personality.
-> See [Artificial Person North Star](00-artificial-person-north-star.md) and
-> [Current Architecture Reinterpretation](00c-current-architecture-reinterpretation.md).
 
 Current implementation is indexed in [the roadmap](README.md). Detailed phase plans below preserve historical design reasoning; they are not a new work queue.
 
@@ -18,16 +11,6 @@ evidence-grounded answer to “What is the relationship and background context
 here?” This phase creates semantic authority for identity/persona/relationship
 interpretation without turning Memory records, prompt sections, or model
 self-report into truth.
-
-For the current operational architecture, this remains the correct authority.
-Long term, however, the phrase “Who is Yuvi?” must be read carefully. P8 answers
-what identity/persona/relationship meaning is authorized and safe to project; it
-does not by itself prove that a causally continuous self exists across
-inference boundaries.
-
-A future persistent self, if demonstrated, should accumulate characteristics
-through lived state transition and learning rather than requiring P8 to grow
-into an exhaustive personality specification.
 
 ## 2. Responsibility
 
@@ -44,10 +27,6 @@ P8 owns:
 P8 does not reduce a relationship to an affinity, trust, intimacy, or mood
 score. It may express qualitative, evidence-grounded context only when the
 evidence supports it.
-
-Under the long-term persistent-self research direction, P8 also must **not** be
-expanded by default into a comprehensive psychological state or a textual
-replacement for continuing internal state.
 
 ## P8-1A implementation boundary
 
@@ -80,12 +59,6 @@ description, an explicit identity boundary, and a semantically appropriate
 user-controlled invariant. It does not encode learned behavior, wording,
 warmth, brevity, jokes, teasing, sentence structure, or other Character Model
 style. No relationship conclusion or relationship scalar is implemented.
-
-That small authored surface is also the preferred long-term direction. A lack of
-human-like personality should not automatically be repaired by adding more
-invariants. If future research demonstrates a continuing learned self, authored
-persona should increasingly act as initialization and explicit boundary rather
-than exhaustive identity content.
 
 P8-1A remains limited to authored identity/persona semantics. Memory-backed
 evidence adaptation, recent-conversation integration, correction/revision
@@ -341,133 +314,207 @@ boundary described below.
 
 | Candidate owner      | Boundary audit                                                                                                                                                                           |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Runtime              | Runtime stores, versions, and transports P8 artifacts but cannot decide identity or relationship meaning.                                                                              |
-| Memory               | Memory is evidence authority: retrieval authorization, scope, eligibility, filtering, ranking, provenance, validity/status, retention, expiry, and record lifecycle stay there.        |
-| **P8**               | P8 owns stable identity/persona semantics, evidence-grounded relationship interpretation, uncertainty/conflict, and explicit correction/revision semantics.                            |
-| Temporal             | Supplies elapsed/recency meaning when needed; time alone cannot establish relationship progression or P8 truth.                                                                         |
-| Continuity           | Owns unfinished relevance if later implemented; it must not absorb stable persona or relationship interpretation.                                                                       |
-| Character Model      | Expresses P8 meaning naturally but does not create or revise P8 authority merely by saying something.                                                                                   |
-| Cognition Core       | May assist hard interpretation when explicitly requested, but its output is evidence/advice to the P8 authority rather than automatic truth.                                            |
-| Character Harness    | Projects and validates P8 context for the model boundary; it does not infer, persist, or revise P8 meaning.                                                                              |
-| Presentation         | Renders behavior; no animation, tone, or presentation state establishes relationship truth.                                                                                             |
+| Runtime              | Runtime stores, versions, and transports P8 artifacts but cannot decide identity or relationship meaning merely because it owns persistence.                                             |
+| Memory               | Memory owns evidence records plus retrieval eligibility, filtering, and ranking; it is not a Persona database and does not promote a relationship-tagged record into relationship truth. |
+| **P8**               | Owns stable identity and evidence-grounded persona/relationship interpretation because these meanings require consistency across models and interactions.                                |
+| Continuity           | Continuity owns unfinished relevance and recent residue, not stable identity or relationship authority.                                                                                  |
+| Character Model      | Expresses P8 context naturally but cannot rewrite P8 by self-report or ordinary generated prose.                                                                                         |
+| Cognition Core       | May assist with difficult interpretation, contradiction analysis, or verification, but does not become Yuvi's identity authority.                                                        |
+| Character Harness    | Selects authorized P8 projections for ABI inclusion under the context budget; it does not re-rank Memory, invent, persist, or independently reinterpret P8.                              |
+| MCP capability layer | May retrieve external evidence under admission; dynamic tools and servers cannot define Yuvi's identity.                                                                                 |
+| Presentation         | Renders character behavior; appearance, animation, or voice state does not establish Persona or relationship truth.                                                                      |
 
-Long term, this authority map should be read as **epistemic/product authority**,
-not as proof that P8 is the full physical substrate of identity. If a persistent
-functional state is later demonstrated, P8 may remain the authority for explicit
-identity constraints and grounded claims while learned state carries additional
-causal history.
+This responsibility belongs in P8 because it must remain stable when Runtime
+internals, Memory backends, models, providers, MCP servers, and presentation
+surfaces change.
 
 ## 6. Hard invariants
 
-- Memory evidence is not itself P8 truth.
-- Assistant/model output is never promoted to P8 truth merely through
-  repetition, confidence, or self-reference.
-- Stable authored identity/persona rules cannot be silently rewritten by
-  ordinary conversation.
-- P8 does not invent relationship meaning from absence of evidence.
-- Unknown, empty, partial, unavailable, error, and conflicting evidence states
-  remain distinct.
-- Recent conversation is not automatically durable Memory.
-- P8 does not own generic mood, transient attention, Continuity, Runtime
-  execution, or provider behavior.
-- No relationship scalar is required.
-- Explicit correction/control remains auditable and provenance-preserving.
-- Current P8 remains product authority until an explicitly designed migration,
-  regardless of speculative persistent-self research.
-- Lack of personality depth must not automatically justify adding more authored
-  persona invariants or psychological relationship fields.
+- P8 is evidence-grounded and provenance-aware.
+- Stable identity cannot drift from ordinary conversation or assistant output.
+- Model self-report is not Runtime or P8 authority.
+- Explicit user correction and control outrank model preference.
+- Intimacy, dependency, trust, exclusivity, or relationship status cannot be
+  invented without evidence.
+- Assistant-only relationship or affect prose cannot create a self-reinforcing
+  state loop.
+- `empty`, `unavailable`, `error`, and `partial` Memory outcomes remain
+  semantically distinct.
+- P8 is not a generic mood engine and does not own transient conversational
+  attention.
+- P8 consumes Memory-authorized evidence and owns only its
+  identity/persona/relationship interpretation. It does not reimplement scope,
+  status, time-validity, retrieval-eligibility, or rank authority.
+- P8 output is bounded and safe for projection; raw Memory/backend DTOs do not
+  cross into the model ABI.
+- No implementation may weaken existing P4 durability or P6 proactive
+  semantics.
 
 ## 7. Explicit non-goals
 
-- A full personality simulator.
-- A mood engine.
-- A relationship score.
-- A replacement for Memory retrieval.
-- A hidden social graph.
-- Automatic inference of intimacy or attachment from elapsed time.
-- Treating the model's self-description as authoritative identity state.
-- Making P8 the persistence container for a future latent self merely because it
-  already owns identity semantics.
-- Expanding Persona text until it substitutes for learned continuity.
+- A persistent `RelationshipState`, `DynamicSelf`, or universal affinity/trust
+  score.
+- Generic emotional simulation or off-screen relationship evolution.
+- Continuity, open-thread tracking, initiative, or idle behavior.
+- A class hierarchy, large rules engine, or new generic manager abstraction.
+- Training the Character Model.
+- Selecting cognition backends, providers, MCP tools, or presentation actions.
 
 ## 8. Dependencies
 
-- Current Memory evidence contracts and provenance rules.
-- Runtime persistence and identity/address transport.
-- Character ABI projection.
-- Later temporal context when recency is semantically required.
-- Explicit user correction and control paths.
+- Structural R closeout is accepted.
+- Current Memory evidence/provenance semantics remain intact.
+- Current identity scope isolation and explicit user settings remain
+  trustworthy.
+- The phase can define its semantic output before the Character ABI wire form is
+  selected.
 
-The persistent-self research program is **not** a current dependency. Its
-results may eventually motivate a new integration boundary, but only after
-causal milestones are demonstrated.
+Temporal and Continuity phases are downstream. P8 may initially treat recency
+conservatively rather than inventing temporal behavior before phase 3.
 
 ## 9. Relationship to existing implementation
 
-**CURRENT:** P8 through P8-1F is implemented and remains authoritative for the
-present product architecture. Its small authored invariant set, evidence
-interpretation, correction persistence, provenance, scope isolation, and
-unknown/conflict behavior should not be reopened merely because the long-term
-north star changed.
+**CURRENT:** Memory has persona/subject identifiers, relationship categories,
+provenance, current-affect detection, and conservative relationship-memory
+handling. `PromptBuilder` has syntactic `SystemIdentity`, `CharacterStyle`, and
+`RelationshipContext` sections. Memory documentation explicitly says evidence
+is not authoritative Relationship, Affect, Persona, Interest, or Commitment
+state.
 
-**LONG-TERM REINTERPRETATION:** if a continuing learned state eventually proves
-itself, P8 should increasingly be understood as the stable identity/address,
-explicit constraint, correction, and epistemic interpretation layer around that
-state — not as the exhaustive definition of everything the person is.
+**IMPLEMENTED P8-1A:** P8 now owns only the pure, authored identity/persona
+projection described above. Existing prompt fields remain Character/surface
+behavior and are not consumed by this package. No existing Memory category is
+reclassified as P8 truth.
 
-## 10. Acceptance concept
+**IMPLEMENTED P8-1B:** P8 defines the pure evidence interpretation semantics
+described above. The contract still receives only already-authorized evidence
+and does not give P8 Memory retrieval or ranking authority.
 
-P8 remains acceptable when it provides stable, auditable identity/persona and
-relationship meaning without inventing unsupported social state, while staying
-small enough that behavior and personality need not be authored into it.
+**IMPLEMENTED P8-1C:** The pure read-only adapter translates the current
+vendor-neutral Memory outcome/event boundary and a separately bounded recent
+conversation input into P8-1B evidence and a compact projection. It preserves
+scope, access-state, authority, support, candidate-link, and provenance
+boundaries without wiring the projection into Runtime or PromptBuilder.
 
-A future persistent-self integration would require separate acceptance criteria.
-It must not be accepted merely because a latent vector can be stored under a P8
-identity address.
+**IMPLEMENTED P8-1D:** P8 now accepts only explicit user-authorized semantic
+correction objects and applies deterministic `REVISE`/`RETRACT` behavior to
+stable interpretation references and explicitly user-revisable authored
+invariants. It preserves correction provenance, prior meaning/evidence
+references, explicit supersession lineage, conflict status, scope/identity
+isolation, and independent Memory access state. It performs no NLP, Memory
+mutation, persistence, Runtime integration, or PromptBuilder integration.
 
-## 11. Risks
+**IMPLEMENTED P8-1E:** P8 now persists explicit correction authority through
+the existing PostgreSQL migration/persistence boundary and reconstructs a
+versioned corrected projection from fresh P8-1C objects plus stable P8-1D
+references. Stored correction history is append-only, idempotent by canonical
+payload, exact-address/scope isolated, validated on read, and fail-closed on
+storage outage or malformed/unknown records. Derived projections are not
+persisted as authority, and no Memory event is created for a P8 correction.
+There is no Runtime, PromptBuilder, Character ABI, UI, or response behavior
+integration in this stage.
 
-- Letting P8 slowly absorb transient affect, attention, Memory lifecycle, or
-  Runtime concerns because they all influence Character behavior.
-- Treating authored Persona as a substitute for a character that should have
-  learned a tendency through experience.
-- Adding relationship scalars because natural behavior is difficult to obtain
-  from current models.
-- Confusing epistemic authority (what may be claimed) with causal substrate
-  (what makes the continuing system different now).
-- Reusing P8 correction semantics for hidden-state mutation without a separate
-  research justification.
+**PLANNED:** P8-1F will add adversarial closure. Character ABI integration,
+prompt projection,
+Continuity, channel social mode, and relationship growth modeling remain
+planned. Weak evidence must produce only weak interpretation; contradictory,
+empty, unavailable, or erroneous evidence must remain explicit.
 
-## 12. Open questions
+## Future-stage constraints
 
-Current product questions remain gap-driven and should be answered from real
-use.
+- Memory owns evidence, including scope, eligibility, validity, retrieval, and
+  ranking. P8 owns grounded identity/persona/relationship meaning only.
+- Explicit user correction/control is a first-class P8 semantic authority, but
+  a Memory event category, recent user utterance, assistant output, or model
+  guess does not become correction authority without a separately supplied,
+  explicit semantic correction object.
+- Corrections remain addressed to a character instance/persona profile and an
+  opaque evidence scope. Future person, group, and platform-local scopes, plus
+  multiple character instances and persona profiles, must remain possible
+  without turning P8 into a global relationship registry.
+- Relationship meaning remains qualitative and evidence-grounded. Weak
+  evidence cannot justify a strong interpretation, and no affinity, trust,
+  intimacy, relationship-level, mood, or dependency scalar is permitted.
+- Recent conversation is a separate bounded input, not long-term Memory and
+  not a durable identity fact. P8 is not Continuity and does not own unfinished
+  relevance, commitments, residue, or attention.
+- P8 is not channel social mode and cannot own QQ/group behavior or platform
+  adapters. Future person/group/platform scope must remain possible without
+  exposing account identifiers to the model-facing projection.
+- Multiple character instances and persona profiles must remain possible;
+  current defaults do not establish a global singleton.
+- A semantic P8 projection is not `PromptBuilder` output and must not be
+  defined by `PromptBuildInput`, `PromptSectionName`, or prompt section text.
+  A later Character ABI adapter may consume a compact projection.
+- Character post-training may learn expression and preferences, but it cannot
+  redefine P8 identity, provenance, uncertainty, or correction semantics.
+- Corrections and revisions are first-class future P8 capabilities. Derived
+  artifacts must remain reconstructable from explicit source inputs and bounded
+  provenance rather than becoming opaque new authority.
+- Provenance should be sufficient for audit while minimizing private content;
+  raw Memory records, database identifiers, provider/backend details, and
+  platform account IDs must not cross into Character-facing semantics.
 
-Long-term research questions include:
+## 10. Likely staged implementation shape
 
-- Which P8 meanings remain necessary once a persistent learned state exists?
-- Which authored invariants are true identity boundaries versus temporary
-  bootstrap Persona?
-- How should explicit user correction interact with learned internal state
-  without pretending that natural-language correction directly rewrites an
-  arbitrary latent representation?
-- Can relationship interpretations remain auditable while some relationship
-  effects emerge implicitly through learned state?
-- When does a change in learned state require a P8-visible identity revision,
-  and when is it ordinary development within the same identity?
+1. **Implemented in P8-1A:** Freeze the concise authored identity/persona
+   invariant representation and minimum projection vocabulary.
+2. **Implemented in P8-1B:** Define minimum evidence interpretation/projection
+   meanings, including unknown, empty, unavailable, error, partial, and
+   conflict.
+3. **Implemented in P8-1C:** Adapt Memory-authorized evidence and a separately
+   bounded recent-conversation input into the read-only P8-1B contract and
+   compact projection.
+4. **Implemented in P8-1D:** Add correction/revision and audit behavior over
+   stable P8-1D target bindings.
+5. **Implemented in P8-1E:** Add append-only durable correction authority and
+   deterministic versioned reconstruction through the existing persistence
+   boundary.
+6. P8-1F: Validate multi-session stability, scope isolation, privacy, outage,
+   and backend replacement.
 
-## 13. Handoff boundary
+Each stage should add the smallest semantic unit and tests needed. Do not build
+a generic relationship framework in anticipation of hypothetical consumers.
 
-For the current product, P8 continues to hand the Character ABI a compact,
-provenance-grounded identity/persona/relationship projection.
+## 11. Acceptance concept
 
-For long-term research, the conceptual boundary is stricter:
+P8 is acceptable when the same grounded identity and relationship context can
+be reconstructed across Runtime/model replacement; contradictory or
+unavailable evidence remains explicit; ordinary assistant prose cannot mutate
+identity; user corrections take effect predictably; and no ungrounded
+relationship state appears in Character context.
 
-```text
-P8: what identity and relationship claims are authorized
+Acceptance should include adversarial cases for false familiarity, invented
+intimacy, stale evidence, scope leakage, assistant-derived feedback loops,
+backend outage, and explicit user correction.
 
-persistent state: what accumulated experience has causally made the continuing
-system different
-```
+## 12. Risks
 
-Neither should silently absorb the other.
+- Conflating a Memory category with semantic authority.
+- Freezing too much personality as rules and making Yuvi mechanical.
+- Allowing a model-generated summary to lose provenance or amplify certainty.
+- Encoding relationship growth as a scalar that invites optimization and
+  manipulation.
+- Letting P8 absorb short-term affect, attention, or Continuity.
+- Persisting sensitive interpretation without adequate user visibility and
+  correction.
+
+## 13. Open questions
+
+- Which identity/persona elements require explicit user-visible editing?
+- Which relationship interpretations may persist as derived artifacts, and
+  which should be reconstructed on demand?
+- How should conflicting evidence be presented without exposing unnecessary
+  private detail?
+- What minimum provenance is required in the Character ABI versus diagnostics?
+- When should Cognition Core assist complex social interpretation?
+- What revision and migration policy preserves meaning when the P8 projection
+  evolves?
+
+## 14. Handoff boundary to the next phase
+
+Phase 1 hands phase 2 a semantic P8 projection with defined meaning,
+provenance/uncertainty behavior, and explicit non-authorities. Phase 2 may place
+that projection in the Character ABI. It may not redesign P8 semantics, expose
+P8 storage records directly to the model, or freeze detailed TypeScript types
+prematurely.
