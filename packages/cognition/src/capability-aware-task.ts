@@ -8,9 +8,9 @@ import {
   createCognitionReasoningTask,
   normalizeCognitionReasoningOutput,
   type Cognition6AReasoningTask,
-  type CognitionCapabilityDescriptionSet,
-  type CognitionCapabilityRequest
+  type CognitionCapabilityDescriptionSet
 } from "./index.js";
+import type { CognitionInteractionDecision } from "./interaction-round.js";
 
 export const COGNITION_6U_VERSION = "cognition-6u.v1" as const;
 export const COGNITION_6W_VERSION = "cognition-6w.v1" as const;
@@ -21,17 +21,10 @@ export type CognitionCapabilityAwareReasoningTask = Readonly<{
   capabilities: CognitionCapabilityDescriptionSet;
 }>;
 
-export type CognitionCapabilityAwareReasoningDisposition =
-  | Readonly<{
-      version: typeof COGNITION_6W_VERSION;
-      kind: "COMPLETE";
-      result: NormalizedCognitionResult;
-    }>
-  | Readonly<{
-      version: typeof COGNITION_6W_VERSION;
-      kind: "REQUEST_CAPABILITY";
-      request: CognitionCapabilityRequest;
-    }>;
+/** The production 6W wire remains the non-continuing subset of the round contract. */
+export type CognitionCapabilityAwareReasoningDisposition = Readonly<{
+  version: typeof COGNITION_6W_VERSION;
+}> & Exclude<CognitionInteractionDecision, { kind: "CONTINUE" }>;
 
 type UnknownObject = Record<string, unknown> & {
   version?: unknown;

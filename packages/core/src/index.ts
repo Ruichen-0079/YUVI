@@ -127,6 +127,16 @@ export {
 } from "./runtime-capability-admission.js";
 
 export {
+  RUNTIME_INTERACTION_STATE_VERSION,
+  RUNTIME_SINGLE_CAPABILITY_INTERACTION_LIMITS,
+  RUNTIME_INTERACTION_FAILURE_REASONS,
+  createRuntimeInteractionState,
+  type RuntimeInteractionState,
+  type RuntimeInteractionTerminal,
+  type RuntimeInteractionFailureReason
+} from "./runtime-interaction-state.js";
+
+export {
   RUNTIME_EMBODIED_EFFECT_IDENTITY_7G_VERSION,
   allocateRuntimeEmbodiedEffectIdentity,
   type RuntimeEmbodiedEffectIdAllocator,

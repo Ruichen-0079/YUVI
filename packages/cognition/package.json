@@ -23,13 +23,18 @@
       "types": "./src/capability-aware-task.ts",
       "development": "./src/capability-aware-task.ts",
       "import": "./dist/capability-aware-task.js"
+    },
+    "./interaction-round": {
+      "types": "./src/interaction-round.ts",
+      "development": "./src/interaction-round.ts",
+      "import": "./dist/interaction-round.js"
     }
   },
   "scripts": {
     "build": "tsc -b tsconfig.json",
     "check": "tsc -b tsconfig.json --pretty false",
     "test": "vitest run --passWithNoTests && pnpm run test:runtime-import",
-    "test:runtime-import": "tsc -b tsconfig.json && node --input-type=module -e \"await import('./dist/index.js'); await import('./dist/capability-observation.js'); await import('./dist/post-capability-task.js'); await import('./dist/capability-aware-task.js'); await import('../character-harness/dist/cognition-result.js')\""
+    "test:runtime-import": "tsc -b tsconfig.json && node --input-type=module -e \"await import('./dist/index.js'); await import('./dist/capability-observation.js'); await import('./dist/post-capability-task.js'); await import('./dist/capability-aware-task.js'); await import('@companion/cognition/interaction-round'); await import('../character-harness/dist/cognition-result.js')\""
   },
   "dependencies": {
     "@companion/character-abi": "workspace:*",
