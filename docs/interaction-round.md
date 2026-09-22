@@ -2,6 +2,8 @@
 
 Status: **A1 contract complete; consumed by the [A2 bounded Runtime loop](validation/v0.1.3-a2-bounded-loop.md)**.
 
+[A3 execution evidence](validation/v0.1.3-a3-execution-evidence.md) defines live provider-facing request/observation adjacency and persistence rules.
+
 The sections below record the A1 boundary and validation baseline. A2 supplies the executable transitions and live configuration described in its closure record.
 
 Intake: [A0 baseline](validation/v0.1.3-a0-baseline.md), followed by a fresh fetch on 2026-09-22. `origin/main` remained `4278eb36b1a01acde82dde27b806dca996739972`; open PRs #315/#321, issue #51 and the two successful main workflows were unchanged. A transient fetch/API TLS failure succeeded on retry. The clean A0 documentation commit is the only preceding campaign change; old worktrees were not reused.

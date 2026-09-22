@@ -367,7 +367,7 @@ it.each([false, true])("reaches Runtime-admitted reads, bounded Cognition and Ch
   const directory = await mkdtemp(path.join(tmpdir(), "yuvi-read-text-"));
   createdDirs.push(directory);
   const authorizedPath = path.join(directory, "evidence.txt");
-  await writeFile(authorizedPath, "The verified count is forty-two.");
+  await writeFile(authorizedPath, "The verified count is forty-two. EXECUTION_EVIDENCE_ONLY_7f2a");
   const requests: RecordedRequest[] = [];
   const replies = [
     '{"disposition":"NEED_COGNITION","focus":"verify count"}',
@@ -411,6 +411,52 @@ it.each([false, true])("reaches Runtime-admitted reads, bounded Cognition and Ch
     expect(JSON.stringify(requests[multiple ? 5 : 3])).toContain("COGNITION_RESULT");
     expect(JSON.stringify(requests[multiple ? 5 : 3])).toContain("The evidence says forty-two.");
     expect(JSON.stringify(requests)).not.toContain(authorizedPath);
+
+    // The real provider transport preserves adjacency, including repeated refs.
+    const continuation = requests[multiple ? 4 : 2]!.messages!;
+    const evidenceMessages = continuation.filter((message) =>
+      message.content.includes("EXECUTION_EVIDENCE_ONLY_7f2a")
+    );
+    expect(evidenceMessages).toHaveLength(multiple ? 2 : 1);
+    for (const observation of evidenceMessages) {
+      const index = continuation.indexOf(observation);
+      expect(continuation[index - 1]!.role).toBe("assistant");
+      expect(continuation[index - 1]!.content).toMatch(/^REQUEST_CAPABILITY\n/);
+      expect(observation.role).toBe("user");
+    }
+    expect(reply.body).not.toContain("EXECUTION_EVIDENCE_ONLY_7f2a");
+    const history = await app.inject("/v1/conversations/history?sessionId=read-text");
+    expect(
+      history
+        .json()
+        .messages.map((message: { role: string; content: string }) => ({
+          role: message.role,
+          content: message.content
+        }))
+    ).toEqual([
+      { role: "user", content: "Verify the count" },
+      { role: "assistant", content: "The count is forty-two." }
+    ]);
+    expect((await app.inject("/memory/recent?limit=20")).json().memories).toEqual([]);
+
+    // A later turn may receive the final conversation, never the ephemeral evidence.
+    const laterStart = requests.length;
+    replies.push('{"disposition":"RESPOND"}', "You are welcome.");
+    const later = await app.inject({
+      method: "POST",
+      url: "/message",
+      payload: {
+        sessionId: "read-text",
+        text: "Thank you",
+        options: { readMemory: true, writeMemory: false }
+      }
+    });
+    expect(later.statusCode, later.body).toBe(200);
+    const laterContext = JSON.stringify(requests.slice(laterStart));
+    expect(laterContext).toContain("The count is forty-two.");
+    expect(laterContext).not.toMatch(
+      /EXECUTION_EVIDENCE_ONLY_7f2a|Read the authorized count evidence|Verify the same admitted evidence again|The evidence says forty-two\.|Status: SUCCESS/
+    );
   } finally {
     await app.close();
   }

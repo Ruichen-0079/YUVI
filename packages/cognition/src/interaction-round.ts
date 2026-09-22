@@ -12,6 +12,7 @@ import {
   COGNITION_6P_VERSION,
   createCognitionPostCapabilityReasoningInput
 } from "./post-capability-task.js";
+import { createCognitionCapabilityObservation } from "./capability-observation.js";
 import type { ReasoningInput, ReasoningOutput } from "@companion/providers";
 
 export const COGNITION_INTERACTION_ROUND_VERSION = "cognition-interaction-round.v1" as const;
@@ -77,10 +78,19 @@ export function createCognitionInteractionRound(
   }
 }
 
-/** Provider-neutral A2 protocol; each observation uses the existing 6P projection. */
+/**
+ * Project Runtime-retained exchanges as adjacent assistant request / user
+ * observation pairs, followed by the next generated Cognition continuation.
+ * The reserved tool role is not a supported provider protocol. Reuse 6P's
+ * evidence-only observation projection; never insert other context into a pair.
+ * Historical requests use the authorized inventory, since current discovery can
+ * shrink after an invocation. New requests still use the current task inventory.
+ * This projection neither persists evidence nor grants Memory/P8 truth.
+ */
 export function createCognitionInteractionReasoningInput(
   taskInput: unknown,
-  observations: readonly unknown[]
+  exchanges: readonly unknown[],
+  authorizedCapabilities: unknown
 ): ReasoningInput {
   const task = createCognitionCapabilityAwareReasoningTask(taskInput);
   const initial = createCognitionCapabilityAwareReasoningInput(task);
@@ -97,13 +107,38 @@ export function createCognitionInteractionReasoningInput(
       ].join("\n")
     })
   ];
-  for (const observation of observations) {
+  for (const exchange of exchanges) {
+    if (
+      typeof exchange !== "object" ||
+      exchange === null ||
+      Array.isArray(exchange) ||
+      Object.keys(exchange).some((key) => key !== "request" && key !== "observation")
+    ) {
+      throw new Error("Cognition exchange must contain only a request and observation.");
+    }
+    const pair = exchange as Record<string, unknown>;
+    const request = createCognitionCapabilityRequest(pair["request"], authorizedCapabilities);
+    const observation = createCognitionCapabilityObservation(pair["observation"]);
+    if (request.capabilityRef !== observation.capabilityRef) {
+      throw new Error("Cognition exchange observation must match its request.");
+    }
     const projected = createCognitionPostCapabilityReasoningInput({
       version: COGNITION_6P_VERSION,
       task: task.task,
       observation
     });
-    messages.push(projected.messages[1]!);
+    messages.push(
+      Object.freeze({
+        role: "assistant",
+        content:
+          "REQUEST_CAPABILITY\n" +
+          JSON.stringify({
+            capabilityRef: request.capabilityRef,
+            request: request.request
+          })
+      }),
+      projected.messages[1]!
+    );
   }
   return Object.freeze({ messages: Object.freeze(messages) as ReasoningInput["messages"] });
 }

@@ -813,3 +813,43 @@ for (const streaming of [false, true]) {
     });
   });
 }
+
+it("offers Memory only the final Character turn after bounded execution evidence", async () => {
+  const harness = characterHarness({
+    initial: decisionFixture({ disposition: "NEED_COGNITION", focus: "verification" }),
+    reentry: decisionFixture({ disposition: "RESPOND", text: "The visible answer." })
+  });
+  type Round = { kind: "REQUEST_CAPABILITY"; request: string } | { kind: "COMPLETE" };
+  const turn = await runTurn({
+    character: harness.character,
+    cognition: async (_request, _problem, options) => {
+      const outcome = await executeRuntimeCognitionInteraction<Round, string>({
+        execution: options.execution,
+        signal: options.signal,
+        limits: DEFAULT_COGNITION_LIMITS,
+        policyAllowsCapability: true,
+        reason: async (history) =>
+          history.length === 0
+            ? { kind: "REQUEST_CAPABILITY", request: "EXECUTION_ONLY_REQUEST" }
+            : { kind: "COMPLETE" },
+        invoke: async () => "EXECUTION_ONLY_OBSERVATION"
+      });
+      expect(outcome.state.capabilityCallsUsed).toBe(1);
+      return {
+        ...roundTripFixture(),
+        result: { ...roundTripFixture().result, answer: "EXECUTION_ONLY_COGNITION_RESULT" }
+      };
+    }
+  });
+  expect(turn.failure).toBeUndefined();
+  expect(turn.extractCandidates).toHaveBeenCalledTimes(1);
+  const extraction = JSON.stringify(turn.extractCandidates.mock.calls);
+  expect(extraction).toContain("The visible answer.");
+  expect(extraction).toContain("Please verify this claim carefully.");
+  expect(extraction).not.toContain("EXECUTION_ONLY_");
+  expect(JSON.stringify(turn.published)).not.toContain("EXECUTION_ONLY_");
+  expect(JSON.stringify(turn.events)).not.toContain("EXECUTION_ONLY_");
+  const history = await turn.conversation.listRecentMessages("character-session", { limit: 10 });
+  expect(history.map((message) => message.role)).toEqual(["user", "assistant"]);
+  expect(JSON.stringify(history)).not.toContain("EXECUTION_ONLY_");
+});

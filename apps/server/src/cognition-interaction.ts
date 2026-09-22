@@ -68,7 +68,11 @@ export async function executeServerCognitionInteraction(input: {
           createReasoningInput: (value) =>
             createCognitionInteractionReasoningInput(
               value,
-              history.map((exchange) => exchange.observation)
+              history.map((exchange) => ({
+                request: exchange.request.request,
+                observation: exchange.observation
+              })),
+              staticRegistry.descriptions
             ),
           normalizeReasoningOutput: (output) =>
             interpretCognitionInteractionOutput(output, current.descriptions),

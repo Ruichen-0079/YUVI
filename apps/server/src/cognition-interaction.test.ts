@@ -69,6 +69,20 @@ describe("production bounded Cognition composition", () => {
       answer: "verified"
     });
     expect(input.mcpClient.callTool).toHaveBeenCalledTimes(2);
+    const messages = generateReasoning.mock.calls[3]![0].messages;
+    expect(messages.map((message) => message.role)).toEqual([
+      "user",
+      "user",
+      "user",
+      "assistant",
+      "user",
+      "assistant",
+      "user"
+    ]);
+    for (const index of [3, 5]) {
+      expect(messages[index]!.content).toBe(need);
+      expect(messages[index + 1]!.content).toContain("observed evidence");
+    }
     expect(generateReasoning).toHaveBeenCalledTimes(4);
     for (const [call, options] of generateReasoning.mock.calls) {
       expect(options).toMatchObject({ allowFallback: false });
@@ -97,6 +111,9 @@ describe("production bounded Cognition composition", () => {
       await executeServerCognitionInteraction(input);
       const continuation = JSON.stringify(generateReasoning.mock.calls[1]![0]);
       expect(continuation).toContain("Status: ERROR");
+      const messages = generateReasoning.mock.calls[1]![0].messages;
+      expect(messages.at(-2)).toEqual({ role: "assistant", content: need });
+      expect(messages.at(-1)!.content).toContain("Status: ERROR");
       expect(continuation).not.toContain("Status: SUCCESS");
       expect(continuation).not.toContain("private details");
       expect(input.mcpClient.callTool).toHaveBeenCalledTimes(1);
