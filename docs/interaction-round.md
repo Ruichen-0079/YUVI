@@ -1,6 +1,8 @@
 # Canonical interaction round — v0.1.3 A1
 
-Status: **contract complete; multi-round execution remains A2**.
+Status: **A1 contract complete; consumed by the [A2 bounded Runtime loop](validation/v0.1.3-a2-bounded-loop.md)**.
+
+The sections below record the A1 boundary and validation baseline. A2 supplies the executable transitions and live configuration described in its closure record.
 
 Intake: [A0 baseline](validation/v0.1.3-a0-baseline.md), followed by a fresh fetch on 2026-09-22. `origin/main` remained `4278eb36b1a01acde82dde27b806dca996739972`; open PRs #315/#321, issue #51 and the two successful main workflows were unchanged. A transient fetch/API TLS failure succeeded on retry. The clean A0 documentation commit is the only preceding campaign change; old worktrees were not reused.
 
@@ -16,7 +18,7 @@ Intake: [A0 baseline](validation/v0.1.3-a0-baseline.md), followed by a fresh fet
 
 `createCognitionInteractionRound` validates already-normalized semantic decisions. It does not parse vendor output or become another Cognition-result normalizer. Existing Character ABI/result validation and inventory-bound request validation remain authoritative. Each variant rejects fields outside its contract and snapshots/freezes its nested payload.
 
-The current `cognition-6w.v1` disposition shares the canonical decision payload type but excludes CONTINUE. Its wire format and production parser are unchanged: unsupported continuation still becomes a bounded ERROR. The new constructor is an explicitly library-only contract until A2 binds it to execution. This is not a claim that the multi-round product path is live.
+The legacy `cognition-6w.v1` disposition shares the canonical decision payload type but excludes CONTINUE. Its wire format and parser are unchanged: unsupported continuation still becomes a bounded ERROR. At A1 closure the constructor was library-only. A2 now binds it to production execution through a separate bounded interaction protocol; the legacy parser remains unchanged.
 
 ## Runtime containment state
 
@@ -31,11 +33,11 @@ The current `cognition-6w.v1` disposition shares the canonical decision payload 
 
 The state contains no model decision, provider selection, concrete tool arguments, transcript, or Memory. Validation copies/freezes caller facts; it cannot prove their history, allocate identities, advance counters, enforce a deadline, or cancel I/O. It is not a second state store or orchestrator.
 
-Existing production containment still comes from Runtime's one Cognition handoff/re-entry, `executeRuntimeCognitionOnce`, 6J capability admission, and the current server read-text composition. The existing AbortSignal remains the cancellation transport. No new controller or independent cancellation authority is introduced by A1.
+At A1 closure, production containment came from Runtime's one Cognition handoff/re-entry, `executeRuntimeCognitionOnce`, 6J capability admission, and the current server read-text composition. The existing AbortSignal remains the cancellation transport. No new controller or independent cancellation authority is introduced by A1.
 
-## A2 obligations
+## A2 obligations (implemented in the linked closure)
 
-A2 must freshly audit and extend the existing Runtime authority to retain this state, charge attempts, and consume semantic proposals. It must propagate the current execution's AbortSignal to both provider and capability calls; check cancellation, current execution identity and deadline at admission and after asynchronous work; make all terminal states absorbing; and preserve shutdown/sealing/draining and no-retry containment. A model's CONTINUE or REQUEST_CAPABILITY cannot reopen a terminal execution or replenish a budget. Larger limits may only enter through the existing configuration authority under A2's explicit implementation and tests.
+A2 was required to freshly audit and extend the existing Runtime authority to retain this state, charge attempts, and consume semantic proposals. It must propagate the current execution's AbortSignal to both provider and capability calls; check cancellation, current execution identity and deadline at admission and after asynchronous work; make all terminal states absorbing; and preserve shutdown/sealing/draining and no-retry containment. A model's CONTINUE or REQUEST_CAPABILITY cannot reopen a terminal execution or replenish a budget. Larger limits may only enter through the existing configuration authority under A2's explicit implementation and tests.
 
 For the current path, the state can describe `(reasoning, capability)` counts `(0,0) → (1,0) → (1,1) → (2,1) → terminal`, or direct completion after `(1,0)`. A1 adds no loop, plugin, effect class, Memory pipeline, context/cache rewrite, provider router, or research architecture.
 

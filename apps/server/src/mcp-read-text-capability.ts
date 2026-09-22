@@ -35,6 +35,7 @@ export type ServerMcpReadTextInput = Readonly<{
   /** Cognition 6H semantic proposal; never parsed into concrete tool arguments. */
   request: unknown;
   capabilityRoundsUsed: number;
+  maxCapabilityCalls?: number | undefined;
   policyAllowsCapability: boolean;
   /** Runtime-authorized concrete file path. Cognition does not choose this value. */
   runtimeAuthorizedPath: string;
@@ -66,6 +67,7 @@ export async function executeServerMcpReadTextCapability(
   const admission = admitRuntimeCapabilityRound({
     version: RUNTIME_CAPABILITY_ADMISSION_6J_VERSION,
     capabilityRoundsUsed: input.capabilityRoundsUsed,
+    maxCapabilityCalls: input.maxCapabilityCalls,
     policyAllowsCapability: input.policyAllowsCapability
   });
   if (admission.status === "REJECTED") {
@@ -109,6 +111,7 @@ export async function executeServerMcpReadTextCapability(
     },
     input.signal === undefined ? undefined : { signal: input.signal }
   );
+  input.signal?.throwIfAborted();
 
   return Object.freeze({
     version: SERVER_MCP_READ_TEXT_6M_VERSION,

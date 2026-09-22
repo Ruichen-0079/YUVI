@@ -13,6 +13,7 @@ export type ServerReadTextObservationRoundInput = Readonly<{
   /** One Cognition 6H semantic request; never interpreted as concrete arguments. */
   request: unknown;
   capabilityRoundsUsed: number;
+  maxCapabilityCalls?: number | undefined;
   policyAllowsCapability: boolean;
   /** Runtime-authorized concrete path. Cognition request text cannot select it. */
   runtimeAuthorizedPath: string;
@@ -46,6 +47,7 @@ export async function executeServerReadTextObservationRound(
     staticRegistry: input.staticRegistry,
     request,
     capabilityRoundsUsed: input.capabilityRoundsUsed,
+    maxCapabilityCalls: input.maxCapabilityCalls,
     policyAllowsCapability: input.policyAllowsCapability,
     runtimeAuthorizedPath: input.runtimeAuthorizedPath,
     ...(input.signal === undefined ? {} : { signal: input.signal })

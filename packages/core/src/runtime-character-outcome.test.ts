@@ -1,3 +1,4 @@
+import { executeRuntimeCognitionInteraction, DEFAULT_COGNITION_LIMITS } from "./runtime-cognition-interaction.js";
 import { InMemoryEventBus } from "@companion/event-bus";
 import { InMemoryConversationRepository } from "@companion/memory";
 import { PromptBuilder } from "@companion/prompt-builder";
@@ -641,3 +642,174 @@ it.each(["excited", "amused", undefined])("passes accepted Character presentatio
   await runTurn({ character: character.character, embodiedPresentation: { propose, present: async request => ({ version: "embodied-presentation-outcome-7k.v1", effectId: request.effectId, outcome: "REJECTED" }) } });
   expect(propose).toHaveBeenCalledWith(expect.objectContaining({ type: "agent.reply" }), intent ? { intent } : null);
 });
+
+
+function interactionGate<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+}
+
+for (const streaming of [false, true]) {
+  describe(`Cognition lifecycle through ${streaming ? "streaming" : "ordinary"} Runtime turns`, () => {
+    function lifecycleFixture(streamBody = false) {
+      const gate = interactionGate<{ kind: "COMPLETE"; result: string }>();
+      const entered = interactionGate<AbortSignal>();
+      const bodyGate = interactionGate<void>();
+      const bodyEntered = interactionGate<AbortSignal>();
+      const published: RuntimeEvent[] = [];
+      const eventBus = new InMemoryEventBus({ development: false });
+      eventBus.subscribe("*", (event) => {
+        published.push(event);
+      });
+      const harness = characterHarness({
+        initial: decisionFixture({ disposition: "NEED_COGNITION", focus: "verify" }),
+        reentry: decisionFixture({ disposition: "RESPOND", text: "Verified reply." })
+      });
+      if (streamBody)
+        harness.generateAfterCognition.mockResolvedValue({
+          ...decisionFixture({ disposition: "RESPOND", text: "unused" }),
+          decision: {
+            ...decisionFixture({ disposition: "RESPOND", text: "unused" }).decision,
+            reply: {
+              disposition: "RESPOND",
+              body: { messages: [{ role: "user", content: "express result" }] }
+            }
+          }
+        });
+      const providers = providersStub();
+      const chat = {
+        ...providers.getChatProvider(),
+        streamingMode: "native" as const,
+        async *streamReply(_input: unknown, options?: { signal?: AbortSignal }) {
+          bodyEntered.resolve(options!.signal!);
+          await bodyGate.promise;
+          yield { type: "text-delta" as const, text: "late body" };
+          yield {
+            type: "completed" as const,
+            output: { message: { role: "assistant" as const, content: "late body" } }
+          };
+        }
+      };
+      const generate = vi.fn(async (input: Parameters<RuntimeCharacterPort["generate"]>[0]) =>
+        input.userMessage === "replacement"
+          ? decisionFixture({ disposition: "RESPOND", text: "Replacement reply." })
+          : harness.character.generate(input)
+      );
+      const runtime = new RuntimeOrchestrator({
+        eventBus,
+        memory: memoryStub().memory,
+        promptBuilder: new PromptBuilder(),
+        providers: { ...providers, getChatProvider: () => chat },
+        conversation: new InMemoryConversationRepository(),
+        character: { ...harness.character, generate },
+        characterCognition: async (_request, _problem, options) => {
+          await executeRuntimeCognitionInteraction({
+            execution: options.execution,
+            signal: options.signal,
+            limits: DEFAULT_COGNITION_LIMITS,
+            policyAllowsCapability: false,
+            reason: async (_history, signal) => {
+              entered.resolve(signal);
+              return gate.promise;
+            },
+            invoke: async () => {
+              throw new Error("No capability should execute");
+            }
+          });
+          // Deliberately return a seemingly valid late result: the outer Runtime
+          // must fence it before Character re-entry, regardless of this callback.
+          return roundTripFixture();
+        }
+      });
+      const run = async (content: string, signal?: AbortSignal, sessionId = "lifecycle") => {
+        const input = { sessionId, content };
+        if (streaming) {
+          for await (const _event of runtime.streamUserMessage(input, {
+            readMemory: false,
+            writeMemory: false,
+            signal
+          })) {
+            /* drain transport */
+          }
+        } else
+          await runtime.handleUserMessage(input, { readMemory: false, writeMemory: false, signal });
+      };
+      return { gate, entered, bodyGate, bodyEntered, published, harness, runtime, run };
+    }
+
+    it("cancels a pending interaction without Character re-entry or assistant commit", async () => {
+      const f = lifecycleFixture();
+      const controller = new AbortController();
+      const turn = f.run("original", controller.signal).catch((error) => error);
+      const signal = await f.entered.promise;
+      controller.abort();
+      expect(signal.aborted).toBe(true);
+      f.gate.resolve({ kind: "COMPLETE", result: "late" });
+      expect(await turn).toBeInstanceOf(ProviderError);
+      expect(f.harness.generateAfterCognition).not.toHaveBeenCalled();
+      expect(f.published.filter((event) => event.type === "assistant.message")).toHaveLength(0);
+    });
+
+    it("supersedes same-session Cognition without committing its late result", async () => {
+      const f = lifecycleFixture();
+      const old = f.run("original").catch((error) => error);
+      const signal = await f.entered.promise;
+      await f.run("replacement");
+      expect(signal.aborted).toBe(true);
+      f.gate.resolve({ kind: "COMPLETE", result: "stale" });
+      expect(await old).toBeInstanceOf(ProviderError);
+      expect(f.harness.generateAfterCognition).not.toHaveBeenCalled();
+      const assistants = f.published.filter((event) => event.type === "assistant.message");
+      expect(assistants).toHaveLength(1);
+      expect(JSON.stringify(assistants)).toContain("Replacement reply.");
+    });
+
+    it("does not invalidate another session's admitted interaction", async () => {
+      const f = lifecycleFixture();
+      const old = f.run("original");
+      const signal = await f.entered.promise;
+      await f.run("replacement", undefined, "other-session");
+      expect(signal.aborted).toBe(false);
+      f.gate.resolve({ kind: "COMPLETE", result: "done" });
+      await old;
+      expect(f.published.filter((event) => event.type === "assistant.message")).toHaveLength(2);
+    });
+
+    it("fences replacement during the post-Cognition Character body stream", async () => {
+      const f = lifecycleFixture(true);
+      const old = f.run("original").catch((error) => error);
+      await f.entered.promise;
+      f.gate.resolve({ kind: "COMPLETE", result: "done" });
+      const bodySignal = await f.bodyEntered.promise;
+      await f.run("replacement");
+      expect(bodySignal.aborted).toBe(true);
+      f.bodyGate.resolve();
+      expect(await old).toBeInstanceOf(ProviderError);
+      const assistants = f.published.filter((event) => event.type === "assistant.message");
+      expect(assistants).toHaveLength(1);
+      expect(JSON.stringify(assistants)).not.toContain("late body");
+    });
+
+    it("seals new admissions but drains the already admitted interaction before disposal", async () => {
+      const f = lifecycleFixture();
+      const turn = f.run("original");
+      await f.entered.promise;
+      let drained = false;
+      const sealing = f.runtime.sealAndDrainMemoryWrites().then(() => {
+        drained = true;
+      });
+      expect(f.runtime.getLifecycleState()).toBe("sealing");
+      expect(drained).toBe(false);
+      await expect(f.run("replacement")).rejects.toThrow("not accepting new operations");
+      f.gate.resolve({ kind: "COMPLETE", result: "done" });
+      await turn;
+      await sealing;
+      expect(f.harness.generateAfterCognition).toHaveBeenCalledTimes(1);
+      expect(f.published.filter((event) => event.type === "assistant.message")).toHaveLength(1);
+      expect(f.runtime.getLifecycleState()).toBe("disposed");
+    });
+  });
+}

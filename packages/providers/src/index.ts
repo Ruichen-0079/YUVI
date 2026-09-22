@@ -50,7 +50,7 @@ export type {
   ProactiveDecisionProvider
 } from "./types/proactive.js";
 export { normalizeReasoningOutput } from "./types/reasoning.js";
-export type { ReasoningInput, ReasoningOutput, ReasoningProvider } from "./types/reasoning.js";
+export type { ReasoningInput, ReasoningOutput, ReasoningProvider, ReasoningCallOptions } from "./types/reasoning.js";
 export type { TTSInput, TTSOutput, TTSProvider } from "./types/tts.js";
 export type {
   STTInput,

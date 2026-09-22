@@ -102,7 +102,8 @@ export type RuntimeOrchestratorOptions = {
 export type RuntimeCharacterCognitionExecutor = (
   request: unknown,
   problem: string,
-  options?: Readonly<{
+  options: Readonly<{
+    execution: import("./runtime-cognition-interaction.js").RuntimeCognitionExecution;
     signal?: AbortSignal | undefined;
     runtimeAuthorizedPath?: string | undefined;
   }>

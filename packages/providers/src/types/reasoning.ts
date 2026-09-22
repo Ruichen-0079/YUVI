@@ -70,8 +70,13 @@ export function normalizeReasoningOutput(
   };
 }
 
+export type ReasoningCallOptions = ProviderCallOptions & {
+  /** Runtime-bounded interactions may prohibit hidden provider-chain expansion. */
+  allowFallback?: boolean | undefined;
+};
+
 export interface ReasoningProvider {
   readonly name: string;
   healthCheck(): Promise<ProviderHealth>;
-  generateReasoning(input: ReasoningInput, options?: ProviderCallOptions): Promise<ReasoningOutput>;
+  generateReasoning(input: ReasoningInput, options?: ReasoningCallOptions): Promise<ReasoningOutput>;
 }

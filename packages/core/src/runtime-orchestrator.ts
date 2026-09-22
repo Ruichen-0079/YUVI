@@ -1399,6 +1399,9 @@ export class RuntimeOrchestrator {
     this.explicitTurnDepth += 1;
     this.visualTurnRevision += 1;
     this.visualCaptureController?.abort();
+    const cognitionOwner = this.beginCognitionTurn(
+      isRuntimeUserTurnEvent(input) ? input.payload.sessionId : input.sessionId
+    );
     try {
       let userEvent = isRuntimeUserTurnEvent(input)
         ? input
@@ -1415,6 +1418,7 @@ export class RuntimeOrchestrator {
             }
           );
       userEvent = await this.scopeVoiceTurn(userEvent);
+      this.cognitionTurnOwners.set(userEvent, cognitionOwner);
       this.visualTurnOwners.set(userEvent, this.visualTurnRevision);
       if (options.imageAttachment) this.visuallyGroundedTurns.add(userEvent);
       const voiceOutput = isRuntimeUserTurnEvent(input)
@@ -1430,6 +1434,7 @@ export class RuntimeOrchestrator {
         controlAuthority: options.controlAuthority ?? "LOCAL_EXPLICIT_CONTROLLER"
       });
     } finally {
+      this.endCognitionTurn(cognitionOwner);
       this.explicitTurnDepth = Math.max(0, this.explicitTurnDepth - 1);
       this.exitLifecycleOperation();
       this.armProactiveWake();
@@ -1531,6 +1536,9 @@ export class RuntimeOrchestrator {
     this.explicitTurnDepth += 1;
     this.visualTurnRevision += 1;
     this.visualCaptureController?.abort();
+    const cognitionOwner = this.beginCognitionTurn(
+      isRuntimeUserTurnEvent(input) ? input.payload.sessionId : input.sessionId
+    );
     try {
       let userEvent = isRuntimeUserTurnEvent(input)
         ? input
@@ -1549,6 +1557,7 @@ export class RuntimeOrchestrator {
       const agentReplyId = canonicalAgentReplyId(userEvent);
       const assistantMessageId = canonicalAssistantMessageId(userEvent);
       userEvent = await this.scopeVoiceTurn(userEvent);
+      this.cognitionTurnOwners.set(userEvent, cognitionOwner);
       this.visualTurnOwners.set(userEvent, this.visualTurnRevision);
       if (options.imageAttachment) this.visuallyGroundedTurns.add(userEvent);
       let finalizedTurnId = await this.resolveFinalizedTurnId(userEvent, assistantMessageId);
@@ -1939,6 +1948,7 @@ export class RuntimeOrchestrator {
         throw failure;
       }
     } finally {
+      this.endCognitionTurn(cognitionOwner);
       this.explicitTurnDepth = Math.max(0, this.explicitTurnDepth - 1);
       this.exitLifecycleOperation();
       this.armProactiveWake();
@@ -1978,6 +1988,7 @@ export class RuntimeOrchestrator {
         input.prompt,
         controller.signal
       );
+      this.assertCognitionTurnCurrent(input.userEvent);
       if (controller.signal.aborted) {
         throw createRuntimeCancelledError(chatProvider.name);
       }
@@ -1994,8 +2005,9 @@ export class RuntimeOrchestrator {
         for await (const event of streamCharacterBody(
           chatProvider,
           finalReply.body,
-          controller.signal
+          this.cognitionTurnSignals.get(input.userEvent) ?? controller.signal
         )) {
+          this.assertCognitionTurnCurrent(input.userEvent);
           if (event.type === "completed") {
             responseMetadata = event.output;
           } else {
@@ -2027,6 +2039,7 @@ export class RuntimeOrchestrator {
         });
       }
       if (controller.signal.aborted) throw createRuntimeCancelledError(chatProvider.name);
+      this.assertCognitionTurnCurrent(input.userEvent);
 
       const providerMetadata = this.safeProviderCallMetadata(
         "chat",
@@ -3111,6 +3124,7 @@ export class RuntimeOrchestrator {
       ? await this.executeCharacterTurn(event, prompt, options.signal)
       : undefined;
     const characterReply = characterResult?.decision.reply;
+    this.assertCognitionTurnCurrent(event);
     if (characterReply !== undefined && characterReply.disposition !== "RESPOND") {
       // Intentional Character silence/termination: a successful turn with no
       // assistant message. Callers must skip assistant-side commit work.
@@ -3122,15 +3136,16 @@ export class RuntimeOrchestrator {
         : "";
     let responseMetadata = characterResult?.providerMetadata;
     if (characterReply?.disposition === "RESPOND" && "body" in characterReply) {
-      for await (const event of streamCharacterBody(
+      for await (const bodyEvent of streamCharacterBody(
         chatProvider,
         characterReply.body,
-        options.signal
+        this.cognitionTurnSignals.get(event) ?? options.signal
       )) {
-        if (event.type === "text-delta") responseText += event.text;
-        else responseMetadata = event.output;
+        if (bodyEvent.type === "text-delta") responseText += bodyEvent.text;
+        else responseMetadata = bodyEvent.output;
       }
     }
+    this.assertCognitionTurnCurrent(event);
     let output: ChatOutput | undefined;
     let providerMetadata: SafeProviderCallMetadata;
     if (characterResult) {
@@ -3208,6 +3223,43 @@ export class RuntimeOrchestrator {
     RuntimeUserTurnEvent,
     RuntimeVisualEvidence
   >();
+  private readonly activeCognitionTurns = new Map<
+    string,
+    { sessionId: string; executionId: string; controller: AbortController }
+  >();
+  private readonly cognitionTurnOwners = new WeakMap<
+    RuntimeUserTurnEvent,
+    { sessionId: string; executionId: string; controller: AbortController }
+  >();
+  private readonly cognitionTurnSignals = new WeakMap<RuntimeUserTurnEvent, AbortSignal>();
+
+  private assertCognitionTurnCurrent(event: RuntimeUserTurnEvent): void {
+    const signal = this.cognitionTurnSignals.get(event);
+    if (!signal) return;
+    const owner = this.cognitionTurnOwners.get(event);
+    if (
+      signal.aborted ||
+      !owner ||
+      this.activeCognitionTurns.get(owner.sessionId) !== owner ||
+      this.lifecycleState === "disposed"
+    ) {
+      throw createRuntimeCancelledError();
+    }
+  }
+
+  private beginCognitionTurn(sessionId: string) {
+    this.activeCognitionTurns.get(sessionId)?.controller.abort();
+    const owner = { sessionId, executionId: crypto.randomUUID(), controller: new AbortController() };
+    this.activeCognitionTurns.set(sessionId, owner);
+    return owner;
+  }
+
+  private endCognitionTurn(owner: { sessionId: string; executionId: string }) {
+    if (this.activeCognitionTurns.get(owner.sessionId)?.executionId === owner.executionId) {
+      this.activeCognitionTurns.delete(owner.sessionId);
+    }
+  }
+
   private visualTurnRevision = 0;
   private visualCaptureController: AbortController | undefined;
   private readonly visualTurnOwners = new WeakMap<RuntimeUserTurnEvent, number>();
@@ -3343,9 +3395,19 @@ export class RuntimeOrchestrator {
     const revision = this.visualTurnOwners.get(event) ?? this.visualTurnRevision;
     const attachedEvidence = this.attachedVisualEvidence.get(event);
     let visualUsed = attachedEvidence !== undefined;
+    const cognitionOwner = this.cognitionTurnOwners.get(event);
+    let cognitionUsed = false;
+    const cognitionIsCurrent = () =>
+      Boolean(
+        cognitionOwner &&
+        this.activeCognitionTurns.get(cognitionOwner.sessionId) === cognitionOwner &&
+        !cognitionOwner.controller.signal.aborted &&
+        this.lifecycleState !== "disposed"
+      );
     const assertCurrent = () => {
       if (
         signal?.aborted ||
+        (cognitionUsed && !cognitionIsCurrent()) ||
         (visualUsed && (revision !== this.visualTurnRevision || this.lifecycleState !== "active"))
       ) {
         throw createRuntimeCancelledError(chatProvider.name);
@@ -3470,9 +3532,9 @@ export class RuntimeOrchestrator {
 
     // Runtime owns the bounded NEED_COGNITION -> Cognition -> Character
     // re-entry sequence. The escalation request and problem statement remain
-    // Character-owned semantics; execution, cancellation, and the one-round
-    // bound are Runtime authority. The bound is structural: exactly one
-    // Cognition call feeds exactly one re-entry pass, and a repeated
+    // Character-owned semantics; execution, cancellation, and bounds remain
+    // Runtime authority. The interaction can contain bounded reasoning/capability
+    // rounds but feeds exactly one Character re-entry pass. A repeated
     // NEED_COGNITION fails the turn explicitly instead of recursing.
     const cognition = this.options.characterCognition;
     if (!cognition) {
@@ -3495,10 +3557,18 @@ export class RuntimeOrchestrator {
       });
     }
 
+    cognitionUsed = true;
+    assertCurrent();
+    const cognitionSignal = signal
+      ? AbortSignal.any([signal, cognitionOwner!.controller.signal])
+      : cognitionOwner!.controller.signal;
+    this.cognitionTurnSignals.set(event, cognitionSignal);
     const roundTrip = await cognition(handoff.request, handoff.problem, {
-      signal,
+      execution: { executionId: cognitionOwner!.executionId, isCurrent: cognitionIsCurrent },
+      signal: cognitionSignal,
       runtimeAuthorizedPath
     });
+    assertCurrent();
     const final = await character.generateAfterCognition({
       prompt,
       semanticSections: this.semanticContexts.get(prompt),
@@ -3508,7 +3578,7 @@ export class RuntimeOrchestrator {
       cognitionRoundTrip: roundTrip,
       requestVisualEvidence,
       ...(attachedEvidence ? { visualEvidence: attachedEvidence } : {}),
-      ...(signal ? { signal } : {}),
+      signal: cognitionSignal,
       generateChat
     });
     assertCurrent();
@@ -4200,6 +4270,7 @@ export class RuntimeOrchestrator {
     ingestionRequested?: boolean | null,
     ingestionSkipReason?: string | null
   ): Promise<AssistantMessageEvent> {
+    this.assertCognitionTurnCurrent(sourceEvent);
     const assistantMessage = this.createAssistantMessageEvent(reply, assistantMessageId);
 
     try {

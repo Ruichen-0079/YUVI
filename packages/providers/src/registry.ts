@@ -27,6 +27,7 @@ import type {
 import {
   normalizeReasoningOutput,
   type ReasoningInput,
+  type ReasoningCallOptions,
   type ReasoningOutput,
   type ReasoningProvider
 } from "./types/reasoning.js";
@@ -1626,10 +1627,10 @@ export class FallbackReasoningProvider implements ReasoningProvider {
 
   async generateReasoning(
     input: ReasoningInput,
-    options?: ProviderCallOptions
+    options?: ReasoningCallOptions
   ): Promise<ReasoningOutput> {
     return runProviderChain(
-      this.providers,
+      options?.allowFallback === false ? this.providers.slice(0, 1) : this.providers,
       "reasoning",
       (provider) => provider.generateReasoning(input, options),
       options

@@ -27,6 +27,7 @@ export type RuntimeCognitionOneShotInput<TResult> = Readonly<{
   boundary: RuntimeCognitionBoundary<TResult>;
   task: unknown;
   signal?: AbortSignal | undefined;
+  allowFallback?: boolean | undefined;
 }>;
 
 /**
@@ -59,7 +60,8 @@ export async function executeRuntimeCognitionOnce<TResult>(
 
   try {
     const output = await provider.generateReasoning(reasoningInput, {
-      signal: input.signal
+      signal: input.signal,
+      ...(input.allowFallback === undefined ? {} : { allowFallback: input.allowFallback })
     });
 
     if (input.signal?.aborted) {

@@ -3,7 +3,8 @@ import { open } from "node:fs/promises";
 import { COGNITION_6A_VERSION } from "@companion/cognition";
 import type { CharacterHarnessCognitionRequest } from "@companion/character-harness/cognition-request";
 import type { ProviderResolver } from "@companion/providers";
-import { executeServerCurrentReadTextCognitionRoundTrip } from "./cognition-current-read-text-roundtrip.js";
+import { executeServerCognitionInteraction } from "./cognition-interaction.js";
+import type { RuntimeCognitionExecution, RuntimeCognitionLimits } from "@companion/core";
 import {
   createServerMcpCapabilityBindings,
   SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION
@@ -16,6 +17,8 @@ export function executeProductionCognition(input: {
   problem: string;
   runtimeAuthorizedPath?: string | undefined;
   signal?: AbortSignal | undefined;
+  execution: RuntimeCognitionExecution;
+  limits: RuntimeCognitionLimits;
 }) {
   const path = input.runtimeAuthorizedPath;
   const staticRegistry = createServerMcpCapabilityBindings({
@@ -31,11 +34,12 @@ export function executeProductionCognition(input: {
         ]
       : []
   });
-  return executeServerCurrentReadTextCognitionRoundTrip({
+  return executeServerCognitionInteraction({
     providers: input.providers,
     task: { version: COGNITION_6A_VERSION, escalation: input.request, problem: input.problem },
     staticRegistry,
-    capabilityRoundsUsed: 0,
+    execution: input.execution,
+    limits: input.limits,
     policyAllowsCapability: Boolean(path),
     runtimeAuthorizedPath: path ?? "unavailable",
     signal: input.signal,

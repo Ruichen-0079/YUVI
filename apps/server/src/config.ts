@@ -1,4 +1,11 @@
+import {
+  DEFAULT_COGNITION_LIMITS,
+  MAX_COGNITION_LIMITS,
+  type RuntimeCognitionLimits
+} from "@companion/core";
+
 export type ServerConfig = {
+  cognitionInteraction: RuntimeCognitionLimits;
   host: string;
   port: number;
   logLevel: string;
@@ -50,6 +57,17 @@ export function loadServerConfig(
   env: Record<string, string | undefined> = process.env
 ): ServerConfig {
   return {
+    cognitionInteraction: {
+      maxReasoningRounds: cognitionLimit(
+        env["COGNITION_MAX_REASONING_ROUNDS"],
+        "maxReasoningRounds"
+      ),
+      maxCapabilityCalls: cognitionLimit(
+        env["COGNITION_MAX_CAPABILITY_CALLS"],
+        "maxCapabilityCalls"
+      ),
+      timeBudgetMs: cognitionLimit(env["COGNITION_TIME_BUDGET_MS"], "timeBudgetMs")
+    },
     host: env["SERVER_HOST"] ?? "127.0.0.1",
     port: Number.parseInt(env["SERVER_PORT"] ?? "6121", 10),
     logLevel: env["LOG_LEVEL"] ?? "info",
@@ -101,6 +119,19 @@ export function loadServerConfig(
     live2dAssetRoot: emptyToUndefined(env["LIVE2D_ASSET_ROOT"]),
     live2dCorePath: emptyToUndefined(env["LIVE2D_CORE_PATH"])
   };
+}
+
+function cognitionLimit(value: string | undefined, key: keyof RuntimeCognitionLimits): number {
+  if (value === undefined) return DEFAULT_COGNITION_LIMITS[key];
+  const parsed = Number(value);
+  if (
+    !value.trim() ||
+    !Number.isSafeInteger(parsed) ||
+    parsed < (key === "maxCapabilityCalls" ? 0 : 1) ||
+    parsed > MAX_COGNITION_LIMITS[key]
+  )
+    throw new Error(`Invalid Cognition limit: ${key}`);
+  return parsed;
 }
 
 function parseRuntimeMode(value: string | undefined): "development" | "test" | "production" {

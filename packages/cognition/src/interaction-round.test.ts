@@ -7,6 +7,7 @@ import {
 import {
   COGNITION_INTERACTION_ROUND_VERSION,
   createCognitionInteractionRound,
+  interpretCognitionInteractionOutput,
   type CognitionInteractionDecision
 } from "./interaction-round.js";
 
@@ -49,7 +50,7 @@ describe("Cognition interaction-round contract", () => {
     }
   );
 
-  it("represents CONTINUE without enabling it in the production wire parser", () => {
+  it("represents CONTINUE without enabling it in the legacy 6W wire parser", () => {
     const round = createCognitionInteractionRound({ version, kind: "CONTINUE" }, inventory);
     expect(round).toEqual({ version, kind: "CONTINUE" });
     expect(Object.isFrozen(round)).toBe(true);
@@ -127,5 +128,48 @@ describe("Cognition interaction-round contract", () => {
     }
   ])("rejects malformed or authority-bearing input %#", (input) => {
     expect(() => createCognitionInteractionRound(input, inventory)).toThrow();
+  });
+});
+
+describe("bounded interaction wire protocol", () => {
+  it("admits only an exact payload-free CONTINUE", () => {
+    expect(
+      interpretCognitionInteractionOutput(
+        { reasoning: "", answer: "CONTINUE", finishReason: "stop" },
+        inventory
+      )
+    ).toEqual({ version, kind: "CONTINUE" });
+    for (const output of [
+      { reasoning: "", answer: "CONTINUE\n" },
+      { reasoning: "", answer: 'CONTINUE\n{"maxReasoningRounds":999}' },
+      { reasoning: "", answer: "CONTINUE", finishReason: "length" as const }
+    ])
+      expect(interpretCognitionInteractionOutput(output, inventory)).toMatchObject({
+        kind: "COMPLETE",
+        result: { status: "ERROR" }
+      });
+  });
+
+  it("rejects non-normalized raw reasoning at the boundary", () => {
+    expect(() =>
+      interpretCognitionInteractionOutput(
+        { reasoning: "private trace", answer: "CONTINUE" },
+        inventory
+      )
+    ).toThrow(/provider-normalized/);
+  });
+
+  it.each([
+    "COMPLETE\nSupported answer.",
+    'REQUEST_CAPABILITY\n{"capabilityRef":"opaque-read","request":"Read evidence."}'
+  ])("validates the existing semantic payload: %s", (answer) => {
+    const legacy = interpretCognitionCapabilityAwareReasoningOutput(
+      { reasoning: "", answer },
+      inventory
+    );
+    expect(interpretCognitionInteractionOutput({ reasoning: "", answer }, inventory)).toEqual({
+      ...legacy,
+      version
+    });
   });
 });

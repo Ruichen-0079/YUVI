@@ -40,9 +40,9 @@ export type RuntimeInteractionState = Readonly<{
  * Snapshot caller-owned Runtime facts with bounded, independent counters.
  * This is validation, not admission or a state transition: it neither allocates
  * identity nor checks time, aborts I/O, advances counters, or reopens a terminal.
- * A2 must retain the snapshot within the existing Runtime execution, propagate
- * its AbortSignal, check identity/deadline before and after awaits, and make
- * terminal states absorbing. A semantic CONTINUE cannot change these facts.
+ * executeRuntimeCognitionInteraction retains the snapshot, propagates its
+ * AbortSignal, checks identity/deadline around awaits, and makes terminal
+ * states absorbing. A semantic CONTINUE cannot change these facts.
  */
 export function createRuntimeInteractionState(input: unknown): RuntimeInteractionState {
   const value = object(input, "state");

@@ -26,12 +26,14 @@ type RuntimeCapabilityAdmissionInput = Readonly<{
   capabilityRoundsUsed: number;
   /** Current Runtime policy decision supplied by the composition boundary. */
   policyAllowsCapability: boolean;
+  maxCapabilityCalls: number;
 }>;
 
 type UnknownObject = Record<string, unknown> & {
   version?: unknown;
   capabilityRoundsUsed?: unknown;
   policyAllowsCapability?: unknown;
+  maxCapabilityCalls?: unknown;
 };
 
 /**
@@ -41,7 +43,7 @@ type UnknownObject = Record<string, unknown> & {
  * schemas, arguments, or provider metadata. The composition boundary owns
  * request membership and opaque ref binding; Runtime policy supplies a simple
  * allow/veto fact. This pure function only enforces that policy veto and the
- * Phase-6 one-capability-round budget.
+ * Phase-6 one-capability-round default, or the explicit Runtime interaction limit.
  *
  * It does not mutate a counter, execute a capability, retry, persist, or emit
  * any user-visible effect. Callers retain lifecycle and commit ownership.
@@ -65,11 +67,21 @@ export function admitRuntimeCapabilityRound(input: unknown): RuntimeCapabilityAd
   if (typeof value.policyAllowsCapability !== "boolean") {
     throw new Error("Runtime policyAllowsCapability must be boolean.");
   }
+  const maxCapabilityCalls = value.maxCapabilityCalls === undefined ? 1 : value.maxCapabilityCalls;
+  if (
+    typeof maxCapabilityCalls !== "number" ||
+    !Number.isSafeInteger(maxCapabilityCalls) ||
+    maxCapabilityCalls < 0 ||
+    maxCapabilityCalls > 4
+  ) {
+    throw new Error("Runtime maxCapabilityCalls must be an integer from 0 to 4.");
+  }
 
   const normalized: RuntimeCapabilityAdmissionInput = Object.freeze({
     version: RUNTIME_CAPABILITY_ADMISSION_6J_VERSION,
     capabilityRoundsUsed: value.capabilityRoundsUsed,
-    policyAllowsCapability: value.policyAllowsCapability
+    policyAllowsCapability: value.policyAllowsCapability,
+    maxCapabilityCalls
   });
 
   if (!normalized.policyAllowsCapability) {
@@ -80,7 +92,7 @@ export function admitRuntimeCapabilityRound(input: unknown): RuntimeCapabilityAd
     });
   }
 
-  if (normalized.capabilityRoundsUsed >= 1) {
+  if (normalized.capabilityRoundsUsed >= normalized.maxCapabilityCalls) {
     return Object.freeze({
       version: RUNTIME_CAPABILITY_ADMISSION_6J_VERSION,
       status: "REJECTED",
@@ -102,7 +114,12 @@ function expectObject(input: unknown): UnknownObject {
 }
 
 function assertAllowedKeys(value: Record<string, unknown>): void {
-  const allowed = new Set(["version", "capabilityRoundsUsed", "policyAllowsCapability"]);
+  const allowed = new Set([
+    "version",
+    "capabilityRoundsUsed",
+    "policyAllowsCapability",
+    "maxCapabilityCalls"
+  ]);
   const unknown = Object.keys(value).filter((key) => !allowed.has(key));
   if (unknown.length > 0) {
     throw new Error(

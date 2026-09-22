@@ -113,3 +113,40 @@ describe("Runtime 6J capability admission", () => {
     }
   });
 });
+
+describe("explicit bounded capability admission", () => {
+  it("retains policy authority and enforces the Runtime-selected limit", () => {
+    const facts = {
+      version: RUNTIME_CAPABILITY_ADMISSION_6J_VERSION,
+      capabilityRoundsUsed: 1,
+      policyAllowsCapability: true,
+      maxCapabilityCalls: 2
+    };
+    expect(admitRuntimeCapabilityRound(facts)).toMatchObject({ status: "ADMITTED" });
+    expect(admitRuntimeCapabilityRound({ ...facts, capabilityRoundsUsed: 2 })).toMatchObject({
+      status: "REJECTED",
+      reason: "ROUND_BUDGET_EXHAUSTED"
+    });
+    expect(admitRuntimeCapabilityRound({ ...facts, policyAllowsCapability: false })).toMatchObject({
+      status: "REJECTED",
+      reason: "POLICY_DENIED"
+    });
+    expect(
+      admitRuntimeCapabilityRound({ ...facts, capabilityRoundsUsed: 0, maxCapabilityCalls: 0 })
+    ).toMatchObject({ status: "REJECTED", reason: "ROUND_BUDGET_EXHAUSTED" });
+  });
+
+  it.each([null, -1, 1.5, 5, Infinity, "2"])(
+    "rejects malformed or excessive maximum %s",
+    (maxCapabilityCalls) => {
+      expect(() =>
+        admitRuntimeCapabilityRound({
+          version: RUNTIME_CAPABILITY_ADMISSION_6J_VERSION,
+          capabilityRoundsUsed: 0,
+          policyAllowsCapability: true,
+          maxCapabilityCalls
+        })
+      ).toThrow();
+    }
+  );
+});

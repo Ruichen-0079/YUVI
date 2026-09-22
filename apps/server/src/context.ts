@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { getRuntimeEnvDir } from "@companion/config";
 import { createFileP8CorrectionStore, createFileVoiceBindingReferences } from "@companion/core";
 import { captureKdeScreen, screenCaptureAvailable } from "./screen-capture.js";
-import type { RuntimeReplyStreamEvent, RuntimeLogger } from "@companion/core";
+import type { RuntimeReplyStreamEvent, RuntimeLogger, RuntimeCharacterCognitionExecutor } from "@companion/core";
 import { RuntimeOrchestrator, type RuntimeProactiveStateStore } from "@companion/core";
 import { createFileProactiveStateStore } from "./proactive-policy-store.js";
 import { InMemoryEventBus } from "@companion/event-bus";
@@ -290,15 +290,14 @@ export async function createAppContext(
             characterCognition: (
               request: unknown,
               problem: string,
-              options?: Readonly<{
-                signal?: AbortSignal | undefined;
-                runtimeAuthorizedPath?: string | undefined;
-              }>
+              options: Parameters<RuntimeCharacterCognitionExecutor>[2]
             ) =>
               executeProductionCognition({
                 providers,
                 request: request as CharacterHarnessCognitionRequest,
                 problem,
+                execution: options.execution,
+                limits: config.cognitionInteraction,
                 runtimeAuthorizedPath: options?.runtimeAuthorizedPath,
                 ...(options?.signal ? { signal: options.signal } : {})
               })

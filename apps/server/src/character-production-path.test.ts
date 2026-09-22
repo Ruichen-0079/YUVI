@@ -362,7 +362,7 @@ it("persists a controller P8 relationship correction through restart and project
   }
 });
 
-it("reaches one Runtime-admitted file read, normalized observation, Cognition continuation and Character re-entry", async () => {
+it.each([false, true])("reaches Runtime-admitted reads, bounded Cognition and Character re-entry (multiple=%s)", async multiple => {
   const { writeFile } = await import("node:fs/promises");
   const directory = await mkdtemp(path.join(tmpdir(), "yuvi-read-text-"));
   createdDirs.push(directory);
@@ -372,7 +372,8 @@ it("reaches one Runtime-admitted file read, normalized observation, Cognition co
   const replies = [
     '{"disposition":"NEED_COGNITION","focus":"verify count"}',
     'REQUEST_CAPABILITY\n{"capabilityRef":"capability://opaque/read-authorized-text","request":"Read the authorized count evidence."}',
-    "The evidence says forty-two.",
+    ...(multiple ? ["CONTINUE", 'REQUEST_CAPABILITY\n{"capabilityRef":"capability://opaque/read-authorized-text","request":"Verify the same admitted evidence again."}'] : []),
+    "COMPLETE\nThe evidence says forty-two.",
     '{"disposition":"RESPOND"}',
     "The count is forty-two."
   ];
@@ -405,10 +406,10 @@ it("reaches one Runtime-admitted file read, normalized observation, Cognition co
     });
     expect(reply.statusCode, reply.body).toBe(200);
     expect(reply.json().reply).toBe("The count is forty-two.");
-    expect(requests).toHaveLength(5);
+    expect(requests).toHaveLength(multiple ? 7 : 5);
     expect(JSON.stringify(requests[2])).toContain("The verified count is forty-two.");
-    expect(JSON.stringify(requests[3])).toContain("COGNITION_RESULT");
-    expect(JSON.stringify(requests[3])).toContain("The evidence says forty-two.");
+    expect(JSON.stringify(requests[multiple ? 5 : 3])).toContain("COGNITION_RESULT");
+    expect(JSON.stringify(requests[multiple ? 5 : 3])).toContain("The evidence says forty-two.");
     expect(JSON.stringify(requests)).not.toContain(authorizedPath);
   } finally {
     await app.close();
