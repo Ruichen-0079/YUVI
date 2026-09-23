@@ -20,6 +20,7 @@ import {
   type RuntimeCognitionLimits
 } from "@companion/core";
 import type { ProviderResolver } from "@companion/providers";
+import type { CanonicalContext } from "@companion/prompt-builder";
 import {
   createCurrentServerMcpCapabilityBindings,
   type ServerMcpCapabilityBindings
@@ -31,6 +32,7 @@ import { executeServerReadTextObservationRound } from "./cognition-read-text-obs
 export async function executeServerCognitionInteraction(input: {
   providers: Pick<ProviderResolver, "getReasoningProvider">;
   task: unknown;
+  canonicalContext?: CanonicalContext | undefined;
   staticRegistry: ServerMcpCapabilityBindings;
   mcpClient: Pick<ServerMcpClient, "listTools" | "callTool">;
   runtimeAuthorizedPath: string;
@@ -72,7 +74,8 @@ export async function executeServerCognitionInteraction(input: {
                 request: exchange.request.request,
                 observation: exchange.observation
               })),
-              staticRegistry.descriptions
+              staticRegistry.descriptions,
+              input.canonicalContext
             ),
           normalizeReasoningOutput: (output) =>
             interpretCognitionInteractionOutput(output, current.descriptions),

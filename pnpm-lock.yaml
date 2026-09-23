@@ -172,6 +172,9 @@ importers:
       '@companion/character-harness':
         specifier: workspace:*
         version: link:../character-harness
+      '@companion/prompt-builder':
+        specifier: workspace:*
+        version: link:../prompt-builder
       '@companion/providers':
         specifier: workspace:*
         version: link:../providers

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { assembleCanonicalContext } from "@companion/prompt-builder";
 import {
   createCognitionInteractionReasoningInput,
   interpretCognitionInteractionOutput
@@ -38,6 +39,44 @@ function exchange(request = "Read first evidence.", content = "First observation
 }
 
 describe("Cognition execution evidence projection", () => {
+  it("keeps canonical Memory and policy before every adjacent execution pair", () => {
+    const canonical = assembleCanonicalContext({
+      semanticSections: [
+        { kind: "IDENTITY", state: "KNOWN", summary: "P8 identity" },
+        { kind: "RELATIONSHIP_CONTEXT", state: "UNKNOWN" },
+        { kind: "MEMORY_EVIDENCE", state: "KNOWN", summary: "Unverified memory claim" }
+      ],
+      promptSections: [
+        { name: "SystemIdentity", content: "YUVI policy", priority: 100, stable: true }
+      ],
+      currentInput: "Current user request"
+    });
+    const pair = exchange();
+    const input = createCognitionInteractionReasoningInput(task, [pair], inventory, canonical);
+    const request = input.messages.at(-2)!;
+    const observation = input.messages.at(-1)!;
+    expect(request.role).toBe("assistant");
+    expect(observation.role).toBe("user");
+    expect(request.content).toContain("Read first evidence.");
+    expect(observation.content).toContain("First observation.");
+    expect(
+      input.messages
+        .slice(0, -2)
+        .map((message) => message.content)
+        .join("\n")
+    ).toContain("Unverified memory claim");
+    expect(
+      input.messages
+        .slice(0, -2)
+        .map((message) => message.content)
+        .join("\n")
+    ).toContain("YUVI policy");
+    expect(input.messages.at(-3)!.content).toContain("Cognition interaction protocol");
+    expect(JSON.stringify(input)).not.toContain("Current user request"); // bounded Cognition problem is the turn input
+    pair.observation.content = "later rewrite";
+    expect(JSON.stringify(input)).not.toContain("later rewrite");
+    expect(JSON.stringify(canonical)).not.toContain("First observation.");
+  });
   it("keeps repeated requests to the same capability adjacent to their own observations", () => {
     const pairs = [exchange(), exchange("Read second evidence.", "Second observation.")];
     const input = createCognitionInteractionReasoningInput(task, pairs, inventory);

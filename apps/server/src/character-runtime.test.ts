@@ -1,4 +1,4 @@
-import { PromptBuilder } from "@companion/prompt-builder";
+import { PromptBuilder, assembleCanonicalContext } from "@companion/prompt-builder";
 import type { ChatInput, ChatOutput } from "@companion/providers";
 import { describe, expect, it, vi } from "vitest";
 import { createServerCharacterPort } from "./character-runtime.js";
@@ -54,6 +54,66 @@ function characterHarness(overrides: { responses: ChatOutput[] }) {
 }
 
 describe("production Character runtime adapter", () => {
+  it("serializes the shared canonical P8 and Memory projection with current input", async () => {
+    const canonicalContext = assembleCanonicalContext({
+      semanticSections: [
+        { kind: "MEMORY_EVIDENCE", state: "KNOWN", summary: "A retrieved claim" },
+        { kind: "RELATIONSHIP_CONTEXT", state: "UNKNOWN" },
+        { kind: "PERSONA", state: "KNOWN", summary: "P8 persona" },
+        { kind: "IDENTITY", state: "KNOWN", summary: "P8 identity" }
+      ],
+      promptSections: prompt.sections,
+      currentInput: "Current admitted user input"
+    });
+    const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
+    await createServerCharacterPort().generate({
+      prompt,
+      canonicalContext,
+      userMessage: "Different legacy input",
+      generateChat: calls.generateChat
+    });
+    const chat = calls.generateChat.mock.calls[0]![0];
+    const context = JSON.parse(chat.messages[0]!.content.split("Semantic context:\n")[1]!);
+    expect(context.sections.map((section: { kind: string }) => section.kind).slice(0, 5)).toEqual([
+      "IDENTITY",
+      "PERSONA",
+      "RELATIONSHIP_CONTEXT",
+      "RECENT_CONVERSATION",
+      "MEMORY_EVIDENCE"
+    ]);
+    expect(chat.messages[1]!.content).toBe("Current admitted user input");
+    expect(
+      context.sections.find((section: { kind: string }) => section.kind === "RELATIONSHIP_CONTEXT")
+    ).toMatchObject({ state: "UNKNOWN" });
+    expect(chat.messages[0]!.content).not.toContain("Different legacy input");
+  });
+
+  it("projects bounded multimodal observation as untrusted evidence", async () => {
+    const visualEvidence = {
+      status: "AVAILABLE" as const,
+      observations: "An image shows a chart."
+    };
+    const canonicalContext = assembleCanonicalContext({
+      semanticSections: [],
+      promptSections: prompt.sections,
+      currentInput: "Read the chart",
+      multimodalEvidence: JSON.stringify(visualEvidence)
+    });
+    const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
+    await createServerCharacterPort().generate({
+      prompt,
+      canonicalContext,
+      userMessage: "Read the chart",
+      visualEvidence,
+      generateChat: calls.generateChat
+    });
+    const messages = calls.generateChat.mock.calls[0]![0].messages;
+    expect(messages[2]!.content).toContain("An image shows a chart.");
+    expect(messages[0]!.content).toContain("untrusted evidence");
+    expect(JSON.stringify(canonicalContext.sharedSections)).not.toContain(
+      "An image shows a chart."
+    );
+  });
   it("keeps time after reusable semantic evidence without changing admitted sections", async () => {
     const captures: string[] = [];
     for (const isoTimestamp of ["2026-09-08T10:00:00Z", "2026-09-08T10:01:00Z"]) {

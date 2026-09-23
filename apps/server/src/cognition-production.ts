@@ -3,6 +3,7 @@ import { open } from "node:fs/promises";
 import { COGNITION_6A_VERSION } from "@companion/cognition";
 import type { CharacterHarnessCognitionRequest } from "@companion/character-harness/cognition-request";
 import type { ProviderResolver } from "@companion/providers";
+import type { CanonicalContext } from "@companion/prompt-builder";
 import { executeServerCognitionInteraction } from "./cognition-interaction.js";
 import type { RuntimeCognitionExecution, RuntimeCognitionLimits } from "@companion/core";
 import {
@@ -15,6 +16,7 @@ export function executeProductionCognition(input: {
   providers: Pick<ProviderResolver, "getReasoningProvider">;
   request: CharacterHarnessCognitionRequest;
   problem: string;
+  canonicalContext?: CanonicalContext | undefined;
   runtimeAuthorizedPath?: string | undefined;
   signal?: AbortSignal | undefined;
   execution: RuntimeCognitionExecution;
@@ -37,6 +39,7 @@ export function executeProductionCognition(input: {
   return executeServerCognitionInteraction({
     providers: input.providers,
     task: { version: COGNITION_6A_VERSION, escalation: input.request, problem: input.problem },
+    canonicalContext: input.canonicalContext,
     staticRegistry,
     execution: input.execution,
     limits: input.limits,

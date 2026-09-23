@@ -78,6 +78,21 @@ function embeddingPayload(vectors: number[][]): Record<string, unknown> {
 }
 
 describe("OpenAI-compatible non-stream transport", () => {
+  it("serializes supplied Chat and Cognition semantics without adding product context", async () => {
+    const bodies: Array<Record<string, unknown>> = [];
+    vi.stubGlobal("fetch", vi.fn(async (_url: unknown, init?: RequestInit) => {
+      bodies.push(JSON.parse(String(init?.body)));
+      return chatCompletionResponse("COMPLETE\nverified");
+    }));
+    const { chat, reasoning } = openAICompatibleLeaves();
+    const messages = [
+      { role: "system" as const, content: "P8 identity and Memory evidence" },
+      { role: "user" as const, content: "Current authorized task" }
+    ];
+    await chat.generateReply({ messages });
+    await reasoning.generateReasoning({ messages });
+    expect(bodies.map((body) => body["messages"])).toEqual([messages, messages]);
+  });
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();

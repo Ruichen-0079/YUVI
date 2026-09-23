@@ -55,6 +55,7 @@ import type {
   PromptBuildOutput,
   RetrievedMemoryForPrompt
 } from "@companion/prompt-builder";
+import { assembleCanonicalContext } from "@companion/prompt-builder";
 import type {
   AgentReplyEvent,
   AssistantMessageEvent,
@@ -2973,7 +2974,10 @@ export class RuntimeOrchestrator {
       const maxCharacters = modelContextBudget(
         prompt === decisionPrompt ? undefined : this.options.providers.getChatContextWindow?.()
       ).maxInputCharacters;
-      const semantic = this.semanticContexts.get(prompt) ?? [];
+      const semantic = assembleCanonicalContext({
+        semanticSections: this.semanticContexts.get(prompt),
+        promptSections: prompt.sections
+      }).sharedSections;
       const compressed = compressHierarchicalContext({
         sections: semantic.map((section) => ({
           name: section.kind,
@@ -3394,6 +3398,12 @@ export class RuntimeOrchestrator {
 
     const revision = this.visualTurnOwners.get(event) ?? this.visualTurnRevision;
     const attachedEvidence = this.attachedVisualEvidence.get(event);
+    const canonicalContext = assembleCanonicalContext({
+      semanticSections: this.semanticContexts.get(prompt),
+      promptSections: prompt.sections,
+      currentInput: event.payload.content,
+      multimodalEvidence: attachedEvidence ? JSON.stringify(attachedEvidence) : null
+    });
     let visualUsed = attachedEvidence !== undefined;
     const cognitionOwner = this.cognitionTurnOwners.get(event);
     let cognitionUsed = false;
@@ -3509,6 +3519,7 @@ export class RuntimeOrchestrator {
       requestVisualEvidence,
       ...(attachedEvidence ? { visualEvidence: attachedEvidence } : {}),
       prompt,
+      canonicalContext,
       semanticSections: this.semanticContexts.get(prompt),
       contextWindow: this.options.providers.getChatContextWindow?.(),
       userMessage: event.payload.content,
@@ -3565,12 +3576,14 @@ export class RuntimeOrchestrator {
     this.cognitionTurnSignals.set(event, cognitionSignal);
     const roundTrip = await cognition(handoff.request, handoff.problem, {
       execution: { executionId: cognitionOwner!.executionId, isCurrent: cognitionIsCurrent },
+      canonicalContext,
       signal: cognitionSignal,
       runtimeAuthorizedPath
     });
     assertCurrent();
     const final = await character.generateAfterCognition({
       prompt,
+      canonicalContext,
       semanticSections: this.semanticContexts.get(prompt),
       contextWindow: this.options.providers.getChatContextWindow?.(),
       userMessage: event.payload.content,

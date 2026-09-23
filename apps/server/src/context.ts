@@ -297,6 +297,7 @@ export async function createAppContext(
                 request: request as CharacterHarnessCognitionRequest,
                 problem,
                 execution: options.execution,
+                canonicalContext: options.canonicalContext,
                 limits: config.cognitionInteraction,
                 runtimeAuthorizedPath: options?.runtimeAuthorizedPath,
                 ...(options?.signal ? { signal: options.signal } : {})

@@ -39,6 +39,7 @@
   "dependencies": {
     "@companion/character-abi": "workspace:*",
     "@companion/character-harness": "workspace:*",
+    "@companion/prompt-builder": "workspace:*",
     "@companion/providers": "workspace:*"
   }
 }

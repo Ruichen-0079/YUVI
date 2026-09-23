@@ -1,6 +1,7 @@
 import { FallbackReasoningProvider } from "../../../packages/providers/src/registry.js";
 import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_COGNITION_LIMITS } from "@companion/core";
+import { assembleCanonicalContext } from "@companion/prompt-builder";
 import {
   ProviderError,
   ProviderErrorCode,
@@ -62,6 +63,29 @@ function fixture(answers = ["COMPLETE\ndone"]) {
 }
 
 describe("production bounded Cognition composition", () => {
+  it("projects Runtime P8 and Memory context without splitting capability evidence", async () => {
+    const { input, generateReasoning } = fixture([need, "COMPLETE\nverified"]);
+    const canonicalContext = assembleCanonicalContext({
+      semanticSections: [
+        { kind: "IDENTITY", state: "KNOWN", summary: "P8 user identity" },
+        { kind: "PERSONA", state: "KNOWN", summary: "P8 YUVI persona" },
+        { kind: "RELATIONSHIP_CONTEXT", state: "UNKNOWN" },
+        { kind: "RECENT_CONVERSATION", state: "KNOWN", summary: "Earlier user task" },
+        { kind: "MEMORY_EVIDENCE", state: "KNOWN", summary: "Unverified retrieved claim" }
+      ],
+      currentInput: "Current user text"
+    });
+    await executeServerCognitionInteraction({ ...input, canonicalContext });
+    const first = generateReasoning.mock.calls[0]![0].messages;
+    const second = generateReasoning.mock.calls[1]![0].messages;
+    expect(first[0]!.content).toContain("P8 user identity");
+    expect(first[0]!.content).toContain("Unverified retrieved claim");
+    expect(first[1]!.content).toBe("Verify the evidence.");
+    expect(second.slice(0, -2)).toEqual(first);
+    expect(second.at(-2)).toEqual({ role: "assistant", content: need });
+    expect(second.at(-1)!.content).toContain("observed evidence");
+    expect(JSON.stringify(second)).not.toContain("Current user text");
+  });
   it("closes two capability rounds plus CONTINUE through the existing 5H seam", async () => {
     const { input, generateReasoning } = fixture([need, "CONTINUE", need, "COMPLETE\nverified"]);
     expect((await executeServerCognitionInteraction(input)).result).toMatchObject({

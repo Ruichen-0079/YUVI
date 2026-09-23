@@ -1,3 +1,16 @@
+import { assembleCanonicalContext } from "./canonical-context.js";
+export {
+  assembleCanonicalContext,
+  projectCanonicalSharedContext,
+  projectCanonicalCognitionMessages,
+  CANONICAL_SHARED_SECTION_ORDER
+} from "./canonical-context.js";
+export type {
+  CanonicalContext,
+  CanonicalSharedKind,
+  CanonicalSharedSection
+} from "./canonical-context.js";
+
 export type PromptSectionName =
   | "SystemIdentity"
   | "CharacterStyle"
@@ -121,7 +134,12 @@ export class PromptBuilder {
     // accepted only so older callers do not become an accidental second
     // authority while they are being retired.
     const providerFacingSections = sections.filter((section) => section.name !== "CharacterStyle");
-    const budgetedSections = this.enforceBudget(providerFacingSections, maxCharacters);
+    const budgetedSections = [
+      ...assembleCanonicalContext({
+        promptSections: this.enforceBudget(providerFacingSections, maxCharacters),
+        currentInput: input.turnOrigin === "assistant-initiated" ? null : input.userMessage
+      }).promptSections
+    ];
     const prompt = budgetedSections.map(formatSection).join("\n\n");
     const systemPrompt = budgetedSections
       .filter((section) => section.name !== "UserMessage")

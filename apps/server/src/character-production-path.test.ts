@@ -412,6 +412,17 @@ it.each([false, true])("reaches Runtime-admitted reads, bounded Cognition and Ch
     expect(JSON.stringify(requests[multiple ? 5 : 3])).toContain("The evidence says forty-two.");
     expect(JSON.stringify(requests)).not.toContain(authorizedPath);
 
+    const characterContext = JSON.parse(
+      requests[0]!.messages![0]!.content.split("Semantic context:\n")[1]!.split("\n")[0]!
+    );
+    const cognitionShared = JSON.parse(requests[1]!.messages![0]!.content.split("\n")[1]!);
+    for (const kind of ["IDENTITY", "PERSONA", "RELATIONSHIP_CONTEXT", "MEMORY_EVIDENCE", "RECENT_CONVERSATION"]) {
+      const characterSection = characterContext.sections.find((section: { kind: string }) => section.kind === kind);
+      const cognitionSection = cognitionShared.find((section: { kind: string }) => section.kind === kind);
+      expect(cognitionSection).toMatchObject({ kind, state: characterSection.state });
+      expect(cognitionSection.summary).toBe(characterSection.summary);
+    }
+
     // The real provider transport preserves adjacency, including repeated refs.
     const continuation = requests[multiple ? 4 : 2]!.messages!;
     const evidenceMessages = continuation.filter((message) =>

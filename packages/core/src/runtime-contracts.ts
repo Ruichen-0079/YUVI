@@ -1,5 +1,6 @@
 import type { VoiceBindingReferences } from "./voice-binding-references.js";
 import type { CharacterAbiSemanticSection } from "@companion/character-abi";
+import type { CanonicalContext } from "@companion/prompt-builder";
 import type { P8CorrectionStore } from "@companion/p8";
 import type { CharacterDecision, CharacterOutputLanguage } from "@companion/character-abi";
 import type {
@@ -104,6 +105,7 @@ export type RuntimeCharacterCognitionExecutor = (
   problem: string,
   options: Readonly<{
     execution: import("./runtime-cognition-interaction.js").RuntimeCognitionExecution;
+    canonicalContext?: CanonicalContext | undefined;
     signal?: AbortSignal | undefined;
     runtimeAuthorizedPath?: string | undefined;
   }>
@@ -173,6 +175,7 @@ export type RuntimeCharacterTurnInput = Readonly<{
     | ((request: Readonly<{ need: string }>) => Promise<RuntimeVisualEvidence>)
     | undefined;
   prompt: PromptBuildOutput;
+  canonicalContext?: CanonicalContext | undefined;
   semanticSections?: readonly CharacterAbiSemanticSection[] | undefined;
   userMessage: string;
   outputLanguage?: CharacterOutputLanguage | undefined;

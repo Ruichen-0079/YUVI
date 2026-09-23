@@ -9,6 +9,7 @@
   "references": [
     { "path": "../character-abi" },
     { "path": "../character-harness" },
+    { "path": "../prompt-builder" },
     { "path": "../providers" },
     { "path": "../core" }
   ]

@@ -79,6 +79,23 @@ async function startPendingChatFetch(): Promise<{
 }
 
 describe("DeepSeek non-stream transport", () => {
+  it("serializes supplied Chat and Cognition semantics without adding product context", async () => {
+    const bodies: Array<Record<string, unknown>> = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: unknown, init?: RequestInit) => {
+        bodies.push(JSON.parse(String(init?.body)));
+        return completionResponse("COMPLETE\nverified");
+      })
+    );
+    const messages = [
+      { role: "system" as const, content: "P8 identity and Memory evidence" },
+      { role: "user" as const, content: "Current authorized task" }
+    ];
+    await createChatProvider().generateReply({ messages });
+    await createReasoningProvider().generateReasoning({ messages });
+    expect(bodies.map((body) => body["messages"])).toEqual([messages, messages]);
+  });
   it.each([
     [{ prompt_tokens_details: { cached_tokens: 80 } }, 80],
     [{ prompt_cache_hit_tokens: 64 }, 64],
