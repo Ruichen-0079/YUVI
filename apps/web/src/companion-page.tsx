@@ -9,8 +9,7 @@ import {
 } from "./companion-bus.js";
 import {
   CompanionPresentationProjectionChannel,
-  deriveCompanionRendererPresentation,
-  type Live2DModelSelectionProjection
+  type CompanionRendererPresentation
 } from "./companion-presentation-projection.js";
 import {
   applyCapabilityProjection,
@@ -89,14 +88,12 @@ export function CompanionPage(): JSX.Element {
   const ttsConfigRef = useRef(ttsConfig);
   const [serviceStatus, setServiceStatus] = useState<ServiceStatusState>(initialServiceStatusState);
   const [modelLifecycle, setModelLifecycle] = useState<LumiModelLifecycle>("loading");
-  const [modelSelection, setModelSelection] = useState<Live2DModelSelectionProjection | null>(null);
+  const [rendererPresentation, setRendererPresentation] = useState<CompanionRendererPresentation>(
+    { status: "unavailable" }
+  );
   // Locked companions are click-through, so the framing toggle would be
   // unreachable; project the existing surface lock authority onto the toggle.
   const [surfaceLocked, setSurfaceLocked] = useState(false);
-  const rendererPresentation = useMemo(
-    () => deriveCompanionRendererPresentation(modelSelection, modelLifecycle),
-    [modelLifecycle, modelSelection]
-  );
   const audioCapability = useMemo(() => detectBrowserAudioCapability(), []);
   const presenceProjectionRef = useRef<CompanionPresenceProjection | null>(null);
   const activeEpochRef = useRef<string | null>(null);
@@ -730,7 +727,7 @@ export function CompanionPage(): JSX.Element {
         ref={lumiRef}
         requestedProjection={presence}
         onModelLifecycle={setModelLifecycle}
-        onModelSelection={setModelSelection}
+        onRendererPresentation={setRendererPresentation}
         onPresentationOutcome={submitPresentationOutcome}
         className="relative h-full w-full min-w-0 overflow-hidden rounded-none"
         presentationOnly

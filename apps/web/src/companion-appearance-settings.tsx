@@ -29,6 +29,8 @@ function rendererStatusLabel(status: Live2DRendererStatus): string {
       return "ready";
     case "failed":
       return "failed";
+    case "unavailable":
+      return "unavailable";
   }
 }
 
@@ -44,7 +46,7 @@ export function CompanionAppearanceSettings(): JSX.Element | null {
   const [saving, setSaving] = useState(false);
   const [windowBusy, setWindowBusy] = useState(false);
   const [notice, setNotice] = useState("");
-  const [surface, setSurface] = useState<CompanionPresentationState>({ visible: false, locked: false });
+  const [surface, setSurface] = useState<CompanionPresentationState | null>(null);
   const [renderer, setRenderer] = useState<CompanionRendererPresentation | null>(null);
 
   useEffect(() => {
@@ -78,22 +80,18 @@ export function CompanionAppearanceSettings(): JSX.Element | null {
       try {
         const next = await getCompanionPresentationState();
         if (!cancelled)
-          setSurface((current) => (current.visible === next.visible && current.locked === next.locked ? current : next));
+          setSurface(next);
       } catch (error) {
-        if (!cancelled) setNotice(error instanceof Error ? error.message : String(error));
+        if (!cancelled) {
+          setSurface(null);
+          setNotice(error instanceof Error ? error.message : String(error));
+        }
       }
     };
 
     const channel = new CompanionPresentationProjectionChannel();
     const unsubscribe = channel.subscribeState((next) => {
-      if (!cancelled)
-        setRenderer((current) =>
-          current?.status === next.status &&
-          current.activeModelId === next.activeModelId &&
-          current.activeModelName === next.activeModelName
-            ? current
-            : next
-        );
+      if (!cancelled) setRenderer(next);
     });
     channel.requestState();
     void refreshSurface();
@@ -101,14 +99,15 @@ export function CompanionAppearanceSettings(): JSX.Element | null {
     const stopSurface = subscribeSurfaceChanged(
       () => void refreshSurface(),
       (error) => {
-        if (!cancelled) setNotice(String(error));
+        if (!cancelled) {
+          setSurface(null);
+          setNotice(String(error));
+        }
       }
     );
     const rendererDeadline = window.setTimeout(() => {
       if (!cancelled) {
-        setRenderer(
-          (current) => current ?? { status: "failed", activeModelId: null, activeModelName: null }
-        );
+        setRenderer((current) => current ?? { status: "unavailable" });
       }
     }, 1500);
 
@@ -146,6 +145,7 @@ export function CompanionAppearanceSettings(): JSX.Element | null {
       await controlCompanionWindow(action);
       setSurface(await getCompanionPresentationState());
     } catch (error) {
+      setSurface(null);
       setNotice(error instanceof Error ? error.message : String(error));
     } finally {
       setWindowBusy(false);
@@ -153,9 +153,14 @@ export function CompanionAppearanceSettings(): JSX.Element | null {
   };
 
   const modelLabel =
-    renderer?.activeModelName ??
-    (renderer?.status === "no_model" ? t("No model selected") : t("Unknown"));
-  const rendererLabel = t(rendererStatusLabel(renderer?.status ?? "loading"));
+    renderer?.status === "ready"
+      ? renderer.activeModel.name
+      : renderer?.status === "no_model"
+        ? t("No model selected")
+        : t("Unknown");
+  const rendererLabel = t(rendererStatusLabel(renderer?.status ?? "unavailable"));
+  const companionVisibility =
+    surface === null ? t("unavailable") : surface.visible ? t("visible") : t("hidden");
 
   return (
     <section className="yuvi-card grid gap-3" aria-label={t("Companion window")}>
@@ -186,19 +191,27 @@ export function CompanionAppearanceSettings(): JSX.Element | null {
       </div>
 
       <div className="grid gap-1 text-xs text-[var(--yuvi-muted)]" role="status">
-        <span>{t("Companion status: {0}", surface.visible ? t("visible") : t("hidden"))}</span>
+        <span>{t("Companion status: {0}", companionVisibility)}</span>
         <span>{t("Current model: {0}", modelLabel)}</span>
         <span>{t("Live2D renderer: {0}", rendererLabel)}</span>
       </div>
 
-      <button type="button" className="button-secondary" disabled={windowBusy}
+      <button
+        type="button"
+        className="button-secondary"
+        disabled={windowBusy || surface === null}
         onClick={() => {
+          if (!surface) return;
           setWindowBusy(true);
-          void setCompanionLocked(!surface.locked).then(setSurface)
-            .catch((error: unknown) => setNotice(String(error)))
+          void setCompanionLocked(!surface.locked)
+            .then(setSurface)
+            .catch((error: unknown) => {
+              setSurface(null);
+              setNotice(String(error));
+            })
             .finally(() => setWindowBusy(false));
         }}>
-        {t(surface.locked ? "Unlock Companion" : "Lock Companion")}
+        {t(surface?.locked ? "Unlock Companion" : "Lock Companion")}
       </button>
       <label className="setting-checkbox">
         <input

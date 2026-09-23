@@ -17,6 +17,9 @@ describe("SubtitleAppearanceSettings", () => {
     expect(markup).toContain("Show subtitle");
     expect(markup).toContain("Hide subtitle");
     expect(markup).toContain("Lock &amp; click through");
+    expect(markup).toContain("Subtitle status: unavailable");
+    expect(markup).not.toContain("Subtitle status: hidden · unlocked");
+    expect(markup).not.toContain('aria-pressed="false"');
     expect(markup).not.toContain("Output language");
     expect(markup).not.toContain("Memory");
     expect(markup).not.toContain("TTS");

@@ -54,12 +54,35 @@ describe("controlCompanionWindow", () => {
     await expect(getCompanionPresentationState()).resolves.toEqual({ visible: true });
     expect(invoke).toHaveBeenCalledWith("get_companion_presentation_state");
   });
+
+  it("tracks Companion show/hide changes from the surface read command", async () => {
+    (globalThis as { window?: unknown }).window = { __TAURI_INTERNALS__: {} };
+    let visible = false;
+    invoke.mockImplementation(async (command: string) => {
+      if (command === "show_companion") visible = true;
+      if (command === "hide_companion") visible = false;
+      if (command === "get_companion_presentation_state") return { visible };
+      return undefined;
+    });
+
+    await expect(getCompanionPresentationState()).resolves.toEqual({ visible: false });
+    await controlCompanionWindow("show_companion");
+    await expect(getCompanionPresentationState()).resolves.toEqual({ visible: true });
+    await controlCompanionWindow("hide_companion");
+    await expect(getCompanionPresentationState()).resolves.toEqual({ visible: false });
+    await controlCompanionWindow("show_companion");
+    await expect(getCompanionPresentationState()).resolves.toEqual({ visible: true });
+    expect(invoke).toHaveBeenCalledTimes(7);
+  });
 });
 
 describe("subtitle presentation helpers", () => {
   it("no-op/read defaults outside Tauri", async () => {
     await expect(controlSubtitleWindow("show")).resolves.toBeUndefined();
-    await expect(getSubtitlePresentationState()).resolves.toEqual({ visible: false, locked: false });
+    await expect(getSubtitlePresentationState()).resolves.toEqual({
+      visible: false,
+      locked: false
+    });
     await expect(setSubtitleLocked(true)).resolves.toEqual({ visible: false, locked: true });
     expect(invoke).not.toHaveBeenCalled();
   });
@@ -68,7 +91,9 @@ describe("subtitle presentation helpers", () => {
     (globalThis as { window?: unknown }).window = { __TAURI_INTERNALS__: {} };
     invoke.mockImplementation(async (command: string, args?: unknown) => {
       if (command === "get_subtitle_presentation_state") return { visible: true, locked: false };
-      if (command === "set_subtitle_locked") return { visible: true, locked: Boolean((args as { locked?: boolean })?.locked) };
+      if (command === "set_subtitle_locked") {
+        return { visible: true, locked: Boolean((args as { locked?: boolean })?.locked) };
+      }
       return undefined;
     });
 
@@ -79,6 +104,38 @@ describe("subtitle presentation helpers", () => {
     await expect(getSubtitlePresentationState()).resolves.toEqual({ visible: true, locked: false });
     await expect(setSubtitleLocked(true)).resolves.toEqual({ visible: true, locked: true });
     expect(invoke).toHaveBeenCalledWith("set_subtitle_locked", { locked: true });
+  });
+
+  it("projects all independent Subtitle visibility and lock combinations", async () => {
+    (globalThis as { window?: unknown }).window = { __TAURI_INTERNALS__: {} };
+    const state = { visible: false, locked: false };
+    invoke.mockImplementation(async (command: string, args?: unknown) => {
+      if (command === "show_subtitle") state.visible = true;
+      if (command === "hide_subtitle") state.visible = false;
+      if (command === "set_subtitle_locked") {
+        state.locked = Boolean((args as { locked?: boolean } | undefined)?.locked);
+        return { ...state };
+      }
+      if (command === "get_subtitle_presentation_state") return { ...state };
+      return undefined;
+    });
+
+    await expect(getSubtitlePresentationState()).resolves.toEqual({
+      visible: false,
+      locked: false
+    });
+    await controlSubtitleWindow("show");
+    await expect(getSubtitlePresentationState()).resolves.toEqual({ visible: true, locked: false });
+    await setSubtitleLocked(true);
+    await expect(getSubtitlePresentationState()).resolves.toEqual({ visible: true, locked: true });
+    await controlSubtitleWindow("hide");
+    await expect(getSubtitlePresentationState()).resolves.toEqual({ visible: false, locked: true });
+    await setSubtitleLocked(false);
+    await expect(getSubtitlePresentationState()).resolves.toEqual({
+      visible: false,
+      locked: false
+    });
+    expect(invoke).toHaveBeenCalledWith("get_subtitle_presentation_state");
   });
 });
 

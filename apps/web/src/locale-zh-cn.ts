@@ -203,6 +203,7 @@ export const zhCN: Readonly<Record<string, string>> = {
   "Unlock to move": "解锁并移动",
   "Lock & click through": "锁定并点击穿透",
   "Subtitle status: {0} · {1}": "字幕状态：{0} · {1}",
+  "Subtitle status: unavailable": "字幕状态：暂不可用",
   "visible": "已显示",
   "hidden": "已隐藏",
   "locked": "已锁定",

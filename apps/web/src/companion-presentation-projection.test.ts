@@ -1,64 +1,53 @@
 import { describe, expect, it } from "vitest";
 import {
   deriveCompanionRendererPresentation,
-  isCompanionRendererPresentation
+  isCompanionRendererPresentation,
+  type CompanionRendererPresentation
 } from "./companion-presentation-projection.js";
 
+const model = { id: "hiyori", name: "Hiyori Momose" } as const;
+
 describe("Companion renderer presentation projection", () => {
-  it("never turns model selection into renderer readiness", () => {
-    expect(
-      deriveCompanionRendererPresentation(
-        { kind: "selected", id: "hiyori", name: "Hiyori Momose" },
-        "loading"
-      )
-    ).toEqual({
+  it("keeps a selected model as a request until Lumi proves renderer readiness", () => {
+    expect(deriveCompanionRendererPresentation("loading", null, model)).toEqual({
       status: "loading",
-      activeModelId: "hiyori",
-      activeModelName: "Hiyori Momose"
+      requestedModel: model
     });
-    expect(
-      deriveCompanionRendererPresentation(
-        { kind: "selected", id: "hiyori", name: "Hiyori Momose" },
-        "ready"
-      ).status
-    ).toBe("ready");
-    expect(
-      deriveCompanionRendererPresentation(
-        { kind: "selected", id: "hiyori", name: "Hiyori Momose" },
-        "failed"
-      ).status
-    ).toBe("failed");
-  });
-
-  it("projects explicit no-model and unavailable states without fake readiness", () => {
-    expect(deriveCompanionRendererPresentation({ kind: "none" }, "failed")).toEqual({
-      status: "no_model",
-      activeModelId: null,
-      activeModelName: null
-    });
-    expect(deriveCompanionRendererPresentation({ kind: "unavailable" }, "ready")).toEqual({
+    expect(deriveCompanionRendererPresentation("failed", null, model)).toEqual({
       status: "failed",
-      activeModelId: null,
-      activeModelName: null
+      requestedModel: model
     });
-    expect(deriveCompanionRendererPresentation(null, "loading").status).toBe("loading");
+    expect(deriveCompanionRendererPresentation("ready", null, model)).toEqual({
+      status: "unavailable"
+    });
   });
 
-  it("rejects malformed cross-window state", () => {
-    expect(
-      isCompanionRendererPresentation({
-        status: "ready",
-        activeModelId: "hiyori",
-        activeModelName: "Hiyori Momose"
-      })
-    ).toBe(true);
+  it("exposes active identity only after the controller reports ready", () => {
+    expect(deriveCompanionRendererPresentation("ready", model)).toEqual({
+      status: "ready",
+      activeModel: model
+    });
+    expect(deriveCompanionRendererPresentation("loading", null)).toEqual({ status: "loading" });
+    expect(deriveCompanionRendererPresentation("failed", null)).toEqual({ status: "failed" });
+  });
+
+  it("keeps discovery uncertainty distinct from no model and renderer failure", () => {
+    expect(deriveCompanionRendererPresentation(null, null)).toEqual({ status: "unavailable" });
+    const noModel: CompanionRendererPresentation = { status: "no_model" };
+    expect(noModel).toEqual({ status: "no_model" });
+    expect(isCompanionRendererPresentation(noModel)).toBe(true);
+    expect(isCompanionRendererPresentation({ status: "unavailable" })).toBe(true);
+  });
+
+  it("rejects malformed or semantically contradictory cross-window state", () => {
+    expect(isCompanionRendererPresentation({ status: "ready", activeModel: model })).toBe(true);
     expect(isCompanionRendererPresentation({ status: "ready" })).toBe(false);
     expect(
-      isCompanionRendererPresentation({
-        status: "working",
-        activeModelId: null,
-        activeModelName: null
-      })
+      isCompanionRendererPresentation({ status: "ready", activeModel: { id: "", name: "Hiyori" } })
     ).toBe(false);
+    expect(
+      isCompanionRendererPresentation({ status: "loading", activeModel: model })
+    ).toBe(false);
+    expect(isCompanionRendererPresentation({ status: "working" })).toBe(false);
   });
 });

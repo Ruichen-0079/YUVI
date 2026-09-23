@@ -6,6 +6,7 @@ import {
   LumiController,
   CubismLive2DAdapter,
   type LumiControllerHandle,
+  type LumiModelIdentity,
   type LumiModelLifecycle,
   type LumiPresenceAnimation
 } from "./lumi-live2d.js";
@@ -20,7 +21,10 @@ import type {
   EmbodiedPresentationRequest
 } from "@companion/protocol";
 import { resolveRuntimeAssetUrl } from "./desktop-runtime.js";
-import type { Live2DModelSelectionProjection } from "./companion-presentation-projection.js";
+import {
+  deriveCompanionRendererPresentation,
+  type CompanionRendererPresentation
+} from "./companion-presentation-projection.js";
 
 
 
@@ -36,20 +40,31 @@ export const LumiCanvas = forwardRef(function LumiCanvas(
     className?: string;
     onPresentationOutcome?: (report: EmbodiedPresentationOutcomeReport) => void;
     onModelLifecycle?: (state: LumiModelLifecycle) => void;
-    onModelSelection?: (selection: Live2DModelSelectionProjection) => void;
+    onRendererPresentation?: (state: CompanionRendererPresentation) => void;
     /** Hide all non-canvas chrome for the transparent desktop companion surface. */
     presentationOnly?: boolean;
     showFramingToggle?: boolean;
   },
   ref: Ref<LumiControllerHandle>
 ): JSX.Element {
-  const [modelSource, setModelSource] = useState<string | null>(null);
+  const [modelRequest, setModelRequest] = useState<{
+    source: string;
+    identity: LumiModelIdentity;
+  } | null>(null);
   const [modelError, setModelError] = useState("");
-  const modelSourceRef = useRef<string | null>(null);
+  const modelRequestRef = useRef<typeof modelRequest>(null);
   const onModelLifecycleRef = useRef(props.onModelLifecycle);
   onModelLifecycleRef.current = props.onModelLifecycle;
-  const onModelSelectionRef = useRef(props.onModelSelection);
-  onModelSelectionRef.current = props.onModelSelection;
+  const onRendererPresentationRef = useRef(props.onRendererPresentation);
+  onRendererPresentationRef.current = props.onRendererPresentation;
+  const publishRendererPresentation = (presentation: CompanionRendererPresentation): void => {
+    onRendererPresentationRef.current?.(presentation);
+  };
+  const publishModelLifecycle = (lifecycle: LumiModelLifecycle): void => {
+    setModelLifecycle(lifecycle);
+    onModelLifecycleRef.current?.(lifecycle);
+  };
+  const controllerRef = useRef<LumiController | null>(null);
 
   useEffect(() => {
     let disposed = false;
@@ -60,40 +75,47 @@ export const LumiCanvas = forwardRef(function LumiCanvas(
         const result = await apiClient.getLive2DModels(abort.signal);
         if (!disposed) {
           if (result.activeId === null) {
-            onModelSelectionRef.current?.({ kind: "none" });
-            modelSourceRef.current = null;
-            setModelSource(null);
-            setModelLifecycle("failed");
-            onModelLifecycleRef.current?.("failed");
+            modelRequestRef.current = null;
+            setModelRequest(null);
+            publishModelLifecycle("disposed");
+            if (!controllerRef.current) {
+              publishRendererPresentation({ status: "no_model" });
+            }
             setModelError("No active Live2D model. Open Settings to install Hiyori or select a model.");
           } else if (!result.activeUrl) {
-            onModelSelectionRef.current?.({ kind: "unavailable" });
-            setModelLifecycle("failed");
-            onModelLifecycleRef.current?.("failed");
+            // Discovery did not provide a loadable source. Preserve any
+            // renderer state the LumiController has already proved.
+            if (modelRequestRef.current === null) {
+              publishRendererPresentation({ status: "unavailable" });
+            }
             setModelError("Unable to read the selected Live2D model.");
           } else {
             const activeModel = result.models.find((model) => model.id === result.activeId);
-            onModelSelectionRef.current?.({
-              kind: "selected",
+            const identity = {
               id: result.activeId,
               name: activeModel?.name ?? result.activeId
-            });
-            if (modelSourceRef.current !== result.activeUrl) {
-              modelSourceRef.current = result.activeUrl;
-              setModelLifecycle("loading");
-              onModelLifecycleRef.current?.("loading");
+            };
+            const request = { source: result.activeUrl, identity };
+            const previous = modelRequestRef.current;
+            if (
+              previous === null ||
+              previous.source !== request.source ||
+              previous.identity.id !== request.identity.id ||
+              previous.identity.name !== request.identity.name
+            ) {
+              modelRequestRef.current = request;
+              setModelRequest(request);
+              publishModelLifecycle("loading");
             }
-            setModelSource(result.activeUrl);
             setModelError("");
           }
         }
       } catch {
         if (!disposed) {
-          // A transient model-list read failure must not downgrade a renderer
-          // that is already presenting a loaded model. On first load there is
-          // no renderer truth to preserve, so report the bounded failure.
-          if (modelSourceRef.current === null) {
-            onModelSelectionRef.current?.({ kind: "unavailable" });
+          // Discovery errors say nothing about renderer readiness. In
+          // particular, retain an already-proved active model unchanged.
+          if (modelRequestRef.current === null) {
+            publishRendererPresentation({ status: "unavailable" });
           }
           setModelError("Unable to read the selected Live2D model.");
         }
@@ -110,7 +132,6 @@ export const LumiCanvas = forwardRef(function LumiCanvas(
   }, []);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const controllerRef = useRef<LumiController | null>(null);
   const [state, setState] = useState<CompanionPresentationState>("idle");
   const [modelLifecycle, setModelLifecycle] = useState<LumiModelLifecycle>("loading");
   const projectionRef = useRef(props.requestedProjection);
@@ -167,9 +188,9 @@ export const LumiCanvas = forwardRef(function LumiCanvas(
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
-    if (!canvas || !container || !modelSource) return;
+    if (!canvas || !container || !modelRequest) return;
     let disposed = false;
-    const source = resolveRuntimeAssetUrl(modelSource);
+    const source = resolveRuntimeAssetUrl(modelRequest.source);
     const controller = new LumiController(
       () => new CubismLive2DAdapter(canvas),
       source,
@@ -179,14 +200,21 @@ export const LumiCanvas = forwardRef(function LumiCanvas(
       undefined,
       (next) => {
         if (!disposed) {
-          setModelLifecycle(next);
-          onModelLifecycleRef.current?.(next);
+          publishModelLifecycle(next);
+          publishRendererPresentation(
+            deriveCompanionRendererPresentation(
+              next,
+              controller.getActiveModelIdentity(),
+              modelRequest.identity
+            )
+          );
         }
       },
       (report) => {
         if (import.meta.env.DEV && report.effectId.startsWith("preview:")) return;
         onPresentationOutcomeRef.current?.(report);
-      }
+      },
+      modelRequest.identity
     );
     controllerRef.current = controller;
     const stopRehearsal = import.meta.env.DEV
@@ -224,8 +252,16 @@ export const LumiCanvas = forwardRef(function LumiCanvas(
       stopRehearsal();
       controller.dispose();
       controllerRef.current = null;
+      const currentRequest = modelRequestRef.current;
+      if (currentRequest === null) {
+        publishRendererPresentation({ status: "no_model" });
+      } else if (currentRequest === modelRequest) {
+        publishRendererPresentation({ status: "unavailable" });
+      } else {
+        publishRendererPresentation({ status: "loading", requestedModel: currentRequest.identity });
+      }
     };
-  }, [modelSource]);
+  }, [modelRequest]);
 
   useEffect(() => {
     controllerRef.current?.setPresentationProjection(props.requestedProjection);

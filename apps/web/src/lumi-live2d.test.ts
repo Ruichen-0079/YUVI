@@ -540,6 +540,71 @@ describe("Lumi presence and audio envelope", () => {
     expect(adapter.dispose).toHaveBeenCalledTimes(1);
   });
 
+  it("exposes the requested identity only after this controller is ready", async () => {
+    let finish!: () => void;
+    const adapter = {
+      load: vi.fn(() => new Promise<void>((resolve) => { finish = resolve; })),
+      setMouthOpen: vi.fn(), setMouthForm: vi.fn(), setParameter: vi.fn(),
+      setBreath: vi.fn(), setFraming: vi.fn(), resetMouth: vi.fn(),
+      resize: vi.fn(), dispose: vi.fn()
+    };
+    const lifecycle: string[] = [];
+    const controller = new LumiController(
+      () => adapter,
+      "hiyori.model3.json",
+      undefined,
+      undefined,
+      (state) => lifecycle.push(state),
+      undefined,
+      { id: "hiyori", name: "Hiyori Momose" }
+    );
+
+    const loading = controller.load();
+    expect(controller.getModelLifecycle()).toBe("loading");
+    expect(controller.getActiveModelIdentity()).toBeNull();
+    finish();
+    await loading;
+
+    expect(controller.getModelLifecycle()).toBe("ready");
+    expect(controller.getActiveModelIdentity()).toEqual({ id: "hiyori", name: "Hiyori Momose" });
+    expect(lifecycle).toEqual(["loading", "ready"]);
+    controller.dispose();
+  });
+
+  it("keeps the newer ready lifecycle when an older reload fails late", async () => {
+    let rejectFirst!: (error: unknown) => void;
+    const firstLoad = new Promise<void>((_resolve, reject) => { rejectFirst = reject; });
+    const makeAdapter = (load: () => Promise<void>) => ({
+      load: vi.fn(load),
+      setMouthOpen: vi.fn(), setMouthForm: vi.fn(), setParameter: vi.fn(),
+      setBreath: vi.fn(), setFraming: vi.fn(), resetMouth: vi.fn(),
+      resize: vi.fn(), dispose: vi.fn()
+    });
+    const first = makeAdapter(() => firstLoad);
+    const second = makeAdapter(async () => undefined);
+    let next = 0;
+    const controller = new LumiController(
+      () => (next++ === 0 ? first : second),
+      "hiyori.model3.json",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      { id: "hiyori", name: "Hiyori Momose" }
+    );
+
+    const oldRequest = controller.load();
+    await controller.load();
+    expect(controller.getActiveModelIdentity()).toEqual({ id: "hiyori", name: "Hiyori Momose" });
+    rejectFirst(new Error("stale load failed"));
+    await oldRequest;
+
+    expect(controller.getModelLifecycle()).toBe("ready");
+    expect(controller.getActiveModelIdentity()).toEqual({ id: "hiyori", name: "Hiyori Momose" });
+    expect(first.dispose).toHaveBeenCalled();
+    controller.dispose();
+  });
+
   it("fences stale model loads when a reload replaces the adapter", async () => {
     let resolveFirst!: () => void;
     const firstLoad = new Promise<void>((resolve) => {
@@ -559,7 +624,15 @@ describe("Lumi presence and audio envelope", () => {
     const first = makeAdapter(() => firstLoad);
     const second = makeAdapter(async () => undefined);
     let next = 0;
-    const controller = new LumiController(() => (next++ === 0 ? first : second), "model3.json");
+    const controller = new LumiController(
+      () => (next++ === 0 ? first : second),
+      "model3.json",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      { id: "second", name: "Second model" }
+    );
     const firstRequest = controller.load();
     const secondRequest = controller.load();
     resolveFirst();
@@ -568,6 +641,8 @@ describe("Lumi presence and audio envelope", () => {
     expect(first.dispose).toHaveBeenCalled();
     expect(second.dispose).not.toHaveBeenCalled();
     expect(controller.getPresentationState()).toBe("idle");
+    expect(controller.getModelLifecycle()).toBe("ready");
+    expect(controller.getActiveModelIdentity()).toEqual({ id: "second", name: "Second model" });
     controller.dispose();
   });
 

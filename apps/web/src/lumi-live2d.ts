@@ -84,6 +84,9 @@ export type LumiPresenceAnimation = {
 
 export type LumiModelLifecycle = "loading" | "ready" | "failed" | "disposed";
 
+/** Identity supplied with the exact model source owned by a LumiController. */
+export type LumiModelIdentity = Readonly<{ id: string; name: string }>;
+
 export interface Live2DAdapter extends MouthParameterTarget {
   load(source: string): Promise<void>;
   setParameter(id: string, value: number): void;
@@ -592,7 +595,8 @@ export class LumiController {
       target
     ) => new AudioMouthEnvelope(target),
     private readonly onModelLifecycle?: (state: LumiModelLifecycle) => void,
-    private readonly onPresentationOutcome?: (report: EmbodiedPresentationOutcomeReport) => void
+    private readonly onPresentationOutcome?: (report: EmbodiedPresentationOutcomeReport) => void,
+    private readonly modelIdentity: LumiModelIdentity | null = null
   ) {
     this.presentationController = new LumiPresentationController(
       (animation) => {
@@ -853,6 +857,11 @@ export class LumiController {
 
   getModelLifecycle(): LumiModelLifecycle {
     return this.modelLifecycle;
+  }
+
+  /** A configured/requested identity is active only while this controller is ready. */
+  getActiveModelIdentity(): LumiModelIdentity | null {
+    return this.modelLifecycle === "ready" ? this.modelIdentity : null;
   }
 
   getDebugInfo(): {

@@ -11,7 +11,10 @@ vi.mock("./user-settings-client.js", () => ({
   saveUserSettings: vi.fn()
 }));
 
-import { CompanionAppearanceSettings, companionAlwaysOnTopPatch } from "./companion-appearance-settings.js";
+import {
+  CompanionAppearanceSettings,
+  companionAlwaysOnTopPatch
+} from "./companion-appearance-settings.js";
 
 describe("CompanionAppearanceSettings", () => {
   it("writes only the existing companion always-on-top field", () => {
@@ -25,7 +28,10 @@ describe("CompanionAppearanceSettings", () => {
     expect(markup).toContain("Show Companion");
     expect(markup).toContain("Hide Companion");
     expect(markup).toContain("Companion status:");
+    expect(markup).toContain("unavailable");
     expect(markup).toContain("Live2D renderer:");
+    expect(markup).not.toContain("Companion status: hidden");
+    expect(markup).not.toContain("Live2D renderer: failed");
     expect(markup).not.toContain("Lumi");
     expect(markup).not.toContain("Service URL");
     expect(markup).not.toContain("Connection mode");

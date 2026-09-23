@@ -11,7 +11,7 @@ import {
 
 export function SubtitleAppearanceSettings(): JSX.Element | null {
   const tauri = isTauriRuntime();
-  const [state, setState] = useState<SubtitlePresentationState>({ visible: false, locked: false });
+  const [state, setState] = useState<SubtitlePresentationState | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
 
@@ -21,19 +21,22 @@ export function SubtitleAppearanceSettings(): JSX.Element | null {
     const refresh = async (): Promise<void> => {
       try {
         const next = await getSubtitlePresentationState();
-        if (!cancelled)
-          setState((current) =>
-            current.visible === next.visible && current.locked === next.locked ? current : next
-          );
+        if (!cancelled) setState(next);
       } catch (error) {
-        if (!cancelled) setNotice(error instanceof Error ? error.message : String(error));
+        if (!cancelled) {
+          setState(null);
+          setNotice(error instanceof Error ? error.message : String(error));
+        }
       }
     };
     void refresh();
     const stopSurface = subscribeSurfaceChanged(
       () => void refresh(),
       (error) => {
-        if (!cancelled) setNotice(String(error));
+        if (!cancelled) {
+          setState(null);
+          setNotice(String(error));
+        }
       }
     );
     return () => {
@@ -45,7 +48,12 @@ export function SubtitleAppearanceSettings(): JSX.Element | null {
   if (!tauri) return null;
 
   const refresh = async (): Promise<void> => {
-    setState(await getSubtitlePresentationState());
+    try {
+      setState(await getSubtitlePresentationState());
+    } catch (error) {
+      setState(null);
+      throw error;
+    }
   };
 
   const act = async (operation: () => Promise<void>): Promise<void> => {
@@ -55,6 +63,7 @@ export function SubtitleAppearanceSettings(): JSX.Element | null {
       await operation();
       await refresh();
     } catch (error) {
+      setState(null);
       setNotice(error instanceof Error ? error.message : String(error));
     } finally {
       setBusy(false);
@@ -62,6 +71,7 @@ export function SubtitleAppearanceSettings(): JSX.Element | null {
   };
 
   const toggleLock = async (): Promise<void> => {
+    if (!state) return;
     setBusy(true);
     setNotice("");
     try {
@@ -73,6 +83,7 @@ export function SubtitleAppearanceSettings(): JSX.Element | null {
           : t("Subtitle unlocked: drag it to reposition.")
       );
     } catch (error) {
+      setState(null);
       setNotice(error instanceof Error ? error.message : String(error));
     } finally {
       setBusy(false);
@@ -109,19 +120,21 @@ export function SubtitleAppearanceSettings(): JSX.Element | null {
         <button
           type="button"
           className="button-secondary text-xs"
-          disabled={busy}
-          aria-pressed={state.locked}
+          disabled={busy || state === null}
+          aria-pressed={state?.locked}
           onClick={() => void toggleLock()}
         >
-          {state.locked ? t("Unlock to move") : t("Lock & click through")}
+          {state?.locked ? t("Unlock to move") : t("Lock & click through")}
         </button>
       </div>
       <div className="text-xs text-[var(--yuvi-muted)]" role="status">
-        {t(
-          "Subtitle status: {0} · {1}",
-          state.visible ? t("visible") : t("hidden"),
-          state.locked ? t("locked") : t("unlocked")
-        )}
+        {state
+          ? t(
+              "Subtitle status: {0} · {1}",
+              state.visible ? t("visible") : t("hidden"),
+              state.locked ? t("locked") : t("unlocked")
+            )
+          : t("Subtitle status: unavailable")}
         {notice ? ` · ${notice}` : ""}
       </div>
     </section>

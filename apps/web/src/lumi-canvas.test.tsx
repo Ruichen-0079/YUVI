@@ -1,27 +1,33 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, createElement, createRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { LumiCanvas } from "./lumi-canvas.js";
 import type { LumiControllerHandle } from "./lumi-live2d.js";
 import { createInitialCompanionPresence } from "./companion-presence.js";
+import type { CompanionRendererPresentation } from "./companion-presentation-projection.js";
+
+const mocks = vi.hoisted(() => ({
+  getLive2DModels: vi.fn(async (_signal?: AbortSignal) => ({
+    activeId: "test" as string | null,
+    activeUrl: "/api/live2d/test/test.model3.json" as string | null,
+    intendedDefault: "test" as string | null,
+    models: [
+      {
+        id: "test",
+        name: "Test model",
+        model: "test.model3.json",
+        source: "user" as const,
+        url: "/api/live2d/test/test.model3.json"
+      }
+    ]
+  })),
+  adapterLoad: vi.fn(async (): Promise<void> => undefined)
+}));
 
 vi.mock("./api/client.js", () => ({
   apiClient: {
-    getLive2DModels: async () => ({
-      activeId: "test",
-      activeUrl: "/api/live2d/test/test.model3.json",
-      intendedDefault: "test",
-      models: [
-        {
-          id: "test",
-          name: "Test model",
-          model: "test.model3.json",
-          source: "user",
-          url: "/api/live2d/test/test.model3.json"
-        }
-      ]
-    })
+    getLive2DModels: mocks.getLive2DModels
   }
 }));
 
@@ -29,7 +35,7 @@ vi.mock("./lumi-live2d.js", async () => {
   const actual = await vi.importActual<typeof import("./lumi-live2d.js")>("./lumi-live2d.js");
 
   class TestAdapter {
-    async load(): Promise<void> {}
+    load(): Promise<void> { return mocks.adapterLoad(); }
     setParameter(): void {}
     setBreath(): void {}
     setFraming(): void {}
@@ -212,7 +218,44 @@ function installFakeDom(): {
 
 afterEach(() => {
   delete (globalThis as { window?: unknown }).window;
+  vi.useRealTimers();
 });
+
+beforeEach(() => {
+  mocks.getLive2DModels.mockReset().mockResolvedValue({
+    activeId: "test",
+    activeUrl: "/api/live2d/test/test.model3.json",
+    intendedDefault: "test",
+    models: [
+      {
+        id: "test",
+        name: "Test model",
+        model: "test.model3.json",
+        source: "user",
+        url: "/api/live2d/test/test.model3.json"
+      }
+    ]
+  });
+  mocks.adapterLoad.mockReset().mockResolvedValue(undefined);
+});
+
+function deferred(): {
+  promise: Promise<void>;
+  resolve(): void;
+  reject(error: unknown): void;
+} {
+  let resolve!: () => void;
+  let reject!: (error: unknown) => void;
+  const promise = new Promise<void>((resolvePromise, rejectPromise) => {
+    resolve = () => resolvePromise();
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+}
+
+async function flushMicrotasks(): Promise<void> {
+  for (let index = 0; index < 12; index += 1) await Promise.resolve();
+}
 
 describe("LumiCanvas normalized projection input", () => {
   it("presentationOnly emits the canvas without status or calibration chrome", () => {
@@ -237,7 +280,7 @@ describe("LumiCanvas normalized projection input", () => {
     let root!: Root;
     const ref = createRef<LumiControllerHandle>();
     const lifecycles: string[] = [];
-    const selections: unknown[] = [];
+    const presentations: CompanionRendererPresentation[] = [];
     const projection = {
       ...createInitialCompanionPresence(),
       activity: "listening" as const
@@ -251,7 +294,7 @@ describe("LumiCanvas normalized projection input", () => {
             ref,
             requestedProjection: projection,
             onModelLifecycle: (state) => lifecycles.push(state),
-            onModelSelection: (selection) => selections.push(selection),
+            onRendererPresentation: (state) => presentations.push(state),
             showFramingToggle: false
           })
         );
@@ -267,10 +310,265 @@ describe("LumiCanvas normalized projection input", () => {
 
       expect(ref.current?.getDebugInfo().activePresentationState).toBe("listening");
       expect(lifecycles).toContain("ready");
-      expect(selections).toContainEqual({ kind: "selected", id: "test", name: "Test model" });
+      expect(presentations).toContainEqual({
+        status: "ready",
+        activeModel: { id: "test", name: "Test model" }
+      });
     } finally {
       await act(async () => root?.unmount());
       dom.restore();
     }
   });
+
+  it("keeps a configured model in loading until Lumi confirms renderer readiness", async () => {
+    const load = deferred();
+    mocks.adapterLoad.mockReturnValue(load.promise);
+    const dom = installFakeDom();
+    let root!: Root;
+    const presentations: CompanionRendererPresentation[] = [];
+    try {
+      await act(async () => {
+        root = createRoot(dom.container as unknown as Element);
+        root.render(createElement(LumiCanvas, {
+          requestedProjection: createInitialCompanionPresence(),
+          onRendererPresentation: (state) => presentations.push(state)
+        }));
+        await flushMicrotasks();
+      });
+
+      expect(presentations.at(-1)).toEqual({
+        status: "loading",
+        requestedModel: { id: "test", name: "Test model" }
+      });
+      expect(presentations.some((state) => state.status === "ready")).toBe(false);
+
+      await act(async () => {
+        load.resolve();
+        await load.promise;
+        await flushMicrotasks();
+      });
+      expect(presentations.at(-1)).toEqual({
+        status: "ready",
+        activeModel: { id: "test", name: "Test model" }
+      });
+    } finally {
+      await act(async () => root?.unmount());
+      dom.restore();
+    }
+  });
+
+  it("reports no model and genuine renderer load failure as separate states", async () => {
+    const dom = installFakeDom();
+    let root!: Root;
+    const presentations: CompanionRendererPresentation[] = [];
+    try {
+      mocks.getLive2DModels.mockRejectedValueOnce(new Error("discovery unavailable"));
+      await act(async () => {
+        root = createRoot(dom.container as unknown as Element);
+        root.render(createElement(LumiCanvas, {
+          requestedProjection: createInitialCompanionPresence(),
+          onRendererPresentation: (state) => presentations.push(state)
+        }));
+        await flushMicrotasks();
+      });
+      expect(presentations.at(-1)).toEqual({ status: "unavailable" });
+      expect(presentations.some((state) => state.status === "failed")).toBe(false);
+      await act(async () => root.unmount());
+
+      presentations.length = 0;
+      mocks.getLive2DModels.mockResolvedValueOnce({
+        activeId: "test",
+        activeUrl: null,
+        intendedDefault: "test",
+        models: []
+      });
+      await act(async () => {
+        root = createRoot(dom.container as unknown as Element);
+        root.render(createElement(LumiCanvas, {
+          requestedProjection: createInitialCompanionPresence(),
+          onRendererPresentation: (state) => presentations.push(state)
+        }));
+        await flushMicrotasks();
+      });
+      expect(presentations.at(-1)).toEqual({ status: "unavailable" });
+      expect(presentations.some((state) => state.status === "failed")).toBe(false);
+      await act(async () => root.unmount());
+
+      presentations.length = 0;
+      mocks.getLive2DModels.mockResolvedValueOnce({
+        activeId: null,
+        activeUrl: null,
+        intendedDefault: null,
+        models: []
+      });
+      await act(async () => {
+        root = createRoot(dom.container as unknown as Element);
+        root.render(createElement(LumiCanvas, {
+          requestedProjection: createInitialCompanionPresence(),
+          onRendererPresentation: (state) => presentations.push(state)
+        }));
+        await flushMicrotasks();
+      });
+      expect(presentations.at(-1)).toEqual({ status: "no_model" });
+      await act(async () => root.unmount());
+
+      presentations.length = 0;
+      root = createRoot(dom.container as unknown as Element);
+      mocks.getLive2DModels.mockResolvedValue({
+        activeId: "test",
+        activeUrl: "/api/live2d/test/test.model3.json",
+        intendedDefault: "test",
+        models: [{
+          id: "test", name: "Test model", model: "test.model3.json",
+          source: "user", url: "/api/live2d/test/test.model3.json"
+        }]
+      });
+      mocks.adapterLoad.mockRejectedValue(new Error("renderer load failed"));
+      await act(async () => {
+        root.render(createElement(LumiCanvas, {
+          requestedProjection: createInitialCompanionPresence(),
+          onRendererPresentation: (state) => presentations.push(state)
+        }));
+        await flushMicrotasks();
+      });
+      expect(presentations.at(-1)).toEqual({
+        status: "failed",
+        requestedModel: { id: "test", name: "Test model" }
+      });
+    } finally {
+      await act(async () => root?.unmount());
+      dom.restore();
+    }
+  });
+
+  it("preserves ready state when model discovery fails transiently", async () => {
+    vi.useFakeTimers();
+    const dom = installFakeDom();
+    let root!: Root;
+    const presentations: CompanionRendererPresentation[] = [];
+    try {
+      mocks.getLive2DModels.mockResolvedValueOnce({
+        activeId: "test",
+        activeUrl: "/api/live2d/test/test.model3.json",
+        intendedDefault: "test",
+        models: [{
+          id: "test", name: "Test model", model: "test.model3.json",
+          source: "user", url: "/api/live2d/test/test.model3.json"
+        }]
+      }).mockRejectedValueOnce(new Error("discovery unavailable"));
+      await act(async () => {
+        root = createRoot(dom.container as unknown as Element);
+        root.render(createElement(LumiCanvas, {
+          requestedProjection: createInitialCompanionPresence(),
+          onRendererPresentation: (state) => presentations.push(state)
+        }));
+        await flushMicrotasks();
+      });
+      expect(presentations.at(-1)).toEqual({
+        status: "ready",
+        activeModel: { id: "test", name: "Test model" }
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(3000);
+        await flushMicrotasks();
+      });
+      expect(presentations.at(-1)).toEqual({
+        status: "ready",
+        activeModel: { id: "test", name: "Test model" }
+      });
+      expect(presentations.some((state) => state.status === "failed")).toBe(false);
+    } finally {
+      await act(async () => root?.unmount());
+      dom.restore();
+    }
+  });
+
+  it.each(["resolve", "reject"] as const)(
+    "keeps the replacement model active when an older load later %s",
+    async (oldOutcome) => {
+      vi.useFakeTimers();
+      const oldLoad = deferred();
+      const replacementLoad = deferred();
+      mocks.getLive2DModels.mockResolvedValueOnce({
+        activeId: "old",
+        activeUrl: "/api/live2d/old/old.model3.json",
+        intendedDefault: "old",
+        models: [
+          {
+            id: "old",
+            name: "Old model",
+            model: "old.model3.json",
+            source: "user",
+            url: "/api/live2d/old/old.model3.json"
+          }
+        ]
+      }).mockResolvedValueOnce({
+        activeId: "new",
+        activeUrl: "/api/live2d/new/new.model3.json",
+        intendedDefault: "new",
+        models: [
+          {
+            id: "new",
+            name: "New model",
+            model: "new.model3.json",
+            source: "user",
+            url: "/api/live2d/new/new.model3.json"
+          }
+        ]
+      });
+      mocks.adapterLoad
+        .mockReturnValueOnce(oldLoad.promise)
+        .mockReturnValueOnce(replacementLoad.promise);
+      const dom = installFakeDom();
+      let root!: Root;
+      const presentations: CompanionRendererPresentation[] = [];
+      try {
+        await act(async () => {
+          root = createRoot(dom.container as unknown as Element);
+          root.render(createElement(LumiCanvas, {
+            requestedProjection: createInitialCompanionPresence(),
+            onRendererPresentation: (state) => presentations.push(state)
+          }));
+          await flushMicrotasks();
+        });
+        expect(presentations.at(-1)).toEqual({
+          status: "loading",
+          requestedModel: { id: "old", name: "Old model" }
+        });
+
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(3000);
+          await flushMicrotasks();
+        });
+        expect(presentations.at(-1)).toEqual({
+          status: "loading",
+          requestedModel: { id: "new", name: "New model" }
+        });
+        await act(async () => {
+          replacementLoad.resolve();
+          await replacementLoad.promise;
+          await flushMicrotasks();
+        });
+        expect(presentations.at(-1)).toEqual({
+          status: "ready",
+          activeModel: { id: "new", name: "New model" }
+        });
+
+        await act(async () => {
+          if (oldOutcome === "resolve") oldLoad.resolve();
+          else oldLoad.reject(new Error("stale renderer failure"));
+          await oldLoad.promise.catch(() => undefined);
+          await flushMicrotasks();
+        });
+        expect(presentations.at(-1)).toEqual({
+          status: "ready",
+          activeModel: { id: "new", name: "New model" }
+        });
+      } finally {
+        await act(async () => root?.unmount());
+        dom.restore();
+      }
+    }
+  );
 });
