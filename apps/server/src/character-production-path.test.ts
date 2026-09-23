@@ -578,6 +578,26 @@ it("binds a voice through the controller, restores it, and isolates resolved, mi
     expect(resolved.statusCode, resolved.body).toBe(200);
     expect(searchScopes).toContain("yuvi:v1:user:person-a:character:persona-a");
     expect(JSON.stringify(chatRequests)).toContain("person-a");
+    const speakerContext = chatRequests
+      .flatMap((request) => request.messages ?? [])
+      .find(
+        (message) =>
+          message.content.includes("Semantic context:\n") &&
+          message.content.includes('"kind":"CURRENT_SITUATION"') &&
+          message.content.includes("Current speaker:") &&
+          message.content.includes("person-a")
+      );
+    expect(speakerContext).toBeDefined();
+    const identityStart = speakerContext!.content.indexOf('"kind":"IDENTITY"');
+    const personaStart = speakerContext!.content.indexOf('"kind":"PERSONA"', identityStart);
+    const situationStart = speakerContext!.content.indexOf('"kind":"CURRENT_SITUATION"');
+    expect(identityStart).toBeGreaterThanOrEqual(0);
+    expect(personaStart).toBeGreaterThan(identityStart);
+    expect(speakerContext!.content.slice(identityStart, personaStart)).not.toContain(
+      "Current speaker:"
+    );
+    expect(speakerContext!.content.slice(situationStart)).toContain("Current speaker:");
+    expect(speakerContext!.content.slice(situationStart)).toContain("person-a");
     expect(JSON.stringify(chatRequests)).toContain("The user grows mint in the garden.");
     expect(JSON.stringify(chatRequests)).toContain("mem0:mint-evidence");
     expect(JSON.stringify(chatRequests)).not.toMatch(

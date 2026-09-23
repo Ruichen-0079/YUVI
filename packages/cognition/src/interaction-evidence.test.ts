@@ -52,7 +52,20 @@ describe("Cognition execution evidence projection", () => {
       currentInput: "Current user request"
     });
     const pair = exchange();
+    const stableIdentity = canonical.stability.stablePrefix.identity;
+    const withoutEvidence = createCognitionInteractionReasoningInput(
+      task,
+      [],
+      inventory,
+      canonical
+    );
     const input = createCognitionInteractionReasoningInput(task, [pair], inventory, canonical);
+    const otherExecutionEvidence = createCognitionInteractionReasoningInput(
+      task,
+      [exchange("Read a different admitted request.", "Different execution observation.")],
+      inventory,
+      canonical
+    );
     const request = input.messages.at(-2)!;
     const observation = input.messages.at(-1)!;
     expect(request.role).toBe("assistant");
@@ -72,6 +85,9 @@ describe("Cognition execution evidence projection", () => {
         .join("\n")
     ).toContain("YUVI policy");
     expect(input.messages.at(-3)!.content).toContain("Cognition interaction protocol");
+    expect(input.messages.slice(0, -2)).toEqual(withoutEvidence.messages);
+    expect(otherExecutionEvidence.messages.slice(0, -2)).toEqual(withoutEvidence.messages);
+    expect(canonical.stability.stablePrefix.identity).toBe(stableIdentity);
     expect(JSON.stringify(input)).not.toContain("Current user request"); // bounded Cognition problem is the turn input
     pair.observation.content = "later rewrite";
     expect(JSON.stringify(input)).not.toContain("later rewrite");

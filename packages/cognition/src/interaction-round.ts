@@ -115,7 +115,9 @@ export function createCognitionInteractionReasoningInput(
             promptSections: canonicalContext.promptSections,
             currentInput: task.task.problem,
             capabilityDescriptions: initial.messages[1]!.content,
-            interactionProtocol
+            capabilityDescriptionsVersion: task.capabilities.version,
+            interactionProtocol,
+            interactionProtocolVersion: COGNITION_INTERACTION_ROUND_VERSION
           })
         )
       ]

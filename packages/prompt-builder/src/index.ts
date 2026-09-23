@@ -3,10 +3,18 @@ export {
   assembleCanonicalContext,
   projectCanonicalSharedContext,
   projectCanonicalCognitionMessages,
-  CANONICAL_SHARED_SECTION_ORDER
+  CANONICAL_SHARED_SECTION_ORDER,
+  CANONICAL_CONTEXT_STABILITY_VERSION,
+  CANONICAL_STABLE_SHARED_SECTION_ORDER,
+  CANONICAL_VOLATILE_SHARED_SECTION_ORDER,
+  CANONICAL_VOLATILE_EXECUTION_COMPONENTS
 } from "./canonical-context.js";
 export type {
   CanonicalContext,
+  CanonicalContextStability,
+  CanonicalStableComponent,
+  CanonicalStablePrefix,
+  CanonicalVolatileContext,
   CanonicalSharedKind,
   CanonicalSharedSection
 } from "./canonical-context.js";

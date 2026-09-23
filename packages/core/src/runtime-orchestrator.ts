@@ -697,6 +697,7 @@ export class RuntimeOrchestrator {
     PromptBuildOutput,
     readonly CharacterAbiSemanticSection[]
   >();
+  private readonly currentSpeakerEvidence = new WeakMap<PromptBuildOutput, string>();
 
   async appendP8Correction(correction: P8ExplicitCorrection) {
     if (!this.options.p8CorrectionStore) return { status: "UNAVAILABLE" as const };
@@ -779,9 +780,10 @@ export class RuntimeOrchestrator {
       ...(!direct.enabled ? { recentConversation: { state: "UNAVAILABLE" as const } } : {})
     });
     this.semanticContexts.set(prompt, [
-      ...projectP8ReconstructionToCharacterAbi(p8, speaker).sections,
+      ...projectP8ReconstructionToCharacterAbi(p8).sections,
       ...memoryProjection.sections
     ]);
+    if (speaker) this.currentSpeakerEvidence.set(prompt, JSON.stringify(speaker));
   }
 
   /** Consume server-owned acoustic evidence once when the capture controller commits a turn. */
@@ -3402,7 +3404,8 @@ export class RuntimeOrchestrator {
       semanticSections: this.semanticContexts.get(prompt),
       promptSections: prompt.sections,
       currentInput: event.payload.content,
-      multimodalEvidence: attachedEvidence ? JSON.stringify(attachedEvidence) : null
+      multimodalEvidence: attachedEvidence ? JSON.stringify(attachedEvidence) : null,
+      currentSpeakerEvidence: this.currentSpeakerEvidence.get(prompt) ?? null
     });
     let visualUsed = attachedEvidence !== undefined;
     const cognitionOwner = this.cognitionTurnOwners.get(event);
