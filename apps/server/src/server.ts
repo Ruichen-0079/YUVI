@@ -24,8 +24,14 @@ import { registerWebSocketRoutes } from "./routes/websocket.js";
 import { registerLive2DCoreRoute, registerLive2DRoutes } from "./routes/live2d.js";
 import { registerEmbodiedPresentationRoutes } from "./routes/embodied-presentation.js";
 import { desktopCorsHeaders } from "./cors.js";
+import { ServerPluginLifecycle, type ServerPluginSourceDiscovery } from "./plugin-lifecycle.js";
 
-export async function buildServer(config: ServerConfig) {
+export type BuildServerOptions = Readonly<{
+  /** Composition-time source registration; discovery does not call source loaders. */
+  discoverPlugins?: ServerPluginSourceDiscovery | undefined;
+}>;
+
+export async function buildServer(config: ServerConfig, options: BuildServerOptions = {}) {
   const app = Fastify({
     logger: {
       level: config.logLevel,
@@ -37,6 +43,13 @@ export async function buildServer(config: ServerConfig) {
         "*.Authorization"
       ]
     }
+  });
+
+  const pluginLifecycle = new ServerPluginLifecycle(options.discoverPlugins ?? (() => []), app.log);
+  app.addHook("onReady", async () => {
+    await pluginLifecycle.discover();
+    await pluginLifecycle.load();
+    await pluginLifecycle.start();
   });
 
   app.setErrorHandler((error, request, reply) => {
@@ -105,6 +118,7 @@ export async function buildServer(config: ServerConfig) {
   }
 
   app.addHook("onClose", async () => {
+    await pluginLifecycle.shutdown();
     maintenanceScheduler.close();
     context.embodiedPresentationBridge.close();
     await context.memoryIngestionCoordinator.shutdown({ graceMs: 2_000 });
