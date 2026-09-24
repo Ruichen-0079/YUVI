@@ -79,7 +79,7 @@ The sequence is intentionally falsifiable. Later learned/latent mechanisms are n
 
 The old **Platform Complete** target is retired. v0.1.3 is the **Durable Causal History Foundation**.
 
-A0–A6 are completed engineering reality. A7–A12 are planned around:
+A0–A6 and A7.1 are completed engineering reality. A7.2–A12 are planned around:
 
 - governed executable capability registration and effect contracts;
 - a durable, provenance-aware Life Event Journal;

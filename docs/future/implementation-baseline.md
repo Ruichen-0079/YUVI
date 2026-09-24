@@ -1,12 +1,12 @@
 # Implementation baseline for the Future architecture
 
-Status: **IMPLEMENTED REALITY**, audited on branch `codex/v0.1.3-platform-completion-20260922` at `ecbb3c50603bb65d603d2e006ec06140e56fd4b1` (A6). This is the only Future document that states what exists today. Every other Future document states decisions, planned engineering or hypotheses and must defer to this record and to source. When source changes, the atom that changes it updates this file.
+Status: **IMPLEMENTED REALITY**, audited on branch `codex/v0.1.3-platform-completion-20260922` at `ecbb3c50603bb65d603d2e006ec06140e56fd4b1` (A6), with A7.1 recorded below. This is the only Future document that states what exists today. Every other Future document states decisions, planned engineering or hypotheses and must defer to this record and to source. When source changes, the atom that changes it updates this file.
 
 The [consolidation audit](../validation/v0.1.3-future-consolidation.md) records the commands, probe and evidence behind the findings below.
 
 ## Completed v0.1.3 atoms
 
-A0–A6 are complete and are not redesigned by the new architecture. Their original atom specifications are preserved in git history at `ecbb3c5` (the previous text of [the v0.1.3 roadmap](09-v0.1.3-platform-completion.md)); their validation records remain the evidence:
+A0–A6 and A7.1 are complete and are not redesigned by the new architecture. A0–A6 original atom specifications are preserved in git history at `ecbb3c5` (the previous text of [the v0.1.3 roadmap](09-v0.1.3-platform-completion.md)); their validation records remain the evidence:
 
 | Atom | Result | Evidence |
 | --- | --- | --- |
@@ -17,6 +17,7 @@ A0–A6 are complete and are not redesigned by the new architecture. Their origi
 | A4 | One canonical semantic-context assembly with intentional Chat/Character/Cognition projections | [A4](../validation/v0.1.3-a4-canonical-context.md) |
 | A5 | Stable-prefix metadata and volatile speaker placement (not a remote cache-hit guarantee) | [A5](../validation/v0.1.3-a5-stable-prefix.md) |
 | A6 | Composition-trusted plugin discovery/load/start/stop/dispose lifecycle; inert declarations; **not a sandbox** | [A6](../validation/v0.1.3-a6-plugin-lifecycle.md) |
+| A7.1 | Versioned host-owned executable registry and effect contracts; current `read_text_file` binding only | [A7.1](../validation/v0.1.3-a7.1-executable-registry.md) |
 
 Pre-v0.1.3 closures (P8-1F, Character ABI/Harness, bounded Cognition, Phase 7 embodied agency, Campaigns A–I, Linux release gate) remain historical evidence in this directory; their status claims are not re-derived here.
 
@@ -25,7 +26,7 @@ Pre-v0.1.3 closures (P8-1F, Character ABI/Harness, bounded Cognition, Phase 7 em
 | Meaning | Current owner in source |
 | --- | --- |
 | Turn admission, execution, cancellation, publication | `packages/core` Runtime orchestrator |
-| Executable capabilities | Static server allowlist; only `read_text_file` is executable (`apps/server/src/cognition-interaction.ts`, `mcp-capability-binding.ts`) |
+| Executable capabilities | A7.1 validated server registry; only `read_text_file` is bound (`apps/server/src/mcp-capability-binding.ts`) |
 | Plugin lifecycle | Server composition root, A6 host (`apps/server/src/plugin-lifecycle.ts`) |
 | Proactive text | P6 `ProactiveDecisionProvider` is the sole `NO_OP`/`REQUEST_TEXT` gate. User priority, one-shot attempts, stale-callback fencing, no synthetic user message, no proactive Memory write and no proactive TTS/tool authority are frozen until an explicit atomic replacement |
 | Long-term Memory | One active backend: legacy PostgreSQL Memory **or** Mem0. With Mem0 active, legacy extraction is skipped entirely (`MemoryService.extractCandidates`) |
@@ -54,7 +55,7 @@ This is the local precedent for A9's INTENT → ATTEMPT → OUTCOME protocol. A9
    - Repair: **A10.1** in [v0.1.3](09-v0.1.3-platform-completion.md).
 2. **Controller profile write outside Runtime.** `apps/server/src/services/profile-evidence.ts` (called from `routes/product.ts`) writes an `EXTERNAL_CLAIM` from the local controller directly to the Memory provider with `writeEvent`. It has no Runtime admission, no idempotency key and no causal receipt, so a retried save can duplicate the claim. Repair: **A10.2**.
 3. **No causal journal.** Conversation persistence, Runtime events, A3 execution-local evidence and the Memory ledgers are partial records. Nothing today connects receipt → context → cognition → intent → attempt → outcome durably across restart. Repair: A8–A10.
-4. **No external effect contract.** Provider calls, streaming publication, TTS/presentation, capability calls and Memory delivery each have their own fencing, but only Memory delivery persists an attempt before effect. Repair: A7, A9.
+4. **No durable external-effect accounting.** Provider calls, streaming publication, TTS/presentation, capability calls and Memory delivery each have their own fencing, but only Memory delivery persists an attempt before effect. A7.1 adds validated registry metadata; durable intent/attempt/outcome accounting remains A8–A9 work.
 5. **No QQ, Snowluma or OneBot code exists.** A12 starts from an empty adapter.
 
 ## P8 authority finding

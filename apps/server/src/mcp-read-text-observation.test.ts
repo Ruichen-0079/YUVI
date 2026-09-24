@@ -5,6 +5,7 @@ import {
 } from "@companion/cognition/capability-observation";
 import {
   SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION,
+  createServerMcpReadTextRegistration,
   createServerMcpCapabilityBindings
 } from "./mcp-capability-binding.js";
 import { SERVER_MCP_READ_TEXT_6M_VERSION } from "./mcp-read-text-capability.js";
@@ -13,15 +14,14 @@ import {
   createServerMcpReadTextObservation
 } from "./mcp-read-text-observation.js";
 
-function createRegistry(toolName = "read_text_file") {
+function createRegistry() {
   return createServerMcpCapabilityBindings({
     version: SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION,
     capabilities: [
-      {
-        capabilityRef: "capability://opaque/read-authorized-text",
-        description: "Read one Runtime-authorized text artifact without modifying it.",
-        toolName
-      }
+      createServerMcpReadTextRegistration(
+        "capability://opaque/read-authorized-text",
+        "Read one Runtime-authorized text artifact without modifying it."
+      )
     ]
   });
 }
@@ -173,7 +173,7 @@ describe("Server 6O read-text observation adapter", () => {
 
     expect(() =>
       createServerMcpReadTextObservation({
-        staticRegistry: createRegistry("write_file"),
+        staticRegistry: { ...createRegistry() },
         request: createRequest(),
         outcome: {
           version: SERVER_MCP_READ_TEXT_6M_VERSION,
@@ -181,6 +181,6 @@ describe("Server 6O read-text observation adapter", () => {
           reason: "MCP_TOOL_NOT_AVAILABLE"
         }
       })
-    ).toThrow(/read_text_file/);
+    ).toThrow(/host registry validator/);
   });
 });

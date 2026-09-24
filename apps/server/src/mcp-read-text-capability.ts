@@ -6,6 +6,7 @@ import {
 import {
   bindServerMcpCapabilityRequest,
   createCurrentServerMcpCapabilityBindings,
+  SERVER_MCP_READ_TEXT_IMPLEMENTATION_REF,
   type ServerMcpCapabilityBindings
 } from "./mcp-capability-binding.js";
 import type { ServerMcpClient, ServerMcpToolResult } from "./mcp-client.js";
@@ -48,8 +49,9 @@ export type ServerMcpReadTextInput = Readonly<{
  *
  * The semantic request is validated/bound before any MCP I/O, but it never
  * supplies the path argument. Runtime supplies the already-authorized concrete
- * path. Admission happens before discovery/call, current inventory is the 6K
- * allowlist intersected with 6L discovery, and exactly one call is attempted.
+ * path. Admission happens before discovery/call, current inventory is the
+ * host-validated A7.1 registry intersected with current discovery, and exactly
+ * one call is attempted.
  *
  * This function does not retry, mutate the round counter, persist, normalize
  * evidence, or continue Cognition. MCP call failures are allowed to propagate
@@ -59,7 +61,7 @@ export async function executeServerMcpReadTextCapability(
   input: ServerMcpReadTextInput
 ): Promise<ServerMcpReadTextOutcome> {
   const staticBinding = bindServerMcpCapabilityRequest(input.request, input.staticRegistry);
-  if (staticBinding.toolName !== "read_text_file") {
+  if (staticBinding.implementationRef !== SERVER_MCP_READ_TEXT_IMPLEMENTATION_REF) {
     throw new Error("Server MCP read-text capability requires an explicit read_text_file binding.");
   }
 
@@ -99,14 +101,14 @@ export async function executeServerMcpReadTextCapability(
   }
 
   const currentBinding = bindServerMcpCapabilityRequest(input.request, currentRegistry);
-  if (currentBinding.toolName !== "read_text_file") {
+  if (currentBinding.implementationRef !== SERVER_MCP_READ_TEXT_IMPLEMENTATION_REF) {
     throw new Error("Server MCP current read-text binding changed unexpectedly.");
   }
 
   input.signal?.throwIfAborted();
   const result = await input.mcpClient.callTool(
     {
-      name: "read_text_file",
+      name: currentBinding.toolName,
       arguments: Object.freeze({ path: runtimeAuthorizedPath })
     },
     input.signal === undefined ? undefined : { signal: input.signal }

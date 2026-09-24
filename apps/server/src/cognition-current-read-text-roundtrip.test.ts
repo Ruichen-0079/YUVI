@@ -4,6 +4,7 @@ import type { ReasoningInput, ReasoningOutput } from "@companion/providers";
 import { executeServerCurrentReadTextCognitionRoundTrip } from "./cognition-current-read-text-roundtrip.js";
 import {
   SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION,
+  createServerMcpReadTextRegistration,
   createServerMcpCapabilityBindings
 } from "./mcp-capability-binding.js";
 
@@ -23,16 +24,10 @@ function reasoningTask() {
   };
 }
 
-function staticRegistry(toolName = "read_text_file") {
+function staticRegistry() {
   return createServerMcpCapabilityBindings({
     version: SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION,
-    capabilities: [
-      {
-        capabilityRef: CAPABILITY_REF,
-        description: STATIC_DESCRIPTION,
-        toolName
-      }
-    ]
+    capabilities: [createServerMcpReadTextRegistration(CAPABILITY_REF, STATIC_DESCRIPTION)]
   });
 }
 
@@ -303,28 +298,22 @@ describe("Server 6AC current read-text Cognition round-trip", () => {
 
   it("rejects a registry containing a non-read capability before MCP or provider I/O", async () => {
     const mcp = mcpClient();
-    const { providers, getReasoningProvider, generateReasoning } = providersWithOutputs({
-      reasoning: "",
-      answer: "COMPLETE\nunused",
-      finishReason: "stop"
-    });
-
-    await expect(
-      executeServerCurrentReadTextCognitionRoundTrip({
-        providers,
-        mcpClient: mcp,
-        staticRegistry: staticRegistry("write_file"),
-        task: reasoningTask(),
-        capabilityRoundsUsed: 0,
-        policyAllowsCapability: true,
-        runtimeAuthorizedPath: AUTHORIZED_PATH
+    expect(() =>
+      createServerMcpCapabilityBindings({
+        version: SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION,
+        capabilities: [
+          {
+            descriptorVersion: "server-mcp-capability-descriptor-a7.1.v1",
+            capabilityRef: CAPABILITY_REF,
+            description: STATIC_DESCRIPTION,
+            implementationRef: "yuvi.server.mcp.write_file.v1"
+          }
+        ]
       })
-    ).rejects.toThrow(/read_text_file-only/);
+    ).toThrow(/unknown executable implementation/);
 
     expect(mcp.listTools).not.toHaveBeenCalled();
     expect(mcp.callTool).not.toHaveBeenCalled();
-    expect(getReasoningProvider).not.toHaveBeenCalled();
-    expect(generateReasoning).not.toHaveBeenCalled();
   });
 
   it("propagates capability transport failure without assisted continuation or retry", async () => {

@@ -23,6 +23,7 @@ import type { ProviderResolver } from "@companion/providers";
 import type { CanonicalContext } from "@companion/prompt-builder";
 import {
   createCurrentServerMcpCapabilityBindings,
+  SERVER_MCP_READ_TEXT_IMPLEMENTATION_REF,
   type ServerMcpCapabilityBindings
 } from "./mcp-capability-binding.js";
 import type { ServerMcpClient } from "./mcp-client.js";
@@ -43,7 +44,11 @@ export async function executeServerCognitionInteraction(input: {
 }) {
   const task = createCognitionReasoningTask(input.task);
   const { providers, staticRegistry, mcpClient, runtimeAuthorizedPath } = input;
-  if (staticRegistry.bindings.some((binding) => binding.toolName !== "read_text_file"))
+  if (
+    staticRegistry.bindings.some(
+      (binding) => binding.implementationRef !== SERVER_MCP_READ_TEXT_IMPLEMENTATION_REF
+    )
+  )
     throw new Error("Cognition interaction requires a read_text_file-only registry.");
   const outcome = await executeRuntimeCognitionInteraction<
     CognitionInteractionRound,

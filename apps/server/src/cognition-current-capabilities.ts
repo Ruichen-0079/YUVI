@@ -27,8 +27,8 @@ export type ServerCurrentCapabilityAwareCognitionInput = Readonly<{
  * Runtime-authorized semantic capability surface.
  *
  * The caller-owned 6A task is canonicalized before MCP discovery. Capability
- * inventory is then derived only from the static 6K allowlist intersected with
- * one current MCP `listTools()` result via 6L. Discovery may therefore remove
+ * inventory is then derived only from the host-validated A7.1 registry
+ * intersected with one current MCP `listTools()` result. Discovery may remove
  * unavailable capabilities but cannot promote server-only tools or replace the
  * static semantic descriptions. The resulting 6U task is delegated unchanged
  * to the existing 6X one-shot composition.

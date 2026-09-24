@@ -12,7 +12,7 @@ import { executeServerReadTextAssistedCompletion } from "./cognition-read-text-a
 export type ServerCurrentReadTextCognitionRoundTripInput = Readonly<{
   providers: Pick<ProviderResolver, "getReasoningProvider">;
   mcpClient: Pick<ServerMcpClient, "listTools" | "callTool">;
-  /** Caller-authorized read-text-only 6K capability registry. */
+  /** Caller-authorized read-text-only A7.1 capability registry. */
   staticRegistry: ServerMcpCapabilityBindings;
   /** One caller-authorized 6A task. */
   task: unknown;
@@ -33,8 +33,8 @@ export type ServerCurrentReadTextCognitionRoundTripInput = Readonly<{
  * observation, one assisted completion, and final 5H correlation.
  *
  * This composition snapshots caller-owned task/admission/path values before the
- * first asynchronous discovery. It accepts only a read-text-only 6K registry so
- * the initial provider is never shown a capability this path cannot execute.
+ * first asynchronous discovery. It accepts only a read-text-only A7.1 registry
+ * so the initial provider is never shown a capability this path cannot execute.
  * No second capability opportunity, retry/fallback, round-counter mutation,
  * persistence, Memory/P8 write, Character ABI assembly, or Character invocation
  * is introduced here.

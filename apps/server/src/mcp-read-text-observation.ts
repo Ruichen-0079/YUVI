@@ -9,6 +9,7 @@ import {
 } from "@companion/cognition/capability-observation";
 import {
   bindServerMcpCapabilityRequest,
+  SERVER_MCP_READ_TEXT_IMPLEMENTATION_REF,
   type ServerMcpCapabilityBindings
 } from "./mcp-capability-binding.js";
 import {
@@ -34,7 +35,7 @@ export type ServerMcpReadTextObservationInput = Readonly<{
  * Project the first concrete MCP capability result into the provider-neutral
  * 6N observation contract consumed by Cognition.
  *
- * The original 6H request is revalidated against the static 6K allowlist so
+ * The original 6H request is revalidated against the static A7.1 registry so
  * the observation cannot be rebound to another opaque capability. Concrete
  * tool names, paths, MCP wire blocks, Runtime rejection reasons, and tool error
  * text are never exposed through the observation seam.
@@ -51,7 +52,7 @@ export function createServerMcpReadTextObservation(
   }
 
   const binding = bindServerMcpCapabilityRequest(request, input.staticRegistry);
-  if (binding.toolName !== "read_text_file") {
+  if (binding.implementationRef !== SERVER_MCP_READ_TEXT_IMPLEMENTATION_REF) {
     throw new Error("Server MCP read-text observation requires a read_text_file binding.");
   }
   if (input.outcome.version !== SERVER_MCP_READ_TEXT_6M_VERSION) {

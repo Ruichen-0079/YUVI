@@ -8,7 +8,8 @@ import { executeServerCognitionInteraction } from "./cognition-interaction.js";
 import type { RuntimeCognitionExecution, RuntimeCognitionLimits } from "@companion/core";
 import {
   createServerMcpCapabilityBindings,
-  SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION
+  SERVER_EXECUTABLE_CAPABILITY_REGISTRY_A71_VERSION,
+  createServerMcpReadTextRegistration
 } from "./mcp-capability-binding.js";
 
 /** Concrete local adapter for the existing allowlisted read_text_file seam. */
@@ -24,15 +25,13 @@ export function executeProductionCognition(input: {
 }) {
   const path = input.runtimeAuthorizedPath;
   const staticRegistry = createServerMcpCapabilityBindings({
-    version: SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION,
+    version: SERVER_EXECUTABLE_CAPABILITY_REGISTRY_A71_VERSION,
     capabilities: path
       ? [
-          {
-            capabilityRef: "capability://opaque/read-authorized-text",
-            description:
-              "Read the single text file explicitly authorized by the local controller for this turn.",
-            toolName: "read_text_file"
-          }
+          createServerMcpReadTextRegistration(
+            "capability://opaque/read-authorized-text",
+            "Read the single text file explicitly authorized by the local controller for this turn."
+          )
         ]
       : []
   });

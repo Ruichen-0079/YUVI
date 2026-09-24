@@ -8,7 +8,7 @@ Status: **PRODUCTION ARCHITECTURE DECISION**. Journal-mediated authority is **PL
 | Normalized receipt and execution evidence | Conversation persistence, Runtime events and specialized ledgers presently cover parts | Journal append authority records what was observed/committed; never decides world truth |
 | A1/A2 reasoning round | Runtime owns execution ID, counters, currentness, deadline | Cognition proposes; registry validates; Runtime commits permitted intent |
 | Character expression | Character produces bounded outcomes; Runtime consumes them | Character may express a projection; expression cannot write that projection |
-| Capability availability and implementation | Composition-root static allowlist / MCP binding | Governed executable registry; discovery only subtracts from approved availability |
+| Capability availability and implementation | A7.1 validated host-owned executable registry; only `read_text_file` is bound | A7.2 narrow plugin registration; discovery only subtracts from approved availability |
 | Plugin lifecycle | Server composition root's A6 host | Registration through narrow handles; no injected Runtime or database authority |
 | Claims, evidence retrieval and indexing | Memory policies, providers, repository | Memory consumes committed receipts/derivations; Mem0 is a replaceable index |
 | Person definitions and authenticated bindings | Local controller product store and explicit identity/voice admission | Governed identity owner, journaled control receipts; language cannot bind accounts |
@@ -35,6 +35,8 @@ A7 adds independent dimensions, not one overloaded READ_ONLY/EXTERNAL/SELF_MUTAT
 - Input/output schema versions, authenticated principal requirements, audience restrictions, timeout/cancellation behavior, provider/binding version, and restart/retry policy.
 
 Missing effect semantics fails closed at registration. Cognition sees only approved semantic capability references, never raw provider tools discovered outside the allowlist. A7 replaces the narrow read-text special case incrementally; it does not give plugins a second execution loop. Read-only local capabilities still have intents and attempts when invoked as Runtime actions. Internal pure calculations need derivation lineage, not fictitious external delivery.
+
+A7.1 implements versioned descriptors and host-owned effect contracts for the current executable registry. The only bound implementation remains the existing `read_text_file` path; discovery cannot register implementations, and no external-effect executor is enabled.
 
 A6 is an in-process, composition-trusted lifecycle boundary, **not a sandbox against malicious JavaScript**. Narrow dependency injection and import-boundary checks prevent ordinary bypasses; untrusted executable plugins require a later process/security design. No document claims A7 makes hostile in-process code safe.
 

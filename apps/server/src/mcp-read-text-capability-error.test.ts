@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { COGNITION_6H_VERSION } from "@companion/cognition";
 import {
   SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION,
+  createServerMcpReadTextRegistration,
   createServerMcpCapabilityBindings
 } from "./mcp-capability-binding.js";
 import {
@@ -14,9 +15,10 @@ function createReadRegistry() {
     version: SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION,
     capabilities: [
       {
-        capabilityRef: "capability://opaque/read-authorized-text",
-        description: "Read one Runtime-authorized text artifact without modifying it.",
-        toolName: "read_text_file"
+        ...createServerMcpReadTextRegistration(
+          "capability://opaque/read-authorized-text",
+          "Read one Runtime-authorized text artifact without modifying it."
+        )
       }
     ]
   });

@@ -11,7 +11,8 @@ import {
 import { executeServerCognitionInteraction } from "./cognition-interaction.js";
 import {
   createServerMcpCapabilityBindings,
-  SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION
+  SERVER_EXECUTABLE_CAPABILITY_REGISTRY_A71_VERSION,
+  createServerMcpReadTextRegistration
 } from "./mcp-capability-binding.js";
 import { loadServerConfig } from "./config.js";
 
@@ -44,14 +45,8 @@ function fixture(answers = ["COMPLETE\ndone"]) {
         problem: "Verify the evidence."
       },
       staticRegistry: createServerMcpCapabilityBindings({
-        version: SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION,
-        capabilities: [
-          {
-            capabilityRef: "opaque-read",
-            description: "Read authorized text.",
-            toolName: "read_text_file"
-          }
-        ]
+        version: SERVER_EXECUTABLE_CAPABILITY_REGISTRY_A71_VERSION,
+        capabilities: [createServerMcpReadTextRegistration("opaque-read", "Read authorized text.")]
       }),
       mcpClient: { listTools, callTool },
       runtimeAuthorizedPath: "/authorized/file.txt",
@@ -81,6 +76,10 @@ describe("production bounded Cognition composition", () => {
     expect(first[0]!.content).toContain("P8 user identity");
     expect(first[0]!.content).toContain("Unverified retrieved claim");
     expect(first[1]!.content).toBe("Verify the evidence.");
+    expect(JSON.stringify(first)).not.toContain("read_text_file");
+    expect(JSON.stringify(first)).not.toContain("implementationRef");
+    expect(JSON.stringify(first)).not.toContain("effectContract");
+    expect(JSON.stringify(first)).not.toContain("RUNTIME_AUTHORIZED_PATH_READ");
     expect(second.slice(0, -2)).toEqual(first);
     expect(second.at(-2)).toEqual({ role: "assistant", content: need });
     expect(second.at(-1)!.content).toContain("observed evidence");
@@ -169,6 +168,16 @@ describe("production bounded Cognition composition", () => {
   it("rejects an invented request without executing a capability", async () => {
     const { input } = fixture([need.replace("opaque-read", "invented")]);
     expect((await executeServerCognitionInteraction(input)).result.status).toBe("ERROR");
+    expect(input.mcpClient.callTool).not.toHaveBeenCalled();
+  });
+  it("keeps Runtime policy admission ahead of the registered implementation call", async () => {
+    const { input, generateReasoning } = fixture([need, "COMPLETE\nunreachable"]);
+    input.policyAllowsCapability = false;
+
+    const output = await executeServerCognitionInteraction(input);
+
+    expect(output.result.status).toBe("ERROR");
+    expect(generateReasoning).toHaveBeenCalledTimes(1);
     expect(input.mcpClient.callTool).not.toHaveBeenCalled();
   });
   it("does not hide another provider attempt behind one reasoning round", async () => {

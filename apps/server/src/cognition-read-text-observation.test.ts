@@ -4,21 +4,21 @@ import { COGNITION_6N_VERSION } from "@companion/cognition/capability-observatio
 import { executeServerReadTextObservationRound } from "./cognition-read-text-observation.js";
 import {
   SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION,
+  createServerMcpReadTextRegistration,
   createServerMcpCapabilityBindings
 } from "./mcp-capability-binding.js";
 
 const CAPABILITY_REF = "capability://opaque/read-authorized-text";
 const AUTHORIZED_PATH = "/runtime/authorized/evidence.txt";
 
-function createRegistry(toolName = "read_text_file") {
+function createRegistry() {
   return createServerMcpCapabilityBindings({
     version: SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION,
     capabilities: [
-      {
-        capabilityRef: CAPABILITY_REF,
-        description: "Read one Runtime-authorized text artifact without modifying it.",
-        toolName
-      }
+      createServerMcpReadTextRegistration(
+        CAPABILITY_REF,
+        "Read one Runtime-authorized text artifact without modifying it."
+      )
     ]
   });
 }
@@ -162,8 +162,8 @@ describe("Server 6Z read-text observation round composition", () => {
         staticRegistry: createRegistry()
       },
       {
-        request: createRequest(),
-        staticRegistry: createRegistry("write_file")
+        request: { ...createRequest(), request: " " },
+        staticRegistry: createRegistry()
       }
     ]) {
       const mcpClient = createMcpClient();

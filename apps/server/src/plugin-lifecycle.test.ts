@@ -15,6 +15,7 @@ import { loadServerConfig } from "./config.js";
 import { buildServer } from "./server.js";
 import {
   SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION,
+  createServerMcpReadTextRegistration,
   createServerMcpCapabilityBindings
 } from "./mcp-capability-binding.js";
 import { assembleCanonicalContext } from "@companion/prompt-builder";
@@ -441,11 +442,10 @@ describe("server plugin discovery and lifecycle", () => {
       createServerMcpCapabilityBindings({
         version: SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION,
         capabilities: [
-          {
-            capabilityRef: "capability://server/read-text",
-            description: "Read text through the existing server capability",
-            toolName: "read_text"
-          }
+          createServerMcpReadTextRegistration(
+            "capability://server/read-text",
+            "Read text through the existing server capability"
+          )
         ]
       });
     const beforeInventory = createInventory();

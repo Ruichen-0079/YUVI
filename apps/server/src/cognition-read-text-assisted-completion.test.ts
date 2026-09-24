@@ -4,6 +4,7 @@ import type { ReasoningInput, ReasoningOutput } from "@companion/providers";
 import { executeServerReadTextAssistedCompletion } from "./cognition-read-text-assisted-completion.js";
 import {
   SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION,
+  createServerMcpReadTextRegistration,
   createServerMcpCapabilityBindings
 } from "./mcp-capability-binding.js";
 
@@ -35,11 +36,10 @@ function staticRegistry() {
   return createServerMcpCapabilityBindings({
     version: SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION,
     capabilities: [
-      {
-        capabilityRef: CAPABILITY_REF,
-        description: "Read one Runtime-authorized text artifact without modifying it.",
-        toolName: "read_text_file"
-      }
+      createServerMcpReadTextRegistration(
+        CAPABILITY_REF,
+        "Read one Runtime-authorized text artifact without modifying it."
+      )
     ]
   });
 }
