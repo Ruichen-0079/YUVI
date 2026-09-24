@@ -85,14 +85,14 @@ The sequence is intentionally falsifiable. Later learned/latent mechanisms are n
 
 The old **Platform Complete** target is retired. v0.1.3 is the **Durable Causal History Foundation**.
 
-A0–A6, A7.1–A7.2, A8.1, A8.2a and A8.2b are implemented engineering reality; see the [A8.1 contract](../validation/v0.1.3-a8.1-journal-contract.md), [A8.2a store validation](../validation/v0.1.3-a8.2a-journal-store.md) and [A8.2b conversational ingress validation](../validation/v0.1.3-a8.2b-conversational-ingress.md). A8.2a adds durable PostgreSQL append storage; A8.2b gates ordinary HTTP/SSE/WebSocket user messages through durable RECEIPT append before Runtime. Aggregate A8.2 remains planned; A8.2c–A8.2f are the remaining source-aligned leaves:
+A0–A6, A7.1–A7.2, A8.1 and A8.2a–A8.2c are implemented engineering reality; see the [A8.1 contract](../validation/v0.1.3-a8.1-journal-contract.md), [A8.2a store validation](../validation/v0.1.3-a8.2a-journal-store.md), [A8.2b conversational ingress validation](../validation/v0.1.3-a8.2b-conversational-ingress.md) and [A8.2c speech ingress validation](../validation/v0.1.3-a8.2c-speech-ingress.md). A8.2a adds durable PostgreSQL append storage; A8.2b gates ordinary HTTP/SSE/WebSocket user messages through durable RECEIPT append before Runtime; A8.2c gives finalized speech one durable RECEIPT before its observation can become handoff-ready. Aggregate A8.2 remains planned; A8.2d–A8.2f are the remaining source-aligned leaves:
 
 ```text
 A8.2a Journal Store Foundation — IMPLEMENTED
   ↓
 A8.2b conversational HTTP/SSE/WebSocket ingress — IMPLEMENTED
   ↓
-A8.2c finalized speech / voice-message ingress — PLANNED
+A8.2c finalized speech / voice-message ingress — IMPLEMENTED
   ↓
 A8.2d standalone vision ingress — PLANNED
   ↓

@@ -60,6 +60,8 @@ import type {
   AgentReplyEvent,
   AssistantMessageEvent,
   AvatarSpeakEvent,
+  JournalCommittedEnvelope,
+  JournalEventRef,
   PerceptionVisionEvent,
   RuntimeEvent,
   TurnOrigin,
@@ -101,7 +103,7 @@ import type {
   HandleImageInputInput,
   HandleUserMessageInput,
   RuntimeImageAttachment,
-  AdmitFinalizedSpeechObservationInput,
+  ReserveFinalizedSpeechObservationInput,
   SpeechActivityObservationInput,
   SpeechActivitySnapshot,
   HandleUserMessageOptions,
@@ -140,9 +142,13 @@ import {
 } from "./runtime-errors.js";
 import {
   SpeechCaptureFenceError,
-  admitFinalizedSpeechCapture,
   beginLiveSpeechCapture,
   createSpeechCaptureStore,
+  finalizeSpeechCaptureReservation,
+  releaseSpeechCaptureReservation,
+  reserveFinalizedSpeechCapture,
+  type SpeechCaptureFinalizeResult,
+  type SpeechCaptureReservationResult,
   type SpeechCaptureStore
 } from "./runtime-speech-capture.js";
 import {
@@ -539,7 +545,7 @@ export class RuntimeOrchestrator {
    */
   private readonly pendingSpeechTurns = new Map<
     string,
-    { observation: STTOutput; sessionId: string; at: number }
+    { observation: STTOutput; sessionId: string; journalRef: JournalEventRef; at: number }
   >();
 
   private readonly authorizedReadText = new Map<string, string>();
@@ -795,10 +801,14 @@ export class RuntimeOrchestrator {
     const pending = this.pendingSpeechTurns.get(observationId);
     if (
       !pending ||
+      !pending.journalRef ||
       pending.sessionId !== sessionId ||
+      content.trim().length === 0 ||
       pending.observation.text.trim() !== content.trim() ||
       Date.now() - pending.at > 120_000 ||
-      this.speechCaptureStore.obsoleteEpochs.has(pending.observation.captureEpoch ?? "")
+      this.speechCaptureStore.obsoleteEpochs.has(pending.observation.captureEpoch ?? "") ||
+      this.speechCaptureStore.liveEpochBySession.get(pending.sessionId) !==
+        pending.observation.captureEpoch
     ) {
       throw new Error("Speech observation is missing, stale, or does not match this turn.");
     }
@@ -847,28 +857,63 @@ export class RuntimeOrchestrator {
     return event;
   }
 
-  admitFinalizedSpeechObservation(
+  reserveFinalizedSpeechObservation(
     observation: STTOutput,
-    options: AdmitFinalizedSpeechObservationInput = {}
-  ): STTOutput {
-    const result = admitFinalizedSpeechCapture(this.speechCaptureStore, {
+    options: ReserveFinalizedSpeechObservationInput = {}
+  ): SpeechCaptureReservationResult {
+    const reservation = reserveFinalizedSpeechCapture(this.speechCaptureStore, {
       observation,
       sessionId: options.sessionId,
       captureEpoch: options.captureEpoch
     });
-    if (result.status === "duplicate") {
-      throw new SpeechCaptureFenceError("duplicate", result.captureEpoch);
+    if (this.pendingSpeechTurns.has(reservation.observation.observationId!)) {
+      releaseSpeechCaptureReservation(this.speechCaptureStore, reservation.token);
+      throw new SpeechCaptureFenceError("reservation-in-progress", reservation.captureEpoch);
     }
-    this.noteSpeechCaptureActivity();
-    this.armProactiveWake();
-    this.pendingSpeechTurns.set(result.observation.observationId!, {
-      observation: result.observation,
-      sessionId: options.sessionId ?? "default",
-      at: Date.now()
-    });
-    while (this.pendingSpeechTurns.size > 256)
-      this.pendingSpeechTurns.delete(this.pendingSpeechTurns.keys().next().value!);
-    return result.observation;
+    return reservation;
+  }
+
+  finalizeSpeechReservation(
+    token: string,
+    receipt: JournalCommittedEnvelope
+  ): SpeechCaptureFinalizeResult {
+    const reservation = this.speechCaptureStore.reservations.get(token);
+    if (!reservation) throw new SpeechCaptureFenceError("invalid-reservation", "unknown");
+    if (
+      receipt.command.kind !== "RECEIPT" ||
+      !receipt.authority.correlations.some(
+        (correlation) =>
+          correlation.kind === "VOICE_OBSERVATION" &&
+          correlation.observationId === reservation.observation.observationId &&
+          correlation.captureEpoch === reservation.captureEpoch
+      )
+    ) {
+      throw new Error("Committed speech receipt does not match its Runtime reservation.");
+    }
+
+    const finalized = finalizeSpeechCaptureReservation(this.speechCaptureStore, token);
+    if (finalized.status === "ready") {
+      const journalRef: JournalEventRef = {
+        kind: "JOURNAL_EVENT",
+        namespace: receipt.journalNamespace,
+        eventId: receipt.eventId
+      };
+      this.noteSpeechCaptureActivity();
+      this.armProactiveWake();
+      this.pendingSpeechTurns.set(finalized.observation.observationId!, {
+        observation: finalized.observation,
+        sessionId: finalized.sessionId,
+        journalRef,
+        at: Date.now()
+      });
+      while (this.pendingSpeechTurns.size > 256)
+        this.pendingSpeechTurns.delete(this.pendingSpeechTurns.keys().next().value!);
+    }
+    return finalized;
+  }
+
+  releaseSpeechReservation(token: string): boolean {
+    return releaseSpeechCaptureReservation(this.speechCaptureStore, token);
   }
 
   private revalidateAdmittedProactiveRevision(admittedRevision: number): void {
@@ -2626,10 +2671,7 @@ export class RuntimeOrchestrator {
         ),
       { traceId: input.traceId, parentId: input.parentId }
     );
-    return this.admitFinalizedSpeechObservation(output, {
-      sessionId: input.sessionId,
-      captureEpoch: input.captureEpoch
-    });
+    return output;
   }
 
   /**

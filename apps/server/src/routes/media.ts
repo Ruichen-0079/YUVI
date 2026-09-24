@@ -1,5 +1,6 @@
 import { retainSpeechReview } from "../services/voice-review.js";
-import { SpeechCaptureFenceError } from "@companion/core";
+import { SpeechCaptureFenceError, type SpeechCaptureReservationResult } from "@companion/core";
+import { JournalStoreError } from "@companion/journal";
 import {
   ProviderError,
   ProviderErrorCode,
@@ -13,6 +14,10 @@ import {
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { z } from "zod";
 import type { AppContext } from "../context.js";
+import {
+  toSpeechAdmissionFailure,
+  type SpeechReceiptSurface
+} from "../speech-receipt-admission.js";
 
 const IdentitySchema = {
   sessionId: z.string().min(1).default("default"),
@@ -291,15 +296,19 @@ export async function registerMediaRoutes(
       });
       if (parsed.data.preview) return reply.send({ text: output.text, language: output.language });
       retainSpeechReview(parsed.data.audioBase64, output);
-      const observation = context.runtime.admitFinalizedSpeechObservation(output, {
+      const admitted = await admitFinalizedSpeech(context, output, {
         sessionId: parsed.data.sessionId,
-        ...(parsed.data.captureEpoch ? { captureEpoch: parsed.data.captureEpoch } : {})
+        ...(parsed.data.captureEpoch ? { captureEpoch: parsed.data.captureEpoch } : {}),
+        surface: "HTTP_AUDIO_TRANSCRIPTIONS",
+        audioReceived: parsed.data.audioBase64 !== undefined,
+        mockTextSupplied: parsed.data.mockText !== undefined
       });
+      const observation = admitted.observation;
       return reply.send({
         text: observation.text,
         language: observation.language,
         confidence: observation.confidence,
-        ...(observation.observationId === undefined
+        ...(admitted.status !== "ready" || observation.observationId === undefined
           ? {}
           : { observationId: observation.observationId }),
         ...(observation.captureEpoch === undefined
@@ -313,6 +322,7 @@ export async function registerMediaRoutes(
         ...standardProviderMetadata("stt", observation)
       });
     } catch (error) {
+      if (error instanceof JournalStoreError) return sendSpeechAdmissionFailure(reply, error);
       return sendSpeechCaptureOrProviderFailure(reply, error);
     }
   });
@@ -340,10 +350,21 @@ export async function registerMediaRoutes(
         }
       });
       retainSpeechReview(parsed.data.audioBase64, transcription);
-      const observation = context.runtime.admitFinalizedSpeechObservation(transcription, {
+      const admitted = await admitFinalizedSpeech(context, transcription, {
         sessionId: parsed.data.sessionId,
-        ...(parsed.data.captureEpoch ? { captureEpoch: parsed.data.captureEpoch } : {})
+        ...(parsed.data.captureEpoch ? { captureEpoch: parsed.data.captureEpoch } : {}),
+        surface: "HTTP_VOICE_MESSAGE",
+        audioReceived: parsed.data.audioBase64 !== undefined,
+        mockTextSupplied: parsed.data.mockText !== undefined
       });
+      if (admitted.status !== "ready") {
+        return reply.status(422).send({
+          error: "speech_not_handoff_ready",
+          reason: "empty_transcript",
+          message: "The finalized speech observation has no text to admit as a voice turn."
+        });
+      }
+      const observation = admitted.observation;
       const transcriptEvent = context.runtime.commitSpeechTurn(
         observation.observationId!,
         parsed.data.sessionId,
@@ -416,6 +437,7 @@ export async function registerMediaRoutes(
           : undefined
       });
     } catch (error) {
+      if (error instanceof JournalStoreError) return sendSpeechAdmissionFailure(reply, error);
       return sendSpeechCaptureOrProviderFailure(reply, error);
     }
   });
@@ -563,7 +585,7 @@ function sendSpeechCaptureOrProviderFailure(
   error: unknown
 ): unknown {
   if (error instanceof SpeechCaptureFenceError) {
-    return reply.status(409).send({
+    return reply.status(error.reason === "reservation-capacity" ? 503 : 409).send({
       error: "speech_capture_rejected",
       reason: error.reason,
       captureEpoch: error.captureEpoch,
@@ -571,6 +593,61 @@ function sendSpeechCaptureOrProviderFailure(
     });
   }
   return sendProviderFailure(reply, "stt", error);
+}
+
+async function admitFinalizedSpeech(
+  context: AppContext,
+  output: STTOutput,
+  options: {
+    sessionId: string;
+    captureEpoch?: string;
+    surface: SpeechReceiptSurface;
+    audioReceived: boolean;
+    mockTextSupplied: boolean;
+  }
+): Promise<{ status: "ready" | "not-handoff-ready"; observation: STTOutput }> {
+  const reservation: SpeechCaptureReservationResult =
+    context.runtime.reserveFinalizedSpeechObservation(output, {
+      sessionId: options.sessionId,
+      ...(options.captureEpoch ? { captureEpoch: options.captureEpoch } : {})
+    });
+  let receipt;
+  try {
+    receipt = await context.speechReceiptAdmission.admit({
+      surface: options.surface,
+      sessionId: reservation.sessionId,
+      observation: reservation.observation,
+      audioReceived: options.audioReceived,
+      mockTextSupplied: options.mockTextSupplied
+    });
+  } catch (error) {
+    context.runtime.releaseSpeechReservation(reservation.token);
+    throw error;
+  }
+
+  let finalized;
+  try {
+    finalized = context.runtime.finalizeSpeechReservation(reservation.token, receipt);
+  } catch (error) {
+    context.runtime.releaseSpeechReservation(reservation.token);
+    throw error;
+  }
+  if (finalized.status === "stale") {
+    throw new SpeechCaptureFenceError(
+      "stale-epoch",
+      finalized.captureEpoch,
+      "A newer live speech epoch superseded this observation during durable admission."
+    );
+  }
+  return { status: finalized.status, observation: finalized.observation };
+}
+
+function sendSpeechAdmissionFailure(
+  reply: { status(code: number): { send(payload: unknown): unknown } },
+  error: JournalStoreError
+): unknown {
+  const failure = toSpeechAdmissionFailure(error);
+  return reply.status(503).send({ error: "journal_admission_failed", ...failure });
 }
 
 function sendProviderFailure(

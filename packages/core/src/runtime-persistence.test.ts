@@ -25,15 +25,71 @@ import {
   createMockVisionProvider,
   type ChatInput,
   type ChatStreamOptions,
+  type STTOutput,
   type MockStreamingChatProviderOptions
 } from "@companion/providers";
-import { createEvent, type RuntimeEvent } from "@companion/protocol";
+import { createEvent, type JournalCommittedEnvelope, type RuntimeEvent } from "@companion/protocol";
 import { describe, expect, it, vi } from "vitest";
 import {
   RuntimeOrchestrator,
   type RuntimeMemoryPort,
   type RuntimeReplyStreamEvent
 } from "./index.js";
+
+let testSpeechReceiptSequence = 0;
+function admitSpeechForTest(
+  runtime: RuntimeOrchestrator,
+  observation: STTOutput,
+  options: { sessionId?: string; captureEpoch?: string } = {}
+): STTOutput {
+  const reservation = runtime.reserveFinalizedSpeechObservation(observation, options);
+  const sequence = ++testSpeechReceiptSequence;
+  const receipt = {
+    version: "life-event-envelope.v1",
+    eventId: `jev1_${String(sequence).padStart(16, "0")}`,
+    journalNamespace: "test:speech",
+    commitSeq: sequence,
+    recordedAt: "2026-09-25T00:00:00.000Z",
+    command: {
+      version: "life-event-command.v1",
+      kind: "RECEIPT",
+      occurrenceTime: { state: "UNKNOWN" },
+      causalParents: [],
+      data: { receiptClass: "DIRECT_OBSERVATION", evidenceSelectors: [] }
+    },
+    authority: {
+      journalNamespace: "test:speech",
+      principal: { state: "UNRESOLVED", reason: "test fixture" },
+      subjects: [],
+      binding: { state: "UNRESOLVED", reason: "test fixture" },
+      surface: { kind: "LOCAL", reference: "test" },
+      correlations: [
+        { kind: "CONVERSATION", sessionId: reservation.sessionId },
+        {
+          kind: "VOICE_OBSERVATION",
+          observationId: reservation.observation.observationId,
+          captureEpoch: reservation.captureEpoch
+        }
+      ],
+      audience: { kind: "UNKNOWN", reason: "test fixture" },
+      disclosurePolicy: { state: "UNRESOLVED", reason: "test fixture" },
+      policyVersion: "test.v1",
+      producer: { name: "test", version: "1" },
+      sourceReferences: [
+        {
+          kind: "VOICE_OBSERVATION",
+          observationId: reservation.observation.observationId,
+          captureEpoch: reservation.captureEpoch
+        }
+      ],
+      payloads: []
+    }
+  } as JournalCommittedEnvelope;
+  const finalized = runtime.finalizeSpeechReservation(reservation.token, receipt);
+  if (finalized.status !== "ready")
+    throw new Error(`Test speech did not become ready: ${finalized.status}`);
+  return finalized.observation;
+}
 
 async function collectRuntimeStream(
   stream: AsyncIterable<RuntimeReplyStreamEvent>,
@@ -84,7 +140,8 @@ describe("RuntimeOrchestrator", () => {
       promptBuilder: new PromptBuilder(),
       providers: createMockProviders()
     });
-    const observation = runtime.admitFinalizedSpeechObservation(
+    const observation = admitSpeechForTest(
+      runtime,
       {
         text: "Remember my private preference.",
         voiceProfileMatch: { status: "NO_MATCH" }
@@ -165,7 +222,8 @@ describe("RuntimeOrchestrator", () => {
     expect(await runtime.bindVoiceProfileToPerson("voice-a", "user-a")).toMatchObject({
       status: "STORED"
     });
-    const observation = runtime.admitFinalizedSpeechObservation(
+    const observation = admitSpeechForTest(
+      runtime,
       {
         text: "I prefer concise replies.",
         language: "en",

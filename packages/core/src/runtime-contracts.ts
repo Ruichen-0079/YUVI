@@ -595,7 +595,7 @@ export type SpeechTranscriptionInput = STTInput & {
   signal?: AbortSignal | undefined;
 };
 
-export type AdmitFinalizedSpeechObservationInput = {
+export type ReserveFinalizedSpeechObservationInput = {
   sessionId?: string | undefined;
   captureEpoch?: string | undefined;
 };

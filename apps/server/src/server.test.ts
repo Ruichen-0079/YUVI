@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryIngestionCoordinator, MemoryMaintenanceService } from "@companion/memory";
 import { loadServerConfig } from "./config.js";
 import { buildServer } from "./server.js";
+import { createTestSpeechReceiptAdmission } from "./test-support/speech-receipt.js";
 import { mkdtempSync } from "node:fs";
 import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -3083,7 +3084,8 @@ async function buildTestServer(overrides: TestEnvOverrides = {}) {
           envelope: { eventId: "jev1_testserverreceipt00000001" } as never
         };
       }
-    }
+    },
+    speechReceiptAdmission: createTestSpeechReceiptAdmission()
   });
 }
 

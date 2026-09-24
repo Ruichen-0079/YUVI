@@ -6,6 +6,7 @@ import Fastify from "fastify";
 import { createAppContext } from "./context.js";
 import { buildServer } from "./server.js";
 import { loadServerConfig } from "./config.js";
+import { createTestSpeechReceiptAdmission } from "./test-support/speech-receipt.js";
 
 const originalEnv = { ...process.env };
 const createdDirs: string[] = [];
@@ -58,7 +59,8 @@ function buildServerWithAdmission(env: NodeJS.ProcessEnv) {
           envelope: { eventId: "jev1_characterpathreceipt00000001" } as never
         };
       }
-    }
+    },
+    speechReceiptAdmission: createTestSpeechReceiptAdmission()
   });
 }
 

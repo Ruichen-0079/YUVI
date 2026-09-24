@@ -31,6 +31,7 @@ import {
 } from "./plugin-lifecycle.js";
 import type { ServerPluginCapabilityGrant } from "./mcp-capability-binding.js";
 import type { ConversationalReceiptAdmission } from "./conversational-receipt-admission.js";
+import type { SpeechReceiptAdmission } from "./speech-receipt-admission.js";
 
 export type BuildServerOptions = Readonly<{
   /** Composition-time source registration; discovery does not call source loaders. */
@@ -39,6 +40,8 @@ export type BuildServerOptions = Readonly<{
   pluginCapabilityGrants?: readonly ServerPluginCapabilityGrant[] | undefined;
   /** Host-only dependency override; never derived from transport or plugin input. */
   conversationReceiptAdmission?: ConversationalReceiptAdmission | undefined;
+  /** Host-only dependency override for tests/in-process hosts; never request-controlled. */
+  speechReceiptAdmission?: SpeechReceiptAdmission | undefined;
 }>;
 
 export async function buildServer(config: ServerConfig, options: BuildServerOptions = {}) {
@@ -111,6 +114,9 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   const context = await createAppContext(app.log, config, pluginLifecycle.runtimeCapabilities);
   if (options.conversationReceiptAdmission) {
     context.conversationalReceiptAdmission = options.conversationReceiptAdmission;
+  }
+  if (options.speechReceiptAdmission) {
+    context.speechReceiptAdmission = options.speechReceiptAdmission;
   }
   try {
     const recovered = await context.runtime.recoverStaleStreamingMessages({

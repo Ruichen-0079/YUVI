@@ -2,7 +2,7 @@ import { InMemoryEventBus } from "@companion/event-bus";
 import { InMemoryConversationRepository } from "@companion/memory";
 import { PromptBuilder } from "@companion/prompt-builder";
 import { createEvent } from "@companion/protocol";
-import type { RuntimeEvent } from "@companion/protocol";
+import type { JournalCommittedEnvelope, RuntimeEvent } from "@companion/protocol";
 import {
   createMockAssistantContinuationProvider,
   createMockChatProvider,
@@ -158,6 +158,67 @@ function createRuntime(stt?: STTOutput): RuntimeOrchestrator {
   });
 }
 
+let testReceiptSequence = 0;
+function receiptForTestReservation(
+  reservation: ReturnType<RuntimeOrchestrator["reserveFinalizedSpeechObservation"]>
+): JournalCommittedEnvelope {
+  const sequence = ++testReceiptSequence;
+  return {
+    version: "life-event-envelope.v1",
+    eventId: `jev1_${String(sequence).padStart(16, "0")}`,
+    journalNamespace: "test:speech",
+    commitSeq: sequence,
+    recordedAt: "2026-09-25T00:00:00.000Z",
+    command: {
+      version: "life-event-command.v1",
+      kind: "RECEIPT",
+      occurrenceTime: { state: "UNKNOWN" },
+      causalParents: [],
+      data: { receiptClass: "DIRECT_OBSERVATION", evidenceSelectors: [] }
+    },
+    authority: {
+      journalNamespace: "test:speech",
+      principal: { state: "UNRESOLVED", reason: "test fixture" },
+      subjects: [],
+      binding: { state: "UNRESOLVED", reason: "test fixture" },
+      surface: { kind: "LOCAL", reference: "test" },
+      correlations: [
+        { kind: "CONVERSATION", sessionId: reservation.sessionId },
+        {
+          kind: "VOICE_OBSERVATION",
+          observationId: reservation.observation.observationId,
+          captureEpoch: reservation.captureEpoch
+        }
+      ],
+      audience: { kind: "UNKNOWN", reason: "test fixture" },
+      disclosurePolicy: { state: "UNRESOLVED", reason: "test fixture" },
+      policyVersion: "test.v1",
+      producer: { name: "test", version: "1" },
+      sourceReferences: [
+        {
+          kind: "VOICE_OBSERVATION",
+          observationId: reservation.observation.observationId,
+          captureEpoch: reservation.captureEpoch
+        }
+      ],
+      payloads: []
+    }
+  } as JournalCommittedEnvelope;
+}
+
+function admitSpeechForTest(
+  runtime: RuntimeOrchestrator,
+  observation: STTOutput,
+  options: { sessionId?: string; captureEpoch?: string } = {}
+): STTOutput {
+  const reservation = runtime.reserveFinalizedSpeechObservation(observation, options);
+  const receipt = receiptForTestReservation(reservation);
+  const finalized = runtime.finalizeSpeechReservation(reservation.token, receipt);
+  if (finalized.status !== "ready")
+    throw new Error(`Test speech did not become ready: ${finalized.status}`);
+  return finalized.observation;
+}
+
 async function collect(stream: AsyncIterable<{ type: string }>): Promise<Array<{ type: string }>> {
   const events: Array<{ type: string }> = [];
   for await (const event of stream) events.push(event);
@@ -165,9 +226,75 @@ async function collect(stream: AsyncIterable<{ type: string }>): Promise<Array<{
 }
 
 describe("Runtime finalized capture lifecycle", () => {
+  it("keeps reservation provisional until a matching committed receipt is finalized", () => {
+    const runtime = createRuntime();
+    const before = runtime.getProactiveState().activityRevision;
+    const reservation = runtime.reserveFinalizedSpeechObservation(
+      {
+        text: "hello",
+        observationId: "obs-provisional",
+        segments: [{ segmentId: "seg-provisional" }]
+      },
+      { sessionId: "s", captureEpoch: "epoch-provisional" }
+    );
+    expect(runtime.getProactiveState().activityRevision).toBe(before);
+    expect(() => runtime.commitSpeechTurn("obs-provisional", "s", "hello")).toThrow();
+    expect(runtime.releaseSpeechReservation(reservation.token)).toBe(true);
+    expect(runtime.getProactiveState().activityRevision).toBe(before);
+    expect(() => runtime.commitSpeechTurn("obs-provisional", "s", "hello")).toThrow();
+  });
+
+  it("keeps a new VAD epoch responsive and refuses handoff after a receipt commits stale", () => {
+    const runtime = createRuntime();
+    runtime.observeSpeechActivity({ sessionId: "race", captureEpoch: "epoch-old", active: true });
+    const reservation = runtime.reserveFinalizedSpeechObservation(
+      { text: "old speech", observationId: "obs-race", segments: [{ segmentId: "seg-race" }] },
+      { sessionId: "race", captureEpoch: "epoch-old" }
+    );
+    const beforeNewEpoch = runtime.getProactiveState().activityRevision;
+    const newer = runtime.observeSpeechActivity({
+      sessionId: "race",
+      captureEpoch: "epoch-new",
+      active: true
+    });
+    expect(newer.captureEpoch).toBe("epoch-new");
+    expect(runtime.getProactiveState().activityRevision).toBe(beforeNewEpoch + 1);
+
+    const finalized = runtime.finalizeSpeechReservation(
+      reservation.token,
+      receiptForTestReservation(reservation)
+    );
+    expect(finalized.status).toBe("stale");
+    expect(runtime.getSpeechActivitySnapshot().captureEpoch).toBe("epoch-new");
+    expect(runtime.getProactiveState().activityRevision).toBe(beforeNewEpoch + 1);
+    expect(() => runtime.commitSpeechTurn("obs-race", "race", "old speech")).toThrow();
+  });
+
+  it("does not advance capture state when Journal failure releases a new-epoch reservation", () => {
+    const runtime = createRuntime();
+    runtime.observeSpeechActivity({
+      sessionId: "release",
+      captureEpoch: "epoch-old",
+      active: true
+    });
+    const reservation = runtime.reserveFinalizedSpeechObservation(
+      { text: "retry me", observationId: "obs-release", segments: [{ segmentId: "seg-release" }] },
+      { sessionId: "release", captureEpoch: "epoch-new" }
+    );
+    runtime.releaseSpeechReservation(reservation.token);
+    expect(runtime.getSpeechActivitySnapshot().captureEpoch).toBe("epoch-old");
+    const retry = runtime.reserveFinalizedSpeechObservation(
+      { text: "retry me", observationId: "obs-release", segments: [{ segmentId: "seg-release" }] },
+      { sessionId: "release", captureEpoch: "epoch-new" }
+    );
+    expect(retry.observation.observationId).toBe("obs-release");
+    runtime.releaseSpeechReservation(retry.token);
+  });
+
   it("keeps explicit PTT as an admitted interaction after a fenced observation", async () => {
     const runtime = createRuntime();
-    const observation = runtime.admitFinalizedSpeechObservation(
+    const observation = admitSpeechForTest(
+      runtime,
       {
         text: "几点了",
         language: "zh",
@@ -210,7 +337,7 @@ describe("Runtime finalized capture lifecycle", () => {
       captureEpoch: "epoch-ambient"
     });
     expect(observation.text).toBe("ambient");
-    expect(observation.captureEpoch).toBe("epoch-ambient");
+    expect(observation.captureEpoch).toBeUndefined();
     expect(published.some((event) => event.type === "user.message")).toBe(false);
     expect(published.some((event) => event.type === "user.voice.transcript")).toBe(false);
   });
@@ -247,7 +374,8 @@ describe("Runtime finalized capture lifecycle", () => {
     );
     expect(engaged.getProactiveState().suppression).toEqual({ kind: "UNTIL_ENGAGEMENT" });
     const revision = engaged.getProactiveState().activityRevision;
-    engaged.admitFinalizedSpeechObservation(
+    admitSpeechForTest(
+      engaged,
       {
         text: "tv noise",
         segments: [{ segmentId: "seg-tv", text: "tv noise", speakerClusterId: "unk" }]
@@ -288,7 +416,8 @@ describe("Runtime finalized capture lifecycle", () => {
       { sessionId: "r", content: "别再主动说话" },
       { controlAuthority: "LOCAL_EXPLICIT_CONTROLLER", readMemory: false, writeMemory: false }
     );
-    runtime.admitFinalizedSpeechObservation(
+    admitSpeechForTest(
+      runtime,
       { text: "noise", segments: [{ segmentId: "seg-r", text: "noise" }] },
       { sessionId: "r", captureEpoch: "epoch-r" }
     );
@@ -333,7 +462,8 @@ describe("Runtime finalized capture lifecycle", () => {
       })
     );
     await continuationBegan;
-    runtime.admitFinalizedSpeechObservation(
+    admitSpeechForTest(
+      runtime,
       { text: "new capture", segments: [{ segmentId: "seg-new", text: "new capture" }] },
       { sessionId: "s", captureEpoch: "epoch-new" }
     );
@@ -348,7 +478,8 @@ describe("Runtime finalized capture lifecycle", () => {
 
   it("keeps speaker clusters unresolved after fencing", () => {
     const runtime = createRuntime();
-    const observation = runtime.admitFinalizedSpeechObservation(
+    const observation = admitSpeechForTest(
+      runtime,
       {
         text: "two speakers",
         segments: [
@@ -388,14 +519,15 @@ describe("Runtime finalized capture lifecycle", () => {
       text: "hello",
       segments: [{ segmentId: "seg-dup", text: "hello" }]
     };
-    runtime.admitFinalizedSpeechObservation(first, { sessionId: "s", captureEpoch: "epoch-dup" });
+    admitSpeechForTest(runtime, first, { sessionId: "s", captureEpoch: "epoch-dup" });
     expect(() =>
-      runtime.admitFinalizedSpeechObservation(first, { sessionId: "s", captureEpoch: "epoch-dup" })
+      admitSpeechForTest(runtime, first, { sessionId: "s", captureEpoch: "epoch-dup" })
     ).toThrow(SpeechCaptureFenceError);
   });
   it("commits server-owned acoustic evidence once, retaining mixed per-span profiles", () => {
     const runtime = createRuntime();
-    const observation = runtime.admitFinalizedSpeechObservation(
+    const observation = admitSpeechForTest(
+      runtime,
       {
         text: "hello there",
         segments: [
@@ -430,7 +562,8 @@ describe("Runtime finalized capture lifecycle", () => {
 
   it("preserves a single recognized acoustic profile without manufacturing a person", () => {
     const runtime = createRuntime();
-    const observation = runtime.admitFinalizedSpeechObservation(
+    const observation = admitSpeechForTest(
+      runtime,
       { text: "hello", voiceProfileMatch: { status: "MATCHED", voiceProfileId: "profile-a" } },
       { sessionId: "s" }
     );
@@ -442,7 +575,8 @@ describe("Runtime finalized capture lifecycle", () => {
 
   it("does not fill missing segment identities from a whole-capture match", () => {
     const runtime = createRuntime();
-    const observation = runtime.admitFinalizedSpeechObservation(
+    const observation = admitSpeechForTest(
+      runtime,
       {
         text: "two spans",
         voiceProfileMatch: { status: "MATCHED", voiceProfileId: "profile-a" },

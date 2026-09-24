@@ -15,6 +15,7 @@ import {
 import type { IncomingMessage } from "node:http";
 import type { Socket } from "node:net";
 import { SpeechCaptureFenceError } from "@companion/core";
+import { JournalStoreError } from "@companion/journal";
 import type { AppContext } from "../context.js";
 import { registerMediaRoutes } from "./media.js";
 
@@ -91,6 +92,29 @@ function visionOutput(): VisionOutput {
   };
 }
 
+let mockSpeechReceiptSequence = 0;
+function mockSpeechReceipt(observation: STTOutput, sessionId: string): any {
+  const sequence = ++mockSpeechReceiptSequence;
+  return {
+    version: "life-event-envelope.v1",
+    eventId: `jev1_${String(sequence).padStart(16, "0")}`,
+    journalNamespace: "test:speech",
+    commitSeq: sequence,
+    recordedAt: "2026-09-25T00:00:00.000Z",
+    command: { kind: "RECEIPT" },
+    authority: {
+      correlations: [
+        { kind: "CONVERSATION", sessionId },
+        {
+          kind: "VOICE_OBSERVATION",
+          observationId: observation.observationId,
+          captureEpoch: observation.captureEpoch
+        }
+      ]
+    }
+  };
+}
+
 function cancelledProviderError(effectState: "not_started" | "unknown"): ProviderError {
   return new ProviderError({
     provider: "test-stt",
@@ -123,6 +147,9 @@ function createContext() {
     model: "test-stt",
     providerMetadata: { sourceKind: "base64" }
   }));
+  let reserved:
+    | { token: string; sessionId: string; captureEpoch: string; observation: STTOutput }
+    | undefined;
   const context = {
     providers: { getSTTProvider: () => ({ transcribeAudio }) },
     runtime: {
@@ -133,11 +160,37 @@ function createContext() {
         payload: { content: "reply", provider: "mock" },
         traceId: "trace-1"
       })),
-      admitFinalizedSpeechObservation: vi.fn((output: STTOutput) => ({
-        ...output,
-        captureEpoch: output.captureEpoch ?? "epoch-test"
-      })),
+      reserveFinalizedSpeechObservation: vi.fn(
+        (output: STTOutput, options: { sessionId?: string }) => {
+          const observation = {
+            ...output,
+            observationId: output.observationId ?? "observation-test",
+            captureEpoch: output.captureEpoch ?? "epoch-test"
+          };
+          reserved = {
+            token: "reservation-test",
+            sessionId: options.sessionId ?? "default",
+            captureEpoch: observation.captureEpoch!,
+            observation
+          };
+          return reserved;
+        }
+      ),
+      finalizeSpeechReservation: vi.fn(() => ({ status: "ready", ...reserved! })),
+      releaseSpeechReservation: vi.fn(),
       getLatestPromptPreview: vi.fn(() => undefined)
+    },
+    speechReceiptAdmission: {
+      admit: vi.fn(async () =>
+        mockSpeechReceipt(
+          {
+            observationId: "observation-test",
+            captureEpoch: "epoch-test",
+            text: "recognized speech"
+          },
+          "default"
+        )
+      )
     }
   } as unknown as AppContext;
   return { context, transcribeAudio };
@@ -159,7 +212,11 @@ async function createLifecycleApp(
   app: ReturnType<typeof Fastify>;
   transcribeAudio: TestSTTTranscriber;
   handleUserMessage: ReturnType<typeof vi.fn>;
-  admitFinalizedSpeechObservation: ReturnType<typeof vi.fn>;
+  commitSpeechTurn: ReturnType<typeof vi.fn>;
+  reserveFinalizedSpeechObservation: ReturnType<typeof vi.fn>;
+  finalizeSpeechReservation: ReturnType<typeof vi.fn>;
+  releaseSpeechReservation: ReturnType<typeof vi.fn>;
+  speechReceiptAdmission: { admit: ReturnType<typeof vi.fn> };
   request: RequestCapture;
 }> {
   const handleUserMessage = vi.fn(
@@ -169,26 +226,53 @@ async function createLifecycleApp(
         traceId: "trace-1"
       }))
   );
-  const admitFinalizedSpeechObservation = vi.fn((output: STTOutput) => ({
-    ...output,
-    captureEpoch: output.captureEpoch ?? "epoch-test"
-  }));
+  const commitSpeechTurn = vi.fn((observationId: string, sessionId: string, content: string) =>
+    createEvent("user.voice.transcript", {
+      observationId,
+      sessionId,
+      content,
+      language: "en",
+      confidence: 0.9
+    })
+  );
+  let latestReservation:
+    | { token: string; sessionId: string; captureEpoch: string; observation: STTOutput }
+    | undefined;
+  const reserveFinalizedSpeechObservation = vi.fn(
+    (output: STTOutput, options: { sessionId?: string; captureEpoch?: string }) => {
+      const observation = {
+        ...output,
+        observationId: output.observationId ?? "observation-test",
+        captureEpoch: options.captureEpoch ?? output.captureEpoch ?? "epoch-test"
+      };
+      latestReservation = {
+        token: "reservation-test",
+        sessionId: options.sessionId ?? "default",
+        captureEpoch: observation.captureEpoch!,
+        observation
+      };
+      return latestReservation;
+    }
+  );
+  const finalizeSpeechReservation = vi.fn(() => ({ status: "ready", ...latestReservation! }));
+  const releaseSpeechReservation = vi.fn();
+  const speechReceiptAdmission = {
+    admit: vi.fn(
+      async ({ observation, sessionId }: { observation: STTOutput; sessionId: string }) =>
+        mockSpeechReceipt(observation, sessionId)
+    )
+  };
   const context = {
     providers: { getSTTProvider: () => ({ transcribeAudio }) },
     runtime: {
       handleUserMessage,
-      commitSpeechTurn: vi.fn((observationId: string, sessionId: string, content: string) =>
-        createEvent("user.voice.transcript", {
-          observationId,
-          sessionId,
-          content,
-          language: "en",
-          confidence: 0.9
-        })
-      ),
-      admitFinalizedSpeechObservation,
+      commitSpeechTurn,
+      reserveFinalizedSpeechObservation,
+      finalizeSpeechReservation,
+      releaseSpeechReservation,
       getLatestPromptPreview: vi.fn(() => undefined)
-    }
+    },
+    speechReceiptAdmission
   } as unknown as AppContext;
   const request: RequestCapture = {
     raw: undefined,
@@ -205,7 +289,17 @@ async function createLifecycleApp(
     configureRequest?.(request.raw, request.socket);
   });
   await registerMediaRoutes(app, context);
-  return { app, transcribeAudio, handleUserMessage, admitFinalizedSpeechObservation, request };
+  return {
+    app,
+    transcribeAudio,
+    handleUserMessage,
+    commitSpeechTurn,
+    reserveFinalizedSpeechObservation,
+    finalizeSpeechReservation,
+    releaseSpeechReservation,
+    speechReceiptAdmission,
+    request
+  };
 }
 
 async function createTTSLifecycleApp(
@@ -734,15 +828,18 @@ describe("public batch STT disconnect cancellation", () => {
     }
   });
 
-  it("/v1/audio/transcriptions returns observation identity without runtime admission", async () => {
+  it("/v1/audio/transcriptions returns observation identity after Journal finalization", async () => {
     const transcribeAudio = vi.fn<TestSTTTranscriber>(async () => ({
       ...recognizedOutput(),
       observationId: "obs-transcribe-only"
     }));
-    const { app, handleUserMessage } = await createLifecycleApp(
-      "/v1/audio/transcriptions",
-      transcribeAudio
-    );
+    const {
+      app,
+      handleUserMessage,
+      reserveFinalizedSpeechObservation,
+      finalizeSpeechReservation,
+      speechReceiptAdmission
+    } = await createLifecycleApp("/v1/audio/transcriptions", transcribeAudio);
 
     try {
       const response = await app.inject({
@@ -755,18 +852,57 @@ describe("public batch STT disconnect cancellation", () => {
       expect(response.json().observationId).toBe("obs-transcribe-only");
       expect(response.json().captureEpoch).toBe("epoch-test");
       expect(handleUserMessage).not.toHaveBeenCalled();
+      expect(reserveFinalizedSpeechObservation.mock.invocationCallOrder[0]).toBeLessThan(
+        speechReceiptAdmission.admit.mock.invocationCallOrder[0]!
+      );
+      expect(speechReceiptAdmission.admit.mock.invocationCallOrder[0]).toBeLessThan(
+        finalizeSpeechReservation.mock.invocationCallOrder[0]!
+      );
     } finally {
       await app.close();
     }
   });
 
+  it.each(routeCases)(
+    "%s releases reservation and blocks semantic work on Journal failure",
+    async (route) => {
+      const transcribeAudio = vi.fn<TestSTTTranscriber>(async () => recognizedOutput());
+      const {
+        app,
+        commitSpeechTurn,
+        handleUserMessage,
+        releaseSpeechReservation,
+        speechReceiptAdmission
+      } = await createLifecycleApp(route, transcribeAudio);
+      speechReceiptAdmission.admit.mockRejectedValue(
+        new JournalStoreError("DATABASE_UNAVAILABLE", "private database detail")
+      );
+      try {
+        const response = await app.inject({
+          method: "POST",
+          url: route,
+          payload: { audioBase64: "AQID", sessionId: "journal-failure" }
+        });
+        expect(response.statusCode).toBe(503);
+        expect(response.json()).toMatchObject({ error: "journal_admission_failed" });
+        expect(response.json()).not.toHaveProperty("observationId");
+        expect(response.body).not.toContain("private database detail");
+        expect(releaseSpeechReservation).toHaveBeenCalledWith("reservation-test");
+        expect(commitSpeechTurn).not.toHaveBeenCalled();
+        expect(handleUserMessage).not.toHaveBeenCalled();
+      } finally {
+        await app.close();
+      }
+    }
+  );
+
   it("/v1/voice/message does not admit a duplicate capture as a second interaction", async () => {
     const transcribeAudio = vi.fn<TestSTTTranscriber>(async () => recognizedOutput());
-    const { app, handleUserMessage, admitFinalizedSpeechObservation } = await createLifecycleApp(
+    const { app, handleUserMessage, reserveFinalizedSpeechObservation } = await createLifecycleApp(
       "/v1/voice/message",
       transcribeAudio
     );
-    admitFinalizedSpeechObservation.mockImplementation(() => {
+    reserveFinalizedSpeechObservation.mockImplementation(() => {
       throw new SpeechCaptureFenceError("duplicate", "epoch-dup");
     });
     try {
@@ -788,11 +924,11 @@ describe("public batch STT disconnect cancellation", () => {
 
   it("/v1/audio/transcriptions rejects a stale capture epoch", async () => {
     const transcribeAudio = vi.fn<TestSTTTranscriber>(async () => recognizedOutput());
-    const { app, handleUserMessage, admitFinalizedSpeechObservation } = await createLifecycleApp(
+    const { app, handleUserMessage, reserveFinalizedSpeechObservation } = await createLifecycleApp(
       "/v1/audio/transcriptions",
       transcribeAudio
     );
-    admitFinalizedSpeechObservation.mockImplementation(() => {
+    reserveFinalizedSpeechObservation.mockImplementation(() => {
       throw new SpeechCaptureFenceError("stale-epoch", "epoch-old");
     });
     try {
@@ -1354,10 +1490,10 @@ describe("public TTS disconnect cancellation", () => {
 it("keeps endpoint ASR previews outside finalized Runtime observations", async () => {
   const app = Fastify();
   const transcribeAudio = vi.fn<TestSTTTranscriber>(async () => recognizedOutput());
-  const admitFinalizedSpeechObservation = vi.fn();
+  const reserveFinalizedSpeechObservation = vi.fn();
   await registerMediaRoutes(app, {
     providers: { getSTTProvider: () => ({ name: "local", transcribeAudio }) },
-    runtime: { admitFinalizedSpeechObservation }
+    runtime: { reserveFinalizedSpeechObservation }
   } as unknown as AppContext);
   try {
     const response = await app.inject({
@@ -1370,7 +1506,7 @@ it("keeps endpoint ASR previews outside finalized Runtime observations", async (
     expect(transcribeAudio.mock.calls[0]?.[0]).toMatchObject({
       metadata: { identify: false, diarize: false }
     });
-    expect(admitFinalizedSpeechObservation).not.toHaveBeenCalled();
+    expect(reserveFinalizedSpeechObservation).not.toHaveBeenCalled();
   } finally {
     await app.close();
   }
