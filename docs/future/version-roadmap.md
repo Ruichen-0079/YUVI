@@ -61,11 +61,11 @@ A coding model should never implement multiple roadmap atoms merely because they
 
 # v0.1.3 — Durable Causal History Foundation
 
-Detailed authority: [`09-v0.1.3-platform-completion.md`](09-v0.1.3-platform-completion.md).
+Detailed authority: [`09-v0.1.3-platform-completion.md`](09-v0.1.3-platform-completion.md). The source-audited executable split of aggregate A8.2 is authoritative in [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md); it supersedes treating the aggregate A8.2 section as one coding-model atom.
 
 ## Current state
 
-A0–A6, A7.1, A7.2 and A8.1 are implemented. A8.2–A12 remain planned engineering. A8.1 validation is recorded in [`v0.1.3-a8.1-journal-contract.md`](../validation/v0.1.3-a8.1-journal-contract.md).
+A0–A6, A7.1, A7.2 and A8.1 are implemented. A8.2a–A8.2f and A9–A12 remain planned engineering. Aggregate A8.2 remains unimplemented until all six A8.2 leaves close. A8.1 validation is recorded in [`v0.1.3-a8.1-journal-contract.md`](../validation/v0.1.3-a8.1-journal-contract.md).
 
 The release is best tracked as three milestones rather than six family numbers.
 
@@ -74,16 +74,36 @@ The release is best tracked as three milestones rather than six family numbers.
 Default execution order:
 
 ```text
-A7.1 → A7.2 → A8.1 → A8.2 → A10.1
+A7.1 → A7.2 → A8.1
+                  ↓
+               A8.2a  Journal Store Foundation
+                  ↓
+               A8.2b  conversational HTTP/SSE/WebSocket ingress
+                  ↓
+               A8.2c  finalized speech / voice-message ingress
+                  ↓
+               A8.2d  standalone vision ingress
+                  ↓
+               A8.2e  controller / product / Person / P8 controls
+                  ↓
+               A8.2f  voice-identity controls + aggregate bypass closure
+                  ↓
+                A10.1
 ```
+
+A8.2 was split only after the required implementation audit found independent production ingress owners. Runtime remains the single semantic execution authority but is not a universal transport-ingress gate. The leaf split is source-driven and must not be implemented as six new managers.
+
+A8.2a also freezes an important database rule: Journal durability is a consumer of the Supervisor/deployment-owned PostgreSQL infrastructure and must remain available when Mem0 is the active Memory backend. `MEMORY_REPOSITORY=postgres` / long-term Memory backend selection must not determine whether the Journal exists, and no second PostgreSQL daemon may be introduced.
 
 Result:
 
 - executable capabilities have explicit effect contracts;
 - plugins can register only narrow governed executable handles;
 - a versioned journal command, envelope and evidence-selector contract exists;
-- source/principal/audience/retention semantics are structurally represented, while accepted input becomes durable receipt evidence only after A8.2;
-- the reproduced legacy LLM Memory attribution defect is closed;
+- the durable Journal store has one ordered append authority independent of long-term Memory-backend choice;
+- conversational, voice, standalone-vision and governed local-control inputs become durable receipts before their existing semantic/domain processing, while each surface preserves its real identity/audience/retention limits;
+- A8.2f proves there is no undocumented in-scope ingress bypass before aggregate A8.2 is marked implemented;
+- the reproduced legacy LLM Memory attribution defect is then closed by A10.1;
 - new evidence-backed Memory writes require committed lineage.
 
 This is the first intentional checkpoint. Perform an authority-bypass audit before continuing to external effects.
