@@ -1,6 +1,6 @@
 # Life-event journal and external effects
 
-Status: **PRODUCTION ARCHITECTURE DECISION**; implementation is **PLANNED ENGINEERING**, A8–A10. Existing conversation, Memory and delivery records are partial foundations, not this completed journal.
+Status: **PRODUCTION ARCHITECTURE DECISION**. A8.1's versioned command/envelope contract and structural validation are **IMPLEMENTED REALITY**; durable journal implementation remains **PLANNED ENGINEERING**, A8.2–A10. Existing conversation, Memory and delivery records are partial foundations, not this completed journal. See the [A8.1 validation record](../validation/v0.1.3-a8.1-journal-contract.md).
 
 The journal is authoritative evidence of what YUVI received, committed, attempted and observed. It is **not authoritative world truth**. A receipt of “I repaid you” proves receipt of that assertion, not repayment. An extraction can faithfully quote a false assertion. An attempted delivery is not a delivered message. A downstream index row is not an original receipt.
 
@@ -23,6 +23,8 @@ Every committed event has the following versioned envelope. Producer-supplied va
 | `producer`, `producer_version`, `policy_version` | Responsible component and rule/schema versions; model/prompt/codebook versions when a model measured or generated content |
 | `lineage` | Input event IDs, evidence selectors, source digest/version where permitted, derivation version and checkpoint; consumer output identity |
 | `supersedes`, `amends` | Typed earlier references; append-only correction, with authorization and reason; no silent historical overwrite |
+
+The A8.1 protocol contract separates producer commands from the committed envelope. It reserves event identity, namespace, principal/source attribution, surface/channel, correlations, policy/producer versions, `recorded_at` and `commit_seq` for a separate host authority snapshot and future append gate. It defines seven kind-specific command shapes and strict selectors; confirmed outcome predicates distinguish local result produced, service accepted, remote persisted, device presented, human acknowledged, delivery rejected and no effect established. The contract validates structure and selector boundaries, not whether a citation semantically proves a real-world claim.
 
 `commit_seq` must reflect serialized commits within a journal; a database sequence allocated before transaction commit is insufficient. The planned store reuses the existing PostgreSQL migration/connection and bundled-runtime seams, with a journal append lock/CAS protocol and a transaction that commits envelope, intent uniqueness and outbox together where applicable. Gaps are allowed. Parent existence/scope and acyclicity are validated. Cross-journal imports retain external references and explicit unresolved/import status; there is no invented global total order. An in-memory test adapter does not satisfy durability or packaged deployment acceptance.
 

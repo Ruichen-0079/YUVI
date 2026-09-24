@@ -1,10 +1,12 @@
 # Principals, Persons, audience and claims
 
-Status: **PRODUCTION ARCHITECTURE DECISION**, with **PLANNED ENGINEERING** in A8/A10/A12. Current local-controller and voice boundaries are preserved as described in [implementation baseline](implementation-baseline.md).
+Status: **PRODUCTION ARCHITECTURE DECISION**. A8.1 implements protocol-level representations for resolved, unresolved and ambiguous principals, Person bindings, subjects, audience snapshots and membership quality. Authentication, binding resolution and durable receipt-time snapshots remain **PLANNED ENGINEERING** in A8.2/A10/A12. Current local-controller and voice boundaries are preserved as described in [implementation baseline](implementation-baseline.md).
 
 A **principal** is an authenticated transport/account/device actor in a namespace. A **Person** is a governed product identity to which one or more principals may be bound. A display name, quoted first-person statement, acoustic similarity or a model's entity guess is neither authentication nor binding authority. Local controller authentication does not transfer to arbitrary QQ senders. An external principal is not automatically the desktop's primary Person.
 
 A binding has an owner, principal namespace, Person reference, valid interval, evidence, issuer/authorization, version and revocation/supersession lineage. The governed identity owner alone commits changes. A principal may remain unresolved, mappings may conflict, and a group may contain several principals. Those are explicit states, not reasons to choose the most plausible person. Account reuse or a corrected voice association invalidates affected descendants by binding version, not by rewriting historical receipt authors.
+
+The A8.1 protocol keeps principal references and Person binding/subject references as separate discriminated values. Its structural validator does not authenticate a transport actor, infer a Person from a name or voice match, or make an authority snapshot current; A8.2 and the identity owner must supply and validate those facts.
 
 Current `Person.id/displayName/personaId/notes` lives in controller product settings. Current voice bindings require explicit local-controller evidence and committed STT attribution. P8 surface-form resolution is a linguistic projection, not an account binding. Its `SELF_REPORT`/trusted-explicit language tier must never be reused as transport authentication. A10 adds causal receipts around these owners, without installing a competing identity database.
 

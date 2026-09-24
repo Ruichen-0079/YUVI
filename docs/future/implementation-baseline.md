@@ -1,12 +1,12 @@
 # Implementation baseline for the Future architecture
 
-Status: **IMPLEMENTED REALITY**. A7.2 source and verification are recorded in [its validation record](../validation/v0.1.3-a7.2-plugin-registration-lifetime.md). This is the only Future document that states what exists today. Every other Future document states decisions, planned engineering or hypotheses and must defer to this record and to source. When source changes, the atom that changes it updates this file.
+Status: **IMPLEMENTED REALITY**. A8.1 source and verification are recorded in [its validation record](../validation/v0.1.3-a8.1-journal-contract.md). This is the only Future document that states what exists today. Every other Future document states decisions, planned engineering or hypotheses and must defer to this record and to source. When source changes, the atom that changes it updates this file.
 
 The [consolidation audit](../validation/v0.1.3-future-consolidation.md) records the commands, probe and evidence behind the findings below.
 
 ## Completed v0.1.3 atoms
 
-A0–A6 and A7.1–A7.2 are complete and are not redesigned by the new architecture. A0–A6 original atom specifications are preserved in git history at `ecbb3c5` (the previous text of [the v0.1.3 roadmap](09-v0.1.3-platform-completion.md)); their validation records remain the evidence:
+A0–A6, A7.1–A7.2 and A8.1 are complete and are not redesigned by the new architecture. A0–A6 original atom specifications are preserved in git history at `ecbb3c5` (the previous text of [the v0.1.3 roadmap](09-v0.1.3-platform-completion.md)); their validation records remain the evidence:
 
 | Atom | Result | Evidence |
 | --- | --- | --- |
@@ -19,6 +19,7 @@ A0–A6 and A7.1–A7.2 are complete and are not redesigned by the new architect
 | A6 | Composition-trusted plugin discovery/load/start/stop/dispose lifecycle; inert declarations; **not a sandbox** | [A6](../validation/v0.1.3-a6-plugin-lifecycle.md) |
 | A7.1 | Versioned host-owned executable registry and effect contracts; current `read_text_file` binding only | [A7.1](../validation/v0.1.3-a7.1-executable-registry.md) |
 | A7.2 | Host-issued, plugin-instance-scoped local-transform registrations; Runtime-admitted calls; revocation before bounded drain and disposal | [A7.2](../validation/v0.1.3-a7.2-plugin-registration-lifetime.md) |
+| A8.1 | Versioned journal command/envelope contract, source selectors and structural admission validation; no durable append | [A8.1](../validation/v0.1.3-a8.1-journal-contract.md) |
 
 Pre-v0.1.3 closures (P8-1F, Character ABI/Harness, bounded Cognition, Phase 7 embodied agency, Campaigns A–I, Linux release gate) remain historical evidence in this directory; their status claims are not re-derived here.
 
@@ -29,6 +30,7 @@ Pre-v0.1.3 closures (P8-1F, Character ABI/Harness, bounded Cognition, Phase 7 em
 | Turn admission, execution, cancellation, publication | `packages/core` Runtime orchestrator |
 | Executable capabilities | A7.1 validated static `read_text_file` binding plus A7.2 composition-root grants for fixed local transforms; every invocation enters through Core Runtime admission (`apps/server/src/mcp-capability-binding.ts`, `plugin-lifecycle.ts`, `cognition-interaction.ts`) |
 | Plugin lifecycle | Server composition root's A6 lifecycle host owns A7.2 scoped registrations and their revocation/drain (`apps/server/src/plugin-lifecycle.ts`) |
+| Journal semantic contract | `packages/protocol/src/life-event-journal.ts` owns versioned schemas and storage-independent validation only; no current append or receipt-admission owner |
 | Proactive text | P6 `ProactiveDecisionProvider` is the sole `NO_OP`/`REQUEST_TEXT` gate. User priority, one-shot attempts, stale-callback fencing, no synthetic user message, no proactive Memory write and no proactive TTS/tool authority are frozen until an explicit atomic replacement |
 | Long-term Memory | One active backend: legacy PostgreSQL Memory **or** Mem0. With Mem0 active, legacy extraction is skipped entirely (`MemoryService.extractCandidates`) |
 | Person definitions | Controller product store (`apps/server/src/services/product-store.ts`) |
@@ -55,7 +57,7 @@ This is the local precedent for A9's INTENT → ATTEMPT → OUTCOME protocol. A9
    - *Indirect P8 exposure.* P8 does not have a direct LLM writer (see below), but P8's per-turn projection reads long-term Memory. Such a row reaches P8 as `EXPLICIT_USER_ORIGINATED` evidence with `LIMITED` support through `memorySourceClass`. The defect therefore contaminates P8 through reads, not through a P8 write.
    - Repair: **A10.1** in [v0.1.3](09-v0.1.3-platform-completion.md).
 2. **Controller profile write outside Runtime.** `apps/server/src/services/profile-evidence.ts` (called from `routes/product.ts`) writes an `EXTERNAL_CLAIM` from the local controller directly to the Memory provider with `writeEvent`. It has no Runtime admission, no idempotency key and no causal receipt, so a retried save can duplicate the claim. Repair: **A10.2**.
-3. **No causal journal.** Conversation persistence, Runtime events, A3 execution-local evidence and the Memory ledgers are partial records. Nothing today connects receipt → context → cognition → intent → attempt → outcome durably across restart. Repair: A8–A10.
+3. **No durable causal journal.** A8.1 now defines a protocol-level command/envelope, typed selectors and structural validation. Conversation persistence, Runtime events, A3 execution-local evidence and Memory ledgers remain separate partial records; nothing connects receipt → context → cognition → intent → attempt → outcome durably across restart. Durable append and ingress are A8.2; effect accounting remains A9.
 4. **No durable external-effect accounting.** Provider calls, streaming publication, TTS/presentation, capability calls and Memory delivery each have their own fencing, but only Memory delivery persists an attempt before effect. A7.1 adds validated static registry metadata; A7.2 adds host-approved in-process registration and drain only. Durable intent/attempt/outcome accounting remains A8–A9 work. A7.2 does not enable external dispatch or claim crash recovery for an in-flight plugin call.
 5. **No QQ, Snowluma or OneBot code exists.** A12 starts from an empty adapter.
 

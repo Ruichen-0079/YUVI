@@ -1,11 +1,12 @@
 # Authority and execution boundaries
 
-Status: **PRODUCTION ARCHITECTURE DECISION**. Journal-mediated authority is **PLANNED ENGINEERING**; existing owners are recorded in [implementation baseline](implementation-baseline.md). One meaning has one active committing owner in a deployment epoch. A storage writer is not automatically an authority over the meaning it stores.
+Status: **PRODUCTION ARCHITECTURE DECISION**. The A8.1 protocol contract is **IMPLEMENTED REALITY**; journal-mediated admission and durable authority remain **PLANNED ENGINEERING**. Existing owners are recorded in [implementation baseline](implementation-baseline.md). One meaning has one active committing owner in a deployment epoch. A storage writer is not automatically an authority over the meaning it stores.
 
 | Meaning | Current / preserved owner | Planned boundary |
 | --- | --- | --- |
 | Turn admission, execution, cancellation, capability permission, publication | Runtime | Runtime admits journal commands through one append gate; transport cannot commit independently |
 | Normalized receipt and execution evidence | Conversation persistence, Runtime events and specialized ledgers presently cover parts | Journal append authority records what was observed/committed; never decides world truth |
+| Journal command/envelope schema and structural validation | `packages/protocol/src/life-event-journal.ts` (A8.1 contract only) | A8.2 append authority resolves source identity, commits ordering and accepts receipts |
 | A1/A2 reasoning round | Runtime owns execution ID, counters, currentness, deadline | Cognition proposes; registry validates; Runtime commits permitted intent |
 | Character expression | Character produces bounded outcomes; Runtime consumes them | Character may express a projection; expression cannot write that projection |
 | Capability availability and implementation | A7.1 host registry binds `read_text_file`; A7.2 composition-root policy grants only fixed local transforms to exact plugin/version identities | Runtime admits each call; future effect dispatch remains behind A9.2 |
@@ -20,9 +21,9 @@ Status: **PRODUCTION ARCHITECTURE DECISION**. Journal-mediated authority is **PL
 | Charter and permissions | Authored/governed policy | Experience may not silently weaken normative constraints |
 | Application processes | Desktop / Supervisor ownership chain | Runtime owns semantics, Supervisor owns processes; plugins own neither |
 
-A model can propose an action, label an authorized evidence window, suggest a correction or express an interpretation. It cannot commit a scalar relationship state, choose its own evidence eligibility, authenticate a principal, grant a plugin permission or rewrite policy. A validated model output remains a measurement with an error model, not an authoritative fact.
+A model can propose an action, label an authorized evidence window, suggest a correction or express an interpretation. It cannot commit a scalar relationship state, choose its own evidence eligibility, authenticate a principal, grant a plugin permission or rewrite policy. A validated model output remains a measurement with an error model, not an authoritative fact. A8.1 validates producer commands against a separately supplied authority snapshot; it does not authenticate that snapshot, assign event identity, append a record or admit work into Runtime.
 
-A database transaction enforces a durable commit; it does not turn a claim into truth. Conversely, passing through Runtime does not by itself make an unsafe command valid. Admission checks principal, scope, audience, parent evidence, current execution, effect contract, policy version and idempotency identity before the journal gate accepts it.
+A database transaction enforces a durable commit; it does not turn a claim into truth. Conversely, passing through Runtime does not by itself make an unsafe command valid. The planned A8.2 admission gate must check principal, scope, audience, parent evidence, current execution, effect contract, policy version and any applicable idempotency identity before it accepts a journal write.
 
 ## Capability contract
 

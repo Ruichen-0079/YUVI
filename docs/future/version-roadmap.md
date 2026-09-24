@@ -4,7 +4,7 @@
 >
 > This document answers **what version comes next and what each version is meant to make true**. It does not replace the detailed atom contracts in the v0.1.3 plan or the post-v0.1.3 research roadmap. When a technical dependency conflicts with convenient version grouping, the dependency wins.
 >
-> Current implemented baseline is A0–A6 plus A7.1 and A7.2. See [`implementation-baseline.md`](implementation-baseline.md). Current Future authority is indexed in [`README.md`](README.md).
+> Current implemented baseline is A0–A6 plus A7.1, A7.2 and the storage-independent A8.1 journal contract. See [`implementation-baseline.md`](implementation-baseline.md). Current Future authority is indexed in [`README.md`](README.md).
 
 ## 1. Release philosophy
 
@@ -65,7 +65,7 @@ Detailed authority: [`09-v0.1.3-platform-completion.md`](09-v0.1.3-platform-comp
 
 ## Current state
 
-A0–A6, A7.1 and A7.2 are implemented. A8.1–A12 remain planned engineering. A7.2 validation is recorded in [`v0.1.3-a7.2-plugin-registration-lifetime.md`](../validation/v0.1.3-a7.2-plugin-registration-lifetime.md).
+A0–A6, A7.1, A7.2 and A8.1 are implemented. A8.2–A12 remain planned engineering. A8.1 validation is recorded in [`v0.1.3-a8.1-journal-contract.md`](../validation/v0.1.3-a8.1-journal-contract.md).
 
 The release is best tracked as three milestones rather than six family numbers.
 
@@ -81,8 +81,8 @@ Result:
 
 - executable capabilities have explicit effect contracts;
 - plugins can register only narrow governed executable handles;
-- accepted input becomes durable receipt evidence before semantic processing;
-- source/principal/audience/retention semantics are structural;
+- a versioned journal command, envelope and evidence-selector contract exists;
+- source/principal/audience/retention semantics are structurally represented, while accepted input becomes durable receipt evidence only after A8.2;
 - the reproduced legacy LLM Memory attribution defect is closed;
 - new evidence-backed Memory writes require committed lineage.
 
