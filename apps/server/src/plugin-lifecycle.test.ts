@@ -15,6 +15,8 @@ import { loadServerConfig } from "./config.js";
 import { buildServer } from "./server.js";
 import {
   SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION,
+  SERVER_PLUGIN_CAPABILITY_GRANT_A72_VERSION,
+  createServerPluginCapabilityGrant,
   createServerMcpReadTextRegistration,
   createServerMcpCapabilityBindings
 } from "./mcp-capability-binding.js";
@@ -56,8 +58,23 @@ function source(
   };
 }
 
-function createLifecycle(sources: readonly unknown[], timeoutMs = 100): ServerPluginLifecycle {
-  return new ServerPluginLifecycle(() => sources, { warn: vi.fn() } as never, timeoutMs);
+function createLifecycle(
+  sources: readonly unknown[],
+  timeoutMs = 100,
+  grants: ReturnType<typeof createServerPluginCapabilityGrant>[] = []
+): ServerPluginLifecycle {
+  return new ServerPluginLifecycle(() => sources, { warn: vi.fn() } as never, timeoutMs, grants);
+}
+
+function pluginGrant(pluginId = "org.yuvi.example") {
+  return createServerPluginCapabilityGrant({
+    version: SERVER_PLUGIN_CAPABILITY_GRANT_A72_VERSION,
+    pluginId,
+    pluginVersion: "1.2.3",
+    capabilityRef: "capability://plugin/example/local-transform",
+    description: "Apply a host-approved local text transformation.",
+    implementationRef: "yuvi.plugin.example.local-transform.v1"
+  });
 }
 
 describe("minimal server plugin manifest", () => {
@@ -471,6 +488,215 @@ describe("server plugin discovery and lifecycle", () => {
     expect(afterPrefix).toBe(beforePrefix);
     expect("registerCapability" in lifecycle.snapshot()).toBe(false);
     await lifecycle.shutdown();
+  });
+
+  it("issues only host-approved scoped registration handles and exposes semantic descriptions", async () => {
+    const grant = pluginGrant();
+    let registration:
+      | NonNullable<Parameters<ServerPluginSource["load"]>[0]["capabilityRegistrations"]>[number]
+      | undefined;
+    const contextKeys: string[][] = [];
+    const candidate: ServerPluginSource = {
+      manifest: manifest({ capabilities: ["capability://plugin/self-declared"] }),
+      async load(context) {
+        contextKeys.push(Object.keys(context).sort());
+        registration = context.capabilityRegistrations?.[0];
+        return {
+          start(startContext) {
+            contextKeys.push(Object.keys(startContext).sort());
+            startContext.capabilityRegistrations?.[0]?.register((request) => request.toUpperCase());
+          },
+          stop(stopContext) {
+            contextKeys.push(Object.keys(stopContext).sort());
+          },
+          dispose(disposeContext) {
+            contextKeys.push(Object.keys(disposeContext).sort());
+          }
+        };
+      }
+    };
+    const lifecycle = createLifecycle([candidate], 100, [grant]);
+    await lifecycle.discover();
+    await lifecycle.load();
+    await lifecycle.start();
+
+    expect(contextKeys).toEqual([
+      ["capabilityRegistrations", "manifest", "signal"],
+      ["capabilityRegistrations", "manifest", "signal"]
+    ]);
+    expect(registration).toBeDefined();
+    expect(Object.keys(registration!).sort()).toEqual([
+      "capabilityRef",
+      "description",
+      "implementationRef",
+      "register"
+    ]);
+    expect(registration?.capabilityRef).toBe(grant.descriptor.capabilityRef);
+    expect(lifecycle.runtimeCapabilities.snapshot()).toEqual([
+      {
+        capabilityRef: grant.descriptor.capabilityRef,
+        description: grant.descriptor.description
+      }
+    ]);
+    expect(JSON.stringify(lifecycle.runtimeCapabilities.snapshot())).not.toContain(
+      grant.descriptor.implementationRef
+    );
+    expect(JSON.stringify(contextKeys)).not.toMatch(/runtime|memory|provider|database|store/i);
+    expect(registration?.register).toBeTypeOf("function");
+    expect(() => registration?.register(() => "late")).toThrow(/closed/);
+    expect(lifecycle.runtimeCapabilities.snapshot()).toHaveLength(1);
+    await lifecycle.shutdown();
+    expect(contextKeys).toHaveLength(4);
+    expect(contextKeys.slice(2)).toEqual([
+      ["capabilityRegistrations", "manifest", "signal"],
+      ["capabilityRegistrations", "manifest", "signal"]
+    ]);
+  });
+
+  it("issues a host grant only to the exact plugin identity and version", async () => {
+    const grant = pluginGrant();
+    const observedHandles: Array<readonly unknown[] | undefined> = [];
+    const matching: ServerPluginSource = {
+      manifest: manifest(),
+      async load(context) {
+        observedHandles.push(context.capabilityRegistrations);
+        return {
+          start(startContext) {
+            startContext.capabilityRegistrations?.[0]?.register(() => "approved");
+          },
+          stop() {},
+          dispose() {}
+        };
+      }
+    };
+    const otherPlugin: ServerPluginSource = {
+      manifest: manifest({ id: "org.yuvi.other" }),
+      async load(context) {
+        observedHandles.push(context.capabilityRegistrations);
+        return { start() {}, stop() {}, dispose() {} };
+      }
+    };
+    const lifecycle = createLifecycle([matching, otherPlugin], 100, [grant]);
+    await lifecycle.discover();
+    await lifecycle.load();
+    await lifecycle.start();
+
+    expect(observedHandles).toEqual([expect.any(Array), undefined]);
+    expect(lifecycle.runtimeCapabilities.snapshot()).toEqual([
+      {
+        capabilityRef: grant.descriptor.capabilityRef,
+        description: grant.descriptor.description
+      }
+    ]);
+    await lifecycle.shutdown();
+
+    const wrongVersion: ServerPluginSource = {
+      manifest: manifest({ version: "1.2.4" }),
+      async load(context) {
+        expect(context.capabilityRegistrations).toBeUndefined();
+        return { start() {}, stop() {}, dispose() {} };
+      }
+    };
+    const versionMismatch = createLifecycle([wrongVersion], 100, [grant]);
+    await versionMismatch.discover();
+    await versionMismatch.load();
+    await versionMismatch.start();
+    expect(versionMismatch.runtimeCapabilities.snapshot()).toEqual([]);
+    expect(versionMismatch.snapshot().diagnostics.map((entry) => entry.code)).toContain(
+      "PLUGIN_REGISTRATION_POLICY_VERSION_MISMATCH"
+    );
+    await versionMismatch.shutdown();
+  });
+
+  it("revokes a staged registration when the start hook fails after registering", async () => {
+    const grant = pluginGrant();
+    const events: string[] = [];
+    const candidate: ServerPluginSource = {
+      manifest: manifest(),
+      async load() {
+        return {
+          start(context) {
+            context.capabilityRegistrations?.[0]?.register(() => "staged");
+            throw new Error("start failed after registration");
+          },
+          stop() {
+            events.push("stop");
+          },
+          dispose() {
+            events.push("dispose");
+          }
+        };
+      }
+    };
+    const lifecycle = createLifecycle([candidate], 100, [grant]);
+    await lifecycle.discover();
+    await lifecycle.load();
+    const started = await lifecycle.start();
+    expect(started.plugins[0]?.state).toBe("FAILED");
+    expect(lifecycle.runtimeCapabilities.snapshot()).toEqual([]);
+    await lifecycle.shutdown();
+    expect(events).toEqual(["stop", "dispose"]);
+  });
+
+  it("rejects conflicting host grants and poisons a swallowed duplicate registration", async () => {
+    const grant = pluginGrant();
+    expect(() => createLifecycle([], 100, [grant, grant])).toThrow(
+      /duplicate registration identities/
+    );
+
+    const events: string[] = [];
+    const candidate: ServerPluginSource = {
+      manifest: manifest(),
+      async load() {
+        return {
+          start(context) {
+            const handle = context.capabilityRegistrations?.[0];
+            handle?.register(() => "first");
+            expect(() => handle?.register(() => "second")).toThrow(/host-issued handle/);
+          },
+          stop() {
+            events.push("stop");
+          },
+          dispose() {
+            events.push("dispose");
+          }
+        };
+      }
+    };
+    const lifecycle = createLifecycle([candidate], 100, [grant]);
+    await lifecycle.discover();
+    await lifecycle.load();
+    const started = await lifecycle.start();
+    expect(started.plugins[0]?.state).toBe("FAILED");
+    expect(lifecycle.runtimeCapabilities.snapshot()).toEqual([]);
+    expect(started.diagnostics.map((entry) => entry.code)).toContain("PLUGIN_REGISTRATION_FAILED");
+    await lifecycle.shutdown();
+    expect(events).toEqual(["stop", "dispose"]);
+  });
+
+  it("discards a partial registration when load fails and closes the late handle", async () => {
+    const grant = pluginGrant();
+    let registration: Parameters<ServerPluginSource["load"]>[0]["capabilityRegistrations"] extends
+      | readonly (infer T)[]
+      | undefined
+      ? T | undefined
+      : never;
+    const candidate: ServerPluginSource = {
+      manifest: manifest(),
+      async load(context) {
+        registration = context.capabilityRegistrations?.[0];
+        registration?.register(() => "partial");
+        throw new Error("load failure");
+      }
+    };
+    const lifecycle = createLifecycle([candidate], 100, [grant]);
+    await lifecycle.discover();
+    await lifecycle.load();
+    expect(lifecycle.snapshot().plugins[0]?.state).toBe("FAILED");
+    expect(lifecycle.runtimeCapabilities.snapshot()).toEqual([]);
+    expect(() => registration?.register(() => "late")).toThrow(/closed/);
+    await lifecycle.shutdown();
+    expect(lifecycle.snapshot().phase).toBe("DISPOSED");
   });
 
   it("starts only through Fastify readiness and shuts down inside application close", async () => {

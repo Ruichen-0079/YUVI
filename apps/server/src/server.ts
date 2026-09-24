@@ -24,11 +24,18 @@ import { registerWebSocketRoutes } from "./routes/websocket.js";
 import { registerLive2DCoreRoute, registerLive2DRoutes } from "./routes/live2d.js";
 import { registerEmbodiedPresentationRoutes } from "./routes/embodied-presentation.js";
 import { desktopCorsHeaders } from "./cors.js";
-import { ServerPluginLifecycle, type ServerPluginSourceDiscovery } from "./plugin-lifecycle.js";
+import {
+  SERVER_PLUGIN_OPERATION_TIMEOUT_MS,
+  ServerPluginLifecycle,
+  type ServerPluginSourceDiscovery
+} from "./plugin-lifecycle.js";
+import type { ServerPluginCapabilityGrant } from "./mcp-capability-binding.js";
 
 export type BuildServerOptions = Readonly<{
   /** Composition-time source registration; discovery does not call source loaders. */
   discoverPlugins?: ServerPluginSourceDiscovery | undefined;
+  /** Host-authored grants; plugin declarations cannot create or alter these. */
+  pluginCapabilityGrants?: readonly ServerPluginCapabilityGrant[] | undefined;
 }>;
 
 export async function buildServer(config: ServerConfig, options: BuildServerOptions = {}) {
@@ -45,7 +52,12 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
     }
   });
 
-  const pluginLifecycle = new ServerPluginLifecycle(options.discoverPlugins ?? (() => []), app.log);
+  const pluginLifecycle = new ServerPluginLifecycle(
+    options.discoverPlugins ?? (() => []),
+    app.log,
+    SERVER_PLUGIN_OPERATION_TIMEOUT_MS,
+    options.pluginCapabilityGrants ?? []
+  );
   app.addHook("onReady", async () => {
     await pluginLifecycle.discover();
     await pluginLifecycle.load();
@@ -93,7 +105,7 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
     app.log.info("DASHBOARD_DEV_TOKEN is configured for sensitive development endpoints.");
   }
 
-  const context = await createAppContext(app.log, config);
+  const context = await createAppContext(app.log, config, pluginLifecycle.runtimeCapabilities);
   try {
     const recovered = await context.runtime.recoverStaleStreamingMessages({
       limit: config.memoryMaintenance.limit

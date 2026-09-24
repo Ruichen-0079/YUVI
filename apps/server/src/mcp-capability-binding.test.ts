@@ -5,10 +5,12 @@ import {
   SERVER_MCP_CAPABILITY_DESCRIPTOR_A71_VERSION,
   SERVER_MCP_EFFECT_CONTRACT_A71_VERSION,
   SERVER_MCP_READ_TEXT_IMPLEMENTATION_REF,
+  SERVER_PLUGIN_CAPABILITY_GRANT_A72_VERSION,
   bindServerMcpCapabilityRequest,
   createCurrentServerMcpCapabilityBindings,
   createServerMcpCapabilityBindings,
   createServerMcpReadTextRegistration,
+  createServerPluginCapabilityGrant,
   validateServerMcpCapabilityEffectContract
 } from "./mcp-capability-binding.js";
 
@@ -356,5 +358,51 @@ describe("A7.1 deterministic current capability snapshot", () => {
         forged
       )
     ).toThrow(/host registry validator/);
+  });
+});
+
+describe("A7.2 host plugin capability policy", () => {
+  it("issues a fixed versioned local-transform effect contract and rejects caller-selected authority", () => {
+    const grant = createServerPluginCapabilityGrant({
+      version: SERVER_PLUGIN_CAPABILITY_GRANT_A72_VERSION,
+      pluginId: "org.yuvi.fixture",
+      pluginVersion: "1.2.3",
+      capabilityRef: "capability://plugin/fixture/transform",
+      description: "Apply a bounded local fixture transformation.",
+      implementationRef: "yuvi.plugin.fixture.transform.v1"
+    });
+
+    expect(grant).toMatchObject({
+      version: SERVER_PLUGIN_CAPABILITY_GRANT_A72_VERSION,
+      pluginId: "org.yuvi.fixture",
+      pluginVersion: "1.2.3",
+      descriptor: {
+        implementationRef: "yuvi.plugin.fixture.transform.v1",
+        effectContract: {
+          requiredPermission: "RUNTIME_ADMITTED_LOCAL_TRANSFORM",
+          actionKind: "TRANSFORM",
+          effectLocus: "PROCESS",
+          dataDisclosure: "AUTHORIZED_REQUEST_TO_LOCAL_PLUGIN",
+          reversibility: "REVERSIBLE",
+          idempotency: { kind: "NONE" },
+          reconciliation: { kind: "UNSUPPORTED" }
+        }
+      }
+    });
+    expect(Object.isFrozen(grant)).toBe(true);
+    expect(Object.isFrozen(grant.descriptor)).toBe(true);
+    expect(Object.isFrozen(grant.descriptor.effectContract)).toBe(true);
+
+    expect(() =>
+      createServerPluginCapabilityGrant({
+        version: SERVER_PLUGIN_CAPABILITY_GRANT_A72_VERSION,
+        pluginId: "org.yuvi.fixture",
+        pluginVersion: "1.2.3",
+        capabilityRef: "capability://plugin/fixture/external",
+        description: "Remote effect.",
+        implementationRef: "yuvi.plugin.fixture.remote.v1",
+        effectContract: remoteReadEffectContract()
+      })
+    ).toThrow(/unknown field/);
   });
 });

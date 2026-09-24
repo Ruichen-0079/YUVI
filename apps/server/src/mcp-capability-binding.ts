@@ -12,21 +12,29 @@ export const SERVER_EXECUTABLE_CAPABILITY_REGISTRY_A71_VERSION =
 export const SERVER_MCP_CAPABILITY_DESCRIPTOR_A71_VERSION =
   "server-mcp-capability-descriptor-a7.1.v1" as const;
 export const SERVER_MCP_EFFECT_CONTRACT_A71_VERSION = "server-mcp-effect-contract-a7.1.v1" as const;
+export const SERVER_PLUGIN_CAPABILITY_GRANT_A72_VERSION =
+  "server-plugin-capability-grant-a7.2.v1" as const;
 
 /** Existing 6K import name retained for internal call-site compatibility. */
 export const SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION =
   SERVER_EXECUTABLE_CAPABILITY_REGISTRY_A71_VERSION;
 
 export const SERVER_MCP_READ_TEXT_IMPLEMENTATION_REF = "yuvi.server.mcp.read_text_file.v1" as const;
+export const SERVER_MCP_READ_TEXT_CAPABILITY_REF =
+  "capability://opaque/read-authorized-text" as const;
 
 export type ServerMcpCapabilityEffectContract = Readonly<{
   version: typeof SERVER_MCP_EFFECT_CONTRACT_A71_VERSION;
-  requiredPermission: "RUNTIME_AUTHORIZED_PATH_READ" | "RUNTIME_AUTHORIZED_REMOTE_READ";
+  requiredPermission:
+    | "RUNTIME_AUTHORIZED_PATH_READ"
+    | "RUNTIME_AUTHORIZED_REMOTE_READ"
+    | "RUNTIME_ADMITTED_LOCAL_TRANSFORM";
   actionKind: "QUERY" | "TRANSFORM" | "DELIVER" | "MUTATE" | "ACTUATE";
   effectLocus: "PROCESS" | "LOCAL_DURABLE_STORE" | "REMOTE_SERVICE" | "PHYSICAL_WORLD";
   dataDisclosure:
     | "NONE"
     | "AUTHORIZED_RESULT_TO_REASONING_PROVIDER"
+    | "AUTHORIZED_REQUEST_TO_LOCAL_PLUGIN"
     | "REQUEST_TO_REMOTE_SERVICE"
     | "UNKNOWN";
   reversibility: "REVERSIBLE" | "COMPENSATABLE" | "IRREVERSIBLE" | "UNKNOWN";
@@ -48,6 +56,13 @@ export type ServerMcpCapabilityEffectContract = Readonly<{
       }>;
   inputSchemaVersion: string;
   outputSchemaVersion: string;
+}>;
+
+export type ServerPluginCapabilityGrant = Readonly<{
+  version: typeof SERVER_PLUGIN_CAPABILITY_GRANT_A72_VERSION;
+  pluginId: string;
+  pluginVersion: string;
+  descriptor: ServerMcpCapabilityDescriptor;
 }>;
 
 export type ServerMcpCapabilityDescriptor = Readonly<{
@@ -121,6 +136,19 @@ const SERVER_READ_TEXT_EFFECT_CONTRACT = validateServerMcpCapabilityEffectContra
   outputSchemaVersion: "server-mcp-read-text-observation.v1"
 });
 
+const SERVER_PLUGIN_LOCAL_TRANSFORM_EFFECT_CONTRACT = validateServerMcpCapabilityEffectContract({
+  version: SERVER_MCP_EFFECT_CONTRACT_A71_VERSION,
+  requiredPermission: "RUNTIME_ADMITTED_LOCAL_TRANSFORM",
+  actionKind: "TRANSFORM",
+  effectLocus: "PROCESS",
+  dataDisclosure: "AUTHORIZED_REQUEST_TO_LOCAL_PLUGIN",
+  reversibility: "REVERSIBLE",
+  idempotency: { kind: "NONE" },
+  reconciliation: { kind: "UNSUPPORTED" },
+  inputSchemaVersion: "server-plugin-local-transform-input.v1",
+  outputSchemaVersion: "server-plugin-local-transform-output.v1"
+});
+
 /** The only implementation A7.1 registers; discovery cannot add to this table. */
 const APPROVED_IMPLEMENTATIONS: ReadonlyMap<string, ApprovedImplementation> = new Map([
   [
@@ -130,6 +158,7 @@ const APPROVED_IMPLEMENTATIONS: ReadonlyMap<string, ApprovedImplementation> = ne
 ]);
 
 const issuedRegistries = new WeakSet<object>();
+const issuedPluginCapabilityGrants = new WeakSet<object>();
 
 /**
  * Validate and freeze one explicit effect contract. UNKNOWN and UNSUPPORTED are
@@ -164,7 +193,11 @@ export function validateServerMcpCapabilityEffectContract(
 
   const requiredPermission = expectEnum(
     value.requiredPermission,
-    ["RUNTIME_AUTHORIZED_PATH_READ", "RUNTIME_AUTHORIZED_REMOTE_READ"],
+    [
+      "RUNTIME_AUTHORIZED_PATH_READ",
+      "RUNTIME_AUTHORIZED_REMOTE_READ",
+      "RUNTIME_ADMITTED_LOCAL_TRANSFORM"
+    ],
     "Capability effect contract requiredPermission"
   );
   const actionKind = expectEnum(
@@ -179,7 +212,13 @@ export function validateServerMcpCapabilityEffectContract(
   );
   const dataDisclosure = expectEnum(
     value.dataDisclosure,
-    ["NONE", "AUTHORIZED_RESULT_TO_REASONING_PROVIDER", "REQUEST_TO_REMOTE_SERVICE", "UNKNOWN"],
+    [
+      "NONE",
+      "AUTHORIZED_RESULT_TO_REASONING_PROVIDER",
+      "AUTHORIZED_REQUEST_TO_LOCAL_PLUGIN",
+      "REQUEST_TO_REMOTE_SERVICE",
+      "UNKNOWN"
+    ],
     "Capability effect contract dataDisclosure"
   );
   const reversibility = expectEnum(
@@ -203,6 +242,85 @@ export function validateServerMcpCapabilityEffectContract(
     inputSchemaVersion: requireToken(value.inputSchemaVersion, "inputSchemaVersion"),
     outputSchemaVersion: requireToken(value.outputSchemaVersion, "outputSchemaVersion")
   });
+}
+
+/**
+ * Create one composition-root policy grant for a local, in-process transform.
+ * Plugins receive only the resulting scoped registration handle; effect
+ * authority and implementation identity remain host-authored.
+ */
+export function createServerPluginCapabilityGrant(input: unknown): ServerPluginCapabilityGrant {
+  const value = expectObject(input, "Plugin capability grant");
+  assertAllowedKeys(
+    value,
+    ["version", "pluginId", "pluginVersion", "capabilityRef", "description", "implementationRef"],
+    "Plugin capability grant"
+  );
+  if (value.version !== SERVER_PLUGIN_CAPABILITY_GRANT_A72_VERSION) {
+    throw new Error(
+      `Plugin capability grant version must be ${SERVER_PLUGIN_CAPABILITY_GRANT_A72_VERSION}.`
+    );
+  }
+  const pluginId = requireBoundedString(value["pluginId"], "Plugin capability grant pluginId", 128);
+  if (!/^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$/.test(pluginId)) {
+    throw new Error("Plugin capability grant pluginId must be a valid plugin identity.");
+  }
+  const pluginVersion = requireBoundedString(
+    value["pluginVersion"],
+    "Plugin capability grant pluginVersion",
+    64
+  );
+  if (!/^[A-Za-z0-9][A-Za-z0-9.+_-]*$/.test(pluginVersion)) {
+    throw new Error("Plugin capability grant pluginVersion must be a stable plugin version.");
+  }
+  const capabilityRef = requireBoundedString(value["capabilityRef"], "Plugin capabilityRef", 200);
+  const description = requireBoundedString(
+    value["description"],
+    "Plugin capability description",
+    1_000
+  );
+  const semantic = createCognitionCapabilityDescriptions({
+    version: COGNITION_6G_VERSION,
+    capabilities: [{ capabilityRef, description }]
+  }).capabilities[0]!;
+  const implementationRef = requireToken(value.implementationRef, "Plugin implementationRef");
+  if (implementationRef === SERVER_MCP_READ_TEXT_IMPLEMENTATION_REF) {
+    throw new Error("Plugin implementationRef must not reuse the read_text_file implementation.");
+  }
+  if (!implementationRef.endsWith(".v1")) {
+    throw new Error("Plugin implementationRef must carry an explicit version suffix.");
+  }
+  if (semantic.capabilityRef === SERVER_MCP_READ_TEXT_CAPABILITY_REF) {
+    throw new Error("Plugin capabilityRef conflicts with the production read_text_file reference.");
+  }
+  const descriptor = Object.freeze({
+    version: SERVER_MCP_CAPABILITY_DESCRIPTOR_A71_VERSION,
+    capabilityRef: semantic.capabilityRef,
+    description: semantic.description,
+    implementationRef,
+    effectContract: SERVER_PLUGIN_LOCAL_TRANSFORM_EFFECT_CONTRACT
+  });
+  const grant = Object.freeze({
+    version: SERVER_PLUGIN_CAPABILITY_GRANT_A72_VERSION,
+    pluginId,
+    pluginVersion,
+    descriptor
+  });
+  issuedPluginCapabilityGrants.add(grant);
+  return grant;
+}
+
+export function assertServerPluginCapabilityGrant(
+  input: unknown
+): asserts input is ServerPluginCapabilityGrant {
+  if (
+    typeof input !== "object" ||
+    input === null ||
+    !issuedPluginCapabilityGrants.has(input) ||
+    (input as { version?: unknown }).version !== SERVER_PLUGIN_CAPABILITY_GRANT_A72_VERSION
+  ) {
+    throw new Error("Plugin capability grant was not issued by the host policy validator.");
+  }
 }
 
 /** Host-authored registration data; implementations and effect contracts are not caller-set. */

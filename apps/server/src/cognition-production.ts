@@ -9,8 +9,10 @@ import type { RuntimeCognitionExecution, RuntimeCognitionLimits } from "@compani
 import {
   createServerMcpCapabilityBindings,
   SERVER_EXECUTABLE_CAPABILITY_REGISTRY_A71_VERSION,
+  SERVER_MCP_READ_TEXT_CAPABILITY_REF,
   createServerMcpReadTextRegistration
 } from "./mcp-capability-binding.js";
+import type { ServerPluginRuntimeCapabilitySurface } from "./plugin-lifecycle.js";
 
 /** Concrete local adapter for the existing allowlisted read_text_file seam. */
 export function executeProductionCognition(input: {
@@ -19,6 +21,7 @@ export function executeProductionCognition(input: {
   problem: string;
   canonicalContext?: CanonicalContext | undefined;
   runtimeAuthorizedPath?: string | undefined;
+  pluginCapabilities?: ServerPluginRuntimeCapabilitySurface | undefined;
   signal?: AbortSignal | undefined;
   execution: RuntimeCognitionExecution;
   limits: RuntimeCognitionLimits;
@@ -29,7 +32,7 @@ export function executeProductionCognition(input: {
     capabilities: path
       ? [
           createServerMcpReadTextRegistration(
-            "capability://opaque/read-authorized-text",
+            SERVER_MCP_READ_TEXT_CAPABILITY_REF,
             "Read the single text file explicitly authorized by the local controller for this turn."
           )
         ]
@@ -40,9 +43,10 @@ export function executeProductionCognition(input: {
     task: { version: COGNITION_6A_VERSION, escalation: input.request, problem: input.problem },
     canonicalContext: input.canonicalContext,
     staticRegistry,
+    pluginCapabilities: input.pluginCapabilities,
     execution: input.execution,
     limits: input.limits,
-    policyAllowsCapability: Boolean(path),
+    policyAllowsCapability: Boolean(path || input.pluginCapabilities?.snapshot().length),
     runtimeAuthorizedPath: path ?? "unavailable",
     signal: input.signal,
     mcpClient: {

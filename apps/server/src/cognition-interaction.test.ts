@@ -15,6 +15,16 @@ import {
   createServerMcpReadTextRegistration
 } from "./mcp-capability-binding.js";
 import { loadServerConfig } from "./config.js";
+import {
+  SERVER_PLUGIN_API_VERSION,
+  SERVER_PLUGIN_MANIFEST_VERSION,
+  ServerPluginLifecycle,
+  type ServerPluginSource
+} from "./plugin-lifecycle.js";
+import {
+  SERVER_PLUGIN_CAPABILITY_GRANT_A72_VERSION,
+  createServerPluginCapabilityGrant
+} from "./mcp-capability-binding.js";
 
 const need =
   'REQUEST_CAPABILITY\n{"capabilityRef":"opaque-read","request":"Read admitted evidence."}';
@@ -58,6 +68,216 @@ function fixture(answers = ["COMPLETE\ndone"]) {
 }
 
 describe("production bounded Cognition composition", () => {
+  it("routes a host-registered plugin transform only after Runtime admission and drains it before disposal", async () => {
+    const capabilityRef = "capability://plugin/fixture/local-transform";
+    const grant = createServerPluginCapabilityGrant({
+      version: SERVER_PLUGIN_CAPABILITY_GRANT_A72_VERSION,
+      pluginId: "org.yuvi.fixture",
+      pluginVersion: "1.2.3",
+      capabilityRef,
+      description: "Apply a host-approved local fixture transformation.",
+      implementationRef: "yuvi.plugin.fixture.local-transform.v1"
+    });
+    const events: string[] = [];
+    let releaseCall: (() => void) | undefined;
+    let callStarted: (() => void) | undefined;
+    let savedRegistration:
+      | NonNullable<Parameters<ServerPluginSource["load"]>[0]["capabilityRegistrations"]>[number]
+      | undefined;
+    const callGate = new Promise<void>((resolve) => {
+      releaseCall = resolve;
+    });
+    const callStartedPromise = new Promise<void>((resolve) => {
+      callStarted = resolve;
+    });
+    const plugin: ServerPluginSource = {
+      manifest: {
+        manifestVersion: SERVER_PLUGIN_MANIFEST_VERSION,
+        id: "org.yuvi.fixture",
+        version: "1.2.3",
+        compatibility: { apiVersion: SERVER_PLUGIN_API_VERSION },
+        capabilities: ["capability://plugin/self-declared"]
+      },
+      async load(context) {
+        savedRegistration = context.capabilityRegistrations?.[0];
+        return {
+          start(startContext) {
+            startContext.capabilityRegistrations?.[0]?.register(async (request) => {
+              events.push("call-start");
+              callStarted?.();
+              await callGate;
+              events.push("call-finish");
+              return `transformed ${request}`;
+            });
+          },
+          stop() {
+            events.push("stop");
+          },
+          dispose() {
+            events.push("dispose");
+          }
+        };
+      }
+    };
+    const lifecycle = new ServerPluginLifecycle(() => [plugin], { warn: vi.fn() } as never, 20, [
+      grant
+    ]);
+    await lifecycle.discover();
+    await lifecycle.load();
+    await lifecycle.start();
+
+    const pluginRequest = `REQUEST_CAPABILITY\n${JSON.stringify({
+      capabilityRef,
+      request: "uppercase this"
+    })}`;
+    const denied = fixture([pluginRequest]);
+    await executeServerCognitionInteraction({
+      ...denied.input,
+      staticRegistry: createServerMcpCapabilityBindings({
+        version: SERVER_EXECUTABLE_CAPABILITY_REGISTRY_A71_VERSION,
+        capabilities: []
+      }),
+      mcpClient: {
+        listTools: vi.fn(async () => []),
+        callTool: vi.fn(async () => ({ isError: false, content: [] }))
+      },
+      pluginCapabilities: lifecycle.runtimeCapabilities,
+      policyAllowsCapability: true,
+      limits: { ...DEFAULT_COGNITION_LIMITS, maxCapabilityCalls: 0 }
+    });
+    expect(events).toEqual([]);
+
+    const active = fixture([pluginRequest, "COMPLETE\nfinished"]);
+    const activeClient = {
+      listTools: vi.fn(async () => []),
+      callTool: vi.fn(async () => ({ isError: false, content: [] }))
+    };
+    const interaction = executeServerCognitionInteraction({
+      ...active.input,
+      staticRegistry: createServerMcpCapabilityBindings({
+        version: SERVER_EXECUTABLE_CAPABILITY_REGISTRY_A71_VERSION,
+        capabilities: []
+      }),
+      mcpClient: activeClient,
+      pluginCapabilities: lifecycle.runtimeCapabilities,
+      policyAllowsCapability: true
+    });
+    await callStartedPromise;
+    const providerInput = JSON.stringify(active.generateReasoning.mock.calls[0]?.[0]);
+    expect(providerInput).toContain(capabilityRef);
+    expect(providerInput).toContain("Apply a host-approved local fixture transformation.");
+    expect(providerInput).not.toContain(grant.descriptor.implementationRef);
+    expect(providerInput).not.toContain("effectContract");
+    expect(activeClient.callTool).not.toHaveBeenCalled();
+
+    const shutdown = await lifecycle.shutdown();
+    expect(shutdown.phase).toBe("DRAINING");
+    expect(shutdown.plugins[0]?.state).toBe("DRAINING");
+    expect(lifecycle.runtimeCapabilities.snapshot()).toEqual([]);
+    expect(events).toEqual(["call-start"]);
+    expect(() => savedRegistration?.register(() => "late registration")).toThrow(/closed/);
+
+    const late = fixture([pluginRequest]);
+    await executeServerCognitionInteraction({
+      ...late.input,
+      staticRegistry: createServerMcpCapabilityBindings({
+        version: SERVER_EXECUTABLE_CAPABILITY_REGISTRY_A71_VERSION,
+        capabilities: []
+      }),
+      mcpClient: {
+        listTools: vi.fn(async () => []),
+        callTool: vi.fn(async () => ({ isError: false, content: [] }))
+      },
+      pluginCapabilities: lifecycle.runtimeCapabilities,
+      policyAllowsCapability: true
+    });
+    expect(events).toEqual(["call-start"]);
+
+    releaseCall?.();
+    expect((await interaction).result).toMatchObject({ status: "SUCCESS", answer: "finished" });
+    await vi.waitFor(() => expect(lifecycle.snapshot().phase).toBe("DISPOSED"));
+    expect(events).toEqual(["call-start", "call-finish", "stop", "dispose"]);
+    expect(lifecycle.runtimeCapabilities.snapshot()).toEqual([]);
+  });
+
+  it("coalesces overlapping shutdown while an admitted plugin call drains", async () => {
+    const capabilityRef = "capability://plugin/fixture/concurrent-shutdown";
+    const grant = createServerPluginCapabilityGrant({
+      version: SERVER_PLUGIN_CAPABILITY_GRANT_A72_VERSION,
+      pluginId: "org.yuvi.concurrent",
+      pluginVersion: "1.2.3",
+      capabilityRef,
+      description: "Apply a host-approved local fixture transformation.",
+      implementationRef: "yuvi.plugin.concurrent.local-transform.v1"
+    });
+    const events: string[] = [];
+    let finishCall: ((value: string) => void) | undefined;
+    let callStarted: (() => void) | undefined;
+    const started = new Promise<void>((resolve) => {
+      callStarted = resolve;
+    });
+    const plugin: ServerPluginSource = {
+      manifest: {
+        manifestVersion: SERVER_PLUGIN_MANIFEST_VERSION,
+        id: "org.yuvi.concurrent",
+        version: "1.2.3",
+        compatibility: { apiVersion: SERVER_PLUGIN_API_VERSION }
+      },
+      async load() {
+        return {
+          start(context) {
+            context.capabilityRegistrations?.[0]?.register(
+              () =>
+                new Promise<string>((resolve) => {
+                  events.push("call-start");
+                  finishCall = resolve;
+                  callStarted?.();
+                })
+            );
+          },
+          stop() {
+            events.push("stop");
+          },
+          dispose() {
+            events.push("dispose");
+          }
+        };
+      }
+    };
+    const lifecycle = new ServerPluginLifecycle(() => [plugin], { warn: vi.fn() } as never, 200, [
+      grant
+    ]);
+    await lifecycle.discover();
+    await lifecycle.load();
+    await lifecycle.start();
+
+    const active = fixture([
+      `REQUEST_CAPABILITY\n${JSON.stringify({ capabilityRef, request: "input" })}`,
+      "COMPLETE\nfinished"
+    ]);
+    const interaction = executeServerCognitionInteraction({
+      ...active.input,
+      staticRegistry: createServerMcpCapabilityBindings({
+        version: SERVER_EXECUTABLE_CAPABILITY_REGISTRY_A71_VERSION,
+        capabilities: []
+      }),
+      mcpClient: {
+        listTools: vi.fn(async () => []),
+        callTool: vi.fn(async () => ({ isError: false, content: [] }))
+      },
+      pluginCapabilities: lifecycle.runtimeCapabilities
+    });
+    await started;
+
+    const shutdowns = Promise.all([lifecycle.shutdown(), lifecycle.shutdown()]);
+    finishCall?.("completed locally");
+    const [first, second] = await shutdowns;
+    expect(first.phase).toBe("DISPOSED");
+    expect(second.phase).toBe("DISPOSED");
+    expect((await interaction).result).toMatchObject({ status: "SUCCESS", answer: "finished" });
+    expect(events).toEqual(["call-start", "stop", "dispose"]);
+  });
+
   it("projects Runtime P8 and Memory context without splitting capability evidence", async () => {
     const { input, generateReasoning } = fixture([need, "COMPLETE\nverified"]);
     const canonicalContext = assembleCanonicalContext({

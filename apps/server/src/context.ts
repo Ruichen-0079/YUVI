@@ -3,7 +3,11 @@ import { join } from "node:path";
 import { getRuntimeEnvDir } from "@companion/config";
 import { createFileP8CorrectionStore, createFileVoiceBindingReferences } from "@companion/core";
 import { captureKdeScreen, screenCaptureAvailable } from "./screen-capture.js";
-import type { RuntimeReplyStreamEvent, RuntimeLogger, RuntimeCharacterCognitionExecutor } from "@companion/core";
+import type {
+  RuntimeReplyStreamEvent,
+  RuntimeLogger,
+  RuntimeCharacterCognitionExecutor
+} from "@companion/core";
 import { RuntimeOrchestrator, type RuntimeProactiveStateStore } from "@companion/core";
 import { createFileProactiveStateStore } from "./proactive-policy-store.js";
 import { InMemoryEventBus } from "@companion/event-bus";
@@ -59,6 +63,7 @@ import { composeServerCharacterSoftSmileEmbodiedEffect } from "./character-embod
 import { EmbodiedPresentationBridge } from "./embodied-presentation-bridge.js";
 import { createServerCharacterPort } from "./character-runtime.js";
 import { executeProductionCognition } from "./cognition-production.js";
+import type { ServerPluginRuntimeCapabilitySurface } from "./plugin-lifecycle.js";
 
 export type AppContext = {
   eventBus: InMemoryEventBus;
@@ -90,7 +95,8 @@ export type RuntimeConfigReloadResult = {
 
 export async function createAppContext(
   logger: FastifyBaseLogger,
-  config: ServerConfig
+  config: ServerConfig,
+  pluginCapabilities?: ServerPluginRuntimeCapabilitySurface
 ): Promise<AppContext> {
   if (config.eventBus === "nats") {
     throw new Error("EVENT_BUS=nats is reserved for future NATS support and is not implemented.");
@@ -300,6 +306,7 @@ export async function createAppContext(
                 canonicalContext: options.canonicalContext,
                 limits: config.cognitionInteraction,
                 runtimeAuthorizedPath: options?.runtimeAuthorizedPath,
+                ...(pluginCapabilities === undefined ? {} : { pluginCapabilities }),
                 ...(options?.signal ? { signal: options.signal } : {})
               })
           }
