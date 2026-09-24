@@ -31,6 +31,8 @@ For roadmap interpretation, [`version-roadmap.md`](version-roadmap.md) is the **
 
 For A8.2 specifically, [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) is the **current leaf execution authority**. It refines the aggregate A8.2 section of the v0.1.3 plan after the required source audit proved that conversational, voice, standalone-vision and local-control ingress do not share one production admission owner. The aggregate A8.2 family remains incomplete until A8.2a–A8.2f all close.
 
+For A12.1 specifically, [`a12.1-snowluma-contract.md`](a12.1-snowluma-contract.md) is the **current pinned SnowLuma source-contract authority**. Its status is `SOURCE CONTRACT ESTABLISHED — LIVE PROBE PENDING`: source analysis already constrains inbound identity/dedup and outbound idempotency/reconciliation semantics, while the remaining real QQ probes are allowed only to narrow explicitly unresolved remote behavior. It does not close A12.1 or authorize A12.2.
+
 For substantial product UI work, [`frontend-execution-policy.md`](frontend-execution-policy.md) is the **frontend execution/design-gate authority**. A bounded coding model may implement an approved frontend design, but it is not automatically the authority for information architecture, interaction philosophy, visual hierarchy, page aesthetics, or complex cross-platform UI failure analysis. UI-bearing atoms must obey that policy in addition to their own technical Definition of Done.
 
 ## Authoritative documents
@@ -41,6 +43,7 @@ For substantial product UI work, [`frontend-execution-policy.md`](frontend-execu
 | Implemented reality and audited defects/gaps | [`implementation-baseline.md`](implementation-baseline.md) |
 | Release/version sequence | [`version-roadmap.md`](version-roadmap.md) |
 | A8.2 durable journal + ingress leaf execution | [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) |
+| A12.1 pinned SnowLuma source/effect contract | [`a12.1-snowluma-contract.md`](a12.1-snowluma-contract.md) |
 | Frontend design/implementation gates | [`frontend-execution-policy.md`](frontend-execution-policy.md) |
 | Writers, commit authority, capability/effect boundaries | [`authority.md`](authority.md) |
 | Receipts, intents, attempts, outcomes, derivations, amendments | [`life-event-journal.md`](life-event-journal.md) |
@@ -101,6 +104,8 @@ A10.1 grounded Memory admission / lineage repair
 ```
 
 The split does not create six semantic owners. All leaves share one durable Journal append authority and preserve each existing domain owner. Runtime remains the semantic execution authority but is not treated as a universal transport-ingress gate. Journal PostgreSQL availability must be independent of long-term Memory-backend selection while reusing the existing Supervisor/deployment PostgreSQL lifecycle; Mem0 activation must not silently disable Journal durability.
+
+A12.1 now also has a pinned source-level SnowLuma contract at [`a12.1-snowluma-contract.md`](a12.1-snowluma-contract.md), validated in [`v0.1.3-a12.1-snowluma-source-contract.md`](../validation/v0.1.3-a12.1-snowluma-source-contract.md). The source phase establishes that SnowLuma's public OneBot `message_id` is a locally generated 32-bit hash rather than a globally unique QQ identity; ordinary inbound chat has no general source-backed dedup guarantee; ordinary private/group send has no effective remote idempotency and no authoritative lost-response reconciliation. Therefore ambiguous send failure remains `ATTEMPT → OUTCOME=UNKNOWN → NO AUTOMATIC RESEND`. A12.1 remains open for narrowly targeted live probes; A12.2 remains planned.
 
 The remaining v0.1.3 work is planned around:
 
