@@ -29,6 +29,8 @@ A research hypothesis never overrides a production authority boundary.
 
 For roadmap interpretation, [`version-roadmap.md`](version-roadmap.md) is the **release/version sequencing authority**. Detailed atom contracts remain in each version plan and in [`post-v0.1.3-roadmap.md`](post-v0.1.3-roadmap.md). Version grouping may delay technically independent work for product sequencing, but it does not erase technical dependencies or research stop gates.
 
+For substantial product UI work, [`frontend-execution-policy.md`](frontend-execution-policy.md) is the **frontend execution/design-gate authority**. A bounded coding model may implement an approved frontend design, but it is not automatically the authority for information architecture, interaction philosophy, visual hierarchy, page aesthetics, or complex cross-platform UI failure analysis. UI-bearing atoms must obey that policy in addition to their own technical Definition of Done.
+
 ## Authoritative documents
 
 | Concern | Authority |
@@ -36,6 +38,7 @@ For roadmap interpretation, [`version-roadmap.md`](version-roadmap.md) is the **
 | Research north star and falsifiability | [`north-star.md`](north-star.md) |
 | Implemented reality and audited defects/gaps | [`implementation-baseline.md`](implementation-baseline.md) |
 | Release/version sequence | [`version-roadmap.md`](version-roadmap.md) |
+| Frontend design/implementation gates | [`frontend-execution-policy.md`](frontend-execution-policy.md) |
 | Writers, commit authority, capability/effect boundaries | [`authority.md`](authority.md) |
 | Receipts, intents, attempts, outcomes, derivations, amendments | [`life-event-journal.md`](life-event-journal.md) |
 | Principal / Person / audience / provenance | [`identity-and-provenance.md`](identity-and-provenance.md) |
@@ -94,6 +97,8 @@ v0.1.4 makes **People/Profile** a core YUVI feature after QQ has proven the exte
 QQ supplies principals, receipts and audience metadata; it does not own profiles. YUVI core owns governed principal→Person binding, evidence access, derived profile snapshots, disclosure and A4 context projection. Mem0 is treated as an optional backend/profile implementation asset behind YUVI contracts, not as Person truth or a mandatory cloud dependency.
 
 The current local Mem0 pin/patch is audited before any upgrade. A provider-neutral native profile baseline must work even if the safe Mem0 decision is to keep the existing version or decline a hosted profile API.
+
+**PF5 has a mandatory HUMAN / HIGH-CAPABILITY DESIGN GATE before product-surface implementation.** PF1–PF4 may proceed atomically when their technical prerequisites close, but PF5 must not let a bounded coding model invent the People page information architecture or visual direction. The approved design record must define layout, hierarchy, interaction/state behavior, provenance/conflict presentation, responsive behavior and visual constraints before implementation. PF5 closure also requires rendered screenshot/interactive review, not automated tests alone. See [`frontend-execution-policy.md`](frontend-execution-policy.md).
 
 ## Historical material
 
