@@ -4,7 +4,7 @@
 >
 > This document answers **what version comes next and what each version is meant to make true**. It does not replace the detailed atom contracts in the v0.1.3 plan or the post-v0.1.3 research roadmap. When a technical dependency conflicts with convenient version grouping, the dependency wins.
 >
-> Current implemented baseline is A0–A6 plus A7.1, A7.2 and the storage-independent A8.1 journal contract. See [`implementation-baseline.md`](implementation-baseline.md). Current Future authority is indexed in [`README.md`](README.md).
+> Current implemented baseline is A0–A6 plus A7.1, A7.2, the A8.1 journal contract and A8.2a PostgreSQL Journal storage. See [`implementation-baseline.md`](implementation-baseline.md). Current Future authority is indexed in [`README.md`](README.md).
 
 ## 1. Release philosophy
 
@@ -65,7 +65,7 @@ Detailed authority: [`09-v0.1.3-platform-completion.md`](09-v0.1.3-platform-comp
 
 ## Current state
 
-A0–A6, A7.1, A7.2 and A8.1 are implemented. A8.2a–A8.2f and A9–A12 remain planned engineering. Aggregate A8.2 remains unimplemented until all six A8.2 leaves close. A8.1 validation is recorded in [`v0.1.3-a8.1-journal-contract.md`](../validation/v0.1.3-a8.1-journal-contract.md).
+A0–A6, A7.1, A7.2, A8.1 and A8.2a are implemented. A8.2b–A8.2f and A9–A12 remain planned engineering. Aggregate A8.2 remains unimplemented until all six A8.2 leaves close. A8.1 validation is recorded in [`v0.1.3-a8.1-journal-contract.md`](../validation/v0.1.3-a8.1-journal-contract.md), and the A8.2a store in [`v0.1.3-a8.2a-journal-store.md`](../validation/v0.1.3-a8.2a-journal-store.md).
 
 The release is best tracked as three milestones rather than six family numbers.
 
@@ -93,7 +93,7 @@ A7.1 → A7.2 → A8.1
 
 A8.2 was split only after the required implementation audit found independent production ingress owners. Runtime remains the single semantic execution authority but is not a universal transport-ingress gate. The leaf split is source-driven and must not be implemented as six new managers.
 
-A8.2a also freezes an important database rule: Journal durability is a consumer of the Supervisor/deployment-owned PostgreSQL infrastructure and must remain available when Mem0 is the active Memory backend. `MEMORY_REPOSITORY=postgres` / long-term Memory backend selection must not determine whether the Journal exists, and no second PostgreSQL daemon may be introduced.
+A8.2a implements the database ownership rule: Journal durability consumes the Supervisor/deployment-owned PostgreSQL infrastructure and remains available when Mem0 is the active Memory backend. `MEMORY_REPOSITORY=postgres` / long-term Memory backend selection does not determine whether the Journal exists, and no second PostgreSQL daemon is introduced. Production ingress remains planned.
 
 Result:
 

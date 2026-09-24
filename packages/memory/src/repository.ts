@@ -1,4 +1,5 @@
-import { Pool, type QueryResultRow } from "pg";
+import type { Pool, QueryResultRow } from "pg";
+import { createPostgresPool } from "@companion/database";
 import type {
   CreateEntityInput,
   CreateMemoryInput,
@@ -19,7 +20,6 @@ import type {
   UpdateMemoryInput
 } from "./types.js";
 import { parseMemoryRepositoryEnv, type MemoryRepositoryKind } from "./env.js";
-import { normalizePostgresConnectionString } from "./postgres-connection.js";
 
 export interface MemoryRepository {
   readonly kind: MemoryRepositoryKind;
@@ -58,10 +58,7 @@ export class PostgresMemoryRepository implements MemoryRepository {
     this.ownsPool = typeof connectionString === "string";
     this.pool =
       typeof connectionString === "string"
-        ? new Pool({
-            connectionString: normalizePostgresConnectionString(connectionString),
-            connectionTimeoutMillis: 10_000
-          })
+        ? createPostgresPool(connectionString)
         : connectionString;
   }
 
@@ -1058,7 +1055,8 @@ export class InMemoryMemoryRepository implements MemoryRepository {
 }
 
 export function createMemoryRepositoryFromEnv(
-  env: Record<string, string | undefined> = process.env
+  env: Record<string, string | undefined> = process.env,
+  sharedPool?: Pool
 ): MemoryRepository {
   const repositoryMode = parseMemoryRepositoryEnv(env);
   const databaseUrl = env["DATABASE_URL"];
@@ -1068,7 +1066,7 @@ export function createMemoryRepositoryFromEnv(
       throw new Error("MEMORY_REPOSITORY=postgres requires DATABASE_URL.");
     }
 
-    return new PostgresMemoryRepository(databaseUrl);
+    return new PostgresMemoryRepository(sharedPool ?? databaseUrl);
   }
 
   return new InMemoryMemoryRepository();

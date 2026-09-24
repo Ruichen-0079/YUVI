@@ -16,10 +16,15 @@ import { createProviderRegistryFromEnv } from "../packages/providers/src/index.t
 async function preparePackagedPostgres(): Promise<void> {
   const isPackaged =
     process.env["YUVI_PACKAGED"] === "1" || process.env["YUVI_PACKAGED"] === "true";
-  if (!isPackaged || parseMemoryRepositoryEnv(process.env).kind !== "postgres") return;
+  if (!isPackaged) return;
 
   const databaseUrl = process.env["DATABASE_URL"]?.trim();
-  if (!databaseUrl) throw new Error("Packaged PostgreSQL Runtime requires DATABASE_URL.");
+  if (!databaseUrl) {
+    if (parseMemoryRepositoryEnv(process.env).kind === "postgres") {
+      throw new Error("Packaged PostgreSQL Runtime requires DATABASE_URL.");
+    }
+    return;
+  }
   const migrationsDir = process.env["YUVI_RUNTIME_MIGRATIONS_DIR"]?.trim();
   if (!migrationsDir) {
     throw new Error("Packaged PostgreSQL Runtime migrations directory is not configured.");
@@ -43,7 +48,7 @@ async function preparePackagedPostgres(): Promise<void> {
     },
     logger: console
   });
-  console.info("[postgres] memory schema is ready.");
+  console.info("[postgres] database schema is ready.");
 }
 
 async function main(): Promise<void> {

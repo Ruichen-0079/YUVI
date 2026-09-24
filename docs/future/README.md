@@ -85,12 +85,12 @@ The sequence is intentionally falsifiable. Later learned/latent mechanisms are n
 
 The old **Platform Complete** target is retired. v0.1.3 is the **Durable Causal History Foundation**.
 
-A0–A6, A7.1–A7.2 and A8.1 are implemented engineering reality; see the [A8.1 validation record](../validation/v0.1.3-a8.1-journal-contract.md). A8.1 supplies a storage-independent journal contract only. Aggregate A8.2 remains planned and is now executed as six source-aligned leaves:
+A0–A6, A7.1–A7.2, A8.1 and A8.2a are implemented engineering reality; see the [A8.1 contract](../validation/v0.1.3-a8.1-journal-contract.md) and [A8.2a store validation](../validation/v0.1.3-a8.2a-journal-store.md). A8.2a adds durable PostgreSQL append storage but no production ingress. Aggregate A8.2 remains planned; A8.2b–A8.2f are the remaining source-aligned leaves:
 
 ```text
-A8.2a Journal Store Foundation
+A8.2a Journal Store Foundation — IMPLEMENTED
   ↓
-A8.2b conversational HTTP/SSE/WebSocket ingress
+A8.2b conversational HTTP/SSE/WebSocket ingress — PLANNED
   ↓
 A8.2c finalized speech / voice-message ingress
   ↓

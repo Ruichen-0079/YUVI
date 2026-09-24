@@ -17,6 +17,8 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
+      "@companion/database": ["packages/database/src/index.ts"],
+      "@companion/journal": ["packages/journal/src/index.ts"],
       "@companion/core": ["packages/core/src/index.ts"],
       "@companion/event-bus": ["packages/event-bus/src/index.ts"],
       "@companion/host-environment": ["packages/host-environment/src/index.ts"],

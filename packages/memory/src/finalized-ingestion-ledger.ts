@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
-import { Pool, type QueryResultRow } from "pg";
+import type { Pool, QueryResultRow } from "pg";
+import { createPostgresPool } from "@companion/database";
 import { parseMemoryRepositoryEnv, type MemoryRepositoryKind } from "./env.js";
 import { MemoryIngestionPolicy, type MemoryIngestionInput } from "./ingestion.js";
 import {
@@ -10,7 +11,6 @@ import {
   type Mem0TurnKind
 } from "./mem0-chat.js";
 import { detectExplicitForgetRequest } from "./intent.js";
-import { normalizePostgresConnectionString } from "./postgres-connection.js";
 import type {
   MemoryReconciliationResult,
   MemoryWriteEventInput,
@@ -299,10 +299,7 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
     this.ownsClient = typeof connectionString === "string";
     this.client =
       typeof connectionString === "string"
-        ? new Pool({
-            connectionString: normalizePostgresConnectionString(connectionString),
-            connectionTimeoutMillis: 10_000
-          })
+        ? createPostgresPool(connectionString)
         : connectionString;
   }
 

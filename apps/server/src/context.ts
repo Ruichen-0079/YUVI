@@ -1,5 +1,11 @@
 import { productEnvironment, readProductSettings } from "./services/product-store.js";
 import { join } from "node:path";
+import { createPostgresPool } from "@companion/database";
+import {
+  PostgresJournalRepository,
+  JournalStoreError,
+  type JournalRepository
+} from "@companion/journal";
 import { getRuntimeEnvDir } from "@companion/config";
 import { createFileP8CorrectionStore, createFileVoiceBindingReferences } from "@companion/core";
 import { captureKdeScreen, screenCaptureAvailable } from "./screen-capture.js";
@@ -71,6 +77,8 @@ export type AppContext = {
   memoryRepository: MemoryRepository;
   conversationRepository: ConversationRepository;
   finalizedIngestionRepository: FinalizedIngestionRepository;
+  journalRepository: JournalRepository | null;
+  closeDatabasePool(): Promise<void>;
   finalizedIngestion: FinalizedIngestionService;
   memoryIngestionCoordinator: MemoryIngestionCoordinator;
   memory: MemoryService;
@@ -143,28 +151,47 @@ export async function createAppContext(
     SERVER_HOST: config.host,
     SERVER_PORT: String(config.port)
   };
-  const memoryRepository = createMemoryRepositoryFromEnv();
+  const databaseUrl = process.env["DATABASE_URL"]?.trim();
+  const databasePool = databaseUrl ? createPostgresPool(databaseUrl) : undefined;
+  const journalRepository = databasePool
+    ? new PostgresJournalRepository(databasePool, {
+        namespace: process.env["YUVI_JOURNAL_NAMESPACE"] ?? "yuvi:default",
+        // Production ingress adapters are intentionally added in A8.2b-f. Until then,
+        // the storage authority refuses to invent principal/source/audience evidence.
+        authorityBuilder() {
+          throw new JournalStoreError(
+            "INVALID_PROPOSAL",
+            "Journal admission authority is not wired until the production ingress leaves."
+          );
+        }
+      })
+    : null;
+  const memoryRepository = createMemoryRepositoryFromEnv(process.env, databasePool);
   let conversationRepository: ConversationRepository | undefined;
   let finalizedIngestionRepository: FinalizedIngestionRepository | undefined;
   try {
     conversationRepository = createConversationRepositoryFromEnv(
       process.env,
-      memoryRepository.getDatabaseClient?.()
+      databasePool ?? memoryRepository.getDatabaseClient?.()
     );
     finalizedIngestionRepository = createFinalizedIngestionRepositoryFromEnv(
       process.env,
-      memoryRepository.getDatabaseClient?.()
+      databasePool ?? memoryRepository.getDatabaseClient?.()
     );
   } catch (error) {
     await conversationRepository?.close?.();
     await memoryRepository.close?.();
+    await databasePool?.end();
     throw error;
   }
   const promptBuilder = new PromptBuilder();
-  const recentEpisodeStore: RecentEpisodeStore = createRecentEpisodeStoreFromEnv();
+  const recentEpisodeStore: RecentEpisodeStore = createRecentEpisodeStoreFromEnv(
+    process.env,
+    databasePool
+  );
   const dreamJobStore: DreamJobStore =
-    parseMemoryRepositoryEnv().kind === "postgres" && process.env["DATABASE_URL"]
-      ? new PostgresDreamJobStore(process.env["DATABASE_URL"])
+    parseMemoryRepositoryEnv().kind === "postgres" && databasePool
+      ? new PostgresDreamJobStore(databasePool)
       : new InMemoryDreamJobStore();
   const finalizedIngestion = new FinalizedIngestionService(finalizedIngestionRepository!);
   const ruleBasedExtractor = new RuleBasedMemoryExtractor();
@@ -386,6 +413,7 @@ export async function createAppContext(
     await conversationRepository.close?.();
     await finalizedIngestionRepository?.close?.();
     await memoryRepository.close?.();
+    await databasePool?.end();
     throw error;
   }
 
@@ -395,6 +423,10 @@ export async function createAppContext(
     memoryRepository,
     conversationRepository: conversationRepository!,
     finalizedIngestionRepository: finalizedIngestionRepository!,
+    journalRepository,
+    async closeDatabasePool() {
+      await databasePool?.end();
+    },
     finalizedIngestion,
     memoryIngestionCoordinator: coordinator,
     memory,

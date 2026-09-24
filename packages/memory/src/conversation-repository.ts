@@ -1,6 +1,6 @@
-import { Pool, type QueryResultRow } from "pg";
+import type { Pool, QueryResultRow } from "pg";
+import { createPostgresPool } from "@companion/database";
 import { parseMemoryRepositoryEnv, type MemoryRepositoryKind } from "./env.js";
-import { normalizePostgresConnectionString } from "./postgres-connection.js";
 
 export type ConversationRepositoryKind = MemoryRepositoryKind;
 export type ConversationMessageRole = "user" | "assistant";
@@ -113,10 +113,7 @@ export class PostgresConversationRepository implements ConversationRepository {
     this.ownsPool = typeof connectionString === "string";
     this.pool =
       typeof connectionString === "string"
-        ? new Pool({
-            connectionString: normalizePostgresConnectionString(connectionString),
-            connectionTimeoutMillis: 10_000
-          })
+        ? createPostgresPool(connectionString)
         : connectionString;
   }
 

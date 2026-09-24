@@ -1,8 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { Pool } from "pg";
-import { normalizePostgresConnectionString } from "./postgres-connection.js";
+import { createPostgresPool } from "@companion/database";
 
 export type SqlMigration = {
   name: string;
@@ -11,7 +10,7 @@ export type SqlMigration = {
 
 export class MissingDatabaseUrlError extends Error {
   constructor() {
-    super("DATABASE_URL is required to run PostgreSQL memory migrations.");
+    super("DATABASE_URL is required to run PostgreSQL migrations.");
     this.name = "MissingDatabaseUrlError";
   }
 }
@@ -38,9 +37,7 @@ export async function runPostgresMigrations(input: {
   settings?: Record<string, string | undefined> | undefined;
 }): Promise<string[]> {
   const migrations = input.migrations ?? (await readSqlMigrations(input.migrationsDir));
-  const pool = new Pool({
-    connectionString: normalizePostgresConnectionString(input.databaseUrl),
-    connectionTimeoutMillis: 10_000,
+  const pool = createPostgresPool(input.databaseUrl, {
     idleTimeoutMillis: 10_000,
     query_timeout: 30_000
   });

@@ -138,6 +138,7 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
     await context.finalizedIngestionRepository.close?.();
     await context.memoryRepository.close?.();
     await context.conversationRepository.close?.();
+    await context.closeDatabasePool();
   });
 
   await registerHealthRoutes(app, context, config);

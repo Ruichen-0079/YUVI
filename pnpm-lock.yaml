@@ -57,12 +57,18 @@ importers:
       '@companion/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@companion/database':
+        specifier: workspace:*
+        version: link:../../packages/database
       '@companion/event-bus':
         specifier: workspace:*
         version: link:../../packages/event-bus
       '@companion/host-environment':
         specifier: workspace:*
         version: link:../../packages/host-environment
+      '@companion/journal':
+        specifier: workspace:*
+        version: link:../../packages/journal
       '@companion/memory':
         specifier: workspace:*
         version: link:../../packages/memory
@@ -232,6 +238,22 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.19.18)
 
+  packages/database:
+    dependencies:
+      pg:
+        specifier: ^8.20.0
+        version: 8.20.0
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.20.0
+        version: 8.20.0
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.19.18)
+
   packages/desktop-supervisor:
     dependencies:
       pg:
@@ -273,8 +295,30 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.19.18)
 
+  packages/journal:
+    dependencies:
+      '@companion/database':
+        specifier: workspace:*
+        version: link:../database
+      '@companion/protocol':
+        specifier: workspace:*
+        version: link:../protocol
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.20.0
+        version: 8.20.0
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.19.18)
+
   packages/memory:
     dependencies:
+      '@companion/database':
+        specifier: workspace:*
+        version: link:../database
       pg:
         specifier: ^8.20.0
         version: 8.20.0
