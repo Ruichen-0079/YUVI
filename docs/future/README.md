@@ -29,6 +29,8 @@ A research hypothesis never overrides a production authority boundary.
 
 For roadmap interpretation, [`version-roadmap.md`](version-roadmap.md) is the **release/version sequencing authority**. Detailed atom contracts remain in each version plan and in [`post-v0.1.3-roadmap.md`](post-v0.1.3-roadmap.md). Version grouping may delay technically independent work for product sequencing, but it does not erase technical dependencies or research stop gates.
 
+For A8.2 specifically, [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) is the **current leaf execution authority**. It refines the aggregate A8.2 section of the v0.1.3 plan after the required source audit proved that conversational, voice, standalone-vision and local-control ingress do not share one production admission owner. The aggregate A8.2 family remains incomplete until A8.2a–A8.2f all close.
+
 For substantial product UI work, [`frontend-execution-policy.md`](frontend-execution-policy.md) is the **frontend execution/design-gate authority**. A bounded coding model may implement an approved frontend design, but it is not automatically the authority for information architecture, interaction philosophy, visual hierarchy, page aesthetics, or complex cross-platform UI failure analysis. UI-bearing atoms must obey that policy in addition to their own technical Definition of Done.
 
 ## Authoritative documents
@@ -38,6 +40,7 @@ For substantial product UI work, [`frontend-execution-policy.md`](frontend-execu
 | Research north star and falsifiability | [`north-star.md`](north-star.md) |
 | Implemented reality and audited defects/gaps | [`implementation-baseline.md`](implementation-baseline.md) |
 | Release/version sequence | [`version-roadmap.md`](version-roadmap.md) |
+| A8.2 durable journal + ingress leaf execution | [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) |
 | Frontend design/implementation gates | [`frontend-execution-policy.md`](frontend-execution-policy.md) |
 | Writers, commit authority, capability/effect boundaries | [`authority.md`](authority.md) |
 | Receipts, intents, attempts, outcomes, derivations, amendments | [`life-event-journal.md`](life-event-journal.md) |
@@ -79,7 +82,27 @@ The sequence is intentionally falsifiable. Later learned/latent mechanisms are n
 
 The old **Platform Complete** target is retired. v0.1.3 is the **Durable Causal History Foundation**.
 
-A0–A6, A7.1–A7.2 and A8.1 are implemented engineering reality; see the [A8.1 validation record](../validation/v0.1.3-a8.1-journal-contract.md). A8.1 supplies a storage-independent journal contract only. A8.2–A12 remain planned around:
+A0–A6, A7.1–A7.2 and A8.1 are implemented engineering reality; see the [A8.1 validation record](../validation/v0.1.3-a8.1-journal-contract.md). A8.1 supplies a storage-independent journal contract only. Aggregate A8.2 remains planned and is now executed as six source-aligned leaves:
+
+```text
+A8.2a Journal Store Foundation
+  ↓
+A8.2b conversational HTTP/SSE/WebSocket ingress
+  ↓
+A8.2c finalized speech / voice-message ingress
+  ↓
+A8.2d standalone vision ingress
+  ↓
+A8.2e controller / product / Person / P8 controls
+  ↓
+A8.2f voice-identity controls + aggregate bypass closure
+  ↓
+A10.1 grounded Memory admission / lineage repair
+```
+
+The split does not create six semantic owners. All leaves share one durable Journal append authority and preserve each existing domain owner. Runtime remains the semantic execution authority but is not treated as a universal transport-ingress gate. Journal PostgreSQL availability must be independent of long-term Memory-backend selection while reusing the existing Supervisor/deployment PostgreSQL lifecycle; Mem0 activation must not silently disable Journal durability.
+
+The remaining v0.1.3 work is planned around:
 
 - durable append and inbound receipt admission for the provenance-aware Life Event Journal;
 - `INTENT → ATTEMPT → OUTCOME` accounting with explicit `UNKNOWN` and no blind replay;
