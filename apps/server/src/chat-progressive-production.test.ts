@@ -39,6 +39,19 @@ async function chatEnv() {
     MEMORY_INGESTION_COORDINATOR_ENABLED: "false"
   };
 }
+
+function buildServerWithAdmission(env: NodeJS.ProcessEnv) {
+  return buildServer(loadServerConfig(env), {
+    conversationReceiptAdmission: {
+      async admit() {
+        return {
+          status: "APPENDED" as const,
+          envelope: { eventId: "jev1_chatproductionreceipt000001" } as never
+        };
+      }
+    }
+  });
+}
 function completion(content: string, init?: RequestInit) {
   const body = JSON.parse(String(init?.body ?? "{}"));
   let parsed;
@@ -95,7 +108,7 @@ describe("Chat core production capability activation", () => {
     process.env = env;
     const fetch = vi.fn();
     vi.stubGlobal("fetch", fetch);
-    const app = await buildServer(loadServerConfig(env));
+    const app = await buildServerWithAdmission(env);
     try {
       const health = await app.inject({ method: "GET", url: "/health" });
       expect(health.statusCode).toBe(200);
@@ -422,7 +435,7 @@ describe("Chat core production capability activation", () => {
         )
       )
     );
-    let app = await buildServer(loadServerConfig(env));
+    let app = await buildServerWithAdmission(env);
     try {
       const reply = await app.inject({
         method: "POST",
@@ -431,7 +444,7 @@ describe("Chat core production capability activation", () => {
       });
       expect(reply.statusCode, reply.body).toBe(200);
       await app.close();
-      app = await buildServer(loadServerConfig(env));
+      app = await buildServerWithAdmission(env);
       const { readFile } = await import("node:fs/promises");
       const { readdir } = await import("node:fs/promises");
       const files = await readdir(env.YUVI_RUNTIME_ENV_DIR);
@@ -476,7 +489,7 @@ describe("Chat core production capability activation", () => {
           return completion('{"disposition":"RESPOND","text":"I will keep that in mind."}', init);
         })
       );
-      let app = await buildServer(loadServerConfig(env));
+      let app = await buildServerWithAdmission(env);
       const sessionId = `chat-only-${crypto.randomUUID()}`;
       async function message(text: string) {
         const reply = await app.inject({
@@ -491,7 +504,7 @@ describe("Chat core production capability activation", () => {
         await message("The project codename is Orchid and the launch is on Friday.");
         await message("I am planning the invitation.");
         await app.close();
-        app = await buildServer(loadServerConfig(env));
+        app = await buildServerWithAdmission(env);
         await message("What drink and project were we discussing?");
         expect(requests.at(-1)).toContain("jasmine");
         expect(requests.at(-1)).toContain("Orchid");

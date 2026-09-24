@@ -1,5 +1,6 @@
 import { ConversationPersistenceError, type RuntimeReplyStreamEvent } from "@companion/core";
 import { createEvent } from "@companion/protocol";
+import { randomUUID } from "node:crypto";
 import { ProviderError, ProviderErrorCode } from "@companion/providers";
 import type { FastifyInstance } from "fastify";
 import type { AppContext } from "../context.js";
@@ -12,6 +13,7 @@ import {
 } from "./message.js";
 import { SseConnectionClosedError, writeSseFrame } from "./sse.js";
 import { desktopCorsHeaders } from "../cors.js";
+import { toConversationalAdmissionFailure } from "../conversational-receipt-admission.js";
 
 const SSE_HEADERS = {
   "content-type": "text/event-stream; charset=utf-8",
@@ -40,39 +42,31 @@ export async function registerMessageStreamRoutes(
     const memoryOptions = normalizeMessageMemoryOptions(input.data.options);
     const identity = resolveMessageIdentity(input.data);
     let userEvent;
+    let runtimeEventId: string | undefined;
     try {
-      userEvent = input.data.speechObservationId
-        ? context.runtime.commitSpeechTurn(
+      if (input.data.speechObservationId) {
+        userEvent = context.runtime.commitSpeechTurn(
             input.data.speechObservationId,
             input.data.sessionId,
             content
-          )
-        : createEvent("user.message", {
-            sessionId: input.data.sessionId,
-            content,
-            ...(identity.subjectUserId ? { subjectUserId: identity.subjectUserId } : {}),
-            ...(identity.personaId ? { personaId: identity.personaId } : {})
-          });
+          );
+      } else {
+        runtimeEventId = randomUUID();
+      }
     } catch {
       return reply.status(409).send({ error: "invalid_speech_observation" });
     }
     const abortController = new AbortController();
-    const runtimeStream = context.runtime.streamUserMessage(userEvent, {
-      signal: abortController.signal,
-      voiceOutput,
-      useMemory: memoryOptions.legacyUseMemory,
-      readMemory: memoryOptions.readMemory,
-      writeMemory: memoryOptions.writeMemory,
-      ...(input.data.imageAttachment ? { imageAttachment: input.data.imageAttachment } : {}),
-      controlAuthority: "LOCAL_EXPLICIT_CONTROLLER"
-    });
-    const iterator = runtimeStream[Symbol.asyncIterator]();
+    let iterator: AsyncIterator<RuntimeReplyStreamEvent> | undefined;
     let headersStarted = false;
     let responseFinalized = false;
     let clientDisconnected = false;
     let closePromise: Promise<void> | undefined;
 
     const closeIterator = (): Promise<void> => {
+      if (!iterator) {
+        return Promise.resolve();
+      }
       if (closePromise) {
         return closePromise;
       }
@@ -99,6 +93,58 @@ export async function registerMessageStreamRoutes(
     reply.raw.once("error", onResponseError);
 
     try {
+      if (runtimeEventId) {
+        try {
+          const receipt = await context.conversationalReceiptAdmission.admit({
+            surface: "HTTP_SSE",
+            sessionId: input.data.sessionId,
+            runtimeEventId,
+            content,
+            ...(input.data.imageAttachment ? { hasImageAttachment: true } : {})
+          });
+          request.log.info(
+            { journalEventId: receipt.envelope.eventId, runtimeEventId, sessionId: input.data.sessionId },
+            "conversation receipt committed"
+          );
+        } catch (error) {
+          const failure = toConversationalAdmissionFailure(error);
+          request.log.error(
+            { runtimeEventId, sessionId: input.data.sessionId, code: failure.code },
+            "conversation receipt admission failed"
+          );
+          return reply.status(503).send({
+            error: "journal_admission_failed",
+            ...failure,
+            traceId: runtimeEventId
+          });
+        }
+        if (clientDisconnected) {
+          return;
+        }
+        userEvent = createEvent("user.message", {
+          sessionId: input.data.sessionId,
+          content,
+          ...(identity.subjectUserId ? { subjectUserId: identity.subjectUserId } : {}),
+          ...(identity.personaId ? { personaId: identity.personaId } : {})
+        }, { id: runtimeEventId });
+      }
+      if (clientDisconnected) {
+        return;
+      }
+      if (!userEvent) {
+        throw new Error("Conversation Runtime event was not constructed after admission.");
+      }
+
+      const runtimeStream = context.runtime.streamUserMessage(userEvent, {
+        signal: abortController.signal,
+        voiceOutput,
+        useMemory: memoryOptions.legacyUseMemory,
+        readMemory: memoryOptions.readMemory,
+        writeMemory: memoryOptions.writeMemory,
+        ...(input.data.imageAttachment ? { imageAttachment: input.data.imageAttachment } : {}),
+        controlAuthority: "LOCAL_EXPLICIT_CONTROLLER"
+      });
+      iterator = runtimeStream[Symbol.asyncIterator]();
       let next: IteratorResult<RuntimeReplyStreamEvent>;
       try {
         next = await iterator.next();
@@ -154,11 +200,15 @@ export async function registerMessageStreamRoutes(
         return;
       }
       if (!headersStarted) {
-        return sendMessageError(reply, error, userEvent.traceId);
+        return sendMessageError(reply, error, userEvent?.traceId ?? runtimeEventId ?? "unavailable");
       }
       if (!responseFinalized && !reply.raw.destroyed && !reply.raw.writableEnded) {
         try {
-          await writeSseFrame(reply.raw, "error", toSseError(error, userEvent.traceId));
+          await writeSseFrame(
+            reply.raw,
+            "error",
+            toSseError(error, userEvent?.traceId ?? runtimeEventId ?? "unavailable")
+          );
         } catch (writeError) {
           request.log.warn({ err: writeError }, "failed to write message stream error");
         }

@@ -30,12 +30,15 @@ import {
   type ServerPluginSourceDiscovery
 } from "./plugin-lifecycle.js";
 import type { ServerPluginCapabilityGrant } from "./mcp-capability-binding.js";
+import type { ConversationalReceiptAdmission } from "./conversational-receipt-admission.js";
 
 export type BuildServerOptions = Readonly<{
   /** Composition-time source registration; discovery does not call source loaders. */
   discoverPlugins?: ServerPluginSourceDiscovery | undefined;
   /** Host-authored grants; plugin declarations cannot create or alter these. */
   pluginCapabilityGrants?: readonly ServerPluginCapabilityGrant[] | undefined;
+  /** Host-only dependency override; never derived from transport or plugin input. */
+  conversationReceiptAdmission?: ConversationalReceiptAdmission | undefined;
 }>;
 
 export async function buildServer(config: ServerConfig, options: BuildServerOptions = {}) {
@@ -106,6 +109,9 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   }
 
   const context = await createAppContext(app.log, config, pluginLifecycle.runtimeCapabilities);
+  if (options.conversationReceiptAdmission) {
+    context.conversationalReceiptAdmission = options.conversationReceiptAdmission;
+  }
   try {
     const recovered = await context.runtime.recoverStaleStreamingMessages({
       limit: config.memoryMaintenance.limit

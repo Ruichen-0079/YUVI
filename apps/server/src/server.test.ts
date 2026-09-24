@@ -2784,7 +2784,16 @@ describe("server", () => {
     try {
       process.chdir(tempDir);
       process.env = { ...env };
-      const app = await buildServer(loadServerConfig(env));
+      const app = await buildServer(loadServerConfig(env), {
+        conversationReceiptAdmission: {
+          async admit() {
+            return {
+              status: "APPENDED",
+              envelope: { eventId: "jev1_testserverreceipt00000002" } as never
+            };
+          }
+        }
+      });
 
       const initialProviders = await app.inject({ method: "GET", url: "/providers/status" });
       expect(initialProviders.statusCode).toBe(200);
@@ -3066,7 +3075,16 @@ function createTestEnv(overrides: TestEnvOverrides = {}): NodeJS.ProcessEnv {
 async function buildTestServer(overrides: TestEnvOverrides = {}) {
   const env = createTestEnv(overrides);
   process.env = { ...env };
-  return buildServer(loadServerConfig(env));
+  return buildServer(loadServerConfig(env), {
+    conversationReceiptAdmission: {
+      async admit() {
+        return {
+          status: "APPENDED" as const,
+          envelope: { eventId: "jev1_testserverreceipt00000001" } as never
+        };
+      }
+    }
+  });
 }
 
 function findPromptSection(

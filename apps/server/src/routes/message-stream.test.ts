@@ -9,9 +9,17 @@ import type { ServerResponse } from "node:http";
 import { describe, expect, it, vi } from "vitest";
 
 function runtimeFor(
-  streamUserMessage: AppContext["runtime"]["streamUserMessage"]
+  streamUserMessage: AppContext["runtime"]["streamUserMessage"],
+  admission: NonNullable<AppContext["conversationalReceiptAdmission"]> = {
+    async admit() {
+      return {
+        status: "APPENDED",
+        envelope: { eventId: "jev1_ssefixture0000000000000001" } as never
+      };
+    }
+  }
 ): AppContext {
-  return { runtime: { streamUserMessage } } as unknown as AppContext;
+  return { runtime: { streamUserMessage }, conversationalReceiptAdmission: admission } as unknown as AppContext;
 }
 
 async function createTestApp(context: AppContext) {

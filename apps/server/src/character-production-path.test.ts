@@ -49,6 +49,19 @@ function productionTestEnv(): NodeJS.ProcessEnv {
   };
 }
 
+function buildServerWithAdmission(env: NodeJS.ProcessEnv) {
+  return buildServer(loadServerConfig(env), {
+    conversationReceiptAdmission: {
+      async admit() {
+        return {
+          status: "APPENDED" as const,
+          envelope: { eventId: "jev1_characterpathreceipt00000001" } as never
+        };
+      }
+    }
+  });
+}
+
 function completion(model: string, content: string, reasoningContent?: string) {
   return new Response(
     JSON.stringify({
@@ -159,7 +172,7 @@ describe("ordinary production Character path", () => {
     vi.stubGlobal("fetch", fetchSpy);
     const env = productionTestEnv();
     process.env = { ...env };
-    const app = await buildServer(loadServerConfig(env));
+    const app = await buildServerWithAdmission(env);
 
     try {
       const response = await app.inject({
@@ -206,7 +219,7 @@ describe("ordinary production Character path", () => {
     vi.stubGlobal("fetch", fetchSpy);
     const env = productionTestEnv();
     process.env = { ...env };
-    const app = await buildServer(loadServerConfig(env));
+    const app = await buildServerWithAdmission(env);
 
     try {
       const response = await app.inject({
@@ -252,7 +265,7 @@ describe("ordinary production Character path", () => {
     vi.stubGlobal("fetch", fetchSpy);
     const env = productionTestEnv();
     process.env = { ...env };
-    const app = await buildServer(loadServerConfig(env));
+    const app = await buildServerWithAdmission(env);
 
     try {
       const response = await app.inject({
@@ -292,7 +305,7 @@ it("persists a controller P8 relationship correction through restart and project
     MEMORY_PERSONA_ID: "persona-a"
   };
   process.env = { ...env };
-  let app = await buildServer(loadServerConfig(env));
+  let app = await buildServerWithAdmission(env);
   const correction = {
     recordVersion: "p8-1e.v1",
     correctionReference: "controller-correction-1",
@@ -328,7 +341,7 @@ it("persists a controller P8 relationship correction through restart and project
       expect(saved.statusCode, saved.body).toBe(200);
     }
     await app.close();
-    app = await buildServer(loadServerConfig(env));
+    app = await buildServerWithAdmission(env);
     const reply = await app.inject({
       method: "POST",
       url: "/message",
@@ -387,7 +400,7 @@ it.each([false, true])("reaches Runtime-admitted reads, bounded Cognition and Ch
   );
   const env = productionTestEnv();
   process.env = { ...env };
-  const app = await buildServer(loadServerConfig(env));
+  const app = await buildServerWithAdmission(env);
   try {
     const authorization = await app.inject({
       method: "POST",
@@ -551,7 +564,7 @@ it("binds a voice through the controller, restores it, and isolates resolved, mi
     LOCAL_STT_MODEL: "sensevoice"
   };
   process.env = { ...env };
-  let app = await buildServer(loadServerConfig(env));
+  let app = await buildServerWithAdmission(env);
   const bind = (personId: string) =>
     app.inject({ method: "POST", url: "/voice-profiles/profile-a/person", payload: { personId } });
   const speak = (sessionId: string) =>
@@ -573,7 +586,7 @@ it("binds a voice through the controller, restores it, and isolates resolved, mi
     const binding = await bind("person-a");
     expect(binding.statusCode, binding.body).toBe(200);
     await app.close();
-    app = await buildServer(loadServerConfig(env));
+    app = await buildServerWithAdmission(env);
     const resolved = await speak("resolved");
     expect(resolved.statusCode, resolved.body).toBe(200);
     expect(searchScopes).toContain("yuvi:v1:user:person-a:character:persona-a");
@@ -643,7 +656,7 @@ it("flushes native provider deltas over a real SSE socket before provider comple
   );
   const env = productionTestEnv();
   process.env = { ...env };
-  const app = await buildServer(loadServerConfig(env));
+  const app = await buildServerWithAdmission(env);
   await app.listen({ host: "127.0.0.1", port: 0 });
   const address = app.server.address();
   if (!address || typeof address === "string") throw new Error("Missing test address");

@@ -160,6 +160,7 @@ export type PerceptionVisionPayload = {
 export type PerceptionVisionEvent = RuntimeEvent<"perception.vision", PerceptionVisionPayload>;
 
 export type CreateEventOptions = {
+  id?: string | undefined;
   traceId?: string | undefined;
   parentId?: string | undefined;
 };
@@ -169,7 +170,7 @@ export function createEvent<TType extends EventType, TPayload>(
   payload: TPayload,
   options: CreateEventOptions = {}
 ): RuntimeEvent<TType, TPayload> {
-  const id = crypto.randomUUID();
+  const id = options.id ?? crypto.randomUUID();
 
   return {
     id,

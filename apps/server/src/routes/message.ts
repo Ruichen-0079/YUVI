@@ -1,10 +1,15 @@
 import { ConversationPersistenceError } from "@companion/core";
 import { parseRuntimeConfig } from "@companion/config";
 import { createEvent } from "@companion/protocol";
+import { randomUUID } from "node:crypto";
 import { ProviderError } from "@companion/providers";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import type { AppContext } from "../context.js";
+import {
+  toConversationalAdmissionFailure,
+  type ConversationalReceiptSurface
+} from "../conversational-receipt-admission.js";
 
 const MESSAGE_IMAGE_MAX_BYTES = 20 * 1024 * 1024;
 /** 20 MiB raw image expands to ~26.7 MiB in base64 plus the JSON envelope. */
@@ -18,7 +23,10 @@ const MessageImageAttachmentSchema = z
   .superRefine((value, context) => {
     const payload = value.imageBase64;
     if (!/^[A-Za-z0-9+/]*={0,2}$/.test(payload) || payload.length % 4 === 1) {
-      context.addIssue({ code: z.ZodIssueCode.custom, message: "imageBase64 must be valid base64." });
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "imageBase64 must be valid base64."
+      });
       return;
     }
     const paddingIndex = payload.indexOf("=");
@@ -85,7 +93,8 @@ export async function registerMessageRoutes(
     reply: {
       status(code: number): { send(payload: unknown): unknown };
       send(payload: unknown): unknown;
-    }
+    },
+    surface: ConversationalReceiptSurface
   ) {
     const input = MessageRequestSchema.safeParse(request.body);
     if (!input.success) {
@@ -99,21 +108,65 @@ export async function registerMessageRoutes(
     const memoryOptions = normalizeMessageMemoryOptions(input.data.options);
     const identity = resolveMessageIdentity(input.data);
     let event;
+    let runtimeEventId: string | undefined;
     try {
-      event = input.data.speechObservationId
-        ? context.runtime.commitSpeechTurn(
-            input.data.speechObservationId,
-            input.data.sessionId,
-            content
-          )
-        : createEvent("user.message", {
-            sessionId: input.data.sessionId,
-            content,
-            ...(identity.subjectUserId ? { subjectUserId: identity.subjectUserId } : {}),
-            ...(identity.personaId ? { personaId: identity.personaId } : {})
-          });
+      if (input.data.speechObservationId) {
+        event = context.runtime.commitSpeechTurn(
+          input.data.speechObservationId,
+          input.data.sessionId,
+          content
+        );
+      } else {
+        runtimeEventId = randomUUID();
+      }
     } catch {
       return reply.status(409).send({ error: "invalid_speech_observation" });
+    }
+
+    if (runtimeEventId) {
+      try {
+        const receipt = await context.conversationalReceiptAdmission.admit({
+          surface,
+          sessionId: input.data.sessionId,
+          runtimeEventId,
+          content,
+          ...(input.data.imageAttachment ? { hasImageAttachment: true } : {})
+        });
+        request.log.info(
+          {
+            journalEventId: receipt.envelope.eventId,
+            runtimeEventId,
+            sessionId: input.data.sessionId
+          },
+          "conversation receipt committed"
+        );
+      } catch (error) {
+        const failure = toConversationalAdmissionFailure(error);
+        request.log.error(
+          { runtimeEventId, sessionId: input.data.sessionId, code: failure.code },
+          "conversation receipt admission failed"
+        );
+        return reply.status(503).send({
+          error: "journal_admission_failed",
+          ...failure,
+          traceId: runtimeEventId
+        });
+      }
+
+      event = createEvent(
+        "user.message",
+        {
+          sessionId: input.data.sessionId,
+          content,
+          ...(identity.subjectUserId ? { subjectUserId: identity.subjectUserId } : {}),
+          ...(identity.personaId ? { personaId: identity.personaId } : {})
+        },
+        { id: runtimeEventId }
+      );
+    }
+
+    if (!event) {
+      return reply.status(500).send({ error: "runtime_event_not_created" });
     }
 
     request.log.info(
@@ -176,8 +229,12 @@ export async function registerMessageRoutes(
     }
   }
 
-  app.post("/message", { bodyLimit: MESSAGE_REQUEST_BODY_LIMIT }, handleMessage);
-  app.post("/v1/messages", { bodyLimit: MESSAGE_REQUEST_BODY_LIMIT }, handleMessage);
+  app.post("/message", { bodyLimit: MESSAGE_REQUEST_BODY_LIMIT }, (request, reply) =>
+    handleMessage(request, reply, "HTTP_MESSAGE")
+  );
+  app.post("/v1/messages", { bodyLimit: MESSAGE_REQUEST_BODY_LIMIT }, (request, reply) =>
+    handleMessage(request, reply, "HTTP_V1_MESSAGES")
+  );
 }
 
 export function normalizeMessageMemoryOptions(

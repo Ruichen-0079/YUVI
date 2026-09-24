@@ -8,6 +8,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import type { AppContext } from "../context.js";
 import { redactValue } from "../services/dashboard.js";
+import { toConversationalAdmissionFailure } from "../conversational-receipt-admission.js";
 
 export const ACTIVE_TRACE_MAX_ENTRIES = 256;
 export const ACTIVE_TRACE_RETENTION_MS = 15 * 60 * 1000;
@@ -130,6 +131,7 @@ export async function registerWebSocketRoutes(
           JSON.parse(rawMessage.toString())
         ) as RuntimeEvent;
         envelope = parsedEnvelope;
+        const traceAlreadyActive = activeTraceIds.has(parsedEnvelope.traceId);
         if (!activeTraceIds.add(parsedEnvelope.traceId)) {
           sendJson(
             socket,
@@ -169,6 +171,45 @@ export async function registerWebSocketRoutes(
           { traceId: parsed.traceId, sessionId: parsed.payload.sessionId },
           "websocket user.message received"
         );
+        try {
+          const receipt = await context.conversationalReceiptAdmission.admit({
+            surface: "WEBSOCKET",
+            sessionId: parsed.payload.sessionId,
+            runtimeEventId: parsed.id,
+            content: parsed.payload.content
+          });
+          app.log.info(
+            {
+              journalEventId: receipt.envelope.eventId,
+              traceId: parsed.traceId,
+              sessionId: parsed.payload.sessionId
+            },
+            "websocket conversation receipt committed"
+          );
+        } catch (error) {
+          if (!traceAlreadyActive) {
+            activeTraceIds.delete(parsed.traceId);
+          }
+          const failure = toConversationalAdmissionFailure(error);
+          app.log.error(
+            { traceId: parsed.traceId, sessionId: parsed.payload.sessionId, code: failure.code },
+            "websocket conversation receipt admission failed"
+          );
+          sendJson(
+            socket,
+            redactRuntimeEvent(
+              createEvent(
+                "runtime.error",
+                {
+                  code: failure.code,
+                  message: "Message was not admitted for processing."
+                },
+                { traceId: parsed.traceId, parentId: parsed.id }
+              )
+            )
+          );
+          return;
+        }
         await context.runtime.handleUserMessage(parsed);
       } catch (error) {
         if (envelope) {

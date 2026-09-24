@@ -19,6 +19,7 @@ describe.each(["/v1/messages", "/v1/messages/stream"])("speech handoff %s", (url
       ]
     });
     const commitSpeechTurn = vi.fn(() => voice);
+    const admitConversationalReceipt = vi.fn();
     const received: unknown[] = [];
     const context = {
       runtime: {
@@ -39,7 +40,8 @@ describe.each(["/v1/messages", "/v1/messages/stream"])("speech handoff %s", (url
             provider: "test"
           };
         }
-      }
+      },
+      conversationalReceiptAdmission: { admit: admitConversationalReceipt }
     } as unknown as AppContext;
     const app = Fastify({ logger: false });
     await registerMessageRoutes(app, context);
@@ -57,6 +59,7 @@ describe.each(["/v1/messages", "/v1/messages/stream"])("speech handoff %s", (url
       });
       expect(response.statusCode).toBe(200);
       expect(commitSpeechTurn).toHaveBeenCalledWith("observation", "s", "hello");
+      expect(admitConversationalReceipt).not.toHaveBeenCalled();
       expect(received).toEqual([voice]);
       if (url.endsWith("stream")) expect(response.body).toContain('"language":"ja"');
       commitSpeechTurn.mockImplementation(() => {

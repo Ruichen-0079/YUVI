@@ -104,6 +104,61 @@ describe.skipIf(!databaseUrl)("PostgreSQL Journal store integration", () => {
     }
   });
 
+  it("accepts per-request host authority separately and retains repository-owned commit fields", async () => {
+    const hostOnly = new PostgresJournalRepository(pool!, {
+      namespace: "host-authority-api",
+      authorityBuilder() {
+        throw new Error("Host-authority appends must not depend on the static builder.");
+      }
+    });
+    const result = await hostOnly.appendWithHostAuthority(
+      { command: receiptCommand() },
+      {
+        principal: { state: "UNRESOLVED", reason: "test transport has no principal" },
+        subjects: [],
+        binding: { state: "UNRESOLVED", reason: "test has no Person binding" },
+        surface: { kind: "LOCAL", reference: "test:host-authority" },
+        correlations: [],
+        audience: { kind: "UNKNOWN", reason: "test has no audience snapshot" },
+        disclosurePolicy: { state: "UNRESOLVED", reason: "test has no policy snapshot" },
+        policyVersion: "host-policy.v1",
+        producer: { name: "trusted-test-host", version: "1" },
+        sourceReferences: [{ kind: "UNRESOLVED_SOURCE", reason: "no stable upstream ID" }],
+        payloads: []
+      }
+    );
+    expect(result.envelope).toMatchObject({
+      journalNamespace: "host-authority-api",
+      commitSeq: 1,
+      authority: {
+        principal: { state: "UNRESOLVED" },
+        audience: { kind: "UNKNOWN" },
+        producer: { name: "trusted-test-host" }
+      }
+    });
+    expect(result.envelope.eventId).toMatch(/^jev1_[A-Za-z0-9_-]{16,}$/);
+
+    await expectStoreCode(
+      hostOnly.appendWithHostAuthority(
+        { command: { ...receiptCommand(), principal: { state: "RESOLVED" } } },
+        {
+          principal: { state: "UNRESOLVED", reason: "test transport has no principal" },
+          subjects: [],
+          binding: { state: "UNRESOLVED", reason: "test has no Person binding" },
+          surface: { kind: "LOCAL", reference: "test:host-authority" },
+          correlations: [],
+          audience: { kind: "UNKNOWN", reason: "test has no audience snapshot" },
+          disclosurePolicy: { state: "UNRESOLVED", reason: "test has no policy snapshot" },
+          policyVersion: "host-policy.v1",
+          producer: { name: "trusted-test-host", version: "1" },
+          sourceReferences: [{ kind: "UNRESOLVED_SOURCE", reason: "no stable upstream ID" }],
+          payloads: []
+        }
+      ),
+      "INVALID_PROPOSAL"
+    );
+  });
+
   it("validates all seven event kinds and persists only the validated committed envelopes", async () => {
     const namespace = "all-kinds-contract";
     const source = await repo(namespace).append({ command: receiptCommand() });

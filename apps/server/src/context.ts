@@ -1,11 +1,11 @@
 import { productEnvironment, readProductSettings } from "./services/product-store.js";
 import { join } from "node:path";
 import { createPostgresPool } from "@companion/database";
+import { PostgresJournalRepository, JournalStoreError } from "@companion/journal";
 import {
-  PostgresJournalRepository,
-  JournalStoreError,
-  type JournalRepository
-} from "@companion/journal";
+  HostConversationalReceiptAdmission,
+  type ConversationalReceiptAdmission
+} from "./conversational-receipt-admission.js";
 import { getRuntimeEnvDir } from "@companion/config";
 import { createFileP8CorrectionStore, createFileVoiceBindingReferences } from "@companion/core";
 import { captureKdeScreen, screenCaptureAvailable } from "./screen-capture.js";
@@ -77,7 +77,7 @@ export type AppContext = {
   memoryRepository: MemoryRepository;
   conversationRepository: ConversationRepository;
   finalizedIngestionRepository: FinalizedIngestionRepository;
-  journalRepository: JournalRepository | null;
+  conversationalReceiptAdmission: ConversationalReceiptAdmission;
   closeDatabasePool(): Promise<void>;
   finalizedIngestion: FinalizedIngestionService;
   memoryIngestionCoordinator: MemoryIngestionCoordinator;
@@ -156,16 +156,17 @@ export async function createAppContext(
   const journalRepository = databasePool
     ? new PostgresJournalRepository(databasePool, {
         namespace: process.env["YUVI_JOURNAL_NAMESPACE"] ?? "yuvi:default",
-        // Production ingress adapters are intentionally added in A8.2b-f. Until then,
-        // the storage authority refuses to invent principal/source/audience evidence.
+        // Per-request conversational authority is supplied only through the host-owned
+        // A8.2b admission facade; generic producer appends remain fail-closed.
         authorityBuilder() {
           throw new JournalStoreError(
             "INVALID_PROPOSAL",
-            "Journal admission authority is not wired until the production ingress leaves."
+            "Journal writes require a host-owned admission boundary."
           );
         }
       })
     : null;
+  const conversationalReceiptAdmission = new HostConversationalReceiptAdmission(journalRepository);
   const memoryRepository = createMemoryRepositoryFromEnv(process.env, databasePool);
   let conversationRepository: ConversationRepository | undefined;
   let finalizedIngestionRepository: FinalizedIngestionRepository | undefined;
@@ -423,7 +424,7 @@ export async function createAppContext(
     memoryRepository,
     conversationRepository: conversationRepository!,
     finalizedIngestionRepository: finalizedIngestionRepository!,
-    journalRepository,
+    conversationalReceiptAdmission,
     async closeDatabasePool() {
       await databasePool?.end();
     },

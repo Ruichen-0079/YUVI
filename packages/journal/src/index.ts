@@ -45,6 +45,12 @@ export type JournalAppendInput = {
   sourceDedup?: JournalSourceDedupInput;
 };
 
+/** Producer command and retained payload only; host authority is a separate argument. */
+export type JournalHostAppendInput = {
+  command: unknown;
+  retainedText?: readonly JournalRetainedTextPayload[];
+};
+
 export type JournalAppendResult = {
   status: "APPENDED" | "DEDUPLICATED";
   envelope: DeepReadonly<JournalCommittedEnvelope>;
@@ -77,6 +83,10 @@ export class JournalStoreError extends Error {
 export interface JournalRepository {
   readonly namespace: string;
   append(input: JournalAppendInput): Promise<JournalAppendResult>;
+  appendWithHostAuthority(
+    input: JournalHostAppendInput,
+    authority: JournalAuthorityDraft
+  ): Promise<JournalAppendResult>;
   get(ref: JournalEventRef): Promise<DeepReadonly<JournalCommittedEnvelope> | null>;
   resolveRetainedText(ref: JournalPayloadDescriptor["ref"]): Promise<{
     descriptor: DeepReadonly<JournalPayloadDescriptor>;
@@ -114,6 +124,39 @@ export class PostgresJournalRepository implements JournalRepository {
   }
 
   async append(input: JournalAppendInput): Promise<JournalAppendResult> {
+    return this.appendInternal(input);
+  }
+
+  /**
+   * Host admission owners may supply per-request authority separately from the
+   * producer command. The repository still assigns commit-owned envelope fields.
+   * Transport/model input must never call this method directly.
+   */
+  async appendWithHostAuthority(
+    input: JournalHostAppendInput,
+    authority: JournalAuthorityDraft
+  ): Promise<JournalAppendResult> {
+    rejectAppendAuthorityOverrides(input);
+    const keys = Object.keys(input as object);
+    if (keys.some((key) => key !== "command" && key !== "retainedText")) {
+      throw new JournalStoreError(
+        "INVALID_PROPOSAL",
+        "Host-authorized Journal append accepts only a command and retained payload content."
+      );
+    }
+    if (Object.hasOwn(authority, "journalNamespace")) {
+      throw new JournalStoreError(
+        "INVALID_PROPOSAL",
+        "Journal namespace is assigned by the repository, not the host authority draft."
+      );
+    }
+    return this.appendInternal(input, authority);
+  }
+
+  private async appendInternal(
+    input: JournalAppendInput,
+    hostAuthorityDraft?: JournalAuthorityDraft
+  ): Promise<JournalAppendResult> {
     rejectAppendAuthorityOverrides(input);
     let client: PgClient;
     try {
@@ -147,7 +190,8 @@ export class PostgresJournalRepository implements JournalRepository {
 
       const command = parseCommand(input.command);
       const proposedPayloads = input.payloads ?? [];
-      const authorityDraft = this.authorityBuilder({ command, payloads: proposedPayloads });
+      const authorityDraft =
+        hostAuthorityDraft ?? this.authorityBuilder({ command, payloads: proposedPayloads });
       let authority: JournalAuthoritySnapshot;
       try {
         authority = JournalAuthoritySnapshotSchema.parse({
