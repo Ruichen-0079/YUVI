@@ -1,0 +1,15 @@
+# Causal continuity of lived history
+
+Status: **PRODUCTION ARCHITECTURE DECISION** for boundaries; **RESEARCH HYPOTHESIS** for experience-driven durable change; **LONG-TERM EVALUATION GOAL** for experiential qualities. These are decisions and questions, not claims that the mechanisms are implemented. [Current implementation](implementation-baseline.md) is the separate source of status.
+
+YUVI's core research problem is: **How can lived experience produce durable, attributable and correctable changes in an AI system's future attention and choices, without allowing transient language or the system's own outputs to rewrite those dispositions, while remaining portable across replaceable foundation models?** Success requires interventions on recorded experience to explain subsequent behavior, reliable correction to remove the corresponding influence, and continuity that survives model replacement within declared limits. Fluent autobiography, stable role-play, a convincing relationship narrative, and user ratings alone do not establish this result.
+
+“Lived” is an operational term: inputs received, actions authorized, actions attempted, outcomes observed, choices made, and subsequent accountable derivations. It does not assert consciousness. 岁月感 and 第一人称生活实感 remain experiential evaluation goals; neither grants a component write authority or requires a persistent self representation. Artificial Person is not a subsystem. There is no mandatory latent self, generic Life Layer, or mandatory collection of psychological organs.
+
+The smallest sufficient architecture is the preferred outcome. A durable journal, explicit obligations, evidence-linked projections, ordinary retrieval and a replaceable model may solve the target behavior. If they do, that is a successful result and the latent-state path is deleted. A learned selector must earn its place against explicit competitors; post-training is not an inevitable final phase.
+
+The causal test is stronger than recollection. Holding task, charter and model fixed, changing eligible historical evidence should change relevant attention or choice; changing unrelated evidence should not. Removing or correcting an attributed source should remove the dependent influence without resetting unrelated history. Predictable effects of an existing prompt or policy do not count as newly learned dispositions. Repeating YUVI's own generated story cannot count as new experience in support of that story.
+
+Architecture follows [single-writer authority](authority.md), the [journal](life-event-journal.md), [provenance](identity-and-provenance.md), [lineage](memory-and-lineage.md), [prospective continuity](prospective-continuity.md), [measured consolidation](measured-consolidation.md), and [selection experiments](selection-research.md). [Research methodology](research-methodology.md) defines failure, rather than allowing every convincing conversation to confirm the theory.
+
+v0.1.3 builds the [Durable Causal History Foundation](09-v0.1.3-platform-completion.md). It does not demonstrate durable disposition learning. The [later roadmap](post-v0.1.3-roadmap.md) advances only through measured gates.

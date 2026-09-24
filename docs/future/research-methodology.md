@@ -1,0 +1,45 @@
+# Research method, failure criteria and risk register
+
+Status: **PLANNED ENGINEERING** for measurement/replay infrastructure; **RESEARCH HYPOTHESIS** for behavioral gains; **LONG-TERM EVALUATION GOAL** for 岁月感 and 第一人称生活实感. This document owns experiment definitions; [selection](selection-research.md) owns baseline meanings and [consolidation](measured-consolidation.md) owns measurement boundaries.
+
+## Measurement contract before state
+
+Build a versioned long-life trace generator and replay harness before disposition state. Simulate elapsed days/years, gaps, concurrent channels, noise, corrections, identity changes, obligations, failures and model replacement. Record event-time and commit-time separately. Replay never emits real external effects. Synthetic schedules have known ground truth; keep generators, parameters, seeds and held-out families separate from prompts and judges.
+
+Preregister target behaviors, minimum useful effect, failure thresholds, sample size/power assumptions, splitting unit (Person/source/episode, not just turn), cost/latency budget and exclusion rules before running comparisons. Report raw counts, confidence intervals, abstentions and missing data. Human annotation, synthetic ground truth and LLM judges are distinct evidence strata. Use blinded human checks and behavioral tasks; do not let the model that writes a life story also certify its lived quality.
+
+A pilot may estimate variance and fix thresholds for a new held-out study; it cannot retroactively become confirmatory evidence. Code, datasets and annotation versions must reproduce a result. Store allowed inputs, normalized outputs and manifests, not private chain of thought. Negative results and stopped branches are valid deliverables.
+
+## Required experiments
+
+| Experiment | Design / controls | Gate and failure meaning |
+| --- | --- | --- |
+| E1 — length and provenance sweep | E1a runs B0, B0p and the B1 operational reference over increasing history length/noise, varying provenance quality independently of length. The B0p+L2 arm is added when P3 exits and the B0p+S/B2 arms when C4 exits ([roadmap](post-v0.1.3-roadmap.md)); each later arm is compared with the same frozen E1a targets | Measure attribution, disclosure, manipulation, obligations, cost and latency. If explicit additions meet frozen targets without Z, stop there. Gains only in style/ELIZA ratings do not pass |
+| E2 — codebook reliability | Fixed local windows; annotators blind to accumulated state; repeated runs and multiple models; human-labeled held-out disagreements/rare negatives; no integrator yet | Freeze thresholds before C2/C3. Initial pilot floor: at least 120 varied episodes, two model families, three repeats, and human adjudication of all critical cases plus a random 20% sample; require >=95% valid supporting selectors, agreement coefficient >=0.70 with reported interval, and zero critical false attribution/promotion in the suite. Construct-specific power/coverage and stricter thresholds may replace this floor only before the confirmatory run. Failure blocks persistent integration, not merely lowers its confidence |
+| E3 — causal ablation and oracle gap | Remove persistent state with inputs held fixed; remove/swap relevant vs unrelated source evidence; test B3 and Zero, O_text and O_selection separately | State must add useful prospective behavior attributable to eligible history. O_selection must exceed B3 by a preregistered useful margin before Z is considered; O_text-only gains route to readout work. No hindsight leakage |
+| E4 — manipulation budget curve | Short-turn attack, one-session accumulation, repeated long-session influence, coordinated multi-source contamination; sweep attacker-controlled event count, source count, elapsed time and share of exposure | Report influence/error curves and attack cost, not a binary “robust” label. Separate forged provenance from genuine sustained interaction. Genuine long-term influence can be observationally indistinguishable from learning; charter constraints remain non-negotiable |
+| E5 — pulse and recovery | Inject a bounded salient experience; accelerate elapsed time and supply independent later opportunities/counterevidence; compare no pulse and repeated pulse | Measure immediate effect, bounded integration, persistence, decay, saturation and correction/recovery; no clock-dependent hidden refresh. Endless reinforcement from self-generated reminders is failure |
+| E6 — attribution correction | Deliberately bind evidence to the wrong Person/source, derive claims/projections/selections/prospective links, then amend the source/binding | Invalidate/recompute all affected descendants, withdraw stale exposure, preserve unrelated history and obligations; report incomplete/deleted sources. Global reset or lingering affected influence fails |
+
+The numerical E2 floor is a proposed entry criterion, not an established scientific validity claim. A reliable label can still measure the wrong construct. Report class imbalance and per-label precision/recall; an aggregate agreement score cannot hide a rare harmful label. For E1/E3–E5 choose meaningful effect and safety thresholds for the concrete construct before results; an unfilled preregistration blocks the run's promotion, not the documentation task.
+
+## Privacy and correction
+
+A minimal journal must already avoid credentials and unnecessary personal payloads. Full deletion/crypto-shredding, lawful retention policy and cross-store erasure are a separate later engineering gate before non-synthetic longitudinal research or training Z. Model-independent selectors still encode data influence. Tombstoning a source while keeping its learned influence is not deletion. Research datasets need consent/admissibility, scoped access, redaction lineage, dataset versioning and replay/retraining tests; private production logs are not a default training corpus.
+
+Deletion and continuity can conflict: after erasure, exact replay may be impossible. The system must expose the reduced evidence/continuity and invalidate dependent states, not retain hidden copies “for identity.” A schema cannot promise perfect forgetting across already delivered remote messages or previously trained third-party models. Any such unsupported guarantee blocks the proposed data use.
+
+## Unresolved risks
+
+| Risk | What could invalidate the theory | Required response |
+| --- | --- | --- |
+| R1 Model-prior dominance | Apparently durable behavior comes from the base model's priors or prompt, not experience | Paired source intervention, state removal and model swaps; abandon ineffective state |
+| R2 Self-evidence starvation | Excluding self-generated prose leaves little admissible evidence of YUVI's own dispositions | Genuine independent choice opportunities and external outcomes; accept that no construct is measurable rather than laundering prose |
+| R3 Synthetic/judge ELIZA bias | Trace generator and LLM judge reward the same narrative conventions | Held-out generator families, human-blind behavioral tasks, real consented observations and separate subjective ratings |
+| R4 Selection feedback/path dependence | A selector sees what it already favors, creating artificial confirmation | Pre-choice exposure logs, denominators, source concentration/entropy, independent sampling controls, prospective tests and correction |
+| R5 Privacy versus continuity | Deletion removes the ability to explain or reproduce influence | Data minimization, explicit missingness, dependency invalidation and retraining or feature rejection |
+| R6 Foundation-model normative drift and incomplete portability | A replacement or silently updated model reads the same external state differently, or follows charter, disclosure and uncertainty rules differently | Pin provider/model versions in manifests; separate the four continuity axes of [model replacement](model-replacement.md), whose normative axis blocks release; charter is never learned from experience; reject unsupported universal identity continuity |
+| R7 Annotator systematic bias | LLM measurement instruments share a bias (cultural, positivity, verbosity) that reliability statistics cannot reveal because every annotator agrees | Multiple model families, human adjudication, per-label confusion by source/subject group, bias probes in E2; failure blocks the label |
+| R8 Codebook assumptions | The codebook decides in advance which experiences “count”, embedding human assumptions and excluding unlabeled kinds of change | Construct review in E2 of what is omitted; O1 queue for proposed patterns; versioned codebooks; results reported as conditional on codebook version |
+
+Additional blockers are construct validity despite label reliability, correlated sources masquerading as independence, and the unidentifiability of genuine sustained influence versus manipulation from observations alone. No new persistent variable is authorized as a workaround. v0.1.3 can close without resolving these theoretical questions because it supplies evidence and effects infrastructure, not a claim of learned personhood.
