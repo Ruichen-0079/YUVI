@@ -266,6 +266,15 @@ describe.skipIf(!databaseUrl)("A8.2e1 Product controls with real PostgreSQL Jour
       payload: { configuration: config, revision: "0", apiKey: "MUST_NOT_BE_ACCEPTED" }
     });
     expect(malformed.statusCode).toBe(400);
+    const admitSpy = vi.spyOn(run.context.productControlReceiptAdmission, "admit");
+    const malformedFalsyProactive = await run.app.inject({
+      method: "PUT",
+      url: "/product/configuration",
+      payload: { configuration: config, revision: 0, proactive: false }
+    });
+    expect(malformedFalsyProactive.statusCode).toBe(400);
+    expect(admitSpy).not.toHaveBeenCalled();
+    expect(await events(namespace)).toHaveLength(0);
     const stale = await run.app.inject({
       method: "PUT",
       url: "/product/configuration",

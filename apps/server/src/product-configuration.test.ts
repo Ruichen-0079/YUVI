@@ -29,7 +29,7 @@ async function setup(existing?: string) {
   const close = async () => { context.runtime.stopProactiveScheduler(); await context.runtime.sealAndDrainMemoryWrites(); context.embodiedPresentationBridge.close(); await context.memoryIngestionCoordinator.shutdown({ graceMs: 100 }); await context.conversationRepository.close?.(); await context.finalizedIngestionRepository.close?.(); await context.memoryRepository.close?.(); await app.close(); };
   cleanups.push(close);
   const get = async () => (await app.inject({ method: "GET", url: "/product/configuration" })).json();
-  const save = async (configuration: ProductConfiguration, proactive?: unknown) => app.inject({ method: "PUT", url: "/product/configuration", payload: { configuration, revision: (await get()).revision, ...(proactive ? { proactive } : {}) } });
+  const save = async (configuration: ProductConfiguration, proactive?: unknown) => app.inject({ method: "PUT", url: "/product/configuration", payload: { configuration, revision: (await get()).revision, ...(proactive !== undefined ? { proactive } : {}) } });
   return { app, context, dir, get, save };
 }
 function catalog(): ProductConfiguration {
@@ -54,6 +54,7 @@ it("first run, discovery/manual ID, Chat admission, independent routes, fallback
   const chat = await app.inject({ method: "POST", url: "/message", payload: { content: "Hello", sessionId: "onboarding", options: { readMemory: false, writeMemory: false } } }); expect(chat.statusCode).toBe(200);
   c.routes.chat.reverse(); c.routes.reasoning = ["model-a"]; c.routes.proactive = ["model-a"]; c.routes.vision = ["model-a"];
   expect((await save(c, { threshold: .25, intervalMs: 15000 })).statusCode).toBe(200);
+  expect((await get()).proactive).toEqual({ threshold: .25, intervalMs: 15000 });
   expect((await get()).routes.chat.modelIds).toEqual(["model-b", "model-a"]);
   expect(context.activeRuntimeEnv["PROACTIVE_SCORE_THRESHOLD"]).toBe("0.25"); expect(context.activeRuntimeEnv["PROACTIVE_EVALUATION_INTERVAL_MS"]).toBe("15000");
   for (const cap of ["reasoning", "proactive", "vision"] as const) { expect((await get()).routes[cap].state).toBe("ACTIVE"); c.routes[cap] = []; }
@@ -81,6 +82,34 @@ it("secrets never returned, stale writes rejected, failures and embedding restar
   expect((await save(c)).json().applyState).toBe("ACTIVE");
   c.models.push({ id: "embed", providerId: "endpoint", displayName: "Embed", modelId: "embed", enabled: true, temperature: 0, contextWindow: null, capabilities: ["embedding"], dimensions: 1024 }); c.routes.embedding = ["embed"];
   const calls = reload.mock.calls.length; expect((await save(c)).json().applyState).toBe("RESTART_REQUIRED"); expect(reload.mock.calls.length).toBe(calls); expect((await get()).routes.embedding.modelIds).toEqual([]);
+});
+
+it("rejects malformed proactive settings before Journal admission or Product mutation", async () => {
+  const { context, save } = await setup();
+  const initial = await save(emptyProductConfiguration(), { threshold: .7, intervalMs: 60000 });
+  expect(initial.statusCode).toBe(200);
+  const before = structuredClone(readProductSettings(process.env));
+  expect(before).not.toBeNull();
+  const admission = vi.spyOn(context.productControlReceiptAdmission, "admit");
+  const malformed: unknown[] = [
+    false,
+    null,
+    0,
+    "",
+    {},
+    { threshold: 0.5 },
+    { intervalMs: 15000 },
+    { threshold: -1, intervalMs: 15000 },
+    { threshold: 0.5, intervalMs: 999 },
+    { threshold: 0.5, intervalMs: 15000, extra: true }
+  ];
+
+  for (const proactive of malformed) {
+    const response = await save(emptyProductConfiguration(), proactive);
+    expect(response.statusCode, JSON.stringify(proactive)).toBe(400);
+    expect(admission, JSON.stringify(proactive)).not.toHaveBeenCalled();
+    expect(readProductSettings(process.env)).toEqual(before);
+  }
 });
 function memoryOnDisk(context: AppContext, dir: string) {
   const file = join(dir, "test-memory-events.json");

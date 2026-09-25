@@ -10,10 +10,15 @@ import { requireLocalDashboardAccess } from "./security.js";
 import { importLegacyConfiguration, embeddingSignature, productEnvironment, productPath, readProductSettings, writePrivateJson, type ProductSettings } from "../services/product-store.js";
 import { toProductControlAdmissionFailure } from "../product-control-receipt-admission.js";
 
+const ProactiveSettingsSchema = z.object({
+  threshold: z.number().min(0).max(1),
+  intervalMs: z.number().int().min(1000).max(86_400_000)
+}).strict();
+
 const ProductConfigurationRequestSchema = z.object({
   configuration: z.record(z.unknown()),
   revision: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  proactive: z.unknown().optional()
+  proactive: ProactiveSettingsSchema.optional()
 }).strict();
 
 export async function registerProductRoutes(app: FastifyInstance, context: AppContext, config: ServerConfig) {
@@ -79,7 +84,7 @@ export async function registerProductRoutes(app: FastifyInstance, context: AppCo
         // Omitted secret retains it; explicit empty string clears it.
         for (const p of input.providers) if (p.apiKey === undefined) { const key = saved.configuration.providers.find(old => old.id === p.id)?.apiKey; if (key !== undefined) p.apiKey = key; }
         candidate.configuration = parseProductConfiguration(input);
-        if (body.proactive) candidate.proactive = z.object({ threshold: z.number().min(0).max(1), intervalMs: z.number().int().min(1000).max(86_400_000) }).strict().parse(body.proactive);
+        if (body.proactive !== undefined) candidate.proactive = body.proactive;
         createProviderRegistryFromEnv(productEnvironment(context.activeRuntimeEnv, candidate));
       } catch { return reply.code(400).send({ error: "Invalid configuration or incompatible route assignment." }); }
       if (!await admitControl({ operation: "CONFIGURATION_SAVE", expectedRevision: saved.revision }, reply)) return;
