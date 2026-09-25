@@ -1,6 +1,6 @@
 import { hasPackagedVoice, applyPackagedSpeechRoute } from "../services/packaged-voice.js";
 import { persistProfileEvidence } from "../services/profile-evidence.js";
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply } from "fastify";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { CAPABILITY_ROUTES, parseProductConfiguration, modelEndpoint, createProviderRegistryFromEnv } from "@companion/providers";
@@ -8,6 +8,13 @@ import type { AppContext } from "../context.js";
 import type { ServerConfig } from "../config.js";
 import { requireLocalDashboardAccess } from "./security.js";
 import { importLegacyConfiguration, embeddingSignature, productEnvironment, productPath, readProductSettings, writePrivateJson, type ProductSettings } from "../services/product-store.js";
+import { toProductControlAdmissionFailure } from "../product-control-receipt-admission.js";
+
+const ProductConfigurationRequestSchema = z.object({
+  configuration: z.record(z.unknown()),
+  revision: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  proactive: z.unknown().optional()
+}).strict();
 
 export async function registerProductRoutes(app: FastifyInstance, context: AppContext, config: ServerConfig) {
   let queue = Promise.resolve();
@@ -47,22 +54,36 @@ export async function registerProductRoutes(app: FastifyInstance, context: AppCo
     } catch { applyFailure = true; }
     return snapshot();
   }
+  async function admitControl(input: Parameters<AppContext["productControlReceiptAdmission"]["admit"]>[0], reply: FastifyReply) {
+    try {
+      await context.productControlReceiptAdmission.admit(input);
+      return true;
+    } catch (error) {
+      const failure = toProductControlAdmissionFailure(error);
+      reply.code(failure.statusCode).send({ error: failure.code, message: failure.message });
+      return false;
+    }
+  }
   app.get("/product/configuration", async (req, reply) => { if (!requireLocalDashboardAccess(config, req, reply)) return; return snapshot(); });
   app.put("/product/configuration", async (req, reply) => {
     if (!requireLocalDashboardAccess(config, req, reply)) return;
     return locked(async () => {
+      const parsedBody = ProductConfigurationRequestSchema.safeParse(req.body);
+      if (!parsedBody.success) return reply.code(400).send({ error: "Invalid configuration request." });
       const saved = desired();
-      const body = req.body as { configuration?: unknown; revision?: number; proactive?: unknown };
+      const body = parsedBody.data;
       if (body.revision !== saved.revision) return reply.code(409).send({ error: "Settings changed. Reload before saving." });
+      const candidate = structuredClone(saved);
       try {
         const input = structuredClone(body.configuration) as ProductSettings["configuration"];
         // Omitted secret retains it; explicit empty string clears it.
         for (const p of input.providers) if (p.apiKey === undefined) { const key = saved.configuration.providers.find(old => old.id === p.id)?.apiKey; if (key !== undefined) p.apiKey = key; }
-        saved.configuration = parseProductConfiguration(input);
-        if (body.proactive) saved.proactive = z.object({ threshold: z.number().min(0).max(1), intervalMs: z.number().int().min(1000).max(86_400_000) }).strict().parse(body.proactive);
-        createProviderRegistryFromEnv(productEnvironment(context.activeRuntimeEnv, saved));
+        candidate.configuration = parseProductConfiguration(input);
+        if (body.proactive) candidate.proactive = z.object({ threshold: z.number().min(0).max(1), intervalMs: z.number().int().min(1000).max(86_400_000) }).strict().parse(body.proactive);
+        createProviderRegistryFromEnv(productEnvironment(context.activeRuntimeEnv, candidate));
       } catch { return reply.code(400).send({ error: "Invalid configuration or incompatible route assignment." }); }
-      return persistApply(saved);
+      if (!await admitControl({ operation: "CONFIGURATION_SAVE", expectedRevision: saved.revision }, reply)) return;
+      return persistApply(candidate);
     });
   });
   app.post("/product/providers/:id/test", async (req, reply) => {
@@ -91,6 +112,7 @@ export async function registerProductRoutes(app: FastifyInstance, context: AppCo
     if (!body.success) return reply.code(400).send({ error: "Enter a name." });
     return locked(async () => {
       const saved = desired();
+      const candidate = structuredClone(saved);
       const old = saved.people.find(p => p.id === body.data.id);
       if (body.data.id && !old) return reply.code(404).send({ error: "Person not found." });
       const primary = saved.people.find(p => p.id === saved.primaryPersonId);
@@ -110,9 +132,11 @@ export async function registerProductRoutes(app: FastifyInstance, context: AppCo
         personaId,
         notes: body.data.notes
       };
-      saved.people = [...saved.people.filter(p => p.id !== person.id), person];
-      if (body.data.primary) saved.primaryPersonId = person.id;
-      const result = await persistApply(saved);
+      const operation = old ? "PERSON_UPDATE" : "PERSON_CREATE";
+      if (!await admitControl({ operation, personId: person.id, requestedPrimary: body.data.primary }, reply)) return;
+      candidate.people = [...candidate.people.filter(p => p.id !== person.id), person];
+      if (body.data.primary) candidate.primaryPersonId = person.id;
+      const result = await persistApply(candidate);
       const memoryState = await persistProfileEvidence(context, person);
       return {
         ...result,
@@ -125,5 +149,10 @@ export async function registerProductRoutes(app: FastifyInstance, context: AppCo
       };
     });
   });
-  app.post("/product/proactive/resume", async (req, reply) => { if (!requireLocalDashboardAccess(config, req, reply)) return; context.runtime.resumeProactiveNow(); return snapshot(); });
+  app.post("/product/proactive/resume", async (req, reply) => {
+    if (!requireLocalDashboardAccess(config, req, reply)) return;
+    if (!await admitControl({ operation: "PROACTIVE_RESUME" }, reply)) return;
+    context.runtime.resumeProactiveNow();
+    return snapshot();
+  });
 }

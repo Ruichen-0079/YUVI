@@ -14,6 +14,10 @@ import {
   HostVisionReceiptAdmission,
   type VisionReceiptAdmission
 } from "./vision-receipt-admission.js";
+import {
+  HostProductControlReceiptAdmission,
+  type ProductControlReceiptAdmission
+} from "./product-control-receipt-admission.js";
 import { getRuntimeEnvDir } from "@companion/config";
 import { createFileP8CorrectionStore, createFileVoiceBindingReferences } from "@companion/core";
 import { captureKdeScreen, screenCaptureAvailable } from "./screen-capture.js";
@@ -88,6 +92,7 @@ export type AppContext = {
   conversationalReceiptAdmission: ConversationalReceiptAdmission;
   speechReceiptAdmission: SpeechReceiptAdmission;
   visionReceiptAdmission: VisionReceiptAdmission;
+  productControlReceiptAdmission: ProductControlReceiptAdmission;
   closeDatabasePool(): Promise<void>;
   finalizedIngestion: FinalizedIngestionService;
   memoryIngestionCoordinator: MemoryIngestionCoordinator;
@@ -179,6 +184,7 @@ export async function createAppContext(
   const conversationalReceiptAdmission = new HostConversationalReceiptAdmission(journalRepository);
   const speechReceiptAdmission = new HostSpeechReceiptAdmission(journalRepository);
   const visionReceiptAdmission = new HostVisionReceiptAdmission(journalRepository);
+  const productControlReceiptAdmission = new HostProductControlReceiptAdmission(journalRepository);
   const memoryRepository = createMemoryRepositoryFromEnv(process.env, databasePool);
   let conversationRepository: ConversationRepository | undefined;
   let finalizedIngestionRepository: FinalizedIngestionRepository | undefined;
@@ -439,6 +445,7 @@ export async function createAppContext(
     conversationalReceiptAdmission,
     speechReceiptAdmission,
     visionReceiptAdmission,
+    productControlReceiptAdmission,
     async closeDatabasePool() {
       await databasePool?.end();
     },
