@@ -7,6 +7,8 @@ import { createAppContext } from "./context.js";
 import { buildServer } from "./server.js";
 import { loadServerConfig } from "./config.js";
 import { createTestSpeechReceiptAdmission } from "./test-support/speech-receipt.js";
+import { createTestVoiceControlReceiptAdmission } from "./test-support/voice-control-receipt.js";
+import { importLegacyConfiguration, productPath, writePrivateJson } from "./services/product-store.js";
 
 const originalEnv = { ...process.env };
 const createdDirs: string[] = [];
@@ -61,6 +63,7 @@ function buildServerWithAdmission(env: NodeJS.ProcessEnv) {
       }
     },
     speechReceiptAdmission: createTestSpeechReceiptAdmission(),
+    voiceControlReceiptAdmission: createTestVoiceControlReceiptAdmission(),
     runtimeControlReceiptAdmission: {
       async admit() {
         // Runtime/P8 and one-shot grant behavior is tested here; durable
@@ -508,7 +511,7 @@ it("binds a voice through the controller, restores it, and isolates resolved, mi
     vi.fn(async (input: unknown, init?: RequestInit) => {
       const url = new URL(String(input));
       const body = init?.body ? JSON.parse(String(init.body)) : {};
-      if (url.hostname === "stt.example") {
+      if (url.hostname === "127.0.0.1" && url.port === "9876") {
         if (url.pathname === "/speakers")
           return Response.json({ speakers: [{ speakerId: "profile-a", label: "Voice A" }] });
         if (url.pathname === "/transcribe")
@@ -572,10 +575,17 @@ it("binds a voice through the controller, restores it, and isolates resolved, mi
     MEMORY_SUBJECT_USER_ID: "default-must-not-inherit",
     STT_PROVIDER_CHAIN: "local",
     DEFAULT_STT_PROVIDER: "local",
-    LOCAL_STT_BASE_URL: "http://stt.example",
+    LOCAL_STT_BASE_URL: "http://127.0.0.1:9876",
     LOCAL_STT_MODEL: "sensevoice"
   };
   process.env = { ...env };
+  const settings = importLegacyConfiguration(env);
+  settings.people = [
+    { id: "person-a", displayName: "Person A", personaId: "persona-a", notes: "" },
+    { id: "person-b", displayName: "Person B", personaId: "persona-b", notes: "" }
+  ];
+  settings.primaryPersonId = "person-a";
+  writePrivateJson(productPath(), settings);
   let app = await buildServerWithAdmission(env);
   const bind = (personId: string) =>
     app.inject({ method: "POST", url: "/voice-profiles/profile-a/person", payload: { personId } });

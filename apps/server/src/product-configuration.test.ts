@@ -11,6 +11,7 @@ import { registerPeopleVoiceRoutes } from "./routes/people-voices.js";
 import { registerProviderRoutes } from "./routes/providers.js";
 import { registerMessageRoutes } from "./routes/message.js";
 import { createTestProductControlReceiptAdmission } from "./test-support/product-control-receipt.js";
+import { createTestVoiceControlReceiptAdmission } from "./test-support/voice-control-receipt.js";
 import { boundedWav, retainVoiceSample, retainSpeechReview, voiceReviews } from "./services/voice-review.js";
 import { readProductSettings, writePrivateJson } from "./services/product-store.js";
 import type { MemoryEvent } from "@companion/memory";
@@ -25,6 +26,7 @@ async function setup(existing?: string) {
   const config = loadServerConfig(process.env); const app = Fastify({ logger: false }); const context = await createAppContext(app.log, config);
   context.conversationalReceiptAdmission = { admit: async () => ({ status: "APPENDED", envelope: { eventId: "jev1_productconfigurationreceipt01" } as never }) };
   context.productControlReceiptAdmission = createTestProductControlReceiptAdmission();
+  context.voiceControlReceiptAdmission = createTestVoiceControlReceiptAdmission();
   await registerProductRoutes(app, context, config); await registerPeopleVoiceRoutes(app, context, config); await registerProviderRoutes(app, context, config); await registerMessageRoutes(app, context);
   const close = async () => { context.runtime.stopProactiveScheduler(); await context.runtime.sealAndDrainMemoryWrites(); context.embodiedPresentationBridge.close(); await context.memoryIngestionCoordinator.shutdown({ graceMs: 100 }); await context.conversationRepository.close?.(); await context.finalizedIngestionRepository.close?.(); await context.memoryRepository.close?.(); await app.close(); };
   cleanups.push(close);

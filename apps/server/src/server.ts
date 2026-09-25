@@ -35,6 +35,7 @@ import type { SpeechReceiptAdmission } from "./speech-receipt-admission.js";
 import type { VisionReceiptAdmission } from "./vision-receipt-admission.js";
 import type { RuntimeControlReceiptAdmission } from "./runtime-control-receipt-admission.js";
 import type { ProactiveConsentReceiptAdmission } from "./proactive-consent-receipt-admission.js";
+import type { VoiceControlReceiptAdmission } from "./voice-control-receipt-admission.js";
 
 export type BuildServerOptions = Readonly<{
   /** Composition-time source registration; discovery does not call source loaders. */
@@ -51,6 +52,8 @@ export type BuildServerOptions = Readonly<{
   runtimeControlReceiptAdmission?: RuntimeControlReceiptAdmission | undefined;
   /** Host-only dependency override for consent projection admission. */
   proactiveConsentReceiptAdmission?: ProactiveConsentReceiptAdmission | undefined;
+  /** Host-only dependency override for voice-control admission. */
+  voiceControlReceiptAdmission?: VoiceControlReceiptAdmission | undefined;
 }>;
 
 export async function buildServer(config: ServerConfig, options: BuildServerOptions = {}) {
@@ -135,6 +138,9 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   }
   if (options.proactiveConsentReceiptAdmission) {
     context.proactiveConsentReceiptAdmission = options.proactiveConsentReceiptAdmission;
+  }
+  if (options.voiceControlReceiptAdmission) {
+    context.voiceControlReceiptAdmission = options.voiceControlReceiptAdmission;
   }
   try {
     const recovered = await context.runtime.recoverStaleStreamingMessages({

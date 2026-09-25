@@ -7,6 +7,7 @@ import type { ServerConfig } from "../config.js";
 import { requireLocalDashboardAccess } from "./security.js";
 import { readProductSettings } from "../services/product-store.js";
 import { boundedWav, retainVoiceSample, updateVoiceReview, voiceReviews } from "../services/voice-review.js";
+import { toVoiceControlAdmissionFailure } from "../voice-control-receipt-admission.js";
 
 export async function registerPeopleVoiceRoutes(app: FastifyInstance, context: AppContext, config: ServerConfig) {
   app.get("/product/voices", async (req, reply) => {
@@ -79,7 +80,24 @@ export async function registerPeopleVoiceRoutes(app: FastifyInstance, context: A
   });
   app.delete("/product/voices/:id/binding", async (req, reply) => {
     if (!requireLocalDashboardAccess(config, req, reply)) return;
-    const result = await context.runtime.removeVoiceProfileBinding((req.params as { id: string }).id);
-    return reply.code(result.status === "STORED" ? 200 : 409).send(result);
+    const params = z.object({ id: z.string().min(1).max(160) }).safeParse(req.params);
+    if (!params.success) return reply.code(400).send({ error: "Invalid voice profile ID." });
+    if (!context.runtime.canManageVoiceProfileBindings())
+      return reply.code(503).send({ error: "Voice binding storage is unavailable." });
+    try {
+      await context.voiceControlReceiptAdmission.admit({
+        operation: "VOICE_PROFILE_BINDING_REMOVE",
+        voiceProfileId: params.data.id
+      });
+    } catch (error) {
+      const failure = toVoiceControlAdmissionFailure(error);
+      return reply.code(failure.statusCode).send({ error: failure.code });
+    }
+    try {
+      const result = await context.runtime.removeVoiceProfileBinding(params.data.id);
+      return reply.code(result.status === "STORED" ? 200 : 409).send(result);
+    } catch {
+      return reply.code(409).send({ error: "Voice binding could not be removed." });
+    }
   });
 }

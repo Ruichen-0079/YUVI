@@ -4,7 +4,7 @@
 >
 > This document answers **what version comes next and what each version is meant to make true**. It does not replace the detailed atom contracts in the v0.1.3 plan or the post-v0.1.3 research roadmap. When a technical dependency conflicts with convenient version grouping, the dependency wins.
 >
-> Current implemented baseline is A0–A6 plus A7.1, A7.2, the A8.1 journal contract and A8.2a–A8.2e3 Journal storage/ingress and local-control receipts. See [`implementation-baseline.md`](implementation-baseline.md). Current Future authority is indexed in [`README.md`](README.md).
+> Current implemented baseline is A0–A6 plus A7.1, A7.2, the A8.1 journal contract, A8.2a–A8.2e3, and A8.2f1 direct voice-control receipts. See [`implementation-baseline.md`](implementation-baseline.md). Current Future authority is indexed in [`README.md`](README.md).
 
 ## 1. Release philosophy
 
@@ -65,7 +65,7 @@ Detailed authority: [`09-v0.1.3-platform-completion.md`](09-v0.1.3-platform-comp
 
 ## Current state
 
-A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2d and A8.2e1–A8.2e3 are implemented. A8.2f and A9–A12 remain planned engineering. Aggregate A8.2 remains incomplete until A8.2f closes; aggregate A8.2e is complete. A8.1 and A8.2a–A8.2e3 validations are recorded in [`v0.1.3-a8.1-journal-contract.md`](../validation/v0.1.3-a8.1-journal-contract.md), [`v0.1.3-a8.2a-journal-store.md`](../validation/v0.1.3-a8.2a-journal-store.md), [`v0.1.3-a8.2b-conversational-ingress.md`](../validation/v0.1.3-a8.2b-conversational-ingress.md), [`v0.1.3-a8.2c-speech-ingress.md`](../validation/v0.1.3-a8.2c-speech-ingress.md), [`v0.1.3-a8.2d-vision-ingress.md`](../validation/v0.1.3-a8.2d-vision-ingress.md), [`v0.1.3-a8.2e1-product-controls.md`](../validation/v0.1.3-a8.2e1-product-controls.md), [`v0.1.3-a8.2e2-runtime-controls.md`](../validation/v0.1.3-a8.2e2-runtime-controls.md) and [`v0.1.3-a8.2e3-proactive-consent.md`](../validation/v0.1.3-a8.2e3-proactive-consent.md).
+A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2e3 and A8.2f1 are implemented. A8.2f2 and aggregate f closure remain planned/incomplete; A9–A12 remain planned engineering. Aggregate A8.2 remains incomplete, and aggregate A8.2e is complete. The current f split and prior validations are indexed by [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md).
 
 The release is best tracked as three milestones rather than six family numbers.
 
@@ -90,7 +90,11 @@ A7.1 → A7.2 → A8.1
                   ↓
                A8.2e3 proactive-consent authority closure — IMPLEMENTED
                   ↓
-               A8.2f  voice-identity controls + aggregate bypass closure
+               A8.2f1 direct voice-profile/binding controls — IMPLEMENTED
+                  ↓
+               A8.2f2 Product voice-review/enrollment controls — PLANNED
+                  ↓
+               A8.2f aggregate closure/applicability audit — INCOMPLETE
                   ↓
                 A10.1
 ```
@@ -110,7 +114,7 @@ Result:
 - a versioned journal command, envelope and evidence-selector contract exists;
 - the durable Journal store has one ordered append authority independent of long-term Memory-backend choice;
 - ordinary conversational HTTP/SSE/WebSocket inputs and finalized speech observations become durable receipts before Runtime semantic processing; standalone vision commits a durable receipt before provider analysis without retaining raw image content; the e1–e3 local-control leaves preserve their existing owners and surface-specific identity/audience/retention limits;
-- A8.2f proves there is no undocumented in-scope ingress bypass before aggregate A8.2 is marked implemented;
+- A8.2f aggregate closure resolves the remaining applicable ingress/bypass findings before A8.2 is marked implemented;
 - the reproduced legacy LLM Memory attribution defect is then closed by A10.1;
 - new evidence-backed Memory writes require committed lineage.
 

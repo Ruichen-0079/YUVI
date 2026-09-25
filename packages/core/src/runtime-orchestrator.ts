@@ -664,6 +664,18 @@ export class RuntimeOrchestrator {
   private readonly voiceSpeakers = new WeakMap<RuntimeUserTurnEvent, P8CharacterSpeakerView>();
   private readonly committedVoiceObservations = new WeakMap<RuntimeUserTurnEvent, STTOutput>();
 
+  /** Read-only readiness check for the existing host-owned voice binding path. */
+  canManageVoiceProfileBindings(): boolean {
+    try {
+      const provider = this.options.memory.getVoiceBindingProvider
+        ? this.options.memory.getVoiceBindingProvider()
+        : this.options.memory.getMemoryProvider?.();
+      return Boolean(provider && this.options.voiceBindingReferences && this.options.voicePersonaId);
+    } catch {
+      return false;
+    }
+  }
+
   async getVoiceProfilePerson(voiceProfileId: string): Promise<string | null> {
     const provider = this.options.memory.getVoiceBindingProvider
       ? this.options.memory.getVoiceBindingProvider()

@@ -13,6 +13,8 @@ import type { ServerConfig } from "../config.js";
 import type { AppContext } from "../context.js";
 import { localServicesStatus } from "../services/local-services.js";
 import { toRuntimeControlAdmissionFailure } from "../runtime-control-receipt-admission.js";
+import { toVoiceControlAdmissionFailure } from "../voice-control-receipt-admission.js";
+import { readProductSettings } from "../services/product-store.js";
 import { requireLocalDashboardAccess } from "./security.js";
 
 const audio = z.object({
@@ -85,6 +87,27 @@ export async function registerLocalServiceRoutes(
     try {
       if (!(await profiles.list()).some((profile) => profile.voiceProfileId === params.data.id))
         return reply.code(404).send({ error: "voice_profile_not_found" });
+      let settings;
+      try {
+        settings = readProductSettings();
+      } catch {
+        return reply.code(503).send({ error: "person_binding_unavailable" });
+      }
+      if (!settings) return reply.code(409).send({ error: "person_not_found" });
+      if (!settings.people.some((person) => person.id === parsed.data.personId))
+        return reply.code(404).send({ error: "person_not_found" });
+      if (!context.runtime.canManageVoiceProfileBindings())
+        return reply.code(503).send({ error: "person_binding_unavailable" });
+      try {
+        await context.voiceControlReceiptAdmission.admit({
+          operation: "VOICE_PROFILE_BIND_PERSON",
+          voiceProfileId: params.data.id,
+          personId: parsed.data.personId
+        });
+      } catch (error) {
+        const failure = toVoiceControlAdmissionFailure(error);
+        return reply.code(failure.statusCode).send({ error: failure.code });
+      }
       const result = await context.runtime.bindVoiceProfileToPerson(
         params.data.id,
         parsed.data.personId
@@ -146,12 +169,28 @@ export async function registerLocalServiceRoutes(
     if (!requireLocalDashboardAccess(config, request, reply)) return;
     const parsed = audio
       .extend({ label: z.string().trim().min(1).max(100) })
+      .strict()
       .safeParse(request.body);
     if (!parsed.success) return reply.code(400).send({ error: "invalid_recording" });
     const profiles = productVoiceProfiles(context);
     if (!profiles) return reply.code(409).send({ error: "voice_profiles_unavailable" });
     try {
-      const profile = await profiles.enroll({ ...parsed.data, voiceProfileId: randomUUID() });
+      await profiles.list();
+    } catch {
+      return reply.code(503).send({ error: "voice_profiles_unavailable" });
+    }
+    const voiceProfileId = randomUUID();
+    try {
+      await context.voiceControlReceiptAdmission.admit({
+        operation: "VOICE_PROFILE_ENROLL",
+        voiceProfileId
+      });
+    } catch (error) {
+      const failure = toVoiceControlAdmissionFailure(error);
+      return reply.code(failure.statusCode).send({ error: failure.code });
+    }
+    try {
+      const profile = await profiles.enroll({ ...parsed.data, voiceProfileId });
       try { retainVoiceSample(parsed.data.audioBase64, profile.voiceProfileId); } catch { /* Old clients may supply unsupported sample formats. */ }
       return profile;
     } catch {
@@ -174,13 +213,33 @@ export async function registerLocalServiceRoutes(
   });
   app.delete<{ Params: { id: string } }>("/voice-profiles/:id", async (request, reply) => {
     if (!requireLocalDashboardAccess(config, request, reply)) return;
+    const params = z.object({ id: z.string().min(1).max(160) }).safeParse(request.params);
+    if (!params.success) return reply.code(400).send({ error: "invalid_voice_profile_id" });
     const profiles = productVoiceProfiles(context);
     if (!profiles) return reply.code(409).send({ error: "voice_profiles_unavailable" });
     try {
-      const removed = await context.runtime.removeVoiceProfileBinding(request.params.id);
+      const available = await profiles.list();
+      if (!available.some((profile) => profile.voiceProfileId === params.data.id))
+        return reply.code(404).send({ error: "voice_profile_not_found" });
+    } catch {
+      return reply.code(503).send({ error: "voice_profiles_unavailable" });
+    }
+    if (!context.runtime.canManageVoiceProfileBindings())
+      return reply.code(503).send({ error: "profile_delete_failed" });
+    try {
+      await context.voiceControlReceiptAdmission.admit({
+        operation: "VOICE_PROFILE_DELETE",
+        voiceProfileId: params.data.id
+      });
+    } catch (error) {
+      const failure = toVoiceControlAdmissionFailure(error);
+      return reply.code(failure.statusCode).send({ error: failure.code });
+    }
+    try {
+      const removed = await context.runtime.removeVoiceProfileBinding(params.data.id);
       if (removed.status !== "STORED") return reply.code(409).send({ error: "Remove the trusted binding before deleting this voice profile." });
-      await profiles.delete(request.params.id);
-      for (const sample of voiceReviews().filter(r => r.voiceProfileId === request.params.id)) updateVoiceReview(sample.id, null);
+      await profiles.delete(params.data.id);
+      for (const sample of voiceReviews().filter(r => r.voiceProfileId === params.data.id)) updateVoiceReview(sample.id, null);
       return { ok: true };
     } catch {
       return reply.code(503).send({ error: "profile_delete_failed" });

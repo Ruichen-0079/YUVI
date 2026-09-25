@@ -5,6 +5,8 @@ import type { ServerConfig } from "../config.js";
 import { registerLocalServiceRoutes } from "./local-services.js";
 import { registerSystemRoutes } from "./system.js";
 import { restartDailyUseServices } from "../services/daily-use.js";
+import { createTestVoiceControlReceiptAdmission } from "../test-support/voice-control-receipt.js";
+import { JournalStoreError } from "@companion/journal";
 vi.mock("../services/daily-use.js", () => ({ restartDailyUseServices: vi.fn() }));
 afterEach(() => {
   vi.useRealTimers();
@@ -12,15 +14,55 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+it("fails closed before enrollment when durable voice admission is unavailable", async () => {
+  const profiles = {
+    enroll: vi.fn(async (input: { voiceProfileId: string; label: string }) => input),
+    list: vi.fn(async () => [])
+  };
+  const admission = { admit: vi.fn(async () => { throw new JournalStoreError("DATABASE_UNAVAILABLE", "unavailable"); }) };
+  const app = Fastify();
+  await registerLocalServiceRoutes(
+    app,
+    {
+      providers: { getSTTProvider: () => ({ voiceProfiles: profiles }) },
+      voiceControlReceiptAdmission: admission
+    } as unknown as AppContext,
+    { runtimeMode: "development" } as ServerConfig
+  );
+  try {
+    const response = await app.inject({
+      method: "POST",
+      url: "/voice-profiles",
+      payload: { audioBase64: "RAW_AUDIO_MARKER", mimeType: "audio/wav", label: "private label" }
+    });
+    expect(response.statusCode).toBe(503);
+    expect(profiles.list).toHaveBeenCalledOnce();
+    expect(admission.admit).toHaveBeenCalledOnce();
+    expect(profiles.enroll).not.toHaveBeenCalled();
+  } finally {
+    await app.close();
+  }
+});
+
 it("protects acoustic profile operations and accepts a bounded recording larger than Fastify's default", async () => {
   const profiles = {
     enroll: vi.fn(async (input) => ({ voiceProfileId: input.voiceProfileId, label: input.label })),
     list: vi.fn(async () => [])
   };
+  const order: string[] = [];
+  profiles.enroll.mockImplementation(async (input) => {
+    order.push("enroll");
+    return { voiceProfileId: input.voiceProfileId, label: input.label };
+  });
   const app = Fastify();
   await registerLocalServiceRoutes(
     app,
-    { providers: { getSTTProvider: () => ({ voiceProfiles: profiles }) } } as unknown as AppContext,
+    {
+      providers: { getSTTProvider: () => ({ voiceProfiles: profiles }) },
+      voiceControlReceiptAdmission: createTestVoiceControlReceiptAdmission(() => {
+        order.push("receipt");
+      })
+    } as unknown as AppContext,
     { runtimeMode: "development", dashboardDevToken: "test-token" } as ServerConfig
   );
   try {
@@ -48,15 +90,22 @@ it("protects acoustic profile operations and accepts a bounded recording larger 
       method: "POST",
       url: "/voice-profiles",
       headers: { authorization: "Bearer test-token" },
-      payload: { ...payload, personId: "forged-person", voiceProfileId: "forged-profile" }
+      payload
     });
     expect(response.statusCode).toBe(200);
-    expect(response.json()).toEqual({
-      label: "Acoustic label",
-      voiceProfileId: expect.any(String)
-    });
-    expect(response.json().voiceProfileId).not.toBe("forged-profile");
-    expect(profiles.enroll.mock.calls[0]?.[0]).not.toHaveProperty("personId");
+    expect(response.json()).toEqual({ label: "Acoustic label", voiceProfileId: expect.any(String) });
+    expect(order).toEqual(["receipt", "enroll"]);
+    expect(profiles.enroll.mock.calls[0]?.[0].voiceProfileId).toBe(response.json().voiceProfileId);
+    expect(
+      (
+        await app.inject({
+          method: "POST",
+          url: "/voice-profiles",
+          headers: { authorization: "Bearer test-token" },
+          payload: { ...payload, personId: "forged-person", voiceProfileId: "forged-profile" }
+        })
+      ).statusCode
+    ).toBe(400);
   } finally {
     await app.close();
   }

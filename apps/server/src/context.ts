@@ -26,6 +26,10 @@ import {
   HostProactiveConsentReceiptAdmission,
   type ProactiveConsentReceiptAdmission
 } from "./proactive-consent-receipt-admission.js";
+import {
+  HostVoiceControlReceiptAdmission,
+  type VoiceControlReceiptAdmission
+} from "./voice-control-receipt-admission.js";
 import { getRuntimeEnvDir } from "@companion/config";
 import { createFileP8CorrectionStore, createFileVoiceBindingReferences } from "@companion/core";
 import { captureKdeScreen, screenCaptureAvailable } from "./screen-capture.js";
@@ -103,6 +107,7 @@ export type AppContext = {
   productControlReceiptAdmission: ProductControlReceiptAdmission;
   runtimeControlReceiptAdmission: RuntimeControlReceiptAdmission;
   proactiveConsentReceiptAdmission: ProactiveConsentReceiptAdmission;
+  voiceControlReceiptAdmission: VoiceControlReceiptAdmission;
   closeDatabasePool(): Promise<void>;
   finalizedIngestion: FinalizedIngestionService;
   memoryIngestionCoordinator: MemoryIngestionCoordinator;
@@ -199,6 +204,7 @@ export async function createAppContext(
   const proactiveConsentReceiptAdmission = new HostProactiveConsentReceiptAdmission(
     journalRepository
   );
+  const voiceControlReceiptAdmission = new HostVoiceControlReceiptAdmission(journalRepository);
   const memoryRepository = createMemoryRepositoryFromEnv(process.env, databasePool);
   let conversationRepository: ConversationRepository | undefined;
   let finalizedIngestionRepository: FinalizedIngestionRepository | undefined;
@@ -462,6 +468,7 @@ export async function createAppContext(
     productControlReceiptAdmission,
     runtimeControlReceiptAdmission,
     proactiveConsentReceiptAdmission,
+    voiceControlReceiptAdmission,
     async closeDatabasePool() {
       await databasePool?.end();
     },
