@@ -3,6 +3,7 @@ import { MemoryIngestionCoordinator, MemoryMaintenanceService } from "@companion
 import { loadServerConfig } from "./config.js";
 import { buildServer } from "./server.js";
 import { createTestSpeechReceiptAdmission } from "./test-support/speech-receipt.js";
+import { createTestVisionReceiptAdmission } from "./test-support/vision-receipt.js";
 import { mkdtempSync } from "node:fs";
 import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -3085,7 +3086,8 @@ async function buildTestServer(overrides: TestEnvOverrides = {}) {
         };
       }
     },
-    speechReceiptAdmission: createTestSpeechReceiptAdmission()
+    speechReceiptAdmission: createTestSpeechReceiptAdmission(),
+    visionReceiptAdmission: createTestVisionReceiptAdmission()
   });
 }
 

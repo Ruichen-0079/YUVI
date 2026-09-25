@@ -18,6 +18,7 @@ import {
   toSpeechAdmissionFailure,
   type SpeechReceiptSurface
 } from "../speech-receipt-admission.js";
+import { toVisionAdmissionFailure } from "../vision-receipt-admission.js";
 
 const IdentitySchema = {
   sessionId: z.string().min(1).default("default"),
@@ -504,6 +505,29 @@ export async function registerMediaRoutes(
 
     const boundary = createRequestDisconnectBoundary(request);
     try {
+      if (boundary.signal.aborted) {
+        throw createCancelledVisionProviderError("vision", "not_started");
+      }
+
+      try {
+        await context.visionReceiptAdmission.admit({
+          imageSource: parsed.data.imageUrl ? "URL_REFERENCE" : "INLINE_BYTES",
+          ...(parsed.data.prompt !== undefined ? { prompt: parsed.data.prompt } : {})
+        });
+      } catch (error) {
+        if (isResponseUnavailable(request, reply)) {
+          return;
+        }
+        return sendVisionAdmissionFailure(reply, error);
+      }
+
+      if (boundary.signal.aborted) {
+        throw createCancelledVisionProviderError("vision", "not_started");
+      }
+      if (isResponseUnavailable(request, reply)) {
+        return;
+      }
+
       const provider = context.providers.getVisionProvider();
       if (boundary.signal.aborted) {
         throw createCancelledVisionProviderError(provider.name, "not_started");
@@ -647,6 +671,14 @@ function sendSpeechAdmissionFailure(
   error: JournalStoreError
 ): unknown {
   const failure = toSpeechAdmissionFailure(error);
+  return reply.status(503).send({ error: "journal_admission_failed", ...failure });
+}
+
+function sendVisionAdmissionFailure(
+  reply: { status(code: number): { send(payload: unknown): unknown } },
+  error: unknown
+): unknown {
+  const failure = toVisionAdmissionFailure(error);
   return reply.status(503).send({ error: "journal_admission_failed", ...failure });
 }
 

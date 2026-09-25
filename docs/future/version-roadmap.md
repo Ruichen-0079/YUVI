@@ -4,7 +4,7 @@
 >
 > This document answers **what version comes next and what each version is meant to make true**. It does not replace the detailed atom contracts in the v0.1.3 plan or the post-v0.1.3 research roadmap. When a technical dependency conflicts with convenient version grouping, the dependency wins.
 >
-> Current implemented baseline is A0–A6 plus A7.1, A7.2, the A8.1 journal contract, A8.2a PostgreSQL Journal storage, A8.2b conversational receipt admission and A8.2c finalized speech receipt admission. See [`implementation-baseline.md`](implementation-baseline.md). Current Future authority is indexed in [`README.md`](README.md).
+> Current implemented baseline is A0–A6 plus A7.1, A7.2, the A8.1 journal contract and A8.2a–A8.2d Journal storage/ingress. See [`implementation-baseline.md`](implementation-baseline.md). Current Future authority is indexed in [`README.md`](README.md).
 
 ## 1. Release philosophy
 
@@ -65,7 +65,7 @@ Detailed authority: [`09-v0.1.3-platform-completion.md`](09-v0.1.3-platform-comp
 
 ## Current state
 
-A0–A6, A7.1, A7.2, A8.1, A8.2a, A8.2b and A8.2c are implemented. A8.2d–A8.2f and A9–A12 remain planned engineering. Aggregate A8.2 remains incomplete until all six A8.2 leaves close. A8.1, A8.2a, A8.2b and A8.2c validation are recorded in [`v0.1.3-a8.1-journal-contract.md`](../validation/v0.1.3-a8.1-journal-contract.md), [`v0.1.3-a8.2a-journal-store.md`](../validation/v0.1.3-a8.2a-journal-store.md), [`v0.1.3-a8.2b-conversational-ingress.md`](../validation/v0.1.3-a8.2b-conversational-ingress.md) and [`v0.1.3-a8.2c-speech-ingress.md`](../validation/v0.1.3-a8.2c-speech-ingress.md).
+A0–A6, A7.1, A7.2, A8.1 and A8.2a–A8.2d are implemented. A8.2e–A8.2f and A9–A12 remain planned engineering. Aggregate A8.2 remains incomplete until all six A8.2 leaves close. A8.1 and A8.2a–A8.2d validation are recorded in [`v0.1.3-a8.1-journal-contract.md`](../validation/v0.1.3-a8.1-journal-contract.md), [`v0.1.3-a8.2a-journal-store.md`](../validation/v0.1.3-a8.2a-journal-store.md), [`v0.1.3-a8.2b-conversational-ingress.md`](../validation/v0.1.3-a8.2b-conversational-ingress.md), [`v0.1.3-a8.2c-speech-ingress.md`](../validation/v0.1.3-a8.2c-speech-ingress.md) and [`v0.1.3-a8.2d-vision-ingress.md`](../validation/v0.1.3-a8.2d-vision-ingress.md).
 
 The release is best tracked as three milestones rather than six family numbers.
 
@@ -93,7 +93,7 @@ A7.1 → A7.2 → A8.1
 
 A8.2 was split only after the required implementation audit found independent production ingress owners. Runtime remains the single semantic execution authority but is not a universal transport-ingress gate. The leaf split is source-driven and must not be implemented as six new managers.
 
-A8.2a implements the database ownership rule: Journal durability consumes the Supervisor/deployment-owned PostgreSQL infrastructure and remains available when Mem0 is the active Memory backend. `MEMORY_REPOSITORY=postgres` / long-term Memory backend selection does not determine whether the Journal exists, and no second PostgreSQL daemon is introduced. A8.2b gates ordinary conversational HTTP/SSE/WebSocket input through durable RECEIPT append. A8.2c gates finalized speech observation handoff with a Runtime-owned provisional reservation and a single durable RECEIPT before handoff readiness; standalone vision and local controls remain planned in later leaves.
+A8.2a implements the database ownership rule: Journal durability consumes the Supervisor/deployment-owned PostgreSQL infrastructure and remains available when Mem0 is the active Memory backend. `MEMORY_REPOSITORY=postgres` / long-term Memory backend selection does not determine whether the Journal exists, and no second PostgreSQL daemon is introduced. A8.2b gates ordinary conversational HTTP/SSE/WebSocket input through durable RECEIPT append. A8.2c gates finalized speech observation handoff with a Runtime-owned provisional reservation and a single durable RECEIPT before handoff readiness. A8.2d gates standalone `/v1/vision/analyze` with a host-built RECEIPT before provider invocation, while retaining no image bytes or URL; governed local controls remain planned.
 
 Result:
 
@@ -101,7 +101,7 @@ Result:
 - plugins can register only narrow governed executable handles;
 - a versioned journal command, envelope and evidence-selector contract exists;
 - the durable Journal store has one ordered append authority independent of long-term Memory-backend choice;
-- ordinary conversational HTTP/SSE/WebSocket inputs and finalized speech observations become durable receipts before Runtime semantic processing; standalone-vision and governed local-control inputs remain later A8.2 leaves and each surface preserves its identity/audience/retention limits;
+- ordinary conversational HTTP/SSE/WebSocket inputs and finalized speech observations become durable receipts before Runtime semantic processing; standalone vision commits a durable receipt before provider analysis without retaining raw image content; governed local-control inputs remain later A8.2 leaves and each surface preserves its identity/audience/retention limits;
 - A8.2f proves there is no undocumented in-scope ingress bypass before aggregate A8.2 is marked implemented;
 - the reproduced legacy LLM Memory attribution defect is then closed by A10.1;
 - new evidence-backed Memory writes require committed lineage.

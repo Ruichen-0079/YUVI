@@ -17,6 +17,11 @@ import type { Socket } from "node:net";
 import { SpeechCaptureFenceError } from "@companion/core";
 import { JournalStoreError } from "@companion/journal";
 import type { AppContext } from "../context.js";
+import {
+  type VisionReceiptAdmission,
+  type VisionReceiptInput
+} from "../vision-receipt-admission.js";
+import { createTestVisionReceiptAdmission } from "../test-support/vision-receipt.js";
 import { registerMediaRoutes } from "./media.js";
 
 const routeCases = ["/v1/audio/transcriptions", "/v1/voice/message"] as const;
@@ -337,14 +342,17 @@ async function createTTSLifecycleApp(
 
 async function createVisionLifecycleApp(
   analyzeImage: TestVisionAnalyzer,
-  configureRequest?: (raw: IncomingMessage, socket: Socket | undefined) => void
+  configureRequest?: (raw: IncomingMessage, socket: Socket | undefined) => void,
+  visionReceiptAdmission: VisionReceiptAdmission = createTestVisionReceiptAdmission()
 ): Promise<{
   app: ReturnType<typeof Fastify>;
   analyzeImage: TestVisionAnalyzer;
+  visionReceiptAdmission: VisionReceiptAdmission;
   request: RequestCapture;
 }> {
   const context = {
     providers: { getVisionProvider: () => ({ name: "test-vision", analyzeImage }) },
+    visionReceiptAdmission,
     runtime: {
       handleUserMessage: vi.fn(),
       getLatestPromptPreview: vi.fn(() => undefined)
@@ -365,7 +373,7 @@ async function createVisionLifecycleApp(
     configureRequest?.(request.raw, request.socket);
   });
   await registerMediaRoutes(app, context);
-  return { app, analyzeImage, request };
+  return { app, analyzeImage, visionReceiptAdmission, request };
 }
 
 function emitDisconnect(request: RequestCapture, event: "aborted" | "socket-close"): void {
@@ -1144,9 +1152,14 @@ describe("public Vision input validation", () => {
 describe("public Vision disconnect cancellation", () => {
   it("does not start Vision when the request is already aborted", async () => {
     const analyzeImage = vi.fn<TestVisionAnalyzer>(async () => visionOutput());
-    const { app, request } = await createVisionLifecycleApp(analyzeImage, (raw) => {
-      raw.aborted = true;
-    });
+    const admit = vi.fn(async (_input: VisionReceiptInput) => {});
+    const { app, request } = await createVisionLifecycleApp(
+      analyzeImage,
+      (raw) => {
+        raw.aborted = true;
+      },
+      { admit }
+    );
 
     try {
       const response = await app.inject({
@@ -1161,6 +1174,7 @@ describe("public Vision disconnect cancellation", () => {
         code: ProviderErrorCode.Cancelled,
         fallbackUsed: false
       });
+      expect(admit).not.toHaveBeenCalled();
       expect(analyzeImage).not.toHaveBeenCalled();
       expectDisconnectListenersCleaned(request);
     } finally {
@@ -1276,6 +1290,171 @@ describe("public Vision disconnect cancellation", () => {
       expect(response.statusCode).toBe(503);
       expectDisconnectListenersCleaned(request);
     } finally {
+      await app.close();
+    }
+  });
+});
+
+describe("public Vision Journal admission", () => {
+  it("commits safe normalized input before provider analysis", async () => {
+    const order: string[] = [];
+    const admit = vi.fn(async (input: VisionReceiptInput) => {
+      order.push("receipt");
+      expect(input).toEqual({
+        imageSource: "INLINE_BYTES",
+        prompt: "  describe this  "
+      });
+    });
+    const analyzeImage = vi.fn<TestVisionAnalyzer>(async () => {
+      order.push("provider");
+      return visionOutput();
+    });
+    const { app } = await createVisionLifecycleApp(analyzeImage, undefined, { admit });
+
+    try {
+      const response = await app.inject({
+        method: "POST",
+        url: "/v1/vision/analyze",
+        payload: {
+          imageBase64: "AQID",
+          mimeType: "image/png",
+          prompt: "  describe this  ",
+          subjectUserId: "caller-user",
+          personaId: "caller-persona",
+          speakerId: "caller-speaker",
+          voiceProfileId: "caller-profile"
+        }
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(order).toEqual(["receipt", "provider"]);
+      expect(admit).toHaveBeenCalledOnce();
+      expect(analyzeImage).toHaveBeenCalledOnce();
+      expect(analyzeImage.mock.calls[0]?.[0]).toMatchObject({
+        imageBase64: "AQID",
+        prompt: "  describe this  ",
+        metadata: {
+          subjectUserId: "caller-user",
+          personaId: "caller-persona",
+          speakerId: "caller-speaker",
+          voiceProfileId: "caller-profile"
+        }
+      });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("passes only URL-reference classification to the Journal facade", async () => {
+    const admit = vi.fn(async (_input: VisionReceiptInput) => {});
+    const analyzeImage = vi.fn<TestVisionAnalyzer>(async () => visionOutput());
+    const { app } = await createVisionLifecycleApp(analyzeImage, undefined, { admit });
+    const imageUrl = "https://example.invalid/private.png?token=NEVER_PERSIST";
+
+    try {
+      const response = await app.inject({
+        method: "POST",
+        url: "/v1/vision/analyze",
+        payload: { imageUrl, prompt: "summarize" }
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(admit).toHaveBeenCalledWith({
+        imageSource: "URL_REFERENCE",
+        prompt: "summarize"
+      });
+      expect(JSON.stringify(admit.mock.calls[0]?.[0])).not.toContain(imageUrl);
+      expect(analyzeImage).toHaveBeenCalledOnce();
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("fails closed on Journal errors with a bounded response and no provider fallback", async () => {
+    const admit = vi.fn(async (_input: VisionReceiptInput) => {
+      throw new JournalStoreError("DATABASE_UNAVAILABLE", "private database details");
+    });
+    const analyzeImage = vi.fn<TestVisionAnalyzer>(async () => visionOutput());
+    const { app } = await createVisionLifecycleApp(analyzeImage, undefined, { admit });
+
+    try {
+      const response = await app.inject({
+        method: "POST",
+        url: "/v1/vision/analyze",
+        payload: { imageBase64: "AQID", mimeType: "image/png" }
+      });
+
+      expect(response.statusCode).toBe(503);
+      expect(response.json()).toEqual({
+        error: "journal_admission_failed",
+        code: "JOURNAL_UNAVAILABLE",
+        message: "Durable vision admission is temporarily unavailable."
+      });
+      expect(response.body).not.toContain("private database details");
+      expect(admit).toHaveBeenCalledOnce();
+      expect(analyzeImage).not.toHaveBeenCalled();
+    } finally {
+      await app.close();
+    }
+  });
+
+  it.each([
+    ["INVALID_PROPOSAL", "JOURNAL_ADMISSION_REJECTED"],
+    ["TRANSACTION_FAILED", "JOURNAL_PERSISTENCE_FAILED"]
+  ] as const)("maps %s to a bounded admission failure", async (failureCode, responseCode) => {
+    const admit = vi.fn(async (_input: VisionReceiptInput) => {
+      throw new JournalStoreError(failureCode, "private SQL and request data");
+    });
+    const analyzeImage = vi.fn<TestVisionAnalyzer>(async () => visionOutput());
+    const { app } = await createVisionLifecycleApp(analyzeImage, undefined, { admit });
+    const privateImageUrl = "https://example.invalid/private.png?token=NEVER_RETURN";
+
+    try {
+      const response = await app.inject({
+        method: "POST",
+        url: "/v1/vision/analyze",
+        payload: { imageUrl: privateImageUrl }
+      });
+
+      expect(response.statusCode).toBe(503);
+      expect(response.json()).toMatchObject({ error: "journal_admission_failed", code: responseCode });
+      expect(response.body).not.toContain("private SQL and request data");
+      expect(response.body).not.toContain(privateImageUrl);
+      expect(response.body).not.toContain("NEVER_RETURN");
+      expect(analyzeImage).not.toHaveBeenCalled();
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("does not start provider work when a disconnect occurs while admission is held", async () => {
+    const started = deferred<void>();
+    const release = deferred<void>();
+    const admit = vi.fn(async (_input: VisionReceiptInput) => {
+      started.resolve();
+      await release.promise;
+    });
+    const analyzeImage = vi.fn<TestVisionAnalyzer>(async () => visionOutput());
+    const { app, request } = await createVisionLifecycleApp(analyzeImage, undefined, { admit });
+
+    try {
+      const responsePromise = app.inject({
+        method: "POST",
+        url: "/v1/vision/analyze",
+        payload: { imageBase64: "AQID", mimeType: "image/png" }
+      });
+      await started.promise;
+      expect(analyzeImage).not.toHaveBeenCalled();
+      emitDisconnect(request, "aborted");
+      release.resolve();
+
+      const response = await responsePromise;
+      expect(response.statusCode).toBe(503);
+      expect(response.json()).toMatchObject({ capability: "vision", code: "CANCELLED" });
+      expect(analyzeImage).not.toHaveBeenCalled();
+      expectDisconnectListenersCleaned(request);
+    } finally {
+      release.resolve();
       await app.close();
     }
   });
