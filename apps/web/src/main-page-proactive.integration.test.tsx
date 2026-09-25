@@ -5,7 +5,8 @@ import { createRoot, type Root } from "react-dom/client";
 const mockState = vi.hoisted(() => ({
   buses: [] as MockCompanionBus[],
   streamProactiveTurn: vi.fn(),
-  subscribeProactiveLive: vi.fn()
+  subscribeProactiveLive: vi.fn(),
+  projectProactiveConsent: vi.fn(async () => ({ ok: true, applied: true, state: "READY" }))
 }));
 
 class MockCompanionBus {
@@ -44,7 +45,7 @@ vi.mock("./api/client.js", () => ({
     admitSpeechPlayback: vi.fn(async () => ({ effectId: "effect-test" })),
     streamProactiveTurn: mockState.streamProactiveTurn,
     subscribeProactiveLive: mockState.subscribeProactiveLive,
-    setProactiveConsent: vi.fn(async () => ({ ok: true, enabled: true })),
+    projectProactiveConsent: mockState.projectProactiveConsent,
     // Main product path now opens a dashboard event stream; keep proactive
     // tests isolated by providing a no-op socket.
     createDashboardWebSocket: () => {
@@ -124,9 +125,129 @@ afterEach(() => {
   mockState.buses.length = 0;
   mockState.streamProactiveTurn.mockReset();
   mockState.subscribeProactiveLive.mockReset();
+  mockState.projectProactiveConsent.mockClear();
 });
 
 describe("MainPage proactive CompanionBus bridge", () => {
+  it("projects only a current accepted SettingsView as READY", async () => {
+    mockState.subscribeProactiveLive.mockImplementation(async () => undefined);
+    const { fetchUserSettings } = await import("./user-settings-client.js");
+    vi.mocked(fetchUserSettings).mockResolvedValueOnce({
+      loadError: null,
+      revision: 42,
+      settings: {
+        proactive: { enabled: true },
+        tts: { enabled: true, mode: "external" },
+        memory: { enabled: true }
+      }
+    } as never);
+    const dom = installFakeDom();
+    let root!: Root;
+    try {
+      await act(async () => {
+        root = createRoot(dom.container as unknown as Element);
+        root.render(createElement((await import("./main-page.js")).MainPage));
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(mockState.projectProactiveConsent).toHaveBeenCalledWith({
+        state: "READY",
+        revision: 42,
+        enabled: true
+      });
+    } finally {
+      await act(async () => root?.unmount());
+      dom.restore();
+    }
+  });
+
+  it("projects settings read failure as UNKNOWN_DENIED, never authored false", async () => {
+    mockState.subscribeProactiveLive.mockImplementation(async () => undefined);
+    const { fetchUserSettings } = await import("./user-settings-client.js");
+    vi.mocked(fetchUserSettings).mockRejectedValueOnce(new Error("settings unavailable"));
+    const dom = installFakeDom();
+    let root!: Root;
+    try {
+      await act(async () => {
+        root = createRoot(dom.container as unknown as Element);
+        root.render(createElement((await import("./main-page.js")).MainPage));
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(mockState.projectProactiveConsent).toHaveBeenCalledWith({
+        state: "UNKNOWN_DENIED",
+        revisionFloor: 0
+      });
+      expect(mockState.projectProactiveConsent).not.toHaveBeenCalledWith(
+        expect.objectContaining({ state: "READY", enabled: false })
+      );
+    } finally {
+      await act(async () => root?.unmount());
+      dom.restore();
+    }
+  });
+
+  it("invalidates immediately on settings.changed and does not project a stale SettingsView", async () => {
+    mockState.subscribeProactiveLive.mockImplementation(async () => undefined);
+    const { fetchUserSettings, subscribeUserSettingsChanged } = await import(
+      "./user-settings-client.js"
+    );
+    let resolveInitial!: (view: Awaited<ReturnType<typeof fetchUserSettings>>) => void;
+    vi.mocked(fetchUserSettings).mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveInitial = resolve;
+      })
+    );
+    const dom = installFakeDom();
+    let root!: Root;
+    try {
+      await act(async () => {
+        root = createRoot(dom.container as unknown as Element);
+        root.render(createElement((await import("./main-page.js")).MainPage));
+        await Promise.resolve();
+      });
+      const listener = vi.mocked(subscribeUserSettingsChanged).mock.calls.at(-1)?.[0];
+      expect(listener).toBeDefined();
+      vi.mocked(fetchUserSettings).mockResolvedValueOnce({
+        loadError: null,
+        revision: 3,
+        settings: {
+          proactive: { enabled: true },
+          tts: { enabled: true, mode: "external" },
+          memory: { enabled: true }
+        }
+      } as never);
+      await act(async () => {
+        listener?.({ revision: 4, changedSections: ["proactive"] } as Parameters<
+          NonNullable<typeof listener>
+        >[0]);
+        await Promise.resolve();
+        await Promise.resolve();
+        resolveInitial({
+          loadError: null,
+          revision: 3,
+          settings: {
+            proactive: { enabled: true },
+            tts: { enabled: true, mode: "external" },
+            memory: { enabled: true }
+          }
+        } as never);
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(mockState.projectProactiveConsent).toHaveBeenCalledWith({
+        state: "UNKNOWN_DENIED",
+        revisionFloor: 4
+      });
+      expect(mockState.projectProactiveConsent).not.toHaveBeenCalledWith(
+        expect.objectContaining({ state: "READY" })
+      );
+    } finally {
+      await act(async () => root?.unmount());
+      dom.restore();
+    }
+  });
+
   it("does not let a companion opportunity start a Runtime proactive attempt", async () => {
     mockState.subscribeProactiveLive.mockImplementation(async () => undefined);
 

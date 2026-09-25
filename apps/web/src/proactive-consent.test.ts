@@ -67,6 +67,14 @@ describe("proactive consent projection", () => {
     expect(changed(ready, 3, ["proactive"])).toBe(ready);
   });
 
+  it("rejects non-integer and unsafe projection revisions", () => {
+    const initial = createInitialProactiveConsentState();
+    expect(read(initial, 1.5, true)).toBe(initial);
+    expect(read(initial, Number.MAX_SAFE_INTEGER + 1, true)).toBe(initial);
+    expect(changed(initial, 1.5, ["proactive"])).toBe(initial);
+    expect(changed(initial, Number.MAX_SAFE_INTEGER + 1, ["proactive"])).toBe(initial);
+  });
+
   it("rejects a stale view after a newer event without reviving consent", () => {
     const invalidated = changed(read(createInitialProactiveConsentState(), 2, true), 5, [
       "proactive"

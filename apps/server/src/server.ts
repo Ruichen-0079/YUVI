@@ -34,6 +34,7 @@ import type { ConversationalReceiptAdmission } from "./conversational-receipt-ad
 import type { SpeechReceiptAdmission } from "./speech-receipt-admission.js";
 import type { VisionReceiptAdmission } from "./vision-receipt-admission.js";
 import type { RuntimeControlReceiptAdmission } from "./runtime-control-receipt-admission.js";
+import type { ProactiveConsentReceiptAdmission } from "./proactive-consent-receipt-admission.js";
 
 export type BuildServerOptions = Readonly<{
   /** Composition-time source registration; discovery does not call source loaders. */
@@ -48,6 +49,8 @@ export type BuildServerOptions = Readonly<{
   visionReceiptAdmission?: VisionReceiptAdmission | undefined;
   /** Host-only dependency override for tests/in-process hosts; never request-controlled. */
   runtimeControlReceiptAdmission?: RuntimeControlReceiptAdmission | undefined;
+  /** Host-only dependency override for consent projection admission. */
+  proactiveConsentReceiptAdmission?: ProactiveConsentReceiptAdmission | undefined;
 }>;
 
 export async function buildServer(config: ServerConfig, options: BuildServerOptions = {}) {
@@ -130,6 +133,9 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   if (options.runtimeControlReceiptAdmission) {
     context.runtimeControlReceiptAdmission = options.runtimeControlReceiptAdmission;
   }
+  if (options.proactiveConsentReceiptAdmission) {
+    context.proactiveConsentReceiptAdmission = options.proactiveConsentReceiptAdmission;
+  }
   try {
     const recovered = await context.runtime.recoverStaleStreamingMessages({
       limit: config.memoryMaintenance.limit
@@ -176,7 +182,7 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   await registerMessageRoutes(app, context);
   await registerConversationHistoryRoutes(app, context);
   await registerMessageStreamRoutes(app, context);
-  await registerProactiveTurnStreamRoutes(app, context);
+  await registerProactiveTurnStreamRoutes(app, context, config);
   await registerMediaRoutes(app, context);
   await registerSpeechActivityRoutes(app, context);
   await registerMemoryRoutes(app, context, config);

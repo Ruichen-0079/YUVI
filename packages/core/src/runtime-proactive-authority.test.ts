@@ -153,6 +153,7 @@ function createRuntime(input: {
   store?: RuntimeProactiveStateStore;
   character?: RuntimeCharacterPort;
   consent?: boolean;
+  projectionRequired?: boolean;
   decision?: "NO_OP" | "REQUEST_TEXT";
 }): RuntimeOrchestrator {
   return new RuntimeOrchestrator({
@@ -163,6 +164,7 @@ function createRuntime(input: {
     conversation: new InMemoryConversationRepository(),
     now: () => input.nowMs.current,
     ...(input.consent === undefined ? {} : { proactiveConsentEnabled: input.consent }),
+    ...(input.projectionRequired ? { proactiveConsentProjectionRequired: true } : {}),
     ...(input.store ? { proactiveStateStore: input.store } : {}),
     ...(input.character ? { character: input.character } : {})
   });
@@ -179,6 +181,153 @@ async function collect(
 }
 
 describe("Runtime proactive policy authority", () => {
+  it("ignores persisted consent in projection-required mode until a current settings view arrives", async () => {
+    let saves = 0;
+    const store: RuntimeProactiveStateStore = {
+      load: () => ({
+        version: 1,
+        suppression: { kind: "NONE" },
+        eligibleAfterMs: 0,
+        consentEnabled: true
+      }),
+      save: () => {
+        saves += 1;
+      }
+    };
+    const runtime = createRuntime({
+      nowMs: { current: Date.parse("2026-09-25T00:00:00Z") },
+      store,
+      projectionRequired: true
+    });
+    expect(runtime.getProactiveConsentProjection()).toEqual({
+      state: "UNKNOWN_DENIED",
+      revisionFloor: 0
+    });
+    expect(() => runtime.setProactiveConsent(true)).toThrow(/projection API/u);
+    await expect(
+      collect(
+        runtime.streamAssistantInitiatedTurn({
+          sessionId: "s",
+          idempotencyKey: "projection-startup-denied",
+          readMemory: false
+        })
+      )
+    ).rejects.toBeInstanceOf(ProactiveAdmissionError);
+    expect(saves).toBe(0);
+
+    expect(runtime.invalidateProactiveConsentProjection(7)).toBe("APPLIED");
+    expect(saves).toBe(0);
+    expect(
+      runtime.applyProactiveConsentProjection({
+        state: "READY",
+        revision: 7,
+        enabled: false
+      })
+    ).toBe("APPLIED");
+    expect(saves).toBe(0);
+
+    const restarted = createRuntime({
+      nowMs: { current: Date.parse("2026-09-25T00:01:00Z") },
+      store,
+      projectionRequired: true
+    });
+    expect(restarted.getProactiveConsentProjection()).toEqual({
+      state: "UNKNOWN_DENIED",
+      revisionFloor: 0
+    });
+    await expect(
+      collect(
+        restarted.streamAssistantInitiatedTurn({
+          sessionId: "s",
+          idempotencyKey: "projection-restart-denied",
+          readMemory: false
+        })
+      )
+    ).rejects.toBeInstanceOf(ProactiveAdmissionError);
+  });
+
+  it("fences stale READY projections and rejects same-revision conflicts", () => {
+    const runtime = createRuntime({
+      nowMs: { current: Date.parse("2026-09-25T00:00:00Z") },
+      projectionRequired: true
+    });
+    expect(
+      runtime.preflightProactiveConsentProjection({
+        state: "READY",
+        revision: 10,
+        enabled: true
+      })
+    ).toEqual({ result: "APPLY" });
+    expect(
+      runtime.applyProactiveConsentProjection({
+        state: "READY",
+        revision: 10,
+        enabled: true
+      })
+    ).toBe("APPLIED");
+    expect(
+      runtime.preflightProactiveConsentProjection({
+        state: "READY",
+        revision: 10,
+        enabled: true
+      })
+    ).toEqual({ result: "ALREADY_CURRENT" });
+    expect(
+      runtime.preflightProactiveConsentProjection({
+        state: "READY",
+        revision: 10,
+        enabled: false
+      })
+    ).toEqual({ result: "CONFLICT" });
+    expect(runtime.invalidateProactiveConsentProjection(11)).toBe("APPLIED");
+    expect(
+      runtime.preflightProactiveConsentProjection({
+        state: "READY",
+        revision: 10,
+        enabled: true
+      })
+    ).toEqual({ result: "STALE" });
+    expect(
+      runtime.applyProactiveConsentProjection({
+        state: "READY",
+        revision: 11,
+        enabled: true
+      })
+    ).toBe("APPLIED");
+    expect(runtime.getProactiveConsentProjection()).toEqual({
+      state: "READY",
+      revision: 11,
+      enabled: true
+    });
+  });
+
+  it("carries the volatile projection and revision fence across in-process Runtime replacement", () => {
+    const nowMs = { current: Date.parse("2026-09-25T00:00:00Z") };
+    const previous = createRuntime({ nowMs, projectionRequired: true });
+    expect(
+      previous.applyProactiveConsentProjection({
+        state: "READY",
+        revision: 10,
+        enabled: true
+      })
+    ).toBe("APPLIED");
+    const replacement = createRuntime({ nowMs, projectionRequired: true });
+    replacement.adoptProactiveConsentProjection(previous);
+    expect(replacement.getProactiveConsentProjection()).toEqual({
+      state: "READY",
+      revision: 10,
+      enabled: true
+    });
+    expect(replacement.invalidateProactiveConsentProjection(11)).toBe("APPLIED");
+    expect(
+      replacement.applyProactiveConsentProjection({
+        state: "READY",
+        revision: 10,
+        enabled: true
+      })
+    ).toBe("STALE");
+  });
+
   it("commits a quiet-five-minutes reply and blocks only future proactive initiation", async () => {
     const nowMs = { current: Date.parse("2026-09-05T12:00:00Z") };
     const runtime = createRuntime({

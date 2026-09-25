@@ -1090,15 +1090,20 @@ export const apiClient = {
     return streamProactiveLive(sessionId, options);
   },
 
-  setProactiveConsent(
-    enabled: boolean,
+  projectProactiveConsent(
+    projection:
+      | { state: "READY"; revision: number; enabled: boolean }
+      | { state: "UNKNOWN_DENIED"; revisionFloor: number },
     signal?: AbortSignal
-  ): Promise<{ ok: true; enabled: boolean }> {
-    return request<{ ok: true; enabled: boolean }>("/v1/proactive/consent", {
-      method: "POST",
-      body: JSON.stringify({ enabled }),
-      ...signalRequestInit(signal)
-    });
+  ): Promise<{ ok: true; applied?: boolean; state?: string; stale?: boolean }> {
+    return request<{ ok: true; applied?: boolean; state?: string; stale?: boolean }>(
+      "/v1/proactive/consent",
+      {
+        method: "POST",
+        body: JSON.stringify(projection),
+        ...signalRequestInit(signal)
+      }
+    );
   },
 
   listRecentMemories(limit = 20, signal?: AbortSignal): Promise<{ memories: MemoryRecord[] }> {

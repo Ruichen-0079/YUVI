@@ -85,12 +85,10 @@ export type RuntimeOrchestratorOptions = {
   embodiedPresentation?: RuntimeEmbodiedPresentationPort | undefined;
   /** Wall-clock source for suppression expiry and eligible_after. Tests inject a fake. */
   now?: (() => number) | undefined;
-  /**
-   * User preference for proactive initiation. `undefined` preserves existing P6
-   * tests (no Runtime consent gate). Production server supplies an explicit
-   * boolean and fail-closes until a control intent arrives.
-   */
+  /** Legacy direct consent for non-projection Runtime callers; production uses the projection gate. */
   proactiveConsentEnabled?: boolean | undefined;
+  /** Production composition receives Desktop's current settings projection separately. */
+  proactiveConsentProjectionRequired?: boolean | undefined;
   proactiveScoreThreshold?: number | undefined;
   proactiveEvaluationIntervalMs?: number | undefined;
   /** Smallest durable snapshot for suppression / eligible_after across Runtime reconstruction. */
@@ -99,6 +97,18 @@ export type RuntimeOrchestratorOptions = {
   setProactiveWake?: ((callback: () => void, delayMs: number) => unknown) | undefined;
   clearProactiveWake?: ((handle: unknown) => void) | undefined;
 };
+
+export type ProactiveConsentProjection =
+  | { state: "UNKNOWN_DENIED"; revisionFloor: number }
+  | { state: "READY"; revision: number; enabled: boolean };
+
+export type ProactiveConsentProjectionInput = ProactiveConsentProjection;
+
+export type ProactiveConsentProjectionPreflight =
+  | { result: "APPLY" }
+  | { result: "STALE" }
+  | { result: "ALREADY_CURRENT" }
+  | { result: "CONFLICT" };
 
 export type RuntimeCharacterCognitionExecutor = (
   request: unknown,

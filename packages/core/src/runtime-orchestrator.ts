@@ -117,6 +117,9 @@ import type {
   RuntimeMemoryCandidateReview,
   RuntimeMemoryPort,
   RuntimeOrchestratorOptions,
+  ProactiveConsentProjection,
+  ProactiveConsentProjectionInput,
+  ProactiveConsentProjectionPreflight,
   RuntimePromptBuilderPort,
   RuntimePromptPreview,
   RuntimeReplyStreamEvent,
@@ -324,6 +327,8 @@ export class RuntimeOrchestrator {
   >();
   private proactiveState: ProactiveState;
   private proactiveConsentEnabled: boolean | undefined;
+  private readonly proactiveConsentProjectionRequired: boolean;
+  private proactiveConsentProjection: ProactiveConsentProjection | undefined;
   private currentTurnControlAuthority: ProactiveControlAuthority = "LOCAL_EXPLICIT_CONTROLLER";
   private readonly speechCaptureStore: SpeechCaptureStore = createSpeechCaptureStore();
   private readonly speechPlaybackStore: SpeechPlaybackStore = createSpeechPlaybackStore();
@@ -352,14 +357,24 @@ export class RuntimeOrchestrator {
       ...(options.dreamWriter ? { writer: options.dreamWriter } : {}),
       ...(options.dreamProvider ? { provider: options.dreamProvider } : {})
     });
-    this.proactiveConsentEnabled = options.proactiveConsentEnabled;
+    this.proactiveConsentProjectionRequired = options.proactiveConsentProjectionRequired === true;
+    this.proactiveConsentProjection = this.proactiveConsentProjectionRequired
+      ? { state: "UNKNOWN_DENIED", revisionFloor: 0 }
+      : undefined;
+    this.proactiveConsentEnabled = this.proactiveConsentProjectionRequired
+      ? false
+      : options.proactiveConsentEnabled;
     this.proactiveState = createInitialProactiveState();
     const loaded = options.proactiveStateStore?.load();
     if (loaded) {
       const parsed = parseProactivePolicySnapshot(loaded, this.nowMs());
       if (parsed) {
         this.proactiveState = parsed.state;
-        if (parsed.consentEnabled !== undefined && this.proactiveConsentEnabled === undefined) {
+        if (
+          !this.proactiveConsentProjectionRequired &&
+          parsed.consentEnabled !== undefined &&
+          this.proactiveConsentEnabled === undefined
+        ) {
           this.proactiveConsentEnabled = parsed.consentEnabled;
         }
       }
@@ -382,8 +397,80 @@ export class RuntimeOrchestrator {
   }
 
   setProactiveConsent(enabled: boolean): void {
+    if (this.proactiveConsentProjectionRequired) {
+      throw new Error("Use the host-owned proactive consent projection API in this Runtime mode.");
+    }
     this.proactiveConsentEnabled = enabled;
     this.persistProactivePolicy();
+    this.armProactiveWake();
+  }
+
+  preflightProactiveConsentProjection(
+    input: ProactiveConsentProjectionInput
+  ): ProactiveConsentProjectionPreflight {
+    if (!this.proactiveConsentProjectionRequired || !this.proactiveConsentProjection) {
+      throw new Error("Proactive consent projections are not enabled for this Runtime.");
+    }
+    if (input.state === "UNKNOWN_DENIED") {
+      const currentFloor =
+        this.proactiveConsentProjection.state === "READY"
+          ? this.proactiveConsentProjection.revision
+          : this.proactiveConsentProjection.revisionFloor;
+      return input.revisionFloor < currentFloor ? { result: "STALE" } : { result: "APPLY" };
+    }
+    const current = this.proactiveConsentProjection;
+    if (input.revision < (current.state === "READY" ? current.revision : current.revisionFloor)) {
+      return { result: "STALE" };
+    }
+    if (current.state === "READY" && input.revision === current.revision) {
+      return input.enabled === current.enabled
+        ? { result: "ALREADY_CURRENT" }
+        : { result: "CONFLICT" };
+    }
+    return { result: "APPLY" };
+  }
+
+  applyProactiveConsentProjection(
+    input: Extract<ProactiveConsentProjectionInput, { state: "READY" }>
+  ): "APPLIED" | "STALE" | "ALREADY_CURRENT" | "CONFLICT" {
+    const preflight = this.preflightProactiveConsentProjection(input);
+    if (preflight.result !== "APPLY") return preflight.result;
+    this.proactiveConsentProjection = { ...input };
+    this.proactiveConsentEnabled = input.enabled;
+    this.armProactiveWake();
+    return "APPLIED";
+  }
+
+  invalidateProactiveConsentProjection(revisionFloor: number): "APPLIED" | "STALE" {
+    if (!this.proactiveConsentProjectionRequired || !this.proactiveConsentProjection) {
+      throw new Error("Proactive consent projections are not enabled for this Runtime.");
+    }
+    if (
+      !Number.isSafeInteger(revisionFloor) ||
+      revisionFloor < 0 ||
+      revisionFloor <
+        (this.proactiveConsentProjection.state === "READY"
+          ? this.proactiveConsentProjection.revision
+          : this.proactiveConsentProjection.revisionFloor)
+    ) {
+      return "STALE";
+    }
+    this.proactiveConsentProjection = { state: "UNKNOWN_DENIED", revisionFloor };
+    this.proactiveConsentEnabled = false;
+    this.armProactiveWake();
+    return "APPLIED";
+  }
+
+  getProactiveConsentProjection(): ProactiveConsentProjection | undefined {
+    return this.proactiveConsentProjection ? { ...this.proactiveConsentProjection } : undefined;
+  }
+
+  adoptProactiveConsentProjection(previous: RuntimeOrchestrator): void {
+    if (!this.proactiveConsentProjectionRequired) return;
+    const projection = previous.getProactiveConsentProjection();
+    if (!projection) return;
+    this.proactiveConsentProjection = projection;
+    this.proactiveConsentEnabled = projection.state === "READY" ? projection.enabled : false;
     this.armProactiveWake();
   }
 
@@ -422,7 +509,10 @@ export class RuntimeOrchestrator {
 
   private persistProactivePolicy(): void {
     this.options.proactiveStateStore?.save(
-      serializeProactivePolicySnapshot(this.proactiveState, this.proactiveConsentEnabled)
+      serializeProactivePolicySnapshot(
+        this.proactiveState,
+        this.proactiveConsentProjectionRequired ? undefined : this.proactiveConsentEnabled
+      )
     );
   }
 

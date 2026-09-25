@@ -235,6 +235,16 @@ export function MainPage(): JSX.Element {
     if (!isTauriRuntime()) return;
     let cancelled = false;
     const initialRequestRevision = proactiveConsentRef.current.revisionFloor;
+    const projectUnknownDenied = (): void => {
+      const current = proactiveConsentRef.current;
+      if (current.status !== "unknown-denied") return;
+      void apiClient
+        .projectProactiveConsent({
+          state: "UNKNOWN_DENIED",
+          revisionFloor: current.revisionFloor
+        })
+        .catch(() => undefined);
+    };
 
     const applySettingsView = (
       view: Awaited<ReturnType<typeof fetchUserSettings>>,
@@ -270,14 +280,27 @@ export function MainPage(): JSX.Element {
           type: "settings-read-failed",
           requestRevision: Math.max(requestRevision, view.revision)
         });
-        void apiClient.setProactiveConsent(false).catch(() => undefined);
+        projectUnknownDenied();
       } else {
         applyProactiveConsent({
           type: "settings-view",
           revision: view.revision,
           enabled: view.settings.proactive.enabled
         });
-        void apiClient.setProactiveConsent(view.settings.proactive.enabled).catch(() => undefined);
+        const current = proactiveConsentRef.current;
+        if (
+          current.status === "ready" &&
+          current.projectedRevision === view.revision &&
+          current.enabled === view.settings.proactive.enabled
+        ) {
+          void apiClient
+            .projectProactiveConsent({
+              state: "READY",
+              revision: view.revision,
+              enabled: view.settings.proactive.enabled
+            })
+            .catch(() => undefined);
+        }
       }
     };
 
@@ -290,7 +313,7 @@ export function MainPage(): JSX.Element {
               current === "loading" ? "unavailable" : current
             );
             applyProactiveConsent({ type: "settings-read-failed", requestRevision });
-            void apiClient.setProactiveConsent(false).catch(() => undefined);
+            projectUnknownDenied();
           }
         });
     };
@@ -305,7 +328,7 @@ export function MainPage(): JSX.Element {
             type: "settings-read-failed",
             requestRevision: initialRequestRevision
           });
-          void apiClient.setProactiveConsent(false).catch(() => undefined);
+          projectUnknownDenied();
         }
       });
 
@@ -317,7 +340,7 @@ export function MainPage(): JSX.Element {
         changedSections: event.changedSections
       });
       if (invalidated) {
-        void apiClient.setProactiveConsent(false).catch(() => undefined);
+        projectUnknownDenied();
       }
       if (event.changedSections.includes("memory")) {
         memoryPreferenceRevisionRef.current = Math.max(

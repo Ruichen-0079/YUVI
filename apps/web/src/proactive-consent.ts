@@ -79,7 +79,7 @@ export function reduceProactiveConsent(
 }
 
 function isRevision(value: number): boolean {
-  return Number.isFinite(value) && value >= 0;
+  return Number.isSafeInteger(value) && value >= 0;
 }
 
 function sameConsentState(left: ProactiveConsentState, right: ProactiveConsentState): boolean {

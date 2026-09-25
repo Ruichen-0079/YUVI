@@ -22,6 +22,10 @@ import {
   HostRuntimeControlReceiptAdmission,
   type RuntimeControlReceiptAdmission
 } from "./runtime-control-receipt-admission.js";
+import {
+  HostProactiveConsentReceiptAdmission,
+  type ProactiveConsentReceiptAdmission
+} from "./proactive-consent-receipt-admission.js";
 import { getRuntimeEnvDir } from "@companion/config";
 import { createFileP8CorrectionStore, createFileVoiceBindingReferences } from "@companion/core";
 import { captureKdeScreen, screenCaptureAvailable } from "./screen-capture.js";
@@ -98,6 +102,7 @@ export type AppContext = {
   visionReceiptAdmission: VisionReceiptAdmission;
   productControlReceiptAdmission: ProductControlReceiptAdmission;
   runtimeControlReceiptAdmission: RuntimeControlReceiptAdmission;
+  proactiveConsentReceiptAdmission: ProactiveConsentReceiptAdmission;
   closeDatabasePool(): Promise<void>;
   finalizedIngestion: FinalizedIngestionService;
   memoryIngestionCoordinator: MemoryIngestionCoordinator;
@@ -191,6 +196,9 @@ export async function createAppContext(
   const visionReceiptAdmission = new HostVisionReceiptAdmission(journalRepository);
   const productControlReceiptAdmission = new HostProductControlReceiptAdmission(journalRepository);
   const runtimeControlReceiptAdmission = new HostRuntimeControlReceiptAdmission(journalRepository);
+  const proactiveConsentReceiptAdmission = new HostProactiveConsentReceiptAdmission(
+    journalRepository
+  );
   const memoryRepository = createMemoryRepositoryFromEnv(process.env, databasePool);
   let conversationRepository: ConversationRepository | undefined;
   let finalizedIngestionRepository: FinalizedIngestionRepository | undefined;
@@ -326,7 +334,7 @@ export async function createAppContext(
       promptBuilder,
       providers,
       now: () => Date.now(),
-      proactiveConsentEnabled: proactiveStateStore.load()?.consentEnabled,
+      proactiveConsentProjectionRequired: true,
       proactiveScoreThreshold: Number(runtimeEnv["PROACTIVE_SCORE_THRESHOLD"] ?? 0.7),
       proactiveEvaluationIntervalMs: Number(
         runtimeEnv["PROACTIVE_EVALUATION_INTERVAL_MS"] ?? 60_000
@@ -453,6 +461,7 @@ export async function createAppContext(
     visionReceiptAdmission,
     productControlReceiptAdmission,
     runtimeControlReceiptAdmission,
+    proactiveConsentReceiptAdmission,
     async closeDatabasePool() {
       await databasePool?.end();
     },
@@ -509,6 +518,7 @@ export async function createAppContext(
       // Runtime. Construction failures therefore leave the live context
       // unchanged.
       await context.runtime.sealAndDrainMemoryWrites();
+      nextRuntime.adoptProactiveConsentProjection(context.runtime);
       context.memoryIngestionCoordinator.replaceProvider(
         nextMemory.getMemoryProvider() ?? unavailableMemoryProvider()
       );

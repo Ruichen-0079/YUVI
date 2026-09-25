@@ -9,6 +9,9 @@ import { ProviderError, ProviderErrorCode } from "@companion/providers";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import type { AppContext } from "../context.js";
+import type { ServerConfig } from "../config.js";
+import { requireLocalDashboardAccess } from "./security.js";
+import { JournalStoreError } from "@companion/journal";
 import { desktopCorsHeaders } from "../cors.js";
 import { SseConnectionClosedError, writeSseFrame } from "./sse.js";
 import { resolveMessageIdentity } from "./message.js";
@@ -20,11 +23,21 @@ const SSE_HEADERS = {
   "x-accel-buffering": "no"
 };
 
-const ProactiveConsentRequestSchema = z
-  .object({
-    enabled: z.boolean()
-  })
-  .strict();
+const ProactiveConsentRequestSchema = z.discriminatedUnion("state", [
+  z
+    .object({
+      state: z.literal("READY"),
+      revision: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+      enabled: z.boolean()
+    })
+    .strict(),
+  z
+    .object({
+      state: z.literal("UNKNOWN_DENIED"),
+      revisionFloor: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER)
+    })
+    .strict()
+]);
 
 export const ProactiveTurnStreamRequestSchema = z
   .object({
@@ -44,15 +57,69 @@ export type ProactiveTurnStreamRequest = z.infer<typeof ProactiveTurnStreamReque
 
 export async function registerProactiveTurnStreamRoutes(
   app: FastifyInstance,
-  context: AppContext
+  context: AppContext,
+  config: ServerConfig
 ): Promise<void> {
+  let readyProjectionTail: Promise<void> = Promise.resolve();
+  const enqueueReadyProjection = <T>(operation: () => Promise<T>): Promise<T> => {
+    const result = readyProjectionTail.then(operation, operation);
+    readyProjectionTail = result.then(
+      () => undefined,
+      () => undefined
+    );
+    return result;
+  };
+
   app.post("/v1/proactive/consent", async (request, reply) => {
+    if (!requireLocalDashboardAccess(config, request, reply)) return;
     const parsed = ProactiveConsentRequestSchema.safeParse(request.body);
     if (!parsed.success) {
       return reply.status(400).send({ error: "invalid_request", details: parsed.error.flatten() });
     }
-    context.runtime.setProactiveConsent(parsed.data.enabled);
-    return reply.send({ ok: true, enabled: parsed.data.enabled });
+    if (parsed.data.state === "UNKNOWN_DENIED") {
+      const result = context.runtime.invalidateProactiveConsentProjection(
+        parsed.data.revisionFloor
+      );
+      return reply.send({ ok: true, applied: result === "APPLIED", state: "UNKNOWN_DENIED" });
+    }
+    const readyInput = parsed.data;
+
+    return enqueueReadyProjection(async () => {
+      const input = readyInput;
+      const preflight = context.runtime.preflightProactiveConsentProjection(input);
+      if (preflight.result === "STALE") {
+        return reply.status(409).send({ error: "stale_projection" });
+      }
+      if (preflight.result === "CONFLICT") {
+        return reply.status(409).send({ error: "projection_conflict" });
+      }
+      if (preflight.result === "ALREADY_CURRENT") {
+        return reply.send({ ok: true, applied: false, state: "READY" });
+      }
+
+      try {
+        await context.proactiveConsentReceiptAdmission.admit({
+          enabled: input.enabled,
+          settingsRevision: input.revision
+        });
+      } catch (error) {
+        const failure = proactiveConsentAdmissionFailure(error);
+        return reply
+          .status(failure.statusCode)
+          .send({ error: failure.code, message: failure.message });
+      }
+
+      const applied = context.runtime.applyProactiveConsentProjection(input);
+      if (applied === "CONFLICT") {
+        return reply.status(409).send({ error: "projection_conflict" });
+      }
+      return reply.send({
+        ok: true,
+        applied: applied === "APPLIED",
+        ...(applied === "STALE" ? { stale: true } : {}),
+        state: "READY"
+      });
+    });
   });
 
   app.get("/v1/proactive-turns/live", async (request, reply) => {
@@ -229,6 +296,34 @@ export async function registerProactiveTurnStreamRoutes(
       await closeIterator();
     }
   });
+}
+
+function proactiveConsentAdmissionFailure(error: unknown): {
+  statusCode: 400 | 503;
+  code: "JOURNAL_ADMISSION_REJECTED" | "JOURNAL_UNAVAILABLE" | "JOURNAL_PERSISTENCE_FAILED";
+  message: string;
+} {
+  if (error instanceof JournalStoreError) {
+    if (error.code === "INVALID_PROPOSAL" || error.code === "UNSUPPORTED_SCHEMA_VERSION") {
+      return {
+        statusCode: 400,
+        code: "JOURNAL_ADMISSION_REJECTED",
+        message: "Proactive settings projection was rejected."
+      };
+    }
+    if (error.code === "DATABASE_UNAVAILABLE") {
+      return {
+        statusCode: 503,
+        code: "JOURNAL_UNAVAILABLE",
+        message: "Durable proactive settings admission is unavailable."
+      };
+    }
+  }
+  return {
+    statusCode: 503,
+    code: "JOURNAL_PERSISTENCE_FAILED",
+    message: "Durable proactive settings admission did not commit."
+  };
 }
 
 function sendProactiveTurnError(

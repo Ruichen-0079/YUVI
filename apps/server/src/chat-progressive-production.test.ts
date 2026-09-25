@@ -278,6 +278,11 @@ describe("Chat core production capability activation", () => {
       })
     );
     const handle = await contextFor(env);
+    handle.context.runtime.applyProactiveConsentProjection({
+      state: "READY",
+      revision: 0,
+      enabled: true
+    });
     const clock = vi.spyOn(Date, "now");
     let now = 1_000_000;
     clock.mockImplementation(() => now);

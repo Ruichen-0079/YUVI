@@ -67,6 +67,32 @@ afterEach(() => {
 });
 
 describe("apiClient.streamProactiveTurn", () => {
+  it("posts the explicit proactive consent projection protocol", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ ok: true, applied: true, state: "READY" }), {
+        status: 200,
+        headers: { "content-type": "application/json" }
+      })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(
+      apiClient.projectProactiveConsent({
+        state: "READY",
+        revision: 12,
+        enabled: false
+      })
+    ).resolves.toEqual({ ok: true, applied: true, state: "READY" });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toContain("/v1/proactive/consent");
+    const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(String(init.body))).toEqual({
+      state: "READY",
+      revision: 12,
+      enabled: false
+    });
+  });
+
   it("posts only the frozen text request body and emits the existing stream events", async () => {
     const fetchMock = vi
       .fn()

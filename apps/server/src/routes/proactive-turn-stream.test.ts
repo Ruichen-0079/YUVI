@@ -1,10 +1,12 @@
 import Fastify from "fastify";
+import { JournalStoreError } from "@companion/journal";
 import {
   AssistantTurnConflictError,
   ProactiveAdmissionError,
   type RuntimeReplyStreamEvent
 } from "@companion/core";
 import type { AppContext } from "../context.js";
+import type { ServerConfig } from "../config.js";
 import { describe, expect, it } from "vitest";
 import { registerProactiveTurnStreamRoutes } from "./proactive-turn-stream.js";
 
@@ -16,7 +18,10 @@ function runtimeFor(
 
 async function createTestApp(context: AppContext) {
   const app = Fastify({ logger: false });
-  await registerProactiveTurnStreamRoutes(app, context);
+  await registerProactiveTurnStreamRoutes(app, context, {
+    runtimeMode: "test",
+    dashboardDevToken: undefined
+  } as unknown as ServerConfig);
   return app;
 }
 
@@ -249,15 +254,74 @@ describe("proactive turn SSE route", () => {
     await app.close();
   });
 
-  it("applies consent as a Runtime control intent", async () => {
-    let enabled: boolean | undefined;
+  it("journals a READY settings projection before applying Runtime consent", async () => {
+    const order: string[] = [];
+    let applied: unknown;
     const app = await createTestApp({
       runtime: {
         streamAssistantInitiatedTurn: async function* (): AsyncIterable<RuntimeReplyStreamEvent> {
           throw new Error("must not run");
         },
-        setProactiveConsent(value: boolean) {
-          enabled = value;
+        preflightProactiveConsentProjection: () => ({ result: "APPLY" }),
+        applyProactiveConsentProjection(value: unknown) {
+          order.push("apply");
+          applied = value;
+          return "APPLIED";
+        }
+      },
+      proactiveConsentReceiptAdmission: {
+        async admit(value: unknown) {
+          order.push("journal");
+          expect(value).toEqual({ enabled: true, settingsRevision: 42 });
+        }
+      }
+    } as unknown as AppContext);
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/proactive/consent",
+      payload: { state: "READY", revision: 42, enabled: true }
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({ ok: true, applied: true, state: "READY" });
+    expect(order).toEqual(["journal", "apply"]);
+    expect(applied).toEqual({ state: "READY", revision: 42, enabled: true });
+    await app.close();
+  });
+
+  it("applies UNKNOWN_DENIED immediately without Journal admission", async () => {
+    const order: string[] = [];
+    const app = await createTestApp({
+      runtime: {
+        streamAssistantInitiatedTurn: async function* (): AsyncIterable<RuntimeReplyStreamEvent> {
+          throw new Error("must not run");
+        },
+        invalidateProactiveConsentProjection(revisionFloor: number) {
+          order.push(`invalidate:${revisionFloor}`);
+          return "APPLIED";
+        }
+      },
+      proactiveConsentReceiptAdmission: {
+        async admit() {
+          order.push("journal");
+        }
+      }
+    } as unknown as AppContext);
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/proactive/consent",
+      payload: { state: "UNKNOWN_DENIED", revisionFloor: 43 }
+    });
+    expect(response.statusCode).toBe(200);
+    expect(order).toEqual(["invalidate:43"]);
+    await app.close();
+  });
+
+  it("rejects the legacy boolean projection before touching Runtime or Journal", async () => {
+    const app = await createTestApp({
+      runtime: { streamAssistantInitiatedTurn: async function* () {} },
+      proactiveConsentReceiptAdmission: {
+        async admit() {
+          throw new Error("must not run");
         }
       }
     } as unknown as AppContext);
@@ -266,9 +330,35 @@ describe("proactive turn SSE route", () => {
       url: "/v1/proactive/consent",
       payload: { enabled: true }
     });
-    expect(response.statusCode).toBe(200);
-    expect(response.json()).toEqual({ ok: true, enabled: true });
-    expect(enabled).toBe(true);
+    expect(response.statusCode).toBe(400);
+    await app.close();
+  });
+
+  it("does not apply READY when durable Journal admission fails", async () => {
+    let applied = false;
+    const app = await createTestApp({
+      runtime: {
+        streamAssistantInitiatedTurn: async function* () {},
+        preflightProactiveConsentProjection: () => ({ result: "APPLY" }),
+        applyProactiveConsentProjection() {
+          applied = true;
+          return "APPLIED";
+        }
+      },
+      proactiveConsentReceiptAdmission: {
+        async admit() {
+          throw new JournalStoreError("DATABASE_UNAVAILABLE", "private database detail");
+        }
+      }
+    } as unknown as AppContext);
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/proactive/consent",
+      payload: { state: "READY", revision: 1, enabled: true }
+    });
+    expect(response.statusCode).toBe(503);
+    expect(response.body).not.toContain("private database detail");
+    expect(applied).toBe(false);
     await app.close();
   });
 });

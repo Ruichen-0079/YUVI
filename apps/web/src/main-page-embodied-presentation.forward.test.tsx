@@ -80,7 +80,7 @@ vi.mock("./api/client.js", () => ({
     streamMessage: vi.fn(),
     streamProactiveTurn: vi.fn(),
     subscribeProactiveLive: mockState.subscribeProactiveLive,
-    setProactiveConsent: vi.fn(async () => ({ ok: true, enabled: true })),
+    projectProactiveConsent: vi.fn(async () => ({ ok: true, applied: true, state: "READY" })),
     createDashboardWebSocket: () => new FakeWebSocket("ws://test/ws?dashboard=true")
   }
 }));

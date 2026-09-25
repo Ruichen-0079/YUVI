@@ -140,7 +140,11 @@ describe("ordinary production Character path", () => {
       await context.reloadRuntimeConfig(env);
       expect(context.runtime).not.toBe(previous);
       context.runtime.stopProactiveScheduler();
-      context.runtime.setProactiveConsent(true);
+      context.runtime.applyProactiveConsentProjection({
+        state: "READY",
+        revision: 0,
+        enabled: true
+      });
       for await (const event of context.runtime.streamAssistantInitiatedTurn({
         sessionId: "reload-live",
         idempotencyKey: "after-reload",

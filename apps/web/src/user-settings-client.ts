@@ -76,7 +76,7 @@ function parseSettingsChangedEvent(payload: unknown): SettingsChangedEventDto | 
   const restartServices = value["restartServices"];
   if (
     typeof revision !== "number" ||
-    !Number.isFinite(revision) ||
+    !Number.isSafeInteger(revision) ||
     revision < 0 ||
     !Array.isArray(changedSections) ||
     !changedSections.every((section): section is string => typeof section === "string") ||
