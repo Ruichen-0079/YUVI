@@ -33,6 +33,7 @@ import type { ServerPluginCapabilityGrant } from "./mcp-capability-binding.js";
 import type { ConversationalReceiptAdmission } from "./conversational-receipt-admission.js";
 import type { SpeechReceiptAdmission } from "./speech-receipt-admission.js";
 import type { VisionReceiptAdmission } from "./vision-receipt-admission.js";
+import type { RuntimeControlReceiptAdmission } from "./runtime-control-receipt-admission.js";
 
 export type BuildServerOptions = Readonly<{
   /** Composition-time source registration; discovery does not call source loaders. */
@@ -45,6 +46,8 @@ export type BuildServerOptions = Readonly<{
   speechReceiptAdmission?: SpeechReceiptAdmission | undefined;
   /** Host-only dependency override for tests/in-process hosts; never request-controlled. */
   visionReceiptAdmission?: VisionReceiptAdmission | undefined;
+  /** Host-only dependency override for tests/in-process hosts; never request-controlled. */
+  runtimeControlReceiptAdmission?: RuntimeControlReceiptAdmission | undefined;
 }>;
 
 export async function buildServer(config: ServerConfig, options: BuildServerOptions = {}) {
@@ -123,6 +126,9 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   }
   if (options.visionReceiptAdmission) {
     context.visionReceiptAdmission = options.visionReceiptAdmission;
+  }
+  if (options.runtimeControlReceiptAdmission) {
+    context.runtimeControlReceiptAdmission = options.runtimeControlReceiptAdmission;
   }
   try {
     const recovered = await context.runtime.recoverStaleStreamingMessages({

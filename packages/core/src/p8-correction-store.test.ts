@@ -397,6 +397,29 @@ describe("PostgresP8CorrectionStore", () => {
     });
   });
 
+  it("looks up a correction reference globally and validates the stored row", async () => {
+    const record = createP8CorrectionRecord(
+      correction({
+        correctionReference: "global-reference",
+        address: createDefaultP8IdentityAddress("other-person")
+      })
+    );
+    const store = new PostgresP8CorrectionStore(
+      clientFor(async (text) => {
+        if (text.includes("where correction_reference = $1")) {
+          return { rows: [rowForRecord(record)] };
+        }
+        if (text.includes("from p8_corrections")) return { rows: [rowForRecord(record)] };
+        throw new Error(`Unexpected P8 store query: ${text}`);
+      })
+    );
+
+    await expect(store.loadCorrectionByReference("global-reference")).resolves.toMatchObject({
+      status: "SUCCESS_WITH_CORRECTION",
+      correction: { correctionReference: "global-reference" }
+    });
+  });
+
   it("fails closed for unknown versions and malformed authoritative columns", async () => {
     const record = createP8CorrectionRecord(correction());
     const unknown = rowForRecord(record, {

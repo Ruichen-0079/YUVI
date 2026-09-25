@@ -60,7 +60,13 @@ function buildServerWithAdmission(env: NodeJS.ProcessEnv) {
         };
       }
     },
-    speechReceiptAdmission: createTestSpeechReceiptAdmission()
+    speechReceiptAdmission: createTestSpeechReceiptAdmission(),
+    runtimeControlReceiptAdmission: {
+      async admit() {
+        // Runtime/P8 and one-shot grant behavior is tested here; durable
+        // ordering and privacy are covered by the real PostgreSQL A8.2e2 suite.
+      }
+    }
   });
 }
 

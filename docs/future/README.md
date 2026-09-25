@@ -29,7 +29,7 @@ A research hypothesis never overrides a production authority boundary.
 
 For roadmap interpretation, [`version-roadmap.md`](version-roadmap.md) is the **release/version sequencing authority**. Detailed atom contracts remain in each version plan and in [`post-v0.1.3-roadmap.md`](post-v0.1.3-roadmap.md). Version grouping may delay technically independent work for product sequencing, but it does not erase technical dependencies or research stop gates.
 
-For A8.2 specifically, [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) is the **current leaf execution authority**. It refines the aggregate A8.2 section of the v0.1.3 plan after source audits proved that conversational, speech, standalone-vision, Product, Runtime-governed, proactive-consent and voice-identity controls do not share one production admission owner. A8.2e is source-split into e1 Product/Person controls, e2 Runtime-governed local controls and e3 proactive-consent authority closure. Aggregate A8.2 remains incomplete until A8.2a–A8.2f all close, including all three e leaves.
+For A8.2 specifically, [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) is the **current leaf execution authority**. It refines the aggregate A8.2 section of the v0.1.3 plan after source audits proved that conversational, speech, standalone-vision, Product, Runtime-governed, proactive-consent and voice-identity controls do not share one production admission owner. A8.2e is source-split into e1 Product/Person controls, e2 Runtime-governed local controls and e3 proactive-consent authority closure. A8.2e1 and A8.2e2 are implemented; e3 remains planned. Aggregate A8.2 remains incomplete until A8.2a–A8.2f all close, including all three e leaves.
 
 For A12.1 specifically, [`a12.1-snowluma-contract.md`](a12.1-snowluma-contract.md) is the **current pinned SnowLuma source-contract authority**. Its status is `SOURCE CONTRACT ESTABLISHED — LIVE PROBE PENDING`: source analysis already constrains inbound identity/dedup and outbound idempotency/reconciliation semantics, while the remaining real QQ probes are allowed only to narrow explicitly unresolved remote behavior. It does not close A12.1 or authorize A12.2.
 
@@ -85,7 +85,7 @@ The sequence is intentionally falsifiable. Later learned/latent mechanisms are n
 
 The old **Platform Complete** target is retired. v0.1.3 is the **Durable Causal History Foundation**.
 
-A0–A6, A7.1–A7.2, A8.1, A8.2a–A8.2d and A8.2e1 are implemented engineering reality; see the [A8.1 contract](../validation/v0.1.3-a8.1-journal-contract.md), [A8.2a store validation](../validation/v0.1.3-a8.2a-journal-store.md), [A8.2b conversational ingress validation](../validation/v0.1.3-a8.2b-conversational-ingress.md), [A8.2c speech ingress validation](../validation/v0.1.3-a8.2c-speech-ingress.md), [A8.2d vision ingress validation](../validation/v0.1.3-a8.2d-vision-ingress.md) and [A8.2e1 Product-control validation](../validation/v0.1.3-a8.2e1-product-controls.md). A8.2a adds durable PostgreSQL append storage; A8.2b gates ordinary HTTP/SSE/WebSocket user messages through durable RECEIPT append before Runtime; A8.2c gives finalized speech one durable RECEIPT before its observation can become handoff-ready; A8.2d commits a host-built vision RECEIPT before the standalone provider call without retaining image content; A8.2e1 commits a minimal CONTROL receipt before its three local Product operations. Aggregate A8.2 remains incomplete; A8.2e2–A8.2e3 and A8.2f remain planned:
+A0–A6, A7.1–A7.2, A8.1, A8.2a–A8.2d and A8.2e1–A8.2e2 are implemented engineering reality; see the [A8.1 contract](../validation/v0.1.3-a8.1-journal-contract.md), [A8.2a store validation](../validation/v0.1.3-a8.2a-journal-store.md), [A8.2b conversational ingress validation](../validation/v0.1.3-a8.2b-conversational-ingress.md), [A8.2c speech ingress validation](../validation/v0.1.3-a8.2c-speech-ingress.md), [A8.2d vision ingress validation](../validation/v0.1.3-a8.2d-vision-ingress.md), [A8.2e1 Product-control validation](../validation/v0.1.3-a8.2e1-product-controls.md) and [A8.2e2 Runtime-control validation](../validation/v0.1.3-a8.2e2-runtime-controls.md). A8.2a adds durable PostgreSQL append storage; A8.2b gates ordinary HTTP/SSE/WebSocket user messages through durable RECEIPT append before Runtime; A8.2c gives finalized speech one durable RECEIPT before its observation can become handoff-ready; A8.2d commits a host-built vision RECEIPT before the standalone provider call without retaining image content; A8.2e1 commits minimal CONTROL receipts before its three local Product operations; A8.2e2 commits minimal CONTROL receipts before P8 correction append and process-local read-text grant issuance. Aggregate A8.2 remains incomplete; A8.2e3 and A8.2f remain planned:
 
 ```text
 A8.2a Journal Store Foundation — IMPLEMENTED
@@ -98,7 +98,7 @@ A8.2d standalone vision ingress — IMPLEMENTED
   ↓
 A8.2e1 Product / Person local-control receipts — IMPLEMENTED
   ↓
-A8.2e2 Runtime-governed local-control receipts — PLANNED
+A8.2e2 Runtime-governed local-control receipts — IMPLEMENTED
   ↓
 A8.2e3 proactive-consent authority closure — PLANNED
   ↓

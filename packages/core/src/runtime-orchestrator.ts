@@ -4,8 +4,11 @@ import { projectMemoryVNextToCharacterAbi } from "@companion/character-abi/memor
 import type { CharacterAbiSemanticSection } from "@companion/character-abi";
 import {
   createDefaultP8IdentityAddress,
+  createP8CorrectionRecord,
+  correctionFromP8CorrectionRecord,
   reconstructP8MainProfile,
   productionAuthoredInvariants,
+  serializeP8CorrectionRecord,
   type P8ExplicitCorrection,
   type P8CharacterSpeakerView
 } from "@companion/p8";
@@ -126,6 +129,18 @@ import type {
   SafeProviderCallMetadata,
   StreamUserMessageOptions
 } from "./runtime-contracts.js";
+
+export type P8CorrectionPreflightStatus =
+  | "READY"
+  | "CONFLICT"
+  | "UNAVAILABLE"
+  | "ERROR"
+  | "INVALID";
+
+type P8CorrectionInspection =
+  | { status: "READY" }
+  | { status: "CONFLICT" | "UNAVAILABLE" | "ERROR" }
+  | { status: "INVALID"; error: unknown };
 import {
   executeRuntimeEmbodiedPresentation,
   type RuntimeEmbodiedPresentationExecutionResult
@@ -705,33 +720,107 @@ export class RuntimeOrchestrator {
   >();
   private readonly currentSpeakerEvidence = new WeakMap<PromptBuildOutput, string>();
 
+  async preflightP8Correction(
+    correction: P8ExplicitCorrection
+  ): Promise<P8CorrectionPreflightStatus> {
+    const inspection = await this.inspectP8Correction(correction);
+    return inspection.status;
+  }
+
   async appendP8Correction(correction: P8ExplicitCorrection) {
-    if (!this.options.p8CorrectionStore) return { status: "UNAVAILABLE" as const };
-    // P8 validates target authority and correction lineage; no PromptBuilder interpretation.
-    const lookup = { address: correction.address, scopeReference: correction.scopeReference };
-    const loaded = await this.options.p8CorrectionStore.loadCorrections(lookup);
-    if (loaded.status === "ERROR" || loaded.status === "UNAVAILABLE") return loaded;
-    if (
-      loaded.corrections.some((item) => item.correctionReference === correction.correctionReference)
-    )
-      return this.options.p8CorrectionStore.appendCorrection(correction);
-    reconstructP8MainProfile({
-      ...lookup,
-      expectedScopeReference: lookup.scopeReference,
-      authoredInvariants: productionAuthoredInvariants(),
-      longTerm: { status: "empty", events: [], source: "runtime", limited: false },
-      referencedInterpretationCandidates: [
-        {
-          interpretationReference: "relationship.current",
-          candidate: { domain: "RELATIONSHIP_CONTEXT" }
-        }
-      ],
-      correctionStore: {
-        status: "SUCCESS_WITH_CORRECTIONS",
-        corrections: [...loaded.corrections, correction]
+    const store = this.options.p8CorrectionStore;
+    if (!store) return { status: "UNAVAILABLE" as const };
+    const inspection = await this.inspectP8Correction(correction);
+    switch (inspection.status) {
+      case "CONFLICT":
+        return { status: "CONFLICT" as const };
+      case "UNAVAILABLE":
+        return { status: "UNAVAILABLE" as const };
+      case "ERROR":
+        return { status: "ERROR" as const };
+      case "INVALID":
+        throw inspection.error;
+      case "READY":
+        // Always perform the domain append after the fresh validation read. The
+        // P8 store remains the final authority for concurrent reference/lineage races.
+        return store.appendCorrection(correction);
+    }
+  }
+
+  private async inspectP8Correction(
+    correction: P8ExplicitCorrection
+  ): Promise<P8CorrectionInspection> {
+    const store = this.options.p8CorrectionStore;
+    if (!store) return { status: "UNAVAILABLE" };
+
+    let candidateRecord;
+    try {
+      candidateRecord = createP8CorrectionRecord(correction);
+    } catch (error) {
+      return { status: "INVALID", error };
+    }
+    const canonicalCorrection = correctionFromP8CorrectionRecord(candidateRecord);
+    const lookup = {
+      address: candidateRecord.address,
+      scopeReference: candidateRecord.scopeReference
+    };
+
+    let loaded;
+    let referenced;
+    try {
+      loaded = await store.loadCorrections(lookup);
+      if (loaded.status === "UNAVAILABLE" || loaded.status === "ERROR") {
+        return { status: loaded.status };
       }
-    });
-    return this.options.p8CorrectionStore.appendCorrection(correction);
+      referenced = await store.loadCorrectionByReference(candidateRecord.correctionReference);
+    } catch {
+      return { status: "ERROR" };
+    }
+    if (referenced.status === "UNAVAILABLE" || referenced.status === "ERROR") {
+      return { status: referenced.status };
+    }
+
+    const scopedExisting = loaded.corrections.find(
+      (item) => item.correctionReference === candidateRecord.correctionReference
+    );
+    if (referenced.status === "SUCCESS_WITH_CORRECTION") {
+      const existingRecord = createP8CorrectionRecord(referenced.correction);
+      if (
+        serializeP8CorrectionRecord(existingRecord) !== serializeP8CorrectionRecord(candidateRecord)
+      ) {
+        return { status: "CONFLICT" };
+      }
+      // A global hit with the same canonical address/scope must also be present
+      // in the exact-scope read. Treat disagreement as unreadable state.
+      if (!scopedExisting) return { status: "ERROR" };
+      return { status: "READY" };
+    }
+    if (scopedExisting) return { status: "ERROR" };
+
+    try {
+      const reconstruction = reconstructP8MainProfile({
+        ...lookup,
+        expectedScopeReference: lookup.scopeReference,
+        authoredInvariants: productionAuthoredInvariants(),
+        longTerm: { status: "empty", events: [], source: "runtime", limited: false },
+        referencedInterpretationCandidates: [
+          {
+            interpretationReference: "relationship.current",
+            candidate: { domain: "RELATIONSHIP_CONTEXT" }
+          }
+        ],
+        correctionStore: {
+          status: "SUCCESS_WITH_CORRECTIONS",
+          corrections: [...loaded.corrections, canonicalCorrection]
+        }
+      });
+      if (reconstruction.status !== "RECONSTRUCTED") {
+        return { status: reconstruction.status };
+      }
+    } catch (error) {
+      return { status: "INVALID", error };
+    }
+    return { status: "READY" };
   }
 
   private async attachSemanticContext(
@@ -3400,7 +3489,6 @@ export class RuntimeOrchestrator {
         "No usable evidence was returned from the attached image."
       );
       this.attachedVisualEvidence.set(event, evidence);
-
     } catch {
       assertCurrent();
       this.attachedVisualEvidence.set(

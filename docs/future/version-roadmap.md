@@ -4,7 +4,7 @@
 >
 > This document answers **what version comes next and what each version is meant to make true**. It does not replace the detailed atom contracts in the v0.1.3 plan or the post-v0.1.3 research roadmap. When a technical dependency conflicts with convenient version grouping, the dependency wins.
 >
-> Current implemented baseline is A0–A6 plus A7.1, A7.2, the A8.1 journal contract and A8.2a–A8.2d Journal storage/ingress. See [`implementation-baseline.md`](implementation-baseline.md). Current Future authority is indexed in [`README.md`](README.md).
+> Current implemented baseline is A0–A6 plus A7.1, A7.2, the A8.1 journal contract and A8.2a–A8.2e2 Journal storage/ingress and Runtime-control receipts. See [`implementation-baseline.md`](implementation-baseline.md). Current Future authority is indexed in [`README.md`](README.md).
 
 ## 1. Release philosophy
 
@@ -65,7 +65,7 @@ Detailed authority: [`09-v0.1.3-platform-completion.md`](09-v0.1.3-platform-comp
 
 ## Current state
 
-A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2d and A8.2e1 are implemented. A8.2e2–A8.2e3, A8.2f and A9–A12 remain planned engineering. Aggregate A8.2 and aggregate A8.2e remain incomplete until their remaining leaves close. A8.1 and A8.2a–A8.2d validation are recorded in [`v0.1.3-a8.1-journal-contract.md`](../validation/v0.1.3-a8.1-journal-contract.md), [`v0.1.3-a8.2a-journal-store.md`](../validation/v0.1.3-a8.2a-journal-store.md), [`v0.1.3-a8.2b-conversational-ingress.md`](../validation/v0.1.3-a8.2b-conversational-ingress.md), [`v0.1.3-a8.2c-speech-ingress.md`](../validation/v0.1.3-a8.2c-speech-ingress.md), [`v0.1.3-a8.2d-vision-ingress.md`](../validation/v0.1.3-a8.2d-vision-ingress.md) and [`v0.1.3-a8.2e1-product-controls.md`](../validation/v0.1.3-a8.2e1-product-controls.md).
+A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2d and A8.2e1–A8.2e2 are implemented. A8.2e3, A8.2f and A9–A12 remain planned engineering. Aggregate A8.2 and aggregate A8.2e remain incomplete until their remaining leaves close. A8.1 and A8.2a–A8.2e2 validation are recorded in [`v0.1.3-a8.1-journal-contract.md`](../validation/v0.1.3-a8.1-journal-contract.md), [`v0.1.3-a8.2a-journal-store.md`](../validation/v0.1.3-a8.2a-journal-store.md), [`v0.1.3-a8.2b-conversational-ingress.md`](../validation/v0.1.3-a8.2b-conversational-ingress.md), [`v0.1.3-a8.2c-speech-ingress.md`](../validation/v0.1.3-a8.2c-speech-ingress.md), [`v0.1.3-a8.2d-vision-ingress.md`](../validation/v0.1.3-a8.2d-vision-ingress.md), [`v0.1.3-a8.2e1-product-controls.md`](../validation/v0.1.3-a8.2e1-product-controls.md) and [`v0.1.3-a8.2e2-runtime-controls.md`](../validation/v0.1.3-a8.2e2-runtime-controls.md).
 
 The release is best tracked as three milestones rather than six family numbers.
 
@@ -86,7 +86,7 @@ A7.1 → A7.2 → A8.1
                   ↓
                A8.2e1 Product / Person local-control receipts — IMPLEMENTED
                   ↓
-               A8.2e2 Runtime-governed local-control receipts
+               A8.2e2 Runtime-governed local-control receipts — IMPLEMENTED
                   ↓
                A8.2e3 proactive-consent authority closure
                   ↓
@@ -98,6 +98,8 @@ A7.1 → A7.2 → A8.1
 A8.2 was split only after the required implementation audit found independent production ingress owners. Runtime remains the single semantic execution authority but is not a universal transport-ingress gate. The leaf split is source-driven and must not be implemented as six new managers.
 
 A8.2a implements the database ownership rule: Journal durability consumes the Supervisor/deployment-owned PostgreSQL infrastructure and remains available when Mem0 is the active Memory backend. `MEMORY_REPOSITORY=postgres` / long-term Memory backend selection does not determine whether the Journal exists, and no second PostgreSQL daemon is introduced. A8.2b gates ordinary conversational HTTP/SSE/WebSocket input through durable RECEIPT append. A8.2c gates finalized speech observation handoff with a Runtime-owned provisional reservation and a single durable RECEIPT before handoff readiness. A8.2d gates standalone `/v1/vision/analyze` with a host-built RECEIPT before provider invocation, while retaining no image bytes or URL. Source audit split the remaining controls into Product/Person local controls (e1), Runtime-governed local controls (e2), and proactive-consent authority closure (e3).
+
+A8.2e2 now commits minimal CONTROL receipts before P8 correction append and process-local read-text grant issuance. Runtime revalidates P8 state after commit; read-text paths are not retained and grants are not restored from Journal.
 
 Result:
 

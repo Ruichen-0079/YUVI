@@ -151,6 +151,7 @@ describe("Runtime proactive scheduler", () => {
       proactiveConsentEnabled: true,
       p8CorrectionStore: {
         loadCorrections,
+        loadCorrectionByReference: async () => ({ status: "UNAVAILABLE" as const }),
         appendCorrection: async () => ({ status: "UNAVAILABLE" as const })
       },
       setProactiveWake(callback) {

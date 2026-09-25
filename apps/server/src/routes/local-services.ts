@@ -1,13 +1,18 @@
 import { productVoiceProfiles } from "../services/packaged-voice.js";
 import { retainVoiceSample, voiceReviews, updateVoiceReview } from "../services/voice-review.js";
 import { isAbsolute } from "node:path";
-import { correctionFromP8CorrectionRecord, parseP8CorrectionRecord } from "@companion/p8";
+import {
+  correctionFromP8CorrectionRecord,
+  parseP8CorrectionRecord,
+  type P8ExplicitCorrection
+} from "@companion/p8";
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import type { ServerConfig } from "../config.js";
 import type { AppContext } from "../context.js";
 import { localServicesStatus } from "../services/local-services.js";
+import { toRuntimeControlAdmissionFailure } from "../runtime-control-receipt-admission.js";
 import { requireLocalDashboardAccess } from "./security.js";
 
 const audio = z.object({
@@ -22,13 +27,47 @@ export async function registerLocalServiceRoutes(
 ) {
   app.post("/p8/corrections", async (request, reply) => {
     if (!requireLocalDashboardAccess(config, request, reply)) return;
+    let correction: P8ExplicitCorrection;
     try {
-      const correction = correctionFromP8CorrectionRecord(parseP8CorrectionRecord(request.body));
+      correction = correctionFromP8CorrectionRecord(parseP8CorrectionRecord(request.body));
+    } catch {
+      return reply.code(400).send({ error: "invalid_p8_correction" });
+    }
+
+    const preflight = await context.runtime.preflightP8Correction(correction);
+    if (preflight === "CONFLICT") return reply.code(409).send({ status: "CONFLICT" });
+    if (preflight === "UNAVAILABLE" || preflight === "ERROR")
+      return reply.code(503).send({ error: "p8_correction_unavailable" });
+    if (preflight === "INVALID") return reply.code(400).send({ error: "invalid_p8_correction" });
+
+    const receiptInput =
+      correction.target.kind === "INTERPRETATION"
+        ? {
+            operation: "P8_CORRECTION" as const,
+            action: correction.action,
+            targetKind: "INTERPRETATION" as const
+          }
+        : {
+            operation: "P8_CORRECTION" as const,
+            action: correction.action,
+            targetKind: "AUTHORED_INVARIANT" as const,
+            invariantTarget: correction.target.invariantTarget
+          };
+    try {
+      await context.runtimeControlReceiptAdmission.admit(receiptInput);
+    } catch (error) {
+      const failure = toRuntimeControlAdmissionFailure(error);
+      return reply.code(failure.statusCode).send({ error: failure.code });
+    }
+
+    try {
       const result = await context.runtime.appendP8Correction(correction);
       return reply
         .code(result.status === "STORED" || result.status === "ALREADY_STORED" ? 200 : 409)
         .send(result);
     } catch {
+      // The CONTROL receipt has committed. Keep the P8 rejection bounded and
+      // never attempt to remove the admission fact.
       return reply.code(400).send({ error: "invalid_p8_correction" });
     }
   });
@@ -58,12 +97,35 @@ export async function registerLocalServiceRoutes(
   app.post("/capabilities/read-text/authorize", async (request, reply) => {
     if (!requireLocalDashboardAccess(config, request, reply)) return;
     const parsed = z
-      .object({ sessionId: z.string().min(1), path: z.string().trim().min(1).max(4096) })
+      .object({
+        sessionId: z
+          .string()
+          .min(1)
+          .refine((value) => value.trim().length > 0),
+        path: z
+          .string()
+          .min(1)
+          .max(4096)
+          .refine((value) => value === value.trim())
+      })
       .strict()
       .safeParse(request.body);
     if (!parsed.success || !isAbsolute(parsed.data.path))
       return reply.code(400).send({ error: "invalid_read_text_authorization" });
-    context.runtime.authorizeReadText(parsed.data.sessionId, parsed.data.path);
+
+    try {
+      await context.runtimeControlReceiptAdmission.admit({ operation: "READ_TEXT_AUTHORIZE" });
+    } catch (error) {
+      const failure = toRuntimeControlAdmissionFailure(error);
+      return reply.code(failure.statusCode).send({ error: failure.code });
+    }
+    try {
+      context.runtime.authorizeReadText(parsed.data.sessionId, parsed.data.path);
+    } catch {
+      // Route preflight and Runtime share the accepted input constraints. If
+      // Runtime still rejects, the committed receipt remains admission only.
+      return reply.code(400).send({ error: "invalid_read_text_authorization" });
+    }
     return { status: "AUTHORIZED" };
   });
   app.get("/local-services/status", async (request, reply) => {

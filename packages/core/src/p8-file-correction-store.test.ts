@@ -36,6 +36,10 @@ it("keeps append-only correction lineage, idempotency, scope isolation and corru
     expect((await createFileP8CorrectionStore(file).loadCorrections(correction)).status).toBe(
       "SUCCESS_WITH_CORRECTIONS"
     );
+    expect(await createFileP8CorrectionStore(file).loadCorrectionByReference("first")).toEqual({
+      status: "SUCCESS_WITH_CORRECTION",
+      correction: expect.objectContaining({ correctionReference: "first" })
+    });
     expect(
       (
         await store.loadCorrections({
@@ -46,6 +50,7 @@ it("keeps append-only correction lineage, idempotency, scope isolation and corru
     ).toBe("SUCCESS_WITH_NO_CORRECTIONS");
     writeFileSync(file, "corrupted");
     expect(await store.loadCorrections(correction)).toEqual({ status: "ERROR" });
+    expect(await store.loadCorrectionByReference("first")).toEqual({ status: "ERROR" });
     expect(
       (await store.appendCorrection({ ...correction, correctionReference: "another" })).status
     ).toBe("ERROR");

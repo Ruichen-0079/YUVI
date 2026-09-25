@@ -56,6 +56,13 @@ export type P8CorrectionStoreLoadResult = Readonly<
   | { status: "ERROR" }
 >;
 
+export type P8CorrectionReferenceLoadResult = Readonly<
+  | { status: "SUCCESS_WITH_CORRECTION"; correction: P8ExplicitCorrection }
+  | { status: "SUCCESS_WITH_NO_CORRECTION" }
+  | { status: "UNAVAILABLE" }
+  | { status: "ERROR" }
+>;
+
 export type P8CorrectionStoreWriteResult = Readonly<
   | { status: "STORED"; record: P8CorrectionRecord }
   | { status: "ALREADY_STORED"; record: P8CorrectionRecord }
@@ -68,6 +75,8 @@ export type P8CorrectionStoreWriteResult = Readonly<
 export interface P8CorrectionStore {
   appendCorrection(correction: P8ExplicitCorrection): Promise<P8CorrectionStoreWriteResult>;
   loadCorrections(input: P8CorrectionLookup): Promise<P8CorrectionStoreLoadResult>;
+  /** Read-only global lookup for the stable domain correction reference. */
+  loadCorrectionByReference(correctionReference: string): Promise<P8CorrectionReferenceLoadResult>;
 }
 
 export function createP8CorrectionRecord(correction: P8ExplicitCorrection): P8CorrectionRecord {

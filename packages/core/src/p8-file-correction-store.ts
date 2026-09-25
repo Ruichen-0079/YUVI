@@ -8,6 +8,7 @@ import {
   serializeP8CorrectionRecord,
   validateP8CorrectionRecordLineage,
   type P8CorrectionRecord,
+  type P8CorrectionReferenceLoadResult,
   type P8CorrectionStore
 } from "@companion/p8";
 
@@ -36,6 +37,32 @@ export function createFileP8CorrectionStore(filePath: string): P8CorrectionStore
         return {
           status: records.length ? "SUCCESS_WITH_CORRECTIONS" : "SUCCESS_WITH_NO_CORRECTIONS",
           corrections: records.map(correctionFromP8CorrectionRecord)
+        };
+      } catch {
+        return { status: "ERROR" };
+      }
+    },
+    async loadCorrectionByReference(correctionReference): Promise<P8CorrectionReferenceLoadResult> {
+      try {
+        if (
+          typeof correctionReference !== "string" ||
+          correctionReference.length === 0 ||
+          correctionReference.length > 160
+        )
+          return { status: "ERROR" };
+        const records = read();
+        const matches = records.filter(
+          (record) => record.correctionReference === correctionReference
+        );
+        if (matches.length === 0) return { status: "SUCCESS_WITH_NO_CORRECTION" };
+        if (matches.length !== 1) return { status: "ERROR" };
+        const record = matches[0]!;
+        validateP8CorrectionRecordLineage(
+          records.filter((candidate) => key(candidate) === key(record))
+        );
+        return {
+          status: "SUCCESS_WITH_CORRECTION",
+          correction: correctionFromP8CorrectionRecord(record)
         };
       } catch {
         return { status: "ERROR" };

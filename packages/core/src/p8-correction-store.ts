@@ -6,6 +6,7 @@ import {
   serializeP8CorrectionRecord,
   validateP8CorrectionRecordLineage,
   type P8CorrectionLookup,
+  type P8CorrectionReferenceLoadResult,
   type P8CorrectionRecord,
   type P8CorrectionStore,
   type P8CorrectionStoreLoadResult,
@@ -144,6 +145,69 @@ export class PostgresP8CorrectionStore implements P8CorrectionStore {
       });
     } catch (error) {
       return Object.freeze({ status: classifyPostgresFailure(error) });
+    }
+  }
+
+  async loadCorrectionByReference(
+    correctionReference: string
+  ): Promise<P8CorrectionReferenceLoadResult> {
+    if (
+      typeof correctionReference !== "string" ||
+      correctionReference.length === 0 ||
+      correctionReference.length > 160
+    )
+      return { status: "ERROR" };
+    try {
+      const result = await this.client.query(
+        `select
+           record_version, correction_reference,
+           character_instance_id, persona_profile_id, subject_scope_id, scope_reference,
+           target_kind, interpretation_reference, invariant_target, invariant_key,
+           action, replacement_meaning,
+           provenance_source, provenance_reference, supplied_at,
+           supersedes_correction_reference, superseded_evidence_references, payload
+         from p8_corrections
+         where correction_reference = $1`,
+        [correctionReference]
+      );
+      if (result.rows.length === 0) return { status: "SUCCESS_WITH_NO_CORRECTION" };
+      if (result.rows.length !== 1) return { status: "ERROR" };
+      const row = result.rows[0]!;
+      const payload = parseP8CorrectionRecord(row["payload"]);
+      const lookup: P8CorrectionLookup = {
+        address: payload.address,
+        scopeReference: payload.scopeReference
+      };
+      const record = parseStoredRow(row, lookup);
+      const scopeRows = await this.client.query(
+        `select
+           record_version, correction_reference,
+           character_instance_id, persona_profile_id, subject_scope_id, scope_reference,
+           target_kind, interpretation_reference, invariant_target, invariant_key,
+           action, replacement_meaning,
+           provenance_source, provenance_reference, supplied_at,
+           supersedes_correction_reference, superseded_evidence_references, payload
+         from p8_corrections
+         where character_instance_id = $1
+           and persona_profile_id = $2
+           and subject_scope_id is not distinct from $3
+           and scope_reference = $4
+         order by correction_reference asc`,
+        [
+          lookup.address.characterInstanceId,
+          lookup.address.personaProfileId,
+          lookup.address.subjectScopeId ?? null,
+          lookup.scopeReference.reference
+        ]
+      );
+      const scopeRecords = scopeRows.rows.map((scopeRow) => parseStoredRow(scopeRow, lookup));
+      validateP8CorrectionRecordLineage(scopeRecords);
+      return {
+        status: "SUCCESS_WITH_CORRECTION",
+        correction: correctionFromP8CorrectionRecord(record)
+      };
+    } catch (error) {
+      return { status: classifyPostgresFailure(error) };
     }
   }
 }
