@@ -16,27 +16,63 @@ export type VoiceControlReceiptInput =
   | { operation: "VOICE_PROFILE_ENROLL"; voiceProfileId: string }
   | { operation: "VOICE_PROFILE_BIND_PERSON"; voiceProfileId: string; personId: string }
   | { operation: "VOICE_PROFILE_DELETE"; voiceProfileId: string }
-  | { operation: "VOICE_PROFILE_BINDING_REMOVE"; voiceProfileId: string };
+  | { operation: "VOICE_PROFILE_BINDING_REMOVE"; voiceProfileId: string }
+  | { operation: "VOICE_SAMPLE_REVIEW_UNKNOWN"; sampleId: string }
+  | {
+      operation: "VOICE_SAMPLE_REVIEW_PERSON";
+      sampleId: string;
+      personId: string;
+      voiceProfileId: string;
+      enrollFromSample: boolean;
+    }
+  | {
+      operation: "PRODUCT_VOICE_ENROLL";
+      newVoiceProfileId: string;
+      personId: string;
+      replaceVoiceProfileId?: string;
+    };
 
 export interface VoiceControlReceiptAdmission {
   admit(input: VoiceControlReceiptInput): Promise<void>;
 }
 
 const id = z.string().min(1).max(160);
+const f2Id = id.refine(value => value.trim().length > 0, "Identifier must not be blank.");
 const VoiceControlReceiptInputSchema = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("VOICE_PROFILE_ENROLL"), voiceProfileId: id }).strict(),
   z
     .object({ operation: z.literal("VOICE_PROFILE_BIND_PERSON"), voiceProfileId: id, personId: id })
     .strict(),
   z.object({ operation: z.literal("VOICE_PROFILE_DELETE"), voiceProfileId: id }).strict(),
-  z.object({ operation: z.literal("VOICE_PROFILE_BINDING_REMOVE"), voiceProfileId: id }).strict()
+  z.object({ operation: z.literal("VOICE_PROFILE_BINDING_REMOVE"), voiceProfileId: id }).strict(),
+  z.object({ operation: z.literal("VOICE_SAMPLE_REVIEW_UNKNOWN"), sampleId: f2Id }).strict(),
+  z
+    .object({
+      operation: z.literal("VOICE_SAMPLE_REVIEW_PERSON"),
+      sampleId: f2Id,
+      personId: f2Id,
+      voiceProfileId: f2Id,
+      enrollFromSample: z.boolean()
+    })
+    .strict(),
+  z
+    .object({
+      operation: z.literal("PRODUCT_VOICE_ENROLL"),
+      newVoiceProfileId: f2Id,
+      personId: f2Id,
+      replaceVoiceProfileId: f2Id.optional()
+    })
+    .strict()
 ]);
 
 const SURFACE_REFERENCE: Record<VoiceControlReceiptInput["operation"], string> = {
   VOICE_PROFILE_ENROLL: "yuvi:http:/voice-profiles",
   VOICE_PROFILE_BIND_PERSON: "yuvi:http:/voice-profiles/:id/person",
   VOICE_PROFILE_DELETE: "yuvi:http:/voice-profiles/:id",
-  VOICE_PROFILE_BINDING_REMOVE: "yuvi:http:/product/voices/:id/binding"
+  VOICE_PROFILE_BINDING_REMOVE: "yuvi:http:/product/voices/:id/binding",
+  VOICE_SAMPLE_REVIEW_UNKNOWN: "yuvi:http:/product/voice-samples/:id/review",
+  VOICE_SAMPLE_REVIEW_PERSON: "yuvi:http:/product/voice-samples/:id/review",
+  PRODUCT_VOICE_ENROLL: "yuvi:http:/product/voices/enroll"
 };
 
 /** Host-only builder for sanitized voice-control facts; it owns no audio, Memory, Runtime or provider access. */
@@ -59,7 +95,7 @@ export class HostVoiceControlReceiptAdmission implements VoiceControlReceiptAdmi
       throw new JournalStoreError("DATABASE_UNAVAILABLE", "Journal PostgreSQL is not configured.");
     }
 
-    const input = parsed.data;
+    const input = parsed.data as VoiceControlReceiptInput;
     const summary = summarize(input);
     const textRef = {
       namespace: "yuvi:voice-control",
@@ -78,7 +114,11 @@ export class HostVoiceControlReceiptAdmission implements VoiceControlReceiptAdmi
       }
     ];
 
-    if (input.operation === "VOICE_PROFILE_ENROLL") {
+    if (
+      input.operation === "VOICE_PROFILE_ENROLL" ||
+      input.operation === "PRODUCT_VOICE_ENROLL" ||
+      (input.operation === "VOICE_SAMPLE_REVIEW_PERSON" && input.enrollFromSample)
+    ) {
       payloads.push({
         ref: {
           namespace: "yuvi:voice-enrollment-audio",
@@ -130,7 +170,15 @@ export class HostVoiceControlReceiptAdmission implements VoiceControlReceiptAdmi
         reason: "no local-control disclosure-policy snapshot is available"
       },
       policyVersion: "yuvi-voice-control-receipt.v1",
-      producer: { name: "yuvi-voice-control-ingress", version: "0.1.3-a8.2f1" },
+      producer: {
+        name: "yuvi-voice-control-ingress",
+        version:
+          input.operation === "VOICE_SAMPLE_REVIEW_UNKNOWN" ||
+          input.operation === "VOICE_SAMPLE_REVIEW_PERSON" ||
+          input.operation === "PRODUCT_VOICE_ENROLL"
+            ? "0.1.3-a8.2f2"
+            : "0.1.3-a8.2f1"
+      },
       sourceReferences: [
         {
           kind: "UNRESOLVED_SOURCE",
@@ -167,6 +215,30 @@ function summarize(input: VoiceControlReceiptInput): string {
       return JSON.stringify({
         operation: "voice.profile.binding-remove",
         voiceProfileId: input.voiceProfileId
+      });
+    case "VOICE_SAMPLE_REVIEW_UNKNOWN":
+      return JSON.stringify({
+        operation: "voice.sample.review",
+        mode: "LEAVE_UNKNOWN",
+        sampleId: input.sampleId
+      });
+    case "VOICE_SAMPLE_REVIEW_PERSON":
+      return JSON.stringify({
+        operation: "voice.sample.review",
+        mode: "ASSIGN_PERSON",
+        sampleId: input.sampleId,
+        personId: input.personId,
+        voiceProfileId: input.voiceProfileId,
+        enrollFromSample: input.enrollFromSample
+      });
+    case "PRODUCT_VOICE_ENROLL":
+      return JSON.stringify({
+        operation: "voice.product.enroll",
+        newVoiceProfileId: input.newVoiceProfileId,
+        personId: input.personId,
+        ...(input.replaceVoiceProfileId
+          ? { replaceVoiceProfileId: input.replaceVoiceProfileId }
+          : {})
       });
   }
 }

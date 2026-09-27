@@ -29,7 +29,7 @@ A research hypothesis never overrides a production authority boundary.
 
 For roadmap interpretation, [`version-roadmap.md`](version-roadmap.md) is the **release/version sequencing authority**. Detailed atom contracts remain in each version plan and in [`post-v0.1.3-roadmap.md`](post-v0.1.3-roadmap.md). Version grouping may delay technically independent work for product sequencing, but it does not erase technical dependencies or research stop gates.
 
-For A8.2 specifically, [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) is the **current leaf execution authority**. Source audits found separate conversational, speech, standalone-vision, Product, Runtime-governed, proactive-consent and voice-control admission owners. A8.2e is split into implemented e1 Product/Person controls, e2 Runtime-governed local controls and e3 proactive-consent authority. A8.2f is split into implemented f1 direct voice-profile/binding controls and planned f2 Product voice-review/enrollment controls. The f aggregate and A8.2 remain incomplete; proactive-turn, standalone TTS, production manual Memory mutation and Live2D presentation administration remain pending aggregate applicability/closure findings.
+For A8.2 specifically, [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) is the **current leaf execution authority**. Source audits found separate conversational, speech, standalone-vision, Product, Runtime-governed, proactive-consent and voice-control admission owners. A8.2e is split into implemented e1 Product/Person controls, e2 Runtime-governed local controls and e3 proactive-consent authority. A8.2f is split into implemented f1 direct voice-profile/binding controls and f2 Product voice-review/enrollment controls. Both f leaves are implemented, while aggregate f and A8.2 remain incomplete; proactive-turn, standalone TTS, production manual Memory mutation and Live2D presentation administration remain pending aggregate applicability/closure findings.
 
 For A12.1 specifically, [`a12.1-snowluma-contract.md`](a12.1-snowluma-contract.md) is the **current pinned SnowLuma source-contract authority**. Its status is `SOURCE CONTRACT ESTABLISHED — LIVE PROBE PENDING`: source analysis already constrains inbound identity/dedup and outbound idempotency/reconciliation semantics, while the remaining real QQ probes are allowed only to narrow explicitly unresolved remote behavior. It does not close A12.1 or authorize A12.2.
 
@@ -85,7 +85,7 @@ The sequence is intentionally falsifiable. Later learned/latent mechanisms are n
 
 The old **Platform Complete** target is retired. v0.1.3 is the **Durable Causal History Foundation**.
 
-A0–A6, A7.1–A7.2, A8.1, A8.2a–A8.2d, A8.2e1–e3 and A8.2f1 are implemented engineering reality; see the [A8.1 contract](../validation/v0.1.3-a8.1-journal-contract.md), earlier A8.2 validation records indexed by [A8.2 ingress authority](a8.2-ingress-closure.md), and [A8.2f1 voice controls](../validation/v0.1.3-a8.2f1-voice-controls.md). A8.2a adds durable PostgreSQL append storage; A8.2b–d gate conversational, finalized speech and standalone vision input; A8.2e1/e2 gate Product and Runtime local controls; A8.2e3 journals accepted READY settings projections before changing volatile Runtime consent authority; A8.2f1 commits minimal CONTROL receipts before direct voice-profile enrollment, binding, deletion and unbinding. UNKNOWN_DENIED only invalidates proactive authority and is not an authored false setting or Journal command. A8.2f2 remains planned and the f aggregate/A8.2 remain incomplete:
+A0–A6, A7.1–A7.2, A8.1, A8.2a–A8.2d, A8.2e1–e3 and A8.2f1–f2 are implemented engineering reality; see the [A8.1 contract](../validation/v0.1.3-a8.1-journal-contract.md), earlier A8.2 validation records indexed by [A8.2 ingress authority](a8.2-ingress-closure.md), [A8.2f1 voice controls](../validation/v0.1.3-a8.2f1-voice-controls.md) and [A8.2f2 Product voice controls](../validation/v0.1.3-a8.2f2-product-voice-controls.md). A8.2a adds durable PostgreSQL append storage; A8.2b–d gate conversational, finalized speech and standalone vision input; A8.2e1/e2 gate Product and Runtime local controls; A8.2e3 journals accepted READY settings projections before changing volatile Runtime consent authority; A8.2f1–f2 commit minimal CONTROL receipts before direct voice-profile/binding and Product voice-review/enrollment processing. Product voice-review receipts never retain raw audio, and privacy deletion of a review sample remains Journal-independent. UNKNOWN_DENIED only invalidates proactive authority and is not an authored false setting or Journal command. A8.2f leaves are implemented, but aggregate f/A8.2 remain incomplete:
 
 ```text
 A8.2a Journal Store Foundation — IMPLEMENTED
@@ -104,7 +104,7 @@ A8.2e3 proactive-consent authority closure — IMPLEMENTED
   ↓
 A8.2f1 direct voice-profile/binding controls — IMPLEMENTED
   ↓
-A8.2f2 Product voice-review/enrollment controls — PLANNED
+A8.2f2 Product voice-review/enrollment controls — IMPLEMENTED
   ↓
 A8.2f aggregate closure and applicability findings — INCOMPLETE
   ↓

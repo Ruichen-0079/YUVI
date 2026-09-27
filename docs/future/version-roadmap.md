@@ -4,7 +4,7 @@
 >
 > This document answers **what version comes next and what each version is meant to make true**. It does not replace the detailed atom contracts in the v0.1.3 plan or the post-v0.1.3 research roadmap. When a technical dependency conflicts with convenient version grouping, the dependency wins.
 >
-> Current implemented baseline is A0–A6 plus A7.1, A7.2, the A8.1 journal contract, A8.2a–A8.2e3, and A8.2f1 direct voice-control receipts. See [`implementation-baseline.md`](implementation-baseline.md). Current Future authority is indexed in [`README.md`](README.md).
+> Current implemented baseline is A0–A6 plus A7.1, A7.2, the A8.1 journal contract, A8.2a–A8.2e3, and A8.2f1–f2 voice-control receipts. Aggregate A8.2f/A8.2 remain incomplete. See [`implementation-baseline.md`](implementation-baseline.md). Current Future authority is indexed in [`README.md`](README.md).
 
 ## 1. Release philosophy
 
@@ -65,7 +65,7 @@ Detailed authority: [`09-v0.1.3-platform-completion.md`](09-v0.1.3-platform-comp
 
 ## Current state
 
-A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2e3 and A8.2f1 are implemented. A8.2f2 and aggregate f closure remain planned/incomplete; A9–A12 remain planned engineering. Aggregate A8.2 remains incomplete, and aggregate A8.2e is complete. The current f split and prior validations are indexed by [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md).
+A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2e3 and A8.2f1–f2 are implemented. Aggregate f applicability closure remains incomplete; A9–A12 remain planned engineering. Aggregate A8.2 remains incomplete, and aggregate A8.2e is complete. The current f split and prior validations are indexed by [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md).
 
 The release is best tracked as three milestones rather than six family numbers.
 
@@ -92,7 +92,7 @@ A7.1 → A7.2 → A8.1
                   ↓
                A8.2f1 direct voice-profile/binding controls — IMPLEMENTED
                   ↓
-               A8.2f2 Product voice-review/enrollment controls — PLANNED
+               A8.2f2 Product voice-review/enrollment controls — IMPLEMENTED
                   ↓
                A8.2f aggregate closure/applicability audit — INCOMPLETE
                   ↓

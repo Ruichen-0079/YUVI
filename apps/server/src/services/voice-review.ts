@@ -49,7 +49,12 @@ export function retainVoiceSample(base64: string, voiceProfileId?: string): Voic
   const row = { id: randomUUID(), ...(voiceProfileId ? { voiceProfileId } : {}), createdAt: new Date().toISOString(), sample };
   writePrivateJson(path(), [...rows, row].slice(-30)); return row;
 }
-export function updateVoiceReview(id: string, update: Partial<Pick<VoiceReview, "voiceProfileId" | "leftUnknown">> | null) { writePrivateJson(path(), voiceReviews().flatMap(r => r.id !== id ? [r] : update ? [{ ...r, ...update }] : [])); }
+export function updateVoiceReview(id: string, update: Partial<Pick<VoiceReview, "voiceProfileId" | "leftUnknown">> | null): boolean {
+  const rows = voiceReviews();
+  const existed = rows.some(row => row.id === id);
+  writePrivateJson(path(), rows.flatMap(r => r.id !== id ? [r] : update ? [{ ...r, ...update }] : []));
+  return existed;
+}
 export function retainSpeechReview(audio: string | undefined, output: STTOutput) {
   if (!audio || new Set(output.segments?.map(s => s.speakerClusterId)).size > 1) return;
   const match = output.voiceProfileMatch ?? (output.segments?.length === 1 ? output.segments[0]?.voiceProfileMatch : undefined);

@@ -174,6 +174,29 @@ it("explicit three-utterance enrollment, Person binding restart, unknown sample 
   await run.app.inject({ method: "DELETE", url: `/product/voice-samples/${sample.id}` }); expect((await run.app.inject({ method: "GET", url: `/product/voice-samples/${sample.id}` })).statusCode).toBe(404);
   expect(readProductSettings()?.people[0]?.notes).toBe("My profile");
 });
+it("rejects ambiguous voice-review intent before Journal admission or review mutation", async () => {
+  const run = await setup();
+  const sample = retainVoiceSample(wav());
+  const admit = vi.spyOn(run.context.voiceControlReceiptAdmission, "admit");
+  const malformed: Array<Record<string, unknown>> = [
+    {},
+    { leaveUnknown: false },
+    { leaveUnknown: true, personId: "person-target" },
+    { personId: "" },
+    { personId: "   " },
+    { personId: "person-target", extra: true }
+  ];
+  for (const payload of malformed) {
+    const response = await run.app.inject({
+      method: "POST",
+      url: `/product/voice-samples/${sample.id}/review`,
+      payload
+    });
+    expect(response.statusCode).toBe(400);
+    expect(admit).not.toHaveBeenCalled();
+    expect(voiceReviews().find(row => row.id === sample.id)).toEqual(sample);
+  }
+});
 it("re-enrollment replaces the old acoustic profile instead of leaving an unbound residual", async () => {
   const run = await setup();
   const c = catalog();
