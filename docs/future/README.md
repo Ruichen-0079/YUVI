@@ -29,7 +29,7 @@ A research hypothesis never overrides a production authority boundary.
 
 For roadmap interpretation, [`version-roadmap.md`](version-roadmap.md) is the **release/version sequencing authority**. Detailed atom contracts remain in each version plan and in [`post-v0.1.3-roadmap.md`](post-v0.1.3-roadmap.md). Version grouping may delay technically independent work for product sequencing, but it does not erase technical dependencies or research stop gates.
 
-For A8.2 specifically, [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) is the **current leaf execution authority**. Source audits found separate conversational, speech, standalone-vision, Product, Runtime-governed, proactive-consent and voice-control admission owners. A8.2e is split into implemented e1 Product/Person controls, e2 Runtime-governed local controls and e3 proactive-consent authority. A8.2f is split into implemented f1 direct voice-profile/binding controls and f2 Product voice-review/enrollment controls. Both f leaves are implemented, while aggregate f and A8.2 remain incomplete; proactive-turn, standalone TTS, production manual Memory mutation and Live2D presentation administration remain pending aggregate applicability/closure findings.
+For A8.2 specifically, [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) is the **current leaf execution authority**. Source audits found separate conversational, speech, standalone-vision, Product, Runtime-governed, proactive-consent, voice-control and external proactive-turn admission owners. A8.2e is split into implemented e1 Product/Person controls, e2 Runtime-governed local controls and e3 proactive-consent authority. A8.2f1–f3 are implemented; f4 standalone TTS and f5 production manual Memory authority remain planned, and f6 is the aggregate applicability/regression closure. Aggregate f and A8.2 remain incomplete. Durable Live2D presentation administration and privacy-removal handling have explicit applicability rules for f6 to preserve and verify.
 
 For A12.1 specifically, [`a12.1-snowluma-contract.md`](a12.1-snowluma-contract.md) is the **current pinned SnowLuma source-contract authority**. Its status is `SOURCE CONTRACT ESTABLISHED — LIVE PROBE PENDING`: source analysis already constrains inbound identity/dedup and outbound idempotency/reconciliation semantics, while the remaining real QQ probes are allowed only to narrow explicitly unresolved remote behavior. It does not close A12.1 or authorize A12.2.
 
@@ -37,29 +37,29 @@ For substantial product UI work, [`frontend-execution-policy.md`](frontend-execu
 
 ## Authoritative documents
 
-| Concern | Authority |
-| --- | --- |
-| Research north star and falsifiability | [`north-star.md`](north-star.md) |
-| Implemented reality and audited defects/gaps | [`implementation-baseline.md`](implementation-baseline.md) |
-| Release/version sequence | [`version-roadmap.md`](version-roadmap.md) |
-| A8.2 durable journal + ingress leaf execution | [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) |
-| A12.1 pinned SnowLuma source/effect contract | [`a12.1-snowluma-contract.md`](a12.1-snowluma-contract.md) |
-| Frontend design/implementation gates | [`frontend-execution-policy.md`](frontend-execution-policy.md) |
-| Writers, commit authority, capability/effect boundaries | [`authority.md`](authority.md) |
-| Receipts, intents, attempts, outcomes, derivations, amendments | [`life-event-journal.md`](life-event-journal.md) |
-| Principal / Person / audience / provenance | [`identity-and-provenance.md`](identity-and-provenance.md) |
-| Memory as evidence index, lineage, correction and reconstruction | [`memory-and-lineage.md`](memory-and-lineage.md) |
-| P8 field ownership and gradual migration | [`p8-ownership.md`](p8-ownership.md) |
-| Prospective continuity: commitments, expectations, intentions, open threads | [`prospective-continuity.md`](prospective-continuity.md) |
-| Measured consolidation; models as bounded semantic measurement instruments | [`measured-consolidation.md`](measured-consolidation.md) |
-| Explicit selection baselines and optional learned selection state | [`selection-research.md`](selection-research.md) |
-| Foundation-model replacement and continuity dimensions | [`model-replacement.md`](model-replacement.md) |
-| Embodiment boundary | [`embodiment.md`](embodiment.md) |
-| Experiments, gates and failure criteria | [`research-methodology.md`](research-methodology.md) |
-| v0.1.3 executable plan | [`09-v0.1.3-platform-completion.md`](09-v0.1.3-platform-completion.md) |
-| v0.1.4 People/Profile executable plan | [`10-v0.1.4-people-profile.md`](10-v0.1.4-people-profile.md) |
-| Post-v0.1.3 research atom dependency graph | [`post-v0.1.3-roadmap.md`](post-v0.1.3-roadmap.md) |
-| Consolidation audit | [`../validation/v0.1.3-future-consolidation.md`](../validation/v0.1.3-future-consolidation.md) |
+| Concern                                                                     | Authority                                                                                      |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Research north star and falsifiability                                      | [`north-star.md`](north-star.md)                                                               |
+| Implemented reality and audited defects/gaps                                | [`implementation-baseline.md`](implementation-baseline.md)                                     |
+| Release/version sequence                                                    | [`version-roadmap.md`](version-roadmap.md)                                                     |
+| A8.2 durable journal + ingress leaf execution                               | [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md)                                           |
+| A12.1 pinned SnowLuma source/effect contract                                | [`a12.1-snowluma-contract.md`](a12.1-snowluma-contract.md)                                     |
+| Frontend design/implementation gates                                        | [`frontend-execution-policy.md`](frontend-execution-policy.md)                                 |
+| Writers, commit authority, capability/effect boundaries                     | [`authority.md`](authority.md)                                                                 |
+| Receipts, intents, attempts, outcomes, derivations, amendments              | [`life-event-journal.md`](life-event-journal.md)                                               |
+| Principal / Person / audience / provenance                                  | [`identity-and-provenance.md`](identity-and-provenance.md)                                     |
+| Memory as evidence index, lineage, correction and reconstruction            | [`memory-and-lineage.md`](memory-and-lineage.md)                                               |
+| P8 field ownership and gradual migration                                    | [`p8-ownership.md`](p8-ownership.md)                                                           |
+| Prospective continuity: commitments, expectations, intentions, open threads | [`prospective-continuity.md`](prospective-continuity.md)                                       |
+| Measured consolidation; models as bounded semantic measurement instruments  | [`measured-consolidation.md`](measured-consolidation.md)                                       |
+| Explicit selection baselines and optional learned selection state           | [`selection-research.md`](selection-research.md)                                               |
+| Foundation-model replacement and continuity dimensions                      | [`model-replacement.md`](model-replacement.md)                                                 |
+| Embodiment boundary                                                         | [`embodiment.md`](embodiment.md)                                                               |
+| Experiments, gates and failure criteria                                     | [`research-methodology.md`](research-methodology.md)                                           |
+| v0.1.3 executable plan                                                      | [`09-v0.1.3-platform-completion.md`](09-v0.1.3-platform-completion.md)                         |
+| v0.1.4 People/Profile executable plan                                       | [`10-v0.1.4-people-profile.md`](10-v0.1.4-people-profile.md)                                   |
+| Post-v0.1.3 research atom dependency graph                                  | [`post-v0.1.3-roadmap.md`](post-v0.1.3-roadmap.md)                                             |
+| Consolidation audit                                                         | [`../validation/v0.1.3-future-consolidation.md`](../validation/v0.1.3-future-consolidation.md) |
 
 ## Release sequence
 
@@ -85,7 +85,7 @@ The sequence is intentionally falsifiable. Later learned/latent mechanisms are n
 
 The old **Platform Complete** target is retired. v0.1.3 is the **Durable Causal History Foundation**.
 
-A0–A6, A7.1–A7.2, A8.1, A8.2a–A8.2d, A8.2e1–e3 and A8.2f1–f2 are implemented engineering reality; see the [A8.1 contract](../validation/v0.1.3-a8.1-journal-contract.md), earlier A8.2 validation records indexed by [A8.2 ingress authority](a8.2-ingress-closure.md), [A8.2f1 voice controls](../validation/v0.1.3-a8.2f1-voice-controls.md) and [A8.2f2 Product voice controls](../validation/v0.1.3-a8.2f2-product-voice-controls.md). A8.2a adds durable PostgreSQL append storage; A8.2b–d gate conversational, finalized speech and standalone vision input; A8.2e1/e2 gate Product and Runtime local controls; A8.2e3 journals accepted READY settings projections before changing volatile Runtime consent authority; A8.2f1–f2 commit minimal CONTROL receipts before direct voice-profile/binding and Product voice-review/enrollment processing. Product voice-review receipts never retain raw audio, and privacy deletion of a review sample remains Journal-independent. UNKNOWN_DENIED only invalidates proactive authority and is not an authored false setting or Journal command. A8.2f leaves are implemented, but aggregate f/A8.2 remain incomplete:
+A0–A6, A7.1–A7.2, A8.1, A8.2a–A8.2d, A8.2e1–e3 and A8.2f1–f3 are implemented engineering reality; see the [A8.1 contract](../validation/v0.1.3-a8.1-journal-contract.md), earlier A8.2 validation records indexed by [A8.2 ingress authority](a8.2-ingress-closure.md), [A8.2f1 voice controls](../validation/v0.1.3-a8.2f1-voice-controls.md), [A8.2f2 Product voice controls](../validation/v0.1.3-a8.2f2-product-voice-controls.md) and [A8.2f3 external proactive-turn request](../validation/v0.1.3-a8.2f3-proactive-turn-request.md). A8.2a adds durable PostgreSQL append storage; A8.2b–d gate conversational, finalized speech and standalone vision input; A8.2e1/e2 gate Product and Runtime local controls; A8.2e3 journals accepted READY settings projections before changing volatile Runtime consent authority; A8.2f1–f3 commit bounded CONTROL receipts before voice controls or an external proactive-turn request enter their existing owners. The f3 receipt precedes creation/advancement of the Runtime stream, omits the volatile Runtime idempotency key, and does not affect internal scheduler wakes. Product voice-review receipts never retain raw audio, and privacy deletion of a review sample remains Journal-independent. UNKNOWN_DENIED only invalidates proactive authority and is not an authored false setting or Journal command. A8.2f4/f5 and aggregate f6 remain planned, and aggregate f/A8.2 remain incomplete:
 
 ```text
 A8.2a Journal Store Foundation — IMPLEMENTED
@@ -106,7 +106,15 @@ A8.2f1 direct voice-profile/binding controls — IMPLEMENTED
   ↓
 A8.2f2 Product voice-review/enrollment controls — IMPLEMENTED
   ↓
-A8.2f aggregate closure and applicability findings — INCOMPLETE
+A8.2f3 external proactive-turn request admission — IMPLEMENTED
+  ↓
+A8.2f4 standalone TTS input admission — PLANNED
+  ↓
+A8.2f5 production manual Memory mutation authority — PLANNED
+  ↓
+A8.2f6 aggregate applicability/regression closure — PLANNED
+  ↓
+A8.2f aggregate closure — INCOMPLETE
   ↓
 A10.1 grounded Memory admission / lineage repair
 ```

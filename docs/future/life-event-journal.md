@@ -1,6 +1,6 @@
 # Life-event journal and external effects
 
-Status: **PRODUCTION ARCHITECTURE DECISION**. A8.1's versioned command/envelope contract, A8.2a PostgreSQL append store, A8.2b conversational HTTP/SSE/WebSocket gate, A8.2c finalized-speech gate, A8.2d standalone-vision gate, A8.2e1–e3 Product/Runtime/proactive-consent gates and A8.2f1–f2 voice-control gates are **IMPLEMENTED REALITY**. Aggregate A8.2f/A8.2 closure remains planned; A9 effect accounting and A10 lineage remain later work. Product voice-control receipts omit raw audio, and privacy deletion of retained review samples remains Journal-independent. Existing conversation, Memory and delivery records are partial foundations, not substitutes for the Journal. See the [A8.1 contract](../validation/v0.1.3-a8.1-journal-contract.md), A8.2 leaf records indexed by the [current ingress authority](a8.2-ingress-closure.md), and [A8.2f2 Product voice controls](../validation/v0.1.3-a8.2f2-product-voice-controls.md).
+Status: **PRODUCTION ARCHITECTURE DECISION**. A8.1's versioned command/envelope contract, A8.2a PostgreSQL append store, A8.2b conversational HTTP/SSE/WebSocket gate, A8.2c finalized-speech gate, A8.2d standalone-vision gate, A8.2e1–e3 Product/Runtime/proactive-consent gates and A8.2f1–f3 voice-control/external-proactive-request gates are **IMPLEMENTED REALITY**. Aggregate A8.2f/A8.2 closure remains incomplete; A8.2f4/f5/f6 remain planned; A9 effect accounting and A10 lineage remain later work. Product voice-control receipts omit raw audio, and privacy deletion of retained review samples remains Journal-independent. Existing conversation, Memory and delivery records are partial foundations, not substitutes for the Journal. See the [A8.1 contract](../validation/v0.1.3-a8.1-journal-contract.md), A8.2 leaf records indexed by the [current ingress authority](a8.2-ingress-closure.md), and [A8.2f3 external proactive-turn request](../validation/v0.1.3-a8.2f3-proactive-turn-request.md).
 
 A8.2e2's CONTROL receipt means only that a locally authorized P8 correction or read-text authorization command was admitted for processing. It does not prove P8 persistence/current truth, later file access, or Runtime survival long enough to retain a grant. Receipts contain bounded operation metadata only, use unresolved principal/Person state and unknown audience, and supply no source dedup key. A committed receipt remains after a post-admission P8 conflict; this leaf adds no OUTCOME or effect accounting.
 
@@ -40,25 +40,29 @@ A8.2e3 leaves Desktop/Tauri settings as the authored durable source of `proactiv
 
 `UNKNOWN_DENIED` is the volatile fail-closed response to settings-read failure or proactive-settings invalidation. It advances a Runtime revision floor and cancels/prevents proactive eligibility immediately. It is not an authored false setting, accepted control command or Journal event. If a READY receipt commits but a newer invalidation arrives while append is pending, the receipt remains but the post-commit Runtime fence rejects that projection as stale. Runtime's durable policy snapshot continues to own suppression/eligible-after and ignores its legacy `consentEnabled` field for production authority; process restart returns to UNKNOWN_DENIED until Desktop projects a fresh SettingsView. No proactive model/provider INTENT, ATTEMPT or OUTCOME is recorded here.
 
+## External proactive-turn request receipt
+
+A8.2f3 applies only to the external `POST /v1/proactive-turns/stream` trigger. The local-dashboard guard and strict bounded request validation precede a host-built `RECEIPT/CONTROL`; commit completes before the route creates the Runtime async iterator or advances it. The receipt retains only the operation and safe `readMemory` / normalized `promptPreview` flags, with the bounded session ID as a conversation correlation. Runtime `idempotencyKey` is not a transport identity and is omitted; no `sourceDedup` is supplied, so identical requests can produce distinct receipts. Principal and Person binding remain unresolved, subjects are empty, and audience is unknown. Runtime eligibility/claim/provider semantics are evaluated after the receipt, and a later Runtime rejection does not remove it. Internal scheduler wakes do not pass through this HTTP receipt facade. A8.2f4/f5 and aggregate f6 remain planned; the aggregate is still incomplete.
+
 ## Envelope and ordering
 
 Every committed event has the following versioned envelope. Producer-supplied values are validated; authority-controlled values cannot be overridden by model output or plugin metadata.
 
-| Field | Contract |
-| --- | --- |
-| `schema_version`, `event_id` | Validated version and opaque immutable identity; unique within the journal namespace |
-| `journal_id`, `commit_seq` | Durable journal namespace and total commit order assigned by the append gate, not occurrence order |
-| `recorded_at` | Store-assigned wall time of recording, useful operationally but not ordering authority |
-| `occurred_at`, `clock_source`, `time_uncertainty` | Source-reported occurrence interval/time, source clock identity and uncertainty; may be unknown, skewed or out of order |
-| `kind` | RECEIPT, INTENT, ATTEMPT, OUTCOME, DECISION, DERIVATION or AMENDMENT |
-| `surface`, `channel` | Versioned transport instance and channel kind / opaque channel reference; private/group/device are distinct |
-| `principal_ref`, `subject_refs`, `binding_version` | Authenticated transport principal, explicitly attributed subjects, and identity mapping used; unresolved is a valid explicit state |
-| `audience_snapshot_ref`, `disclosure_policy_ref` | Who could receive the original event, membership snapshot quality, and applicable disclosure policy; not a public-membership assumption |
-| `causal_parent_ids`, `correlation` | Causal links and session/turn/A1 execution/A2 round/capability/prospective references as applicable; no fabricated A2 continuity after restart |
-| `payload_refs`, `payload_state` | Scoped references and retained/redacted/not-retained/unavailable state, rather than mandatory inline personal content |
-| `producer`, `producer_version`, `policy_version` | Responsible component and rule/schema versions; model/prompt/codebook versions when a model measured or generated content |
-| `lineage` | Input event IDs, evidence selectors, source digest/version where permitted, derivation version and checkpoint; consumer output identity |
-| `supersedes`, `amends` | Typed earlier references; append-only correction, with authorization and reason; no silent historical overwrite |
+| Field                                              | Contract                                                                                                                                       |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `schema_version`, `event_id`                       | Validated version and opaque immutable identity; unique within the journal namespace                                                           |
+| `journal_id`, `commit_seq`                         | Durable journal namespace and total commit order assigned by the append gate, not occurrence order                                             |
+| `recorded_at`                                      | Store-assigned wall time of recording, useful operationally but not ordering authority                                                         |
+| `occurred_at`, `clock_source`, `time_uncertainty`  | Source-reported occurrence interval/time, source clock identity and uncertainty; may be unknown, skewed or out of order                        |
+| `kind`                                             | RECEIPT, INTENT, ATTEMPT, OUTCOME, DECISION, DERIVATION or AMENDMENT                                                                           |
+| `surface`, `channel`                               | Versioned transport instance and channel kind / opaque channel reference; private/group/device are distinct                                    |
+| `principal_ref`, `subject_refs`, `binding_version` | Authenticated transport principal, explicitly attributed subjects, and identity mapping used; unresolved is a valid explicit state             |
+| `audience_snapshot_ref`, `disclosure_policy_ref`   | Who could receive the original event, membership snapshot quality, and applicable disclosure policy; not a public-membership assumption        |
+| `causal_parent_ids`, `correlation`                 | Causal links and session/turn/A1 execution/A2 round/capability/prospective references as applicable; no fabricated A2 continuity after restart |
+| `payload_refs`, `payload_state`                    | Scoped references and retained/redacted/not-retained/unavailable state, rather than mandatory inline personal content                          |
+| `producer`, `producer_version`, `policy_version`   | Responsible component and rule/schema versions; model/prompt/codebook versions when a model measured or generated content                      |
+| `lineage`                                          | Input event IDs, evidence selectors, source digest/version where permitted, derivation version and checkpoint; consumer output identity        |
+| `supersedes`, `amends`                             | Typed earlier references; append-only correction, with authorization and reason; no silent historical overwrite                                |
 
 The A8.1 protocol contract separates producer commands from the committed envelope. It reserves event identity, namespace, principal/source attribution, surface/channel, correlations, policy/producer versions, `recorded_at` and `commit_seq` for a separate host authority snapshot and future append gate. It defines seven kind-specific command shapes and strict selectors; confirmed outcome predicates distinguish local result produced, service accepted, remote persisted, device presented, human acknowledged, delivery rejected and no effect established. The contract validates structure and selector boundaries, not whether a citation semantically proves a real-world claim.
 
@@ -68,15 +72,15 @@ Wall clocks never determine causal precedence. A7/A8 schema tests include skew, 
 
 ## Kinds and evidence selectors
 
-| Kind | Meaning / restriction |
-| --- | --- |
-| RECEIPT | An input or external observation was accepted, with transport identity and source provenance |
-| INTENT | One authorized logical action, with immutable key, normalized payload identity, authority and effect contract |
-| ATTEMPT | A particular dispatch may begin; committed before crossing the effect boundary |
-| OUTCOME | Evidence about one attempt, with observation time, source and certainty level |
-| DECISION | A policy/admission/selection choice and its available alternatives and pre-choice inputs; no hidden chain of thought required |
-| DERIVATION | A versioned claim, annotation, projection, context manifest or index input derived from committed sources |
-| AMENDMENT | Authorized correction, supersession, retraction, binding correction or redaction; descendants are invalidated/recomputed by their owners |
+| Kind       | Meaning / restriction                                                                                                                    |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| RECEIPT    | An input or external observation was accepted, with transport identity and source provenance                                             |
+| INTENT     | One authorized logical action, with immutable key, normalized payload identity, authority and effect contract                            |
+| ATTEMPT    | A particular dispatch may begin; committed before crossing the effect boundary                                                           |
+| OUTCOME    | Evidence about one attempt, with observation time, source and certainty level                                                            |
+| DECISION   | A policy/admission/selection choice and its available alternatives and pre-choice inputs; no hidden chain of thought required            |
+| DERIVATION | A versioned claim, annotation, projection, context manifest or index input derived from committed sources                                |
+| AMENDMENT  | Authorized correction, supersession, retraction, binding correction or redaction; descendants are invalidated/recomputed by their owners |
 
 Selectors identify a text span in an immutable payload version, an audio time range/channel, an image/frame region with coordinates, a JSON pointer/structured field, or a specific tool-result fragment. A citation to a whole conversation when only one sentence supports a claim is insufficient. Selectors carry modality and bounds; a transcript and its audio are linked but do not become independent corroboration. Missing retained payload cannot be reconstructed from a model's plausible quotation.
 
@@ -88,17 +92,17 @@ Exactly-once applies to **logical intent admission**, enforced by a durable uniq
 
 Runtime atomically commits INTENT and outbox admission. The dispatcher claims eligible work using version/fencing checks, then commits ATTEMPT before invoking the adapter. OUTCOME is appended and dispatch state advanced transactionally. A worker lease is scheduling machinery, not proof that an earlier worker stopped. No second dispatcher may issue an unsupported duplicate after lease expiry; remote idempotency, effective execution fencing or reconciliation is required. Local locks alone cannot promise exactly-once remote effects.
 
-| Crash / observation | Recovery rule |
-| --- | --- |
-| Before intent transaction commits | No admitted intent and no permitted effect; retry admission with the same logical key |
-| Committed intent, no attempt | Eligible to dispatch after current policy/audience checks; intent may instead expire or be canceled |
-| Committed attempt, crash before the call is known to start | May have dispatched; UNKNOWN unless durable evidence proves otherwise |
-| Remote accepted, response lost | UNKNOWN; reconcile or use a certified idempotency key within its validity window |
-| Response received, outcome not committed | Same ambiguity; never infer failure merely from missing local outcome |
-| Durable positive evidence | Record exactly what was established, e.g. service accepted; do not upgrade to human read/physical success |
-| Durable negative evidence of no effect | Retry only if contract and current authority permit; preserve attempt lineage |
-| Cancellation/timeout after dispatch may begin | UNKNOWN unless outcome evidence establishes a narrower result; cancellation is not remote rollback |
-| Restart / stale generation / expired lease | Preserve intent identity, fence stale publication, reconcile without resuming the old A2 loop |
+| Crash / observation                                        | Recovery rule                                                                                             |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Before intent transaction commits                          | No admitted intent and no permitted effect; retry admission with the same logical key                     |
+| Committed intent, no attempt                               | Eligible to dispatch after current policy/audience checks; intent may instead expire or be canceled       |
+| Committed attempt, crash before the call is known to start | May have dispatched; UNKNOWN unless durable evidence proves otherwise                                     |
+| Remote accepted, response lost                             | UNKNOWN; reconcile or use a certified idempotency key within its validity window                          |
+| Response received, outcome not committed                   | Same ambiguity; never infer failure merely from missing local outcome                                     |
+| Durable positive evidence                                  | Record exactly what was established, e.g. service accepted; do not upgrade to human read/physical success |
+| Durable negative evidence of no effect                     | Retry only if contract and current authority permit; preserve attempt lineage                             |
+| Cancellation/timeout after dispatch may begin              | UNKNOWN unless outcome evidence establishes a narrower result; cancellation is not remote rollback        |
+| Restart / stale generation / expired lease                 | Preserve intent identity, fence stale publication, reconcile without resuming the old A2 loop             |
 
 Outcome certainty is `CONFIRMED_SUCCESS`, `CONFIRMED_FAILURE` or `UNKNOWN`, with a required predicate describing what “success” means for that adapter. Reconciliation is a **method** (`direct_response`, `remote_lookup`, `idempotency_receipt`, `controller_observation`), not a certainty status. Contradictory evidence appends a disputed/unknown interpretation with links; it never erases an earlier observation. A controller can choose to abandon an unknown intent but cannot retroactively prove it did not happen.
 

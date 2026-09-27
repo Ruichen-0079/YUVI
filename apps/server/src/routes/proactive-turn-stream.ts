@@ -15,6 +15,7 @@ import { JournalStoreError } from "@companion/journal";
 import { desktopCorsHeaders } from "../cors.js";
 import { SseConnectionClosedError, writeSseFrame } from "./sse.js";
 import { resolveMessageIdentity } from "./message.js";
+import { toProactiveTurnAdmissionFailure } from "../proactive-turn-receipt-admission.js";
 
 const SSE_HEADERS = {
   "content-type": "text/event-stream; charset=utf-8",
@@ -41,8 +42,8 @@ const ProactiveConsentRequestSchema = z.discriminatedUnion("state", [
 
 export const ProactiveTurnStreamRequestSchema = z
   .object({
-    sessionId: z.string().trim().min(1),
-    idempotencyKey: z.string().trim().min(1),
+    sessionId: z.string().trim().min(1).max(512),
+    idempotencyKey: z.string().trim().min(1).max(512),
     modality: z.literal("text"),
     options: z
       .object({
@@ -150,34 +151,25 @@ export async function registerProactiveTurnStreamRoutes(
   });
 
   app.post("/v1/proactive-turns/stream", async (request, reply) => {
+    if (!requireLocalDashboardAccess(config, request, reply)) return;
     const input = ProactiveTurnStreamRequestSchema.safeParse(request.body);
     if (!input.success) {
       return reply.status(400).send({ error: "invalid_request", details: input.error.flatten() });
     }
 
-    const identity = resolveMessageIdentity({});
     const requestTraceId = crypto.randomUUID();
     const abortController = new AbortController();
-    const runtimeStream = context.runtime.streamAssistantInitiatedTurn(
-      {
-        sessionId: input.data.sessionId,
-        idempotencyKey: input.data.idempotencyKey,
-        readMemory: input.data.options.readMemory,
-        ...(identity.personaId ? { personaId: identity.personaId } : {}),
-        ...(identity.subjectUserId ? { subjectUserId: identity.subjectUserId } : {})
-      },
-      {
-        signal: abortController.signal,
-        promptPreview: input.data.options.promptPreview
-      }
-    );
-    const iterator = runtimeStream[Symbol.asyncIterator]();
+    let iterator: AsyncIterator<RuntimeReplyStreamEvent> | undefined;
     let headersStarted = false;
     let responseFinalized = false;
     let clientDisconnected = false;
+    let journalAdmitted = false;
     let closePromise: Promise<void> | undefined;
 
     const closeIterator = (): Promise<void> => {
+      if (!iterator) {
+        return Promise.resolve();
+      }
       if (closePromise) {
         return closePromise;
       }
@@ -195,7 +187,7 @@ export async function registerProactiveTurnStreamRoutes(
       }
       clientDisconnected = true;
       abortController.abort();
-      void closeIterator();
+      if (iterator) void closeIterator();
     };
     const onResponseError = () => onDisconnect();
 
@@ -204,9 +196,49 @@ export async function registerProactiveTurnStreamRoutes(
     reply.raw.once("error", onResponseError);
 
     try {
+      if (request.raw.aborted || reply.raw.destroyed || reply.raw.writableEnded) {
+        onDisconnect();
+        return;
+      }
+
+      await context.proactiveTurnReceiptAdmission.admit({
+        sessionId: input.data.sessionId,
+        readMemory: input.data.options.readMemory,
+        promptPreview: input.data.options.promptPreview ?? false
+      });
+      journalAdmitted = true;
+
+      // A committed receipt is kept if the client left during append, but that request
+      // must not start Runtime semantic work after its transport is no longer current.
+      if (
+        clientDisconnected ||
+        request.raw.aborted ||
+        reply.raw.destroyed ||
+        reply.raw.writableEnded
+      ) {
+        return;
+      }
+
+      const identity = resolveMessageIdentity({});
+      const runtimeStream = context.runtime.streamAssistantInitiatedTurn(
+        {
+          sessionId: input.data.sessionId,
+          idempotencyKey: input.data.idempotencyKey,
+          readMemory: input.data.options.readMemory,
+          ...(identity.personaId ? { personaId: identity.personaId } : {}),
+          ...(identity.subjectUserId ? { subjectUserId: identity.subjectUserId } : {})
+        },
+        {
+          signal: abortController.signal,
+          promptPreview: input.data.options.promptPreview
+        }
+      );
+      const activeIterator = runtimeStream[Symbol.asyncIterator]();
+      iterator = activeIterator;
+
       let next: IteratorResult<RuntimeReplyStreamEvent>;
       try {
-        next = await iterator.next();
+        next = await activeIterator.next();
       } catch (error) {
         if (clientDisconnected) {
           return;
@@ -263,7 +295,7 @@ export async function registerProactiveTurnStreamRoutes(
           responseFinalized = true;
           break;
         }
-        next = await iterator.next();
+        next = await activeIterator.next();
       }
 
       if (!successful) {
@@ -277,6 +309,14 @@ export async function registerProactiveTurnStreamRoutes(
         return;
       }
       if (!headersStarted) {
+        if (!journalAdmitted) {
+          const failure = toProactiveTurnAdmissionFailure(error);
+          return reply.status(failure.statusCode).send({
+            error: failure.code,
+            message: failure.message,
+            traceId: requestTraceId
+          });
+        }
         return sendProactiveTurnError(reply, error, requestTraceId);
       }
       if (!responseFinalized && !reply.raw.destroyed && !reply.raw.writableEnded) {

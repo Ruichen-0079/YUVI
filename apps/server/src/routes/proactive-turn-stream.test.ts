@@ -7,8 +7,9 @@ import {
 } from "@companion/core";
 import type { AppContext } from "../context.js";
 import type { ServerConfig } from "../config.js";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { registerProactiveTurnStreamRoutes } from "./proactive-turn-stream.js";
+import type { ProactiveTurnReceiptInput } from "../proactive-turn-receipt-admission.js";
 
 function runtimeFor(
   streamAssistantInitiatedTurn: AppContext["runtime"]["streamAssistantInitiatedTurn"]
@@ -18,18 +19,28 @@ function runtimeFor(
 
 async function createTestApp(context: AppContext) {
   const app = Fastify({ logger: false });
-  await registerProactiveTurnStreamRoutes(app, context, {
-    runtimeMode: "test",
-    dashboardDevToken: undefined
-  } as unknown as ServerConfig);
+  await registerProactiveTurnStreamRoutes(
+    app,
+    {
+      ...context,
+      proactiveTurnReceiptAdmission: context.proactiveTurnReceiptAdmission ?? { async admit() {} }
+    } as AppContext,
+    {
+      runtimeMode: "test",
+      dashboardDevToken: undefined
+    } as unknown as ServerConfig
+  );
   return app;
 }
 
 describe("proactive turn SSE route", () => {
   it("accepts only the strict assistant-origin DTO and streams existing SSE events", async () => {
     let receivedInput: unknown;
-    const app = await createTestApp(
-      runtimeFor(async function* (input): AsyncIterable<RuntimeReplyStreamEvent> {
+    const order: string[] = [];
+    const runtimeMethod = vi.fn((input: unknown) => {
+      order.push("runtime-created");
+      return (async function* (): AsyncIterable<RuntimeReplyStreamEvent> {
+        order.push("runtime-advanced");
         receivedInput = input;
         yield {
           type: "proactive-decision",
@@ -52,8 +63,21 @@ describe("proactive turn SSE route", () => {
           content: "hello",
           provider: "mock"
         };
-      })
-    );
+      })();
+    });
+    const app = await createTestApp({
+      runtime: { streamAssistantInitiatedTurn: runtimeMethod },
+      proactiveTurnReceiptAdmission: {
+        async admit(input: ProactiveTurnReceiptInput) {
+          order.push("journal");
+          expect(input).toEqual({
+            sessionId: "session-1",
+            readMemory: false,
+            promptPreview: true
+          });
+        }
+      }
+    } as unknown as AppContext);
 
     const response = await app.inject({
       method: "POST",
@@ -76,6 +100,121 @@ describe("proactive turn SSE route", () => {
       idempotencyKey: "decision-1",
       readMemory: false
     });
+    expect(order).toEqual(["journal", "runtime-created", "runtime-advanced"]);
+    await app.close();
+  });
+
+  it("rejects a remote caller before Journal admission", async () => {
+    let admissions = 0;
+    let runtimeCalls = 0;
+    const app = await createTestApp({
+      runtime: {
+        streamAssistantInitiatedTurn: async function* (): AsyncIterable<RuntimeReplyStreamEvent> {
+          runtimeCalls += 1;
+        }
+      },
+      proactiveTurnReceiptAdmission: {
+        async admit() {
+          admissions += 1;
+        }
+      }
+    } as unknown as AppContext);
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/proactive-turns/stream",
+      remoteAddress: "203.0.113.17",
+      payload: {
+        sessionId: "remote-session",
+        idempotencyKey: "remote-key",
+        modality: "text",
+        options: { readMemory: false }
+      }
+    });
+    expect(response.statusCode).toBe(403);
+    expect(admissions).toBe(0);
+    expect(runtimeCalls).toBe(0);
+    await app.close();
+  });
+
+  it("rejects invalid requests before Journal admission", async () => {
+    let admissions = 0;
+    const app = await createTestApp({
+      runtime: { streamAssistantInitiatedTurn: async function* () {} },
+      proactiveTurnReceiptAdmission: {
+        async admit() {
+          admissions += 1;
+        }
+      }
+    } as unknown as AppContext);
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/proactive-turns/stream",
+      payload: {
+        sessionId: "session-1",
+        idempotencyKey: "invalid",
+        modality: "text",
+        options: { readMemory: false },
+        unexpected: true
+      }
+    });
+    expect(response.statusCode).toBe(400);
+    expect(admissions).toBe(0);
+    await app.close();
+  });
+
+  it("bounds persisted session correlations and Runtime claim keys before admission", async () => {
+    let admissions = 0;
+    const app = await createTestApp({
+      runtime: { streamAssistantInitiatedTurn: async function* () {} },
+      proactiveTurnReceiptAdmission: {
+        async admit() {
+          admissions += 1;
+        }
+      }
+    } as unknown as AppContext);
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/proactive-turns/stream",
+      payload: {
+        sessionId: "session-1",
+        idempotencyKey: "k".repeat(513),
+        modality: "text",
+        options: { readMemory: false }
+      }
+    });
+    expect(response.statusCode).toBe(400);
+    expect(admissions).toBe(0);
+    await app.close();
+  });
+
+  it("fails closed on Journal errors without starting Runtime or SSE", async () => {
+    let runtimeCalls = 0;
+    const app = await createTestApp({
+      runtime: {
+        streamAssistantInitiatedTurn: async function* () {
+          runtimeCalls += 1;
+        }
+      },
+      proactiveTurnReceiptAdmission: {
+        async admit() {
+          throw new JournalStoreError("DATABASE_UNAVAILABLE", "private database detail");
+        }
+      }
+    } as unknown as AppContext);
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/proactive-turns/stream",
+      payload: {
+        sessionId: "session-1",
+        idempotencyKey: "journal-down",
+        modality: "text",
+        options: { readMemory: false }
+      }
+    });
+    expect(response.statusCode).toBe(503);
+    expect(response.headers["content-type"]).not.toContain("text/event-stream");
+    expect(response.body).not.toContain("private database detail");
+    expect(runtimeCalls).toBe(0);
     await app.close();
   });
 
