@@ -3087,7 +3087,10 @@ async function buildTestServer(overrides: TestEnvOverrides = {}) {
       }
     },
     speechReceiptAdmission: createTestSpeechReceiptAdmission(),
-    visionReceiptAdmission: createTestVisionReceiptAdmission()
+    visionReceiptAdmission: createTestVisionReceiptAdmission(),
+    ttsReceiptAdmission: {
+      async admit() {}
+    }
   });
 }
 

@@ -4,7 +4,7 @@
 >
 > This document answers **what version comes next and what each version is meant to make true**. It does not replace the detailed atom contracts in the v0.1.3 plan or the post-v0.1.3 research roadmap. When a technical dependency conflicts with convenient version grouping, the dependency wins.
 >
-> Current implemented baseline is A0–A6 plus A7.1, A7.2, the A8.1 journal contract, A8.2a–A8.2e3, and A8.2f1–f3 voice-control/external-proactive-request receipts. A8.2f4/f5/f6 remain planned, and aggregate A8.2f/A8.2 remain incomplete. See [`implementation-baseline.md`](implementation-baseline.md). Current Future authority is indexed in [`README.md`](README.md).
+> Current implemented baseline is A0–A6 plus A7.1, A7.2, the A8.1 journal contract, A8.2a–A8.2e3, and A8.2f1–f4 voice-control/external-proactive-request/standalone-TTS receipts. A8.2f5/f6 remain planned, and aggregate A8.2f/A8.2 remain incomplete. See [`implementation-baseline.md`](implementation-baseline.md). Current Future authority is indexed in [`README.md`](README.md).
 
 ## 1. Release philosophy
 
@@ -65,7 +65,7 @@ Detailed authority: [`09-v0.1.3-platform-completion.md`](09-v0.1.3-platform-comp
 
 ## Current state
 
-A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2e3 and A8.2f1–f3 are implemented. A8.2f4 standalone TTS, f5 production manual Memory authority and f6 aggregate applicability/regression closure remain planned; A9–A12 remain planned engineering. Aggregate A8.2 remains incomplete, and aggregate A8.2e is complete. The current f split and prior validations are indexed by [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md).
+A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2e3 and A8.2f1–f4 are implemented. A8.2f5 production manual Memory authority and f6 aggregate applicability/regression closure remain planned; A9–A12 remain planned engineering. Aggregate A8.2 remains incomplete, and aggregate A8.2e is complete. The current f split and prior validations are indexed by [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md).
 
 The release is best tracked as three milestones rather than six family numbers.
 
@@ -96,7 +96,7 @@ A7.1 → A7.2 → A8.1
                   ↓
                A8.2f3 external proactive-turn request admission — IMPLEMENTED
                   ↓
-               A8.2f4 standalone TTS input admission — PLANNED
+               A8.2f4 standalone TTS input admission — IMPLEMENTED
                   ↓
                A8.2f5 production manual Memory mutation authority — PLANNED
                   ↓
@@ -117,6 +117,8 @@ A8.2e3 keeps Desktop/Tauri persisted settings as authored proactive consent. `/v
 
 A8.2f3 commits a bounded host-built CONTROL receipt for the externally triggered `/v1/proactive-turns/stream` request before Runtime stream construction/advancement. Runtime still owns all eligibility, claim and provider behavior; its volatile idempotency key is not Journal source identity. Internal scheduler wakes remain outside this HTTP admission boundary.
 
+A8.2f4 commits a bounded host-built CONTROL receipt for `/v1/tts` before TTS provider resolution. The synthesis text is explicitly `NOT_RETAINED` and nonselectable; only its code-point count and safe option metadata are retained. Principal and Person binding remain unresolved, and no source dedup or authorship claim is made. Provider attempt/outcome accounting remains A9 work.
+
 Result:
 
 - executable capabilities have explicit effect contracts;
@@ -124,7 +126,7 @@ Result:
 - a versioned journal command, envelope and evidence-selector contract exists;
 - the durable Journal store has one ordered append authority independent of long-term Memory-backend choice;
 - ordinary conversational HTTP/SSE/WebSocket inputs and finalized speech observations become durable receipts before Runtime semantic processing; standalone vision commits a durable receipt before provider analysis without retaining raw image content; the e1–e3 local-control leaves preserve their existing owners and surface-specific identity/audience/retention limits;
-- A8.2f4/f5 close standalone TTS and production manual Memory authority; A8.2f6 resolves the remaining applicability/bypass findings before aggregate A8.2 is marked implemented;
+- A8.2f5 closes production manual Memory authority; A8.2f6 resolves the remaining applicability/bypass findings before aggregate A8.2 is marked implemented;
 - the reproduced legacy LLM Memory attribution defect is then closed by A10.1;
 - new evidence-backed Memory writes require committed lineage.
 

@@ -19,6 +19,7 @@ import {
   type SpeechReceiptSurface
 } from "../speech-receipt-admission.js";
 import { toVisionAdmissionFailure } from "../vision-receipt-admission.js";
+import { toTtsAdmissionFailure } from "../tts-receipt-admission.js";
 
 const IdentitySchema = {
   sessionId: z.string().min(1).default("default"),
@@ -449,9 +450,37 @@ export async function registerMediaRoutes(
       return reply.status(400).send({ error: "invalid_request", details: parsed.error.flatten() });
     }
 
-    const provider = context.providers.getTTSProvider();
     const boundary = createRequestDisconnectBoundary(request);
     try {
+      if (boundary.signal.aborted) {
+        return sendProviderFailure(
+          reply,
+          "tts",
+          createCancelledProviderError("tts", "not_started")
+        );
+      }
+
+      try {
+        await context.ttsReceiptAdmission.admit({
+          ...(parsed.data.sessionId.length <= 512 ? { sessionId: parsed.data.sessionId } : {}),
+          textCharacterCount: [...parsed.data.text].length,
+          voiceSupplied: parsed.data.voice !== undefined,
+          languageSupplied: parsed.data.language !== undefined,
+          format: parsed.data.format ?? null
+        });
+      } catch (error) {
+        if (boundary.signal.aborted || isResponseUnavailable(request, reply)) {
+          return;
+        }
+        const failure = toTtsAdmissionFailure(error);
+        return reply.status(failure.statusCode).send({ error: "journal_admission_failed", ...failure });
+      }
+
+      if (boundary.signal.aborted || isResponseUnavailable(request, reply)) {
+        return;
+      }
+
+      const provider = context.providers.getTTSProvider();
       if (boundary.signal.aborted) {
         throw createCancelledProviderError(provider.name, "not_started");
       }

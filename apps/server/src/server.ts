@@ -36,6 +36,7 @@ import type { VisionReceiptAdmission } from "./vision-receipt-admission.js";
 import type { RuntimeControlReceiptAdmission } from "./runtime-control-receipt-admission.js";
 import type { ProactiveConsentReceiptAdmission } from "./proactive-consent-receipt-admission.js";
 import type { ProactiveTurnReceiptAdmission } from "./proactive-turn-receipt-admission.js";
+import type { TtsReceiptAdmission } from "./tts-receipt-admission.js";
 import type { VoiceControlReceiptAdmission } from "./voice-control-receipt-admission.js";
 
 export type BuildServerOptions = Readonly<{
@@ -55,6 +56,8 @@ export type BuildServerOptions = Readonly<{
   proactiveConsentReceiptAdmission?: ProactiveConsentReceiptAdmission | undefined;
   /** Host-only dependency override for external proactive-turn admission. */
   proactiveTurnReceiptAdmission?: ProactiveTurnReceiptAdmission | undefined;
+  /** Host-only dependency override for standalone TTS admission. */
+  ttsReceiptAdmission?: TtsReceiptAdmission | undefined;
   /** Host-only dependency override for voice-control admission. */
   voiceControlReceiptAdmission?: VoiceControlReceiptAdmission | undefined;
 }>;
@@ -144,6 +147,9 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   }
   if (options.proactiveTurnReceiptAdmission) {
     context.proactiveTurnReceiptAdmission = options.proactiveTurnReceiptAdmission;
+  }
+  if (options.ttsReceiptAdmission) {
+    context.ttsReceiptAdmission = options.ttsReceiptAdmission;
   }
   if (options.voiceControlReceiptAdmission) {
     context.voiceControlReceiptAdmission = options.voiceControlReceiptAdmission;

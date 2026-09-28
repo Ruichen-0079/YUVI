@@ -17,6 +17,7 @@ import type { Socket } from "node:net";
 import { SpeechCaptureFenceError } from "@companion/core";
 import { JournalStoreError } from "@companion/journal";
 import type { AppContext } from "../context.js";
+import type { TtsReceiptAdmission } from "../tts-receipt-admission.js";
 import {
   type VisionReceiptAdmission,
   type VisionReceiptInput
@@ -309,14 +310,21 @@ async function createLifecycleApp(
 
 async function createTTSLifecycleApp(
   synthesizeSpeech: TestTTSSynthesizer,
-  configureRequest?: (raw: IncomingMessage, socket: Socket | undefined) => void
+  configureRequest?: (raw: IncomingMessage, socket: Socket | undefined) => void,
+  ttsReceiptAdmission: TtsReceiptAdmission = { async admit() {} },
+  onProviderResolve?: () => void
 ): Promise<{
   app: ReturnType<typeof Fastify>;
   synthesizeSpeech: TestTTSSynthesizer;
   request: RequestCapture;
 }> {
+  const getTTSProvider = vi.fn(() => {
+    onProviderResolve?.();
+    return { name: "test-tts", synthesizeSpeech };
+  });
   const context = {
-    providers: { getTTSProvider: () => ({ name: "test-tts", synthesizeSpeech }) },
+    providers: { getTTSProvider },
+    ttsReceiptAdmission,
     runtime: {
       handleUserMessage: vi.fn(),
       getLatestPromptPreview: vi.fn(() => undefined)
@@ -1461,6 +1469,148 @@ describe("public Vision Journal admission", () => {
 });
 
 describe("public TTS disconnect cancellation", () => {
+  it("rejects an invalid request without Journal or provider work", async () => {
+    let admissions = 0;
+    let providerResolutions = 0;
+    const admission: TtsReceiptAdmission = {
+      async admit() {
+        admissions += 1;
+      }
+    };
+    const synthesizeSpeech = vi.fn<TestTTSSynthesizer>(async () => speechOutput());
+    const { app } = await createTTSLifecycleApp(
+      synthesizeSpeech,
+      undefined,
+      admission,
+      () => providerResolutions++
+    );
+
+    try {
+      const response = await app.inject({
+        method: "POST",
+        url: "/v1/tts",
+        payload: { text: "" }
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(admissions).toBe(0);
+      expect(providerResolutions).toBe(0);
+      expect(synthesizeSpeech).not.toHaveBeenCalled();
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("commits Journal admission before resolving or invoking the provider", async () => {
+    const order: string[] = [];
+    const admission: TtsReceiptAdmission = {
+      async admit(input) {
+        order.push("journal");
+        expect(input).toEqual({
+          sessionId: "tts-session",
+          textCharacterCount: 5,
+          voiceSupplied: true,
+          languageSupplied: true,
+          format: "wav"
+        });
+      }
+    };
+    const synthesizeSpeech = vi.fn<TestTTSSynthesizer>(async () => {
+      order.push("provider-call");
+      return speechOutput();
+    });
+    const { app } = await createTTSLifecycleApp(
+      synthesizeSpeech,
+      undefined,
+      admission,
+      () => order.push("provider-resolve")
+    );
+
+    try {
+      const response = await app.inject({
+        method: "POST",
+        url: "/v1/tts",
+        payload: {
+          sessionId: "tts-session",
+          text: "hello",
+          voice: "PRIVATE_VOICE_ID",
+          language: "PRIVATE_LANGUAGE_VALUE",
+          format: "wav"
+        }
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(order).toEqual(["journal", "provider-resolve", "provider-call"]);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("fails closed on Journal errors before provider lookup", async () => {
+    const admission: TtsReceiptAdmission = {
+      async admit() {
+        throw new JournalStoreError("DATABASE_UNAVAILABLE", "private database details");
+      }
+    };
+    const synthesizeSpeech = vi.fn<TestTTSSynthesizer>(async () => speechOutput());
+    let providerResolutions = 0;
+    const { app } = await createTTSLifecycleApp(
+      synthesizeSpeech,
+      undefined,
+      admission,
+      () => providerResolutions++
+    );
+
+    try {
+      const response = await app.inject({
+        method: "POST",
+        url: "/v1/tts",
+        payload: { text: "private speech" }
+      });
+
+      expect(response.statusCode).toBe(503);
+      expect(response.json()).toMatchObject({
+        error: "journal_admission_failed",
+        code: "JOURNAL_UNAVAILABLE"
+      });
+      expect(response.body).not.toContain("private database details");
+      expect(providerResolutions).toBe(0);
+      expect(synthesizeSpeech).not.toHaveBeenCalled();
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("omits oversized legacy session IDs from Journal correlation without rejecting TTS", async () => {
+    let admissionInput: unknown;
+    const admission: TtsReceiptAdmission = {
+      async admit(input) {
+        admissionInput = input;
+      }
+    };
+    const synthesizeSpeech = vi.fn<TestTTSSynthesizer>(async () => speechOutput());
+    const { app } = await createTTSLifecycleApp(synthesizeSpeech, undefined, admission);
+
+    try {
+      const response = await app.inject({
+        method: "POST",
+        url: "/v1/tts",
+        payload: { sessionId: "s".repeat(513), text: "hello" }
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(admissionInput).toEqual({
+        textCharacterCount: 5,
+        voiceSupplied: false,
+        languageSupplied: false,
+        format: null
+      });
+      expect(synthesizeSpeech).toHaveBeenCalledTimes(1);
+    } finally {
+      await app.close();
+    }
+  });
+
   it("passes the canonical signal without putting it on TTSInput", async () => {
     let receivedInput: TTSInput | undefined;
     let receivedOptions: ProviderCallOptions | undefined;
@@ -1503,9 +1653,16 @@ describe("public TTS disconnect cancellation", () => {
 
   it("does not start TTS when the request is already aborted", async () => {
     const synthesizeSpeech = vi.fn<TestTTSSynthesizer>(async () => speechOutput());
-    const { app, request } = await createTTSLifecycleApp(synthesizeSpeech, (raw) => {
-      raw.aborted = true;
-    });
+    let admissions = 0;
+    let providerResolutions = 0;
+    const { app, request } = await createTTSLifecycleApp(
+      synthesizeSpeech,
+      (raw) => {
+        raw.aborted = true;
+      },
+      { async admit() { admissions += 1; } },
+      () => providerResolutions++
+    );
 
     try {
       const response = await app.inject({
@@ -1515,6 +1672,8 @@ describe("public TTS disconnect cancellation", () => {
       });
 
       expect(response.statusCode).toBe(503);
+      expect(admissions).toBe(0);
+      expect(providerResolutions).toBe(0);
       expect(synthesizeSpeech).not.toHaveBeenCalled();
       expectDisconnectListenersCleaned(request);
     } finally {
@@ -1524,11 +1683,18 @@ describe("public TTS disconnect cancellation", () => {
 
   it("does not start TTS when the request socket is already destroyed", async () => {
     const synthesizeSpeech = vi.fn<TestTTSSynthesizer>(async () => speechOutput());
-    const { app, request } = await createTTSLifecycleApp(synthesizeSpeech, (_raw, socket) => {
-      if (socket) {
-        Object.defineProperty(socket, "destroyed", { configurable: true, value: true });
-      }
-    });
+    let admissions = 0;
+    let providerResolutions = 0;
+    const { app, request } = await createTTSLifecycleApp(
+      synthesizeSpeech,
+      (_raw, socket) => {
+        if (socket) {
+          Object.defineProperty(socket, "destroyed", { configurable: true, value: true });
+        }
+      },
+      { async admit() { admissions += 1; } },
+      () => providerResolutions++
+    );
 
     try {
       const responsePromise = app.inject({
@@ -1539,6 +1705,8 @@ describe("public TTS disconnect cancellation", () => {
       void responsePromise.catch(() => undefined);
       await new Promise<void>((resolve) => setImmediate(resolve));
 
+      expect(admissions).toBe(0);
+      expect(providerResolutions).toBe(0);
       expect(synthesizeSpeech).not.toHaveBeenCalled();
       expectDisconnectListenersCleaned(request);
     } finally {
@@ -1649,7 +1817,8 @@ describe("public TTS disconnect cancellation", () => {
     const synthesizeSpeech = vi.fn<TestTTSSynthesizer>(async () => {
       throw new Error("synthetic TTS failure");
     });
-    const { app, request } = await createTTSLifecycleApp(synthesizeSpeech);
+    const admission = vi.fn(async () => {});
+    const { app, request } = await createTTSLifecycleApp(synthesizeSpeech, undefined, { admit: admission });
 
     try {
       const response = await app.inject({
@@ -1659,6 +1828,8 @@ describe("public TTS disconnect cancellation", () => {
       });
 
       expect(response.statusCode).toBe(503);
+      expect(admission).toHaveBeenCalledTimes(1);
+      expect(response.json()).toMatchObject({ error: "provider_unavailable", capability: "tts" });
       expectDisconnectListenersCleaned(request);
     } finally {
       await app.close();

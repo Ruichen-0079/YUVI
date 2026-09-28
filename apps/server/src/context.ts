@@ -30,6 +30,7 @@ import {
   HostProactiveTurnReceiptAdmission,
   type ProactiveTurnReceiptAdmission
 } from "./proactive-turn-receipt-admission.js";
+import { HostTtsReceiptAdmission, type TtsReceiptAdmission } from "./tts-receipt-admission.js";
 import {
   HostVoiceControlReceiptAdmission,
   type VoiceControlReceiptAdmission
@@ -112,6 +113,7 @@ export type AppContext = {
   runtimeControlReceiptAdmission: RuntimeControlReceiptAdmission;
   proactiveConsentReceiptAdmission: ProactiveConsentReceiptAdmission;
   proactiveTurnReceiptAdmission: ProactiveTurnReceiptAdmission;
+  ttsReceiptAdmission: TtsReceiptAdmission;
   voiceControlReceiptAdmission: VoiceControlReceiptAdmission;
   closeDatabasePool(): Promise<void>;
   finalizedIngestion: FinalizedIngestionService;
@@ -210,6 +212,7 @@ export async function createAppContext(
     journalRepository
   );
   const proactiveTurnReceiptAdmission = new HostProactiveTurnReceiptAdmission(journalRepository);
+  const ttsReceiptAdmission = new HostTtsReceiptAdmission(journalRepository);
   const voiceControlReceiptAdmission = new HostVoiceControlReceiptAdmission(journalRepository);
   const memoryRepository = createMemoryRepositoryFromEnv(process.env, databasePool);
   let conversationRepository: ConversationRepository | undefined;
@@ -475,6 +478,7 @@ export async function createAppContext(
     runtimeControlReceiptAdmission,
     proactiveConsentReceiptAdmission,
     proactiveTurnReceiptAdmission,
+    ttsReceiptAdmission,
     voiceControlReceiptAdmission,
     async closeDatabasePool() {
       await databasePool?.end();
