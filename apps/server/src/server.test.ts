@@ -1929,6 +1929,40 @@ describe("server", () => {
     }
   });
 
+  it("keeps production manual Memory authoring and maintenance unavailable with a dev token", async () => {
+    const app = await buildTestServer({
+      RUNTIME_MODE: "production",
+      DASHBOARD_DEV_TOKEN: "memory-prod-token"
+    });
+
+    try {
+      for (const headers of [undefined, { authorization: "Bearer memory-prod-token" }]) {
+        const create = await app.inject({
+          method: "POST",
+          url: "/memory",
+          payload: { type: "semantic", content: "Must not be created", source: "manual" },
+          ...(headers ? { headers } : {})
+        });
+        const maintenance = await app.inject({
+          method: "POST",
+          url: "/memory/maintenance/run",
+          payload: { dryRun: false },
+          ...(headers ? { headers } : {})
+        });
+        expect(create.statusCode).toBe(404);
+        expect(create.json()).toMatchObject({ error: "not_found" });
+        expect(maintenance.statusCode).toBe(404);
+        expect(maintenance.json()).toMatchObject({ error: "not_found" });
+      }
+
+      const recent = await app.inject({ method: "GET", url: "/memory/recent" });
+      expect(recent.statusCode).toBe(200);
+      expect(recent.json().memories).toEqual([]);
+    } finally {
+      await app.close();
+    }
+  });
+
   it("requires localhost for settings and explicit provider verification even without a token", async () => {
     const app = await buildTestServer();
     const fetchSpy = vi.spyOn(globalThis, "fetch");

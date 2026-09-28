@@ -12,11 +12,11 @@ import type {
 } from "@companion/memory";
 import { MemoryMaintenanceService } from "@companion/memory";
 import type { RetrievedMemoryDebug } from "@companion/memory";
-import type { FastifyInstance, FastifyReply } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import type { ServerConfig } from "../config.js";
 import type { AppContext } from "../context.js";
-import { requireDashboardDevToken } from "./security.js";
+import { requireDashboardDevToken, requireLocalDashboardAccess } from "./security.js";
 
 const MemoryTypeSchema = z.enum([
   "working",
@@ -241,7 +241,7 @@ export async function registerMemoryRoutes(
   config?: ServerConfig
 ): Promise<void> {
   app.post("/memory", async (request, reply) => {
-    if (config && !requireDashboardDevToken(config, request, reply)) return;
+    if (!requireDevelopmentMemoryMutation(config, request, reply)) return;
 
     const input = CreateMemoryRequestSchema.safeParse(request.body);
     if (!input.success) {
@@ -337,7 +337,7 @@ export async function registerMemoryRoutes(
   });
 
   app.post("/memory/bulk-delete", async (request, reply) => {
-    if (config && !requireDashboardDevToken(config, request, reply)) return;
+    if (!requireMemoryWithdrawalAccess(config, request, reply)) return;
 
     const input = BulkDeleteMemoryRequestSchema.safeParse(request.body);
     if (!input.success) {
@@ -395,12 +395,15 @@ export async function registerMemoryRoutes(
   });
 
   app.post("/memory/maintenance/run", async (request, reply) => {
-    if (config && !requireDashboardDevToken(config, request, reply)) return;
-    if (config && config.runtimeMode !== "development" && !config.dashboardDevToken) {
-      return reply.status(404).send({
-        error: "not_found",
-        message: "Memory maintenance endpoint is only available in development or secured mode."
-      });
+    if (
+      !requireDevelopmentMemoryMutation(
+        config,
+        request,
+        reply,
+        "Memory maintenance endpoint is only available in development mode."
+      )
+    ) {
+      return;
     }
 
     const input = MaintenanceRequestSchema.safeParse(request.body ?? {});
@@ -561,7 +564,7 @@ export async function registerMemoryRoutes(
   });
 
   app.patch("/memory/:id", async (request, reply) => {
-    if (config && !requireDashboardDevToken(config, request, reply)) return;
+    if (!requireDevelopmentMemoryMutation(config, request, reply)) return;
 
     const params = MemoryParamsSchema.safeParse(request.params);
     if (!params.success) {
@@ -632,7 +635,7 @@ export async function registerMemoryRoutes(
   });
 
   app.delete("/memory/:id", async (request, reply) => {
-    if (config && !requireDashboardDevToken(config, request, reply)) return;
+    if (!requireMemoryWithdrawalAccess(config, request, reply)) return;
 
     const params = MemoryParamsSchema.safeParse(request.params);
     if (!params.success) {
@@ -648,22 +651,52 @@ export async function registerMemoryRoutes(
   });
 
   app.post("/memory/:id/archive", async (request, reply) => {
-    if (config && !requireDashboardDevToken(config, request, reply)) return;
+    if (!requireMemoryWithdrawalAccess(config, request, reply)) return;
 
     return updateMemoryStatus(request.params, reply, context, "archived");
   });
 
   app.post("/memory/:id/restore", async (request, reply) => {
-    if (config && !requireDashboardDevToken(config, request, reply)) return;
+    if (!requireDevelopmentMemoryMutation(config, request, reply)) return;
 
     return updateMemoryStatus(request.params, reply, context, "active");
   });
 
   app.post("/memory/:id/forget", async (request, reply) => {
-    if (config && !requireDashboardDevToken(config, request, reply)) return;
+    if (!requireMemoryWithdrawalAccess(config, request, reply)) return;
 
     return updateMemoryStatus(request.params, reply, context, "forgotten");
   });
+}
+
+// This policy is Memory-route-specific: requireDashboardDevToken intentionally
+// does not authenticate production callers, so additive manual writes are hidden there.
+function requireDevelopmentMemoryMutation(
+  config: ServerConfig | undefined,
+  request: FastifyRequest,
+  reply: FastifyReply,
+  message = "Manual Memory authoring is only available in development mode."
+): boolean {
+  if (!config) return true;
+  if (config.runtimeMode !== "development") {
+    reply.status(404).send({ error: "not_found", message });
+    return false;
+  }
+  return requireDashboardDevToken(config, request, reply);
+}
+
+// Privacy withdrawal stays usable without Journal admission, but production
+// callers must be localhost-bound. Development keeps its existing LAN/token policy.
+function requireMemoryWithdrawalAccess(
+  config: ServerConfig | undefined,
+  request: FastifyRequest,
+  reply: FastifyReply
+): boolean {
+  if (!config) return true;
+  if (config.runtimeMode === "development") {
+    return requireDashboardDevToken(config, request, reply);
+  }
+  return requireLocalDashboardAccess(config, request, reply);
 }
 
 async function updateMemoryStatus(
