@@ -29,7 +29,7 @@ A research hypothesis never overrides a production authority boundary.
 
 For roadmap interpretation, [`version-roadmap.md`](version-roadmap.md) is the **release/version sequencing authority**. Detailed atom contracts remain in each version plan and in [`post-v0.1.3-roadmap.md`](post-v0.1.3-roadmap.md). Version grouping may delay technically independent work for product sequencing, but it does not erase technical dependencies or research stop gates.
 
-For A8.2 specifically, [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) is the **current leaf execution authority**. Source audits found separate conversational, speech, standalone-vision, Product, Runtime-governed, proactive-consent, voice-control, external proactive-turn and standalone-TTS admission owners. A8.2e is split into implemented e1 Product/Person controls, e2 Runtime-governed local controls and e3 proactive-consent authority. A8.2f1–f5 are implemented; f6 is the aggregate applicability/regression closure. Aggregate f and A8.2 remain incomplete. Durable Live2D presentation administration and privacy-removal handling have explicit applicability rules for f6 to preserve and verify.
+For A8.2 specifically, [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) is the **current authority**. Source audits found separate conversational, speech, standalone-vision, Product, Runtime-governed, proactive-consent, voice-control, external proactive-turn and standalone-TTS admission owners. A8.2e1–e3 and A8.2f1–f6 are implemented. F6 completed aggregate applicability and regression closure: Live2D asset administration and diagnostic/transient/internal surfaces are explicitly outside this semantic/control receipt family, while privacy withdrawal remains Journal-independent. Aggregate A8.2e, A8.2f and A8.2 are implemented; A9 effect accounting and A10 lineage remain planned.
 
 For A12.1 specifically, [`a12.1-snowluma-contract.md`](a12.1-snowluma-contract.md) is the **current pinned SnowLuma source-contract authority**. Its status is `SOURCE CONTRACT ESTABLISHED — LIVE PROBE PENDING`: source analysis already constrains inbound identity/dedup and outbound idempotency/reconciliation semantics, while the remaining real QQ probes are allowed only to narrow explicitly unresolved remote behavior. It does not close A12.1 or authorize A12.2.
 
@@ -85,7 +85,7 @@ The sequence is intentionally falsifiable. Later learned/latent mechanisms are n
 
 The old **Platform Complete** target is retired. v0.1.3 is the **Durable Causal History Foundation**.
 
-A0–A6, A7.1–A7.2, A8.1, A8.2a–A8.2d, A8.2e1–e3 and A8.2f1–f5 are implemented engineering reality; see the [A8.1 contract](../validation/v0.1.3-a8.1-journal-contract.md), earlier A8.2 validation records indexed by [A8.2 ingress authority](a8.2-ingress-closure.md), [A8.2f1 voice controls](../validation/v0.1.3-a8.2f1-voice-controls.md), [A8.2f2 Product voice controls](../validation/v0.1.3-a8.2f2-product-voice-controls.md), [A8.2f3 external proactive-turn request](../validation/v0.1.3-a8.2f3-proactive-turn-request.md) and [A8.2f5 Memory authority](../validation/v0.1.3-a8.2f5-memory-authority.md). A8.2a adds durable PostgreSQL append storage; A8.2b–d gate conversational, finalized speech and standalone vision input; A8.2e1/e2 gate Product and Runtime local controls; A8.2e3 journals accepted READY settings projections before changing volatile Runtime consent authority; A8.2f1–f4 commit bounded CONTROL receipts before voice controls, an external proactive-turn request, or standalone TTS provider resolution. The f3 receipt precedes creation/advancement of the Runtime stream, omits the volatile Runtime idempotency key, and does not affect internal scheduler wakes. Product voice-review receipts never retain raw audio, and privacy deletion of a review sample remains Journal-independent. UNKNOWN_DENIED only invalidates proactive authority and is not an authored false setting or Journal command. A8.2f5 disables manual Memory authoring/reactivation outside development, requires localhost for production privacy withdrawal, and keeps withdrawal Journal-independent; it does not claim cross-backend Mem0 erasure or repair A10 lineage. Aggregate f6 remains planned, and aggregate f/A8.2 remain incomplete:
+A0–A6, A7.1–A7.2, A8.1 and A8.2a–A8.2f6 are implemented engineering reality; see the [A8.1 contract](../validation/v0.1.3-a8.1-journal-contract.md), per-leaf A8.2 validation records indexed by [A8.2 ingress authority](a8.2-ingress-closure.md), and [A8.2f6 aggregate closure](../validation/v0.1.3-a8.2f6-aggregate-closure.md). A8.2a adds durable PostgreSQL append storage; A8.2b–d gate conversational, finalized speech and standalone vision input; A8.2e1/e2 gate Product and Runtime local controls; A8.2e3 journals accepted READY settings projections before changing volatile Runtime consent authority; A8.2f1–f4 commit bounded CONTROL receipts before voice controls, an external proactive-turn request, or standalone TTS provider resolution. The f3 receipt precedes creation/advancement of the Runtime stream, omits the volatile Runtime idempotency key, and does not affect internal scheduler wakes. Product voice-review receipts never retain raw audio, and privacy deletion of a review sample remains Journal-independent. UNKNOWN_DENIED only invalidates proactive authority and is not an authored false setting or Journal command. A8.2f5 disables manual Memory authoring/reactivation outside development, requires localhost for production privacy withdrawal, and keeps withdrawal Journal-independent; it does not claim cross-backend Mem0 erasure or repair A10 lineage. F6 finds no remaining current A8.2 ingress bypass and records applicability/privacy exceptions. Aggregate A8.2e, A8.2f and A8.2 are implemented for the documented semantic/control receipt family:
 
 ```text
 A8.2a Journal Store Foundation — IMPLEMENTED
@@ -112,11 +112,13 @@ A8.2f4 standalone TTS input admission — IMPLEMENTED
   ↓
 A8.2f5 production manual Memory mutation authority — IMPLEMENTED
   ↓
-A8.2f6 aggregate applicability/regression closure — PLANNED
+A8.2f6 aggregate applicability/regression closure — IMPLEMENTED
   ↓
-A8.2f aggregate closure — INCOMPLETE
+A8.2f aggregate closure — IMPLEMENTED
   ↓
-A10.1 grounded Memory admission / lineage repair
+A8.2 aggregate ingress closure — IMPLEMENTED
+  ↓
+A10.1 grounded Memory admission / lineage repair — NEXT
 ```
 
 The split does not create six semantic owners. All leaves share one durable Journal append authority and preserve each existing domain owner. Runtime remains the semantic execution authority but is not treated as a universal transport-ingress gate. Journal PostgreSQL availability must be independent of long-term Memory-backend selection while reusing the existing Supervisor/deployment PostgreSQL lifecycle; Mem0 activation must not silently disable Journal durability.

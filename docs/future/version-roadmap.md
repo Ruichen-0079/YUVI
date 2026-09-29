@@ -4,7 +4,7 @@
 >
 > This document answers **what version comes next and what each version is meant to make true**. It does not replace the detailed atom contracts in the v0.1.3 plan or the post-v0.1.3 research roadmap. When a technical dependency conflicts with convenient version grouping, the dependency wins.
 >
-> Current implemented baseline is A0–A6 plus A7.1, A7.2, the A8.1 journal contract, A8.2a–A8.2e3, and A8.2f1–f5 voice-control/external-proactive-request/standalone-TTS/Memory-authority boundaries. A8.2f6 remains planned, and aggregate A8.2f/A8.2 remain incomplete. See [`implementation-baseline.md`](implementation-baseline.md). Current Future authority is indexed in [`README.md`](README.md).
+> Current implemented baseline is A0–A6 plus A7.1, A7.2, the A8.1 journal contract and aggregate A8.2a–A8.2f6 closure. A8.2f6 completed the applicability audit and aggregate regressions; aggregate A8.2e, A8.2f and A8.2 are implemented for the documented semantic/control receipt family and explicit exceptions. A9–A12 remain planned engineering. See [`implementation-baseline.md`](implementation-baseline.md) and [A8.2 closure validation](../validation/v0.1.3-a8.2f6-aggregate-closure.md). Current Future authority is indexed in [`README.md`](README.md).
 
 ## 1. Release philosophy
 
@@ -65,7 +65,7 @@ Detailed authority: [`09-v0.1.3-platform-completion.md`](09-v0.1.3-platform-comp
 
 ## Current state
 
-A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2e3 and A8.2f1–f5 are implemented. A8.2f6 aggregate applicability/regression closure remains planned; A9–A12 remain planned engineering. Aggregate A8.2 remains incomplete, and aggregate A8.2e is complete. The current f split and prior validations are indexed by [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md).
+A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2f6 and aggregate A8.2 are implemented reality. A9–A12 remain planned engineering. Aggregate A8.2e and A8.2f are complete. The source-backed applicability dispositions and regression evidence are indexed by [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) and [the f6 validation record](../validation/v0.1.3-a8.2f6-aggregate-closure.md).
 
 The release is best tracked as three milestones rather than six family numbers.
 
@@ -100,9 +100,11 @@ A7.1 → A7.2 → A8.1
                   ↓
                A8.2f5 production manual Memory mutation authority — IMPLEMENTED
                   ↓
-               A8.2f6 aggregate applicability/regression closure — PLANNED
+               A8.2f6 aggregate applicability/regression closure — IMPLEMENTED
                   ↓
-               A8.2f aggregate closure — INCOMPLETE
+               A8.2f aggregate closure — IMPLEMENTED
+                  ↓
+               A8.2 aggregate ingress closure — IMPLEMENTED
                   ↓
                 A10.1
 ```
@@ -119,6 +121,8 @@ A8.2f3 commits a bounded host-built CONTROL receipt for the externally triggered
 
 A8.2f4 commits a bounded host-built CONTROL receipt for `/v1/tts` before TTS provider resolution. The synthesis text is explicitly `NOT_RETAINED` and nonselectable; only its code-point count and safe option metadata are retained. Principal and Person binding remain unresolved, and no source dedup or authorship claim is made. Provider attempt/outcome accounting remains A9 work.
 
+A8.2f5 closes production manual Memory create/edit/restore authority rather than treating caller-supplied content as grounded evidence. Production archive/forget/delete/bulk-delete remains localhost-only and Journal-independent; cross-backend Mem0 erasure is not claimed. A8.2f6 audited all registered production surfaces and found no remaining accepted semantic/control ingress bypass. It records source-backed exclusions for diagnostics, transient VAD, internal work, operational process/presentation administration and output-effect callbacks, alongside the Journal-independent privacy-withdrawal exception. The aggregate real-PostgreSQL ingress suites and workspace regressions passed. See [A8.2f6 validation](../validation/v0.1.3-a8.2f6-aggregate-closure.md). A8.2 is complete for this documented family; A9 effect accounting and A10 lineage remain separate.
+
 Result:
 
 - executable capabilities have explicit effect contracts;
@@ -126,7 +130,7 @@ Result:
 - a versioned journal command, envelope and evidence-selector contract exists;
 - the durable Journal store has one ordered append authority independent of long-term Memory-backend choice;
 - ordinary conversational HTTP/SSE/WebSocket inputs and finalized speech observations become durable receipts before Runtime semantic processing; standalone vision commits a durable receipt before provider analysis without retaining raw image content; the e1–e3 local-control leaves preserve their existing owners and surface-specific identity/audience/retention limits;
-- A8.2f5 closes production manual Memory authority; A8.2f6 resolves the remaining applicability/bypass findings before aggregate A8.2 is marked implemented;
+- A8.2f5 closes production manual Memory authority; A8.2f6 closes aggregate applicability and regression review. A10.1 is the next dependency-ordered implementation;
 - the reproduced legacy LLM Memory attribution defect is then closed by A10.1;
 - new evidence-backed Memory writes require committed lineage.
 
