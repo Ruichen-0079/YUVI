@@ -2,29 +2,34 @@
 
 > **Status:** CURRENT RELEASE-SEQUENCING AUTHORITY
 >
-> This document answers **what version comes next and what each version is meant to make true**. It does not replace the detailed atom contracts in the v0.1.3 plan or the post-v0.1.3 research roadmap. When a technical dependency conflicts with convenient version grouping, the dependency wins.
+> This document answers **what version comes next and what each version is meant to make true**. It does not replace the detailed atom contracts in the v0.1.3 plan, the A10.1 leaf roadmap, the v0.1.4 People/Profile plan, or the post-v0.1.3 research roadmap. When a technical dependency conflicts with convenient version grouping, the dependency wins.
 >
-> Current implemented baseline is A0–A6 plus A7.1, A7.2, the A8.1 journal contract and aggregate A8.2a–A8.2f6 closure. A8.2f6 completed the applicability audit and aggregate regressions; aggregate A8.2e, A8.2f and A8.2 are implemented for the documented semantic/control receipt family and explicit exceptions. A9–A12 remain planned engineering. See [`implementation-baseline.md`](implementation-baseline.md) and [A8.2 closure validation](../validation/v0.1.3-a8.2f6-aggregate-closure.md). Current Future authority is indexed in [`README.md`](README.md).
+> Current Future authority is indexed in [`README.md`](README.md). Implemented reality remains source/tests/validation first.
 
 ## 1. Release philosophy
 
-YUVI will no longer advance by adding broad psychological subsystems. Releases are organized around one observable capability boundary at a time:
+YUVI advances by observable capability boundaries rather than by adding broad psychological subsystems.
 
 ```text
 v0.1.3  Durable Causal History
-        "What happened, who/what caused it, what did I attempt, and what is actually known?"
+        "What happened, who/what caused it, what did I attempt,
+         what is actually known, and what evidence supports derived Memory/Profile state?"
 
 v0.1.4  People & Profile
-        "Who is this person across surfaces, and what evidence-backed profile do I currently know about them?"
+        "Who is this person across surfaces, and how is the already-grounded
+         profile substrate exposed safely as a People product?"
 
 v0.1.5  Prospective Life
-        "What did I commit to, what am I waiting for, and what remains unresolved across time/restart?"
+        "What did I commit to, what am I waiting for,
+         and what remains unresolved across time/restart?"
 
 v0.1.6  Measured Change
-        "Can repeated eligible experience produce bounded, testable long-term relational/dispositional change?"
+        "Can repeated eligible experience produce bounded, testable
+         long-term relational/dispositional change?"
 
 v0.1.7  Attention, Selection & Portability
-        "Which parts of history should influence the present, and does learned selection add anything over explicit mechanisms?"
+        "Which parts of history should influence the present,
+         and does learned selection add anything over explicit mechanisms?"
 
 later research
         Revealed disposition / constrained exploration only if earlier gates justify them.
@@ -32,16 +37,18 @@ later research
 
 The release numbers are planning labels, not promises that every research branch will be implemented. A failed gate can intentionally delete later work.
 
+---
+
 ## 2. Execution discipline for coding agents
 
-Every implementation atom is executed independently.
+Every implementation atom/sub-atom is executed independently.
 
 Before an atom:
 
 1. Fetch the target branch and verify the exact current HEAD.
-2. Read the authoritative Future index, implementation baseline, the version plan, the atom definition, and the previous atom's validation record.
-3. Inspect current source/tests before editing. Documentation is not allowed to overrule implemented reality.
-4. If HEAD or implemented authority differs from the atom's stated preconditions, stop and report the mismatch. Do not silently reconcile, rebase, reset, or reinterpret completed work.
+2. Read the authoritative Future index, implementation baseline, version plan, atom definition, and previous validation record.
+3. Inspect current source/tests before editing. Documentation cannot overrule implemented reality.
+4. If HEAD or implemented authority differs from stated preconditions, stop and report the mismatch rather than silently reconciling it.
 
 For every atom:
 
@@ -49,116 +56,101 @@ For every atom:
 - no speculative implementation of later atoms;
 - preserve Runtime as the single semantic execution authority;
 - preserve one active owner per meaning;
-- add/modify tests that prove the atom's exit criteria;
+- add/modify tests proving the exit criteria;
 - write a validation record with exact commit/environment/results;
 - update `implementation-baseline.md` only for reality actually changed;
 - update ownership/authority docs when an owner changes;
-- commit and push only after the atom closes cleanly.
+- commit/push only after the atom closes cleanly.
 
-A coding model should never implement multiple roadmap atoms merely because they are adjacent.
+A coding model must not implement multiple roadmap atoms merely because they are adjacent.
 
 ---
 
 # v0.1.3 — Durable Causal History Foundation
 
-Detailed authority: [`09-v0.1.3-platform-completion.md`](09-v0.1.3-platform-completion.md). The source-audited executable split of aggregate A8.2 is authoritative in [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md); it supersedes treating the aggregate A8.2 section as one coding-model atom.
+Detailed authority: [`09-v0.1.3-platform-completion.md`](09-v0.1.3-platform-completion.md).
+
+A8.2 leaf authority: [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md).
+
+A10.1 leaf authority: [`a10.1-grounded-memory-roadmap.md`](a10.1-grounded-memory-roadmap.md).
 
 ## Current state
 
-A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2f6 and aggregate A8.2 are implemented reality. A9–A12 remain planned engineering. Aggregate A8.2e and A8.2f are complete. The source-backed applicability dispositions and regression evidence are indexed by [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) and [the f6 validation record](../validation/v0.1.3-a8.2f6-aggregate-closure.md).
-
-The release is best tracked as three milestones rather than six family numbers.
+A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2f6 and aggregate A8.2 are implemented reality. A10.1a is implemented. A10.1b–f, A9, A10.2/A10.3, A11 and A12 remain planned/open engineering, with A12.1 already holding a pinned source-level SnowLuma contract while its live probe remains pending.
 
 ### Milestone 1 — Evidence Foundation
-
-Default execution order:
 
 ```text
 A7.1 → A7.2 → A8.1
                   ↓
-               A8.2a  Journal Store Foundation
+               A8.2a  Journal store — IMPLEMENTED
                   ↓
-               A8.2b  conversational HTTP/SSE/WebSocket ingress
+               A8.2b  conversational ingress — IMPLEMENTED
                   ↓
-               A8.2c  finalized speech / voice-message ingress
+               A8.2c  finalized speech ingress — IMPLEMENTED
                   ↓
-               A8.2d  standalone vision ingress
+               A8.2d  standalone vision ingress — IMPLEMENTED
                   ↓
-               A8.2e1 Product / Person local-control receipts — IMPLEMENTED
+               A8.2e1 Product / Person controls — IMPLEMENTED
                   ↓
-               A8.2e2 Runtime-governed local-control receipts — IMPLEMENTED
+               A8.2e2 Runtime-governed controls — IMPLEMENTED
                   ↓
-               A8.2e3 proactive-consent authority closure — IMPLEMENTED
+               A8.2e3 proactive-consent authority — IMPLEMENTED
                   ↓
-               A8.2f1 direct voice-profile/binding controls — IMPLEMENTED
+               A8.2f1–f6 remaining receipt/applicability closure — IMPLEMENTED
                   ↓
-               A8.2f2 Product voice-review/enrollment controls — IMPLEMENTED
+               A8.2 aggregate closure — IMPLEMENTED
                   ↓
-               A8.2f3 external proactive-turn request admission — IMPLEMENTED
+               A10.1a fail-closed legacy LLM evidence — IMPLEMENTED
                   ↓
-               A8.2f4 standalone TTS input admission — IMPLEMENTED
+               A10.1b committed Journal ancestry
                   ↓
-               A8.2f5 production manual Memory mutation authority — IMPLEMENTED
+               A10.1c grounded legacy Memory writes
                   ↓
-               A8.2f6 aggregate applicability/regression closure — IMPLEMENTED
+               A10.1d grounded Mem0 ingestion + modernization boundary
                   ↓
-               A8.2f aggregate closure — IMPLEMENTED
+               A10.1e grounded dream derivations
                   ↓
-               A8.2 aggregate ingress closure — IMPLEMENTED
+               A10.1f1 ProfileProvider + local grounded materializer
                   ↓
-                A10.1a fail-closed legacy LLM evidence — IMPLEMENTED
+               A10.1f2 People.Model bridge + dirty/regeneration
                   ↓
-                A10.1b–f lineage and aggregate closure — PLANNED
+               A10.1f3 aggregate Memory/Profile lineage closure
 ```
 
-A8.2 was split only after the required implementation audit found independent production ingress owners. Runtime remains the single semantic execution authority but is not a universal transport-ingress gate. The leaf split is source-driven and must not be implemented as a new generic ingress manager.
+The A10.1 scope correction is deliberate. Mem0 Python `2.2.0` / TypeScript `3.3.0` introduced hosted User Profiles on 2026-09-23 while YUVI is already opening the Mem0 boundary for grounded modernization. Profile materialization is therefore implemented once alongside A10.1 rather than reopening the same Memory/provider seam in v0.1.4.
 
-A8.2a implements the database ownership rule: Journal durability consumes the Supervisor/deployment-owned PostgreSQL infrastructure and remains available when Mem0 is the active Memory backend. `MEMORY_REPOSITORY=postgres` / long-term Memory backend selection does not determine whether the Journal exists, and no second PostgreSQL daemon is introduced. A8.2b gates ordinary conversational HTTP/SSE/WebSocket input through durable RECEIPT append. A8.2c gates finalized speech observation handoff with a Runtime-owned provisional reservation and a single durable RECEIPT before handoff readiness. A8.2d gates standalone `/v1/vision/analyze` with a host-built RECEIPT before provider invocation, while retaining no image bytes or URL. Source audit split the remaining controls into Product/Person local controls (e1), Runtime-governed local controls (e2), and proactive-consent authority closure (e3).
+This does **not** move Person authority into Mem0. A10.1f must preserve:
 
-A8.2e2 now commits minimal CONTROL receipts before P8 correction append and process-local read-text grant issuance. Runtime revalidates P8 state after commit; read-text paths are not retained and grants are not restored from Journal.
+```text
+People
+├── Facts  ← governed Person fields + grounded Memory/evidence
+├── Model  ← derived ProfileProvider snapshot
+└── Relationship adaptation ← later measured mechanisms
+```
 
-A8.2e3 keeps Desktop/Tauri persisted settings as authored proactive consent. `/v1/proactive/consent` is a local-only projection protocol: READY projections commit a host-built CONTROL receipt before Runtime applies them; UNKNOWN_DENIED immediately advances a volatile fail-closed revision fence without pretending the user authored false. Runtime policy persistence continues to own suppression/eligibility state and does not restore consent authority on process restart.
+The local/private profile materializer is the required baseline. A hosted Mem0 User Profiles adapter is optional and cannot become a mandatory cloud dependency.
 
-A8.2f3 commits a bounded host-built CONTROL receipt for the externally triggered `/v1/proactive-turns/stream` request before Runtime stream construction/advancement. Runtime still owns all eligibility, claim and provider behavior; its volatile idempotency key is not Journal source identity. Internal scheduler wakes remain outside this HTTP admission boundary.
+### Milestone 2 — Action and attribution foundation
 
-A8.2f4 commits a bounded host-built CONTROL receipt for `/v1/tts` before TTS provider resolution. The synthesis text is explicitly `NOT_RETAINED` and nonselectable; only its code-point count and safe option metadata are retained. Principal and Person binding remain unresolved, and no source dedup or authorship claim is made. Provider attempt/outcome accounting remains A9 work.
-
-A8.2f5 closes production manual Memory create/edit/restore authority rather than treating caller-supplied content as grounded evidence. Production archive/forget/delete/bulk-delete remains localhost-only and Journal-independent; cross-backend Mem0 erasure is not claimed. A8.2f6 audited all registered production surfaces and found no remaining accepted semantic/control ingress bypass. It records source-backed exclusions for diagnostics, transient VAD, internal work, operational process/presentation administration and output-effect callbacks, alongside the Journal-independent privacy-withdrawal exception. The aggregate real-PostgreSQL ingress suites and workspace regressions passed. See [A8.2f6 validation](../validation/v0.1.3-a8.2f6-aggregate-closure.md). A8.2 is complete for this documented family; A9 effect accounting and A10 lineage remain separate.
-
-Result:
-
-- executable capabilities have explicit effect contracts;
-- plugins can register only narrow governed executable handles;
-- a versioned journal command, envelope and evidence-selector contract exists;
-- the durable Journal store has one ordered append authority independent of long-term Memory-backend choice;
-- ordinary conversational HTTP/SSE/WebSocket inputs and finalized speech observations become durable receipts before Runtime semantic processing; standalone vision commits a durable receipt before provider analysis without retaining raw image content; the e1–e3 local-control leaves preserve their existing owners and surface-specific identity/audience/retention limits;
-- A8.2f5 closes production manual Memory authority; A8.2f6 closes aggregate applicability and regression review. A10.1a is implemented, and A10.1b is the next dependency-ordered implementation;
-- A10.1a closes the reproduced legacy LLM Memory attribution defect by skipping the ungrounded LLM provider path and retaining rule-based extraction; A10.1 aggregate remains incomplete;
-- A10.1b–f will require committed lineage for new evidence-backed Memory writes; A10.1a closes only the legacy optional LLM admission path, and aggregate A10.1 remains incomplete.
-
-This is the first intentional checkpoint. Perform an authority-bypass audit before continuing to external effects.
-
-### Milestone 2 — Action Foundation
-
-Default execution order:
+Default dependency order:
 
 ```text
 A9.1 → A9.2
           ├→ A10.2
           └→ A11.1 (may begin here)
+
 A9.3 + A10.1 + A10.2 → A10.3
 ```
 
 Result:
 
 - a logical external action has one durable INTENT identity;
-- concrete ATTEMPTs and OUTCOMEs are accounted for;
-- crash ambiguity is explicit; UNKNOWN is preserved where the remote world cannot be proven;
-- existing provider/stream/speech/presentation effects are covered rather than only new plugins;
-- Person/controller/voice/P8 corrections have causal lineage without creating new domain owners;
-- a context-use manifest can explain which retained evidence and projection versions an execution actually saw.
-
-`A9.3` must start with a read-only effect-surface audit. If the source reveals separate large seams for provider generation, streamed publication, and speech/presentation, split A9.3 into smaller validated leaf atoms before implementation. Do not pre-split it for roadmap aesthetics.
+- ATTEMPTs and OUTCOMEs are accounted for without fabricated certainty;
+- crash ambiguity remains explicit as UNKNOWN where necessary;
+- controller→Person, voice binding, authored/controller Person fields and P8 correction issuer/binding have causal lineage;
+- A10.2 does **not** reimplement derived profile synthesis; that belongs to A10.1f;
+- A10.3 can explain which retained evidence and projection revisions an execution actually consumed.
 
 ### Milestone 3 — Reality Check
 
@@ -167,18 +159,18 @@ A11.1 → A11.2 → A12.2
 A7.1  → A12.1 ─────┘
 ```
 
-`A12.1` should begin early after A7.1 when an authorized Snowluma/QQ test environment is available. It is a protocol/effect probe, not the final adapter implementation.
-
 Result:
 
-- deterministic fault injection proves the six v0.1.3 invariants under restart/concurrency;
+- deterministic fault injection proves the v0.1.3 invariants under restart/concurrency;
 - one real QQ/Snowluma private/group surface passes the same contract;
 - unsupported remote guarantees remain UNKNOWN/unsupported rather than being papered over;
-- QQ remains a thin surface rather than a second conversation/Memory/persona Runtime.
+- QQ remains a thin surface rather than a second conversation/Memory/People runtime.
 
 ### v0.1.3 closure
 
-v0.1.3 ends at A12.2. Do not add a generic A13 cleanup atom. Windows/macOS parity, relationship learning, profiles, prospective state, learned selection, and autonomous exploration are not v0.1.3 closure requirements.
+v0.1.3 ends at A12.2. Do not add a generic cleanup A13.
+
+Windows/macOS parity, relationship learning, prospective state, learned selection, autonomous exploration and People product UI are not v0.1.3 closure requirements. The profile **substrate/materializer** is inside A10.1 because it shares the Memory modernization boundary; the People **product** remains v0.1.4.
 
 ---
 
@@ -188,9 +180,9 @@ Detailed executable plan: [`10-v0.1.4-people-profile.md`](10-v0.1.4-people-profi
 
 ## Product result
 
-A Person becomes a core YUVI domain object across surfaces, and YUVI can expose an evidence-linked, regenerable semantic profile of that Person.
+A Person becomes a core YUVI domain object across surfaces, and YUVI exposes the evidence-linked, regenerable profile substrate built in A10.1f through stable People APIs, governed identity/binding, disclosure-safe A4 projection and a user-facing People surface.
 
-QQ is the first high-value source of multi-person evidence, but **People/Profile is not a QQ plugin feature**. QQ contributes principals, receipts, audience and transport metadata. Core YUVI owns Person binding, evidence access, profile derivation, disclosure and context projection.
+QQ is the first high-value source of multi-person evidence, but **People/Profile is not a QQ plugin feature**. QQ contributes principals, receipts, audience and transport metadata. Core YUVI owns Person binding, evidence access, profile product semantics, disclosure and context projection.
 
 Conceptually:
 
@@ -203,7 +195,9 @@ QQ / voice / desktop / future surfaces
                 ↓
        committed evidence / Memory
                 ↓
-        derived profile snapshot
+        A10.1f ProfileProvider
+                ↓
+          People.Model snapshot
                 ↓
           People UI + A4 context
 ```
@@ -214,20 +208,20 @@ QQ / voice / desktop / future surfaces
 PF1 → PF2 → PF3 → PF4? → PF5 → PF6
 ```
 
-- **PF1** freezes People/Profile ownership, schema and provider contract.
-- **PF2** audits the current Mem0 dependency against current upstream OSS/Platform capabilities and makes an explicit migration decision. It does not upgrade Mem0 merely because a newer package exists.
-- **PF3** implements the provider-neutral YUVI profile baseline from lineage-bound evidence. This makes the feature work without requiring Mem0 Platform.
-- **PF4** conditionally executes the Mem0 path selected by PF2. It may legitimately close as `NO_UPGRADE` / `NO_PLATFORM_DEPENDENCY` with no production code if that is the safe decision.
-- **PF5** adds the People/Profile product surface and bounded A4 context projection.
-- **PF6** proves cross-surface identity/profile behavior with QQ plus at least one non-QQ source and closes v0.1.4.
+- **PF1 — People/Profile contract hardening.** Freeze the product-facing Person/Profile read schema over the inherited A10.1f substrate.
+- **PF2 — governed cross-surface Person binding and correction.** Make identity/binding stable without using profile similarity as authority.
+- **PF3 — People.Model product bridge.** Expose current/dirty/pending/stale/conflicting profile lifecycle and bounded regeneration through People APIs.
+- **PF4 — optional Mem0 Platform adapter hardening.** Conditional only. Validate hosted User Profiles parity/idempotency/privacy if configured; otherwise close as `NOT_APPLICABLE`. Local profile operation remains mandatory.
+- **PF5 — People surface + bounded A4 profile projection.** Includes the mandatory HUMAN / HIGH-CAPABILITY DESIGN GATE and rendered review.
+- **PF6 — cross-surface closure.** Prove identity/profile/disclosure/correction behavior with QQ plus at least one non-QQ source.
 
-The profile is a derived view, never identity truth, relationship authority, obligation state or a generic trust/disposition store.
+The profile remains a derived view, never identity truth, relationship authority, obligation state or a generic trust/disposition store.
 
 ---
 
 # v0.1.5 — Prospective Life
 
-Detailed atoms already exist in [`post-v0.1.3-roadmap.md`](post-v0.1.3-roadmap.md).
+Detailed atoms: [`post-v0.1.3-roadmap.md`](post-v0.1.3-roadmap.md).
 
 ## Product result
 
@@ -246,8 +240,6 @@ M1 → M2 → E1a
           ↓
           P1 → P2 → P3
 ```
-
-`M1/M2` are deliberately included before Prospective product work because from this release onward continuity features need controlled accelerated histories, fixed probes, blind evaluation and preregistered failure criteria.
 
 - **M1** synthetic life-history generator + accelerated clock + zero-real-effect replay.
 - **M2** fixed probe suite + blind evaluation + preregistration registry.
@@ -268,8 +260,6 @@ Detailed atoms: C-series and E-series in [`post-v0.1.3-roadmap.md`](post-v0.1.3-
 
 Test whether repeated eligible experiences can produce bounded, attributable and correctable long-term projections without allowing an LLM to directly write psychological state.
 
-## Atom order
-
 ```text
 C1 → E2(gate) → C2 → C3 → C4
                          ├→ E4
@@ -278,13 +268,12 @@ C1 → E2(gate) → C2 → C3 → C4
 ```
 
 - **C1** frozen codebook + evidence pointers + state-blind annotation harness.
-- **E2** reliability gate. Failing labels do not proceed.
+- **E2** reliability gate; failing labels do not proceed.
 - **C2** deterministic/governed accumulator in shadow.
 - **C3** construct-specific promotion/decay with explicit measurement definitions.
 - **C4** read-only rendering into A4 context plus B2/B0p+S evaluation.
-- **E4/E5/E6** manipulation-budget, pulse-response, attribution/correction tests as defined in research methodology.
 
-This release does **not** promise that a human-like relationship scalar or personality representation will emerge. If measured constructs do not survive the gates, that branch stops.
+If measured constructs do not survive the gates, that branch stops. The release does not promise a human-like relationship scalar or personality representation.
 
 ---
 
@@ -294,78 +283,25 @@ Detailed atoms: S/PV/Z/MR/PM in [`post-v0.1.3-roadmap.md`](post-v0.1.3-roadmap.m
 
 ## Result
 
-Determine how much continuity comes from explicit evidence selection, whether any learned selector is justified, and whether continuity survives foundation-model replacement within declared dimensions.
+Determine how much continuity comes from explicit evidence selection, whether any learned selector adds value over governed retrieval, and how much behavior survives foundation-model replacement.
 
-## Default order
+Representative dependency direction remains:
 
 ```text
-S1 → S2/E3(gate)
-          ├─ no oracle gap → stop Z successfully
-          └─ real gap → PV1 → Z1(gate, optional)
-
+C3 → S1 → S2 / E3(gate) → PV1 → Z1(gate, optional)
+C4 + S1 → RD1 → RD2(gate) → X1
 P3 + C4 + E6 → MR1
-MR1 + replacement-owner gates → PM1 per P8 field
+MR1 + replacement-owner gate → PM1 (per field)
 ```
 
-- **S1** strong B3/Zero explicit selection baseline.
-- **S2/E3** state ablation + O_text/O_selection oracle gap.
-- **PV1** deletion cascade/research-data admissibility before real longitudinal learned state.
-- **Z1** optional offline learned selection trial only if a preregistered O_selection gap exists and the learned artifact can remain replayable/deletable/portable.
-- **MR1** model-replacement continuity release gate across factual/obligation, relationship/preference, normative and style dimensions.
-- **PM1** P8 migration one field at a time after replacement owners pass gates.
-
-There is no single Yuvi-likeness score and no required latent-self implementation.
+Learned/latent selection is optional research. If explicit mechanisms meet the preregistered target, the latent branch closes successfully rather than being treated as missing functionality.
 
 ---
 
-# Later research — Revealed Disposition & Exploration
+## Later research
 
-Do not assign these to a promised product release until v0.1.6/v0.1.7 gates justify them.
+Revealed disposition, constrained exploration, post-training and deeper artificial-person hypotheses remain gated research. They do not acquire production authority merely because they are philosophically interesting or appear in historical Future documents.
 
-```text
-C4 + S1 → RD1 → RD2(gate) → X1(research)
-```
+## Working rule
 
-- **RD1** logs genuine counterfactual choice sets and pre-choice propensities without writing state.
-- **RD2** tests tiny residual revealed-disposition updates in shadow; predicted behavior cannot recursively confirm itself.
-- **X1** only if RD2 is informative: a small charter-constrained exploration budget, never an engagement/retention optimizer.
-
-A negative RD2 result is a valid conclusion: YUVI can continue using explicit history/prospective/selection mechanisms without inventing an autonomous-interest subsystem.
-
----
-
-# Continuous product lane
-
-Version sequencing above does not freeze ordinary product maintenance. The following may continue when they do not violate atom authority or destabilize a closure boundary:
-
-- STT/TTS reliability;
-- Live2D/presentation bugs;
-- provider compatibility;
-- Linux packaging/runtime fixes;
-- UI defect fixes;
-- performance/latency regressions;
-- security/privacy correctness fixes.
-
-Such work is not allowed to sneak in a second Runtime, Memory authority, Person store, profile owner, scheduler or selection policy.
-
-## Summary
-
-The intended growth path is:
-
-```text
-causal history
-    ↓
-people/profile
-    ↓
-prospective continuity
-    ↓
-measured change
-    ↓
-explicit selection
-    ↓
-optional learned selection
-    ↓
-optional revealed disposition / exploration
-```
-
-At every arrow, the next mechanism must justify itself against the simplest explicit alternative already implemented.
+Prefer the smallest explicit mechanism that passes preregistered tests. Reuse an existing authoritative seam when the capability naturally belongs there; do not postpone adjacent work only to reopen the same provider/storage boundary in the next release.
