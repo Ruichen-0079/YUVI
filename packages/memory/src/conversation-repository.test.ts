@@ -30,6 +30,56 @@ function message(
 }
 
 describe("ConversationRepository", () => {
+  it("keeps user Journal ancestry distinct from Runtime source IDs in memory", async () => {
+    const repository = new InMemoryConversationRepository();
+    const sourceJournalRef = {
+      kind: "JOURNAL_EVENT" as const,
+      namespace: "test:conversation",
+      eventId: "jev1_0123456789abcdef"
+    };
+    const user = await repository.appendMessage({
+      ...message("runtime-user-event", "session-a", "user", "hello"),
+      status: "streaming",
+      completedAt: null,
+      sourceUserEventId: "runtime-user-event",
+      sourceJournalRef
+    });
+
+    await repository.completeMessage(user.id, { done: true });
+    const completed = await repository.getMessageById(user.id);
+    expect(completed).toMatchObject({
+      id: "runtime-user-event",
+      sourceUserEventId: "runtime-user-event",
+      sourceJournalRef
+    });
+    expect((await repository.listRecentMessages("session-a"))[0]?.sourceJournalRef).toEqual(
+      sourceJournalRef
+    );
+
+    await repository.appendMessage({
+      ...message("assistant-reply", "session-a", "assistant", "hi"),
+      sourceUserEventId: user.id
+    });
+    expect((await repository.getMessageById("assistant-reply"))?.sourceJournalRef).toBeNull();
+    await repository.appendMessage(message("legacy-user", "session-a", "user", "older row"));
+    expect((await repository.getMessageById("legacy-user"))?.sourceJournalRef).toBeNull();
+    await expect(
+      repository.appendMessage({
+        ...message("runtime-user-event", "session-a", "user", "hello"),
+        sourceJournalRef: {
+          ...sourceJournalRef,
+          eventId: "jev1_ffffffffffffffff"
+        }
+      })
+    ).rejects.toThrow("different Journal ancestry");
+    await expect(
+      repository.appendMessage({
+        ...message("assistant-with-receipt", "session-a", "assistant", "no"),
+        sourceJournalRef
+      })
+    ).rejects.toThrow("only be attached to a user");
+  });
+
   it("keeps sessions isolated, ordered, bounded, and idempotent in memory", async () => {
     const repository = new InMemoryConversationRepository();
     await repository.appendMessage(message("1", "session-a", "user", "hello"));
@@ -140,6 +190,8 @@ describe("ConversationRepository", () => {
             created_at: values[7],
             completed_at: values[8],
             metadata: values[9],
+            source_journal_ref:
+              typeof values[16] === "string" ? JSON.parse(values[16] as string) : null,
             sequence: ++sequence
           };
           rows.push(row);
@@ -173,6 +225,80 @@ describe("ConversationRepository", () => {
     const messageInsert = queries.find((sql) => sql.includes("insert into conversation_messages"));
     expect(messageInsert).toContain("on conflict (id) do nothing");
     expect(messageInsert).not.toMatch(/max\s*\(\s*sequence\s*\)/i);
+  });
+
+  it("round trips typed Journal ancestry through the PostgreSQL repository adapter", async () => {
+    const rows: Array<Record<string, unknown>> = [];
+    let sequence = 0;
+    const client = {
+      async query(sql: string, values: unknown[] = []) {
+        if (sql.includes("insert into conversation_messages")) {
+          const existing = rows.find((row) => row["id"] === values[0]);
+          if (existing) return { rows: [] };
+          const sourceJournalRef =
+            typeof values[16] === "string" ? JSON.parse(values[16] as string) : null;
+          const row = {
+            id: values[0],
+            session_id: values[1],
+            trace_id: values[2],
+            parent_message_id: values[3],
+            role: values[4],
+            content: values[5],
+            status: values[6],
+            created_at: values[7],
+            completed_at: values[8],
+            metadata: values[9],
+            source_user_event_id: values[10],
+            finalized_turn_id: values[11],
+            persona_id: values[12],
+            subject_user_id: values[13],
+            ingestion_requested: values[14],
+            ingestion_skip_reason: values[15],
+            source_journal_ref: sourceJournalRef,
+            sequence: ++sequence
+          };
+          rows.push(row);
+          return { rows: [row] };
+        }
+        if (sql.includes("select * from conversation_messages where id")) {
+          return { rows: rows.filter((row) => row["id"] === values[0]) };
+        }
+        if (sql.includes("select * from conversation_messages")) {
+          return {
+            rows: rows
+              .filter((row) => row["session_id"] === values[0])
+              .sort((left, right) => Number(right["sequence"]) - Number(left["sequence"]))
+              .slice(0, Number(values[1]))
+          };
+        }
+        return { rows: [] };
+      },
+      async end() {}
+    };
+    const repository = new PostgresConversationRepository(client);
+    const sourceJournalRef = {
+      kind: "JOURNAL_EVENT" as const,
+      namespace: "n".repeat(512),
+      eventId: "jev1_0123456789abcdef0123456789abcdef"
+    };
+
+    const appended = await repository.appendMessage({
+      ...message("pg-user", "pg-session", "user", "durable ancestry"),
+      sourceJournalRef
+    });
+    expect(appended.sourceJournalRef).toEqual(sourceJournalRef);
+    expect((await repository.getMessageById("pg-user"))?.sourceJournalRef).toEqual(
+      sourceJournalRef
+    );
+    expect((await repository.listRecentMessages("pg-session"))[0]?.sourceJournalRef).toEqual(
+      sourceJournalRef
+    );
+    await expect(
+      repository.appendMessage({
+        ...message("pg-user", "pg-session", "user", "retry"),
+        sourceJournalRef: { ...sourceJournalRef, eventId: "jev1_ffffffffffffffff" }
+      })
+    ).rejects.toThrow("different Journal ancestry");
   });
 
   it("uses parameterized atomic SQL for streaming updates", async () => {

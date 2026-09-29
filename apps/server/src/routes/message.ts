@@ -1,6 +1,7 @@
 import { ConversationPersistenceError } from "@companion/core";
 import { parseRuntimeConfig } from "@companion/config";
 import { createEvent } from "@companion/protocol";
+import type { JournalEventRef } from "@companion/protocol";
 import { randomUUID } from "node:crypto";
 import { ProviderError } from "@companion/providers";
 import type { FastifyInstance } from "fastify";
@@ -8,6 +9,7 @@ import { z } from "zod";
 import type { AppContext } from "../context.js";
 import {
   toConversationalAdmissionFailure,
+  toConversationalJournalRef,
   type ConversationalReceiptSurface
 } from "../conversational-receipt-admission.js";
 
@@ -109,6 +111,7 @@ export async function registerMessageRoutes(
     const identity = resolveMessageIdentity(input.data);
     let event;
     let runtimeEventId: string | undefined;
+    let sourceJournalRef: JournalEventRef | undefined;
     try {
       if (input.data.speechObservationId) {
         event = context.runtime.commitSpeechTurn(
@@ -132,6 +135,7 @@ export async function registerMessageRoutes(
           content,
           ...(input.data.imageAttachment ? { hasImageAttachment: true } : {})
         });
+        sourceJournalRef = toConversationalJournalRef(receipt.envelope);
         request.log.info(
           {
             journalEventId: receipt.envelope.eventId,
@@ -158,6 +162,7 @@ export async function registerMessageRoutes(
         {
           sessionId: input.data.sessionId,
           content,
+          ...(sourceJournalRef ? { sourceJournalRef } : {}),
           ...(identity.subjectUserId ? { subjectUserId: identity.subjectUserId } : {}),
           ...(identity.personaId ? { personaId: identity.personaId } : {})
         },

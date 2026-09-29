@@ -1019,6 +1019,7 @@ export class RuntimeOrchestrator {
     const event = createEvent("user.voice.transcript", {
       sessionId,
       content: observation.text,
+      sourceJournalRef: pending.journalRef,
       observationId,
       ...(observation.captureEpoch ? { captureEpoch: observation.captureEpoch } : {}),
       ...(observation.language ? { language: observation.language } : {}),
@@ -6146,6 +6147,9 @@ function conversationMessageFromEvent(
     completedAt: status === "completed" ? event.timestamp : null,
     ...(isUserEvent
       ? {
+          ...(event.payload.sourceJournalRef
+            ? { sourceJournalRef: event.payload.sourceJournalRef }
+            : {}),
           personaId: event.payload.personaId ?? null,
           subjectUserId: event.payload.subjectUserId ?? null
         }

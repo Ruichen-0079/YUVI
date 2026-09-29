@@ -2,13 +2,17 @@ import {
   RuntimeEventSchema,
   UserMessageEventSchema,
   createEvent,
+  type JournalEventRef,
   type RuntimeEvent
 } from "@companion/protocol";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import type { AppContext } from "../context.js";
 import { redactValue } from "../services/dashboard.js";
-import { toConversationalAdmissionFailure } from "../conversational-receipt-admission.js";
+import {
+  toConversationalAdmissionFailure,
+  toConversationalJournalRef
+} from "../conversational-receipt-admission.js";
 
 export const ACTIVE_TRACE_MAX_ENTRIES = 256;
 export const ACTIVE_TRACE_RETENTION_MS = 15 * 60 * 1000;
@@ -171,6 +175,7 @@ export async function registerWebSocketRoutes(
           { traceId: parsed.traceId, sessionId: parsed.payload.sessionId },
           "websocket user.message received"
         );
+        let sourceJournalRef: JournalEventRef;
         try {
           const receipt = await context.conversationalReceiptAdmission.admit({
             surface: "WEBSOCKET",
@@ -178,6 +183,7 @@ export async function registerWebSocketRoutes(
             runtimeEventId: parsed.id,
             content: parsed.payload.content
           });
+          sourceJournalRef = toConversationalJournalRef(receipt.envelope);
           app.log.info(
             {
               journalEventId: receipt.envelope.eventId,
@@ -210,7 +216,10 @@ export async function registerWebSocketRoutes(
           );
           return;
         }
-        await context.runtime.handleUserMessage(parsed);
+        await context.runtime.handleUserMessage({
+          ...parsed,
+          payload: { ...parsed.payload, sourceJournalRef }
+        });
       } catch (error) {
         if (envelope) {
           activeTraceIds.delete(envelope.traceId);

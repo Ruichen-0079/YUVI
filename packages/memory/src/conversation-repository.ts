@@ -1,5 +1,6 @@
 import type { Pool, QueryResultRow } from "pg";
 import { createPostgresPool } from "@companion/database";
+import { JournalEventRefSchema, type JournalEventRef } from "@companion/protocol";
 import { parseMemoryRepositoryEnv, type MemoryRepositoryKind } from "./env.js";
 
 export type ConversationRepositoryKind = MemoryRepositoryKind;
@@ -21,6 +22,7 @@ export type ConversationMessage = {
   traceId: string;
   parentMessageId: string | null;
   sourceUserEventId?: string | null;
+  sourceJournalRef?: JournalEventRef | null;
   role: ConversationMessageRole;
   content: string;
   status: ConversationMessageStatus;
@@ -39,6 +41,7 @@ export type ConversationMessageInput = Omit<
   ConversationMessage,
   | "sequence"
   | "sourceUserEventId"
+  | "sourceJournalRef"
   | "finalizedTurnId"
   | "personaId"
   | "subjectUserId"
@@ -49,6 +52,7 @@ export type ConversationMessageInput = Omit<
     Pick<
       ConversationMessage,
       | "sourceUserEventId"
+      | "sourceJournalRef"
       | "finalizedTurnId"
       | "personaId"
       | "subjectUserId"
@@ -139,13 +143,16 @@ export class PostgresConversationRepository implements ConversationRepository {
   }
 
   async appendMessage(message: ConversationMessageInput): Promise<ConversationMessage> {
+    const sourceJournalRef = normalizeSourceJournalRef(message.sourceJournalRef);
+    assertUserJournalAncestry(message.role, sourceJournalRef);
     await this.ensureSession(message.sessionId);
     const result = await this.pool.query(
       `insert into conversation_messages (
         id, session_id, trace_id, parent_message_id, role, content, status,
         created_at, completed_at, metadata, source_user_event_id, finalized_turn_id,
-        persona_id, subject_user_id, ingestion_requested, ingestion_skip_reason
-      ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        persona_id, subject_user_id, ingestion_requested, ingestion_skip_reason,
+        source_journal_ref
+      ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17::jsonb)
       on conflict (id) do nothing
       returning *`,
       [
@@ -164,7 +171,8 @@ export class PostgresConversationRepository implements ConversationRepository {
         message.personaId ?? null,
         message.subjectUserId ?? null,
         message.ingestionRequested ?? null,
-        message.ingestionSkipReason ?? null
+        message.ingestionSkipReason ?? null,
+        sourceJournalRef ? JSON.stringify(sourceJournalRef) : null
       ]
     );
 
@@ -175,7 +183,9 @@ export class PostgresConversationRepository implements ConversationRepository {
     const existing = await this.pool.query("select * from conversation_messages where id = $1", [
       message.id
     ]);
-    return mapConversationMessageRow(requireConversationRow(existing.rows));
+    const existingMessage = mapConversationMessageRow(requireConversationRow(existing.rows));
+    assertSameJournalAncestry(existingMessage.sourceJournalRef, sourceJournalRef, message.id);
+    return existingMessage;
   }
 
   async appendMessageContent(messageId: string, delta: string): Promise<ConversationMessage> {
@@ -392,16 +402,20 @@ export class InMemoryConversationRepository implements ConversationRepository {
   }
 
   async appendMessage(message: ConversationMessageInput): Promise<ConversationMessage> {
+    const sourceJournalRef = normalizeSourceJournalRef(message.sourceJournalRef);
+    assertUserJournalAncestry(message.role, sourceJournalRef);
     await this.ensureSession(message.sessionId);
     const messages = this.messages.get(message.sessionId) ?? [];
     const existing = messages.find((candidate) => candidate.id === message.id);
     if (existing) {
+      assertSameJournalAncestry(existing.sourceJournalRef, sourceJournalRef, message.id);
       return cloneConversationMessage(existing);
     }
 
     const stored: ConversationMessage = {
       ...message,
       sourceUserEventId: message.sourceUserEventId ?? null,
+      sourceJournalRef,
       finalizedTurnId: message.finalizedTurnId ?? null,
       personaId: message.personaId ?? null,
       subjectUserId: message.subjectUserId ?? null,
@@ -597,6 +611,7 @@ function mapConversationMessageRow(row: QueryResultRow | undefined): Conversatio
     traceId: String(row["trace_id"]),
     parentMessageId: row["parent_message_id"] ?? null,
     sourceUserEventId: row["source_user_event_id"] ?? null,
+    sourceJournalRef: normalizeSourceJournalRef(row["source_journal_ref"]),
     role: row["role"] as ConversationMessageRole,
     content: String(row["content"]),
     status: row["status"] as ConversationMessageStatus,
@@ -639,7 +654,56 @@ function applyConversationBounds(
 }
 
 function cloneConversationMessage(message: ConversationMessage): ConversationMessage {
-  return { ...message, metadata: { ...message.metadata } };
+  return {
+    ...message,
+    ...(message.sourceJournalRef
+      ? { sourceJournalRef: { ...message.sourceJournalRef } }
+      : { sourceJournalRef: null }),
+    metadata: { ...message.metadata }
+  };
+}
+
+function normalizeSourceJournalRef(value: unknown): JournalEventRef | null {
+  if (value === undefined || value === null) return null;
+  let candidate: unknown = value;
+  if (typeof value === "string") {
+    try {
+      candidate = JSON.parse(value) as unknown;
+    } catch {
+      throw new Error("Conversation source Journal reference is malformed.");
+    }
+  }
+  const parsed = JournalEventRefSchema.safeParse(candidate);
+  if (!parsed.success) {
+    throw new Error("Conversation source Journal reference is malformed.");
+  }
+  return { ...parsed.data };
+}
+
+function assertUserJournalAncestry(
+  role: ConversationMessageRole,
+  sourceJournalRef: JournalEventRef | null
+): void {
+  if (role !== "user" && sourceJournalRef) {
+    throw new Error("Journal receipt ancestry may only be attached to a user conversation message.");
+  }
+}
+
+function assertSameJournalAncestry(
+  existing: JournalEventRef | null | undefined,
+  incoming: JournalEventRef | null,
+  messageId: string
+): void {
+  const prior = existing ?? null;
+  if (
+    prior?.namespace !== incoming?.namespace ||
+    prior?.eventId !== incoming?.eventId ||
+    (prior === null) !== (incoming === null)
+  ) {
+    throw new Error(
+      `Conversation message '${messageId}' already exists with different Journal ancestry.`
+    );
+  }
 }
 
 function requireConversationRow(rows: QueryResultRow[]): QueryResultRow {

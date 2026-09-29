@@ -5,6 +5,7 @@ export * from "./embodied-presentation-request.js";
 export * from "./life-event-journal.js";
 
 import { z } from "zod";
+import { JournalEventRefSchema } from "./life-event-journal.js";
 
 export const EventTypeSchema = z.enum([
   "user.message",
@@ -50,6 +51,7 @@ export type RuntimeEvent<TType extends string = EventType, TPayload = unknown> =
 export const UserMessagePayloadSchema = z.object({
   sessionId: z.string().min(1),
   content: z.string().min(1),
+  sourceJournalRef: JournalEventRefSchema.optional(),
   personaId: z.string().min(1).nullable().optional(),
   subjectUserId: z.string().min(1).nullable().optional(),
   createdByUserId: z.string().min(1).nullable().optional(),
@@ -69,6 +71,7 @@ export type UserMessageEvent = RuntimeEvent<"user.message", UserMessagePayload>;
 export const UserVoiceTranscriptPayloadSchema = z.object({
   observationId: z.string().optional(),
   captureEpoch: z.string().optional(),
+  sourceJournalRef: JournalEventRefSchema.optional(),
   segments: z
     .array(
       z.object({

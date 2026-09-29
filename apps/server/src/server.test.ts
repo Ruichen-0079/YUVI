@@ -2826,7 +2826,10 @@ describe("server", () => {
           async admit() {
             return {
               status: "APPENDED",
-              envelope: { eventId: "jev1_testserverreceipt00000002" } as never
+              envelope: {
+                eventId: "jev1_testserverreceipt00000002",
+                journalNamespace: "test:server"
+              } as never
             };
           }
         }
@@ -3120,7 +3123,10 @@ async function buildTestServer(overrides: TestEnvOverrides = {}) {
       async admit() {
         return {
           status: "APPENDED" as const,
-          envelope: { eventId: "jev1_testserverreceipt00000001" } as never
+          envelope: {
+            eventId: "jev1_testserverreceipt00000001",
+            journalNamespace: "test:server"
+          } as never
         };
       }
     },

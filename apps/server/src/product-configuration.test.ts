@@ -24,7 +24,7 @@ async function setup(existing?: string) {
   if (!existing) cleanups.push(() => rm(dir, { recursive: true, force: true }));
   process.env = { NODE_ENV: "test", RUNTIME_MODE: "development", YUVI_RUNTIME_ENV_DIR: dir, LOG_LEVEL: "silent", PROVIDER_ALLOW_MOCKS: "false", MEMORY_REPOSITORY: "in-memory", EVENT_BUS: "in-memory", MEMORY_INGESTION_COORDINATOR_ENABLED: "false", MEMORY_MAINTENANCE_ENABLED: "false" };
   const config = loadServerConfig(process.env); const app = Fastify({ logger: false }); const context = await createAppContext(app.log, config);
-  context.conversationalReceiptAdmission = { admit: async () => ({ status: "APPENDED", envelope: { eventId: "jev1_productconfigurationreceipt01" } as never }) };
+  context.conversationalReceiptAdmission = { admit: async () => ({ status: "APPENDED", envelope: { eventId: "jev1_productconfigurationreceipt01", journalNamespace: "test:product-configuration" } as never }) };
   context.productControlReceiptAdmission = createTestProductControlReceiptAdmission();
   context.voiceControlReceiptAdmission = createTestVoiceControlReceiptAdmission();
   await registerProductRoutes(app, context, config); await registerPeopleVoiceRoutes(app, context, config); await registerProviderRoutes(app, context, config); await registerMessageRoutes(app, context);

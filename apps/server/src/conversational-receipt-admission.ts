@@ -1,5 +1,10 @@
 import { randomBytes } from "node:crypto";
-import { JOURNAL_COMMAND_VERSION, type JournalPayloadDescriptor } from "@companion/protocol";
+import {
+  JOURNAL_COMMAND_VERSION,
+  JournalEventRefSchema,
+  type JournalEventRef,
+  type JournalPayloadDescriptor
+} from "@companion/protocol";
 import {
   JournalStoreError,
   type JournalAuthorityDraft,
@@ -29,6 +34,18 @@ export type ConversationalReceiptInput = {
 
 export interface ConversationalReceiptAdmission {
   admit(input: ConversationalReceiptInput): Promise<JournalAppendResult>;
+}
+
+/** Derives only the typed source identity assigned by the committed Journal envelope. */
+export function toConversationalJournalRef(envelope: {
+  readonly journalNamespace: string;
+  readonly eventId: string;
+}): JournalEventRef {
+  return JournalEventRefSchema.parse({
+    kind: "JOURNAL_EVENT",
+    namespace: envelope.journalNamespace,
+    eventId: envelope.eventId
+  });
 }
 
 const ConversationalReceiptInputSchema = z

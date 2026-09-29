@@ -28,7 +28,12 @@ import {
   type STTOutput,
   type MockStreamingChatProviderOptions
 } from "@companion/providers";
-import { createEvent, type JournalCommittedEnvelope, type RuntimeEvent } from "@companion/protocol";
+import {
+  createEvent,
+  type JournalCommittedEnvelope,
+  type JournalEventRef,
+  type RuntimeEvent
+} from "@companion/protocol";
 import { describe, expect, it, vi } from "vitest";
 import {
   RuntimeOrchestrator,
@@ -42,12 +47,25 @@ function admitSpeechForTest(
   observation: STTOutput,
   options: { sessionId?: string; captureEpoch?: string } = {}
 ): STTOutput {
+  return admitSpeechForTestWithJournalRef(runtime, observation, options).observation;
+}
+
+function admitSpeechForTestWithJournalRef(
+  runtime: RuntimeOrchestrator,
+  observation: STTOutput,
+  options: { sessionId?: string; captureEpoch?: string } = {}
+): { observation: STTOutput; journalRef: JournalEventRef } {
   const reservation = runtime.reserveFinalizedSpeechObservation(observation, options);
   const sequence = ++testSpeechReceiptSequence;
+  const journalRef: JournalEventRef = {
+    kind: "JOURNAL_EVENT",
+    namespace: "test:speech",
+    eventId: `jev1_${String(sequence).padStart(16, "0")}`
+  };
   const receipt = {
     version: "life-event-envelope.v1",
-    eventId: `jev1_${String(sequence).padStart(16, "0")}`,
-    journalNamespace: "test:speech",
+    eventId: journalRef.eventId,
+    journalNamespace: journalRef.namespace,
     commitSeq: sequence,
     recordedAt: "2026-09-25T00:00:00.000Z",
     command: {
@@ -88,7 +106,7 @@ function admitSpeechForTest(
   const finalized = runtime.finalizeSpeechReservation(reservation.token, receipt);
   if (finalized.status !== "ready")
     throw new Error(`Test speech did not become ready: ${finalized.status}`);
-  return finalized.observation;
+  return { observation: finalized.observation, journalRef };
 }
 
 async function collectRuntimeStream(
@@ -125,6 +143,44 @@ function deferred<T>(): {
 }
 
 describe("RuntimeOrchestrator", () => {
+  it("persists a host-carried Journal receipt ref separately from Runtime message identity", async () => {
+    const conversation = new InMemoryConversationRepository();
+    const runtime = new RuntimeOrchestrator({
+      eventBus: new InMemoryEventBus({ development: false }),
+      memory: createMem0RecordingMemory(async () => completeMemoryWrite()),
+      conversation,
+      promptBuilder: new PromptBuilder(),
+      providers: createMockProviders()
+    });
+    const sourceJournalRef: JournalEventRef = {
+      kind: "JOURNAL_EVENT",
+      namespace: "test:ordinary-conversation",
+      eventId: "jev1_0123456789abcdef"
+    };
+    const event = createEvent(
+      "user.message",
+      { sessionId: "ancestry-user-turn", content: "hello", sourceJournalRef },
+      { id: "runtime-user-event-distinct-from-journal" }
+    );
+
+    await runtime.handleUserMessage(event, { readMemory: false, writeMemory: false });
+
+    const user = await conversation.getMessageById(event.id);
+    const assistant = await conversation.getMessageById(`assistant:${event.id}`);
+    expect(user).toMatchObject({
+      id: event.id,
+      role: "user",
+      sourceJournalRef,
+      sourceUserEventId: null
+    });
+    expect(user?.id).not.toBe(sourceJournalRef.eventId);
+    expect(assistant).toMatchObject({
+      role: "assistant",
+      sourceUserEventId: event.id
+    });
+    expect(assistant?.sourceJournalRef).toBeNull();
+  });
+
   it("keeps unresolved committed speech out of non-streaming finalized ingestion even when writes are requested", async () => {
     const conversation = new InMemoryConversationRepository();
     const ledger = new InMemoryFinalizedIngestionRepository();
@@ -222,7 +278,7 @@ describe("RuntimeOrchestrator", () => {
     expect(await runtime.bindVoiceProfileToPerson("voice-a", "user-a")).toMatchObject({
       status: "STORED"
     });
-    const observation = admitSpeechForTest(
+    const { observation, journalRef } = admitSpeechForTestWithJournalRef(
       runtime,
       {
         text: "I prefer concise replies.",
@@ -255,6 +311,7 @@ describe("RuntimeOrchestrator", () => {
       payload: {
         sessionId: "voice-durable-session",
         content: "I prefer concise replies.",
+        sourceJournalRef: journalRef,
         language: "en",
         personaId: "alice",
         subjectUserId: "user-a"
@@ -264,6 +321,8 @@ describe("RuntimeOrchestrator", () => {
       role: "user",
       status: "completed",
       content: "I prefer concise replies.",
+      sourceJournalRef: journalRef,
+      sourceUserEventId: null,
       personaId: "alice",
       subjectUserId: "user-a",
       metadata: {
@@ -283,6 +342,7 @@ describe("RuntimeOrchestrator", () => {
       subjectUserId: "user-a",
       ingestionRequested: true
     });
+    expect(assistant?.sourceJournalRef).toBeNull();
     expect(assistant?.finalizedTurnId).toBeTruthy();
     expect(turn?.status).toBe("pending");
     expect(admissions).toEqual([assistant?.finalizedTurnId]);

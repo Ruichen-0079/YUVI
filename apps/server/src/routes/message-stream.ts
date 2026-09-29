@@ -1,5 +1,6 @@
 import { ConversationPersistenceError, type RuntimeReplyStreamEvent } from "@companion/core";
 import { createEvent } from "@companion/protocol";
+import type { JournalEventRef } from "@companion/protocol";
 import { randomUUID } from "node:crypto";
 import { ProviderError, ProviderErrorCode } from "@companion/providers";
 import type { FastifyInstance } from "fastify";
@@ -13,7 +14,10 @@ import {
 } from "./message.js";
 import { SseConnectionClosedError, writeSseFrame } from "./sse.js";
 import { desktopCorsHeaders } from "../cors.js";
-import { toConversationalAdmissionFailure } from "../conversational-receipt-admission.js";
+import {
+  toConversationalAdmissionFailure,
+  toConversationalJournalRef
+} from "../conversational-receipt-admission.js";
 
 const SSE_HEADERS = {
   "content-type": "text/event-stream; charset=utf-8",
@@ -43,6 +47,7 @@ export async function registerMessageStreamRoutes(
     const identity = resolveMessageIdentity(input.data);
     let userEvent;
     let runtimeEventId: string | undefined;
+    let sourceJournalRef: JournalEventRef | undefined;
     try {
       if (input.data.speechObservationId) {
         userEvent = context.runtime.commitSpeechTurn(
@@ -102,6 +107,7 @@ export async function registerMessageStreamRoutes(
             content,
             ...(input.data.imageAttachment ? { hasImageAttachment: true } : {})
           });
+          sourceJournalRef = toConversationalJournalRef(receipt.envelope);
           request.log.info(
             { journalEventId: receipt.envelope.eventId, runtimeEventId, sessionId: input.data.sessionId },
             "conversation receipt committed"
@@ -124,6 +130,7 @@ export async function registerMessageStreamRoutes(
         userEvent = createEvent("user.message", {
           sessionId: input.data.sessionId,
           content,
+          ...(sourceJournalRef ? { sourceJournalRef } : {}),
           ...(identity.subjectUserId ? { subjectUserId: identity.subjectUserId } : {}),
           ...(identity.personaId ? { personaId: identity.personaId } : {})
         }, { id: runtimeEventId });

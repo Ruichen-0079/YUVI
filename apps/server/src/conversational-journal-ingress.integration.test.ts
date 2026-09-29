@@ -74,8 +74,14 @@ describe.skipIf(!databaseUrl)("A8.2b conversational Journal ingress with Postgre
     const order: string[] = [];
     const admission = new HostConversationalReceiptAdmission(repository!);
     const app = await buildRouteApp(admission, {
-      async handleUserMessage(event) {
+      async handleUserMessage(event: any) {
         const envelope = await expectCommittedReceipt(event.id, event.payload.sessionId);
+        expect(event.payload.sourceJournalRef).toEqual({
+          kind: "JOURNAL_EVENT",
+          namespace: envelope.journalNamespace,
+          eventId: envelope.eventId
+        });
+        expect(event.payload.sourceJournalRef.eventId).not.toBe(event.id);
         expect(envelope.authority.surface).toEqual({
           kind: "LOCAL",
           reference: surface === "HTTP_MESSAGE" ? "yuvi:http:/message" : "yuvi:http:/v1/messages"
@@ -91,7 +97,12 @@ describe.skipIf(!databaseUrl)("A8.2b conversational Journal ingress with Postgre
         sessionId: `http-${surface}`,
         content: "Alice says the meeting moved.",
         subjectUserId: "caller-selected-user",
-        personaId: "caller-selected-persona"
+        personaId: "caller-selected-persona",
+        sourceJournalRef: {
+          kind: "JOURNAL_EVENT",
+          namespace: "attacker-controlled",
+          eventId: "jev1_aaaaaaaaaaaaaaaa"
+        }
       }
     });
 
@@ -278,7 +289,13 @@ describe.skipIf(!databaseUrl)("A8.2b conversational Journal ingress with Postgre
     };
     let runtimeStarted = false;
     const app = await buildRouteApp(new HostConversationalReceiptAdmission(blockedRepository), {
-      async *streamUserMessage() {
+      async *streamUserMessage(event: any) {
+        const envelope = await expectCommittedReceipt(event.id, "blocked-sse");
+        expect(event.payload.sourceJournalRef).toEqual({
+          kind: "JOURNAL_EVENT",
+          namespace: envelope.journalNamespace,
+          eventId: envelope.eventId
+        });
         runtimeStarted = true;
         yield completedFrame();
       }
@@ -286,7 +303,15 @@ describe.skipIf(!databaseUrl)("A8.2b conversational Journal ingress with Postgre
     const pendingResponse = app.inject({
       method: "POST",
       url: "/v1/messages/stream",
-      payload: { sessionId: "blocked-sse", content: "wait for commit" }
+      payload: {
+        sessionId: "blocked-sse",
+        content: "wait for commit",
+        sourceJournalRef: {
+          kind: "JOURNAL_EVENT",
+          namespace: "attacker-controlled",
+          eventId: "jev1_cccccccccccccccc"
+        }
+      }
     });
     await appendStarted;
     expect(runtimeStarted).toBe(false);
@@ -328,6 +353,7 @@ describe.skipIf(!databaseUrl)("A8.2b conversational Journal ingress with Postgre
   it("commits WebSocket user.message before Runtime and treats client IDs as correlation only", async () => {
     const admission = new HostConversationalReceiptAdmission(repository!);
     const eventBus = new InMemoryEventBus();
+    const receivedJournalRefs: Array<{ kind: string; namespace: string; eventId: string }> = [];
     const handleUserMessage = vi.fn(async (event: any) => {
       const receipts = await findReceiptsByRuntimeEventId(event.id);
       expect(
@@ -339,6 +365,16 @@ describe.skipIf(!databaseUrl)("A8.2b conversational Journal ingress with Postgre
           )
         )
       ).toBe(true);
+      expect(event.payload.sourceJournalRef).toMatchObject({
+        kind: "JOURNAL_EVENT",
+        namespace,
+        eventId: expect.any(String)
+      });
+      expect(receipts.map((receipt) => receipt.eventId)).toContain(
+        event.payload.sourceJournalRef.eventId
+      );
+      expect(event.payload.sourceJournalRef.eventId).not.toBe(event.id);
+      receivedJournalRefs.push(event.payload.sourceJournalRef);
       await eventBus.publish(
         createEvent(
           "agent.reply",
@@ -358,7 +394,12 @@ describe.skipIf(!databaseUrl)("A8.2b conversational Journal ingress with Postgre
           sessionId: "ws-correlation",
           content: "websocket text",
           subjectUserId: "caller-user",
-          personaId: "caller-persona"
+          personaId: "caller-persona",
+          sourceJournalRef: {
+            kind: "JOURNAL_EVENT",
+            namespace: "attacker-controlled",
+            eventId: "jev1_bbbbbbbbbbbbbbbb"
+          }
         },
         { traceId: "caller-trace", parentId: "caller-parent" }
       );
@@ -380,6 +421,14 @@ describe.skipIf(!databaseUrl)("A8.2b conversational Journal ingress with Postgre
       });
       expect(envelopes[0]?.authority.principal.state).toBe("UNRESOLVED");
       expect(envelopes[0]?.authority.binding.state).toBe("UNRESOLVED");
+      expect(receivedJournalRefs).toHaveLength(2);
+      expect(new Set(receivedJournalRefs.map((ref) => ref.eventId))).toEqual(
+        new Set(envelopes.map((envelope) => envelope.eventId))
+      );
+      expect(receivedJournalRefs.map((ref) => ref.namespace)).toEqual([namespace, namespace]);
+      expect(receivedJournalRefs.some((ref) => ref.eventId === "jev1_bbbbbbbbbbbbbbbb")).toBe(
+        false
+      );
       const dedup = await pool!.query(
         "select count(*)::int as count from journal_source_dedup where journal_namespace = $1",
         [namespace]

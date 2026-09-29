@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { InMemoryEventBus } from "@companion/event-bus";
 import { RuntimeOrchestrator, type RuntimeMemoryPort } from "@companion/core";
+import { InMemoryConversationRepository } from "@companion/memory";
 import { createPostgresPool, type PostgresPool } from "@companion/database";
 import {
   PostgresJournalRepository,
@@ -10,7 +11,7 @@ import {
 import { PromptBuilder } from "@companion/prompt-builder";
 import type { STTOutput } from "@companion/providers";
 import Fastify from "fastify";
-import type { JournalPayloadDescriptor } from "@companion/protocol";
+import type { JournalEventRef, JournalPayloadDescriptor } from "@companion/protocol";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   readSqlMigrations,
@@ -29,10 +30,11 @@ let adminPool: PostgresPool | undefined;
 let pool: PostgresPool | undefined;
 let repository: PostgresJournalRepository | undefined;
 
-function createRuntime(): RuntimeOrchestrator {
+function createRuntime(conversation = new InMemoryConversationRepository()): RuntimeOrchestrator {
   return new RuntimeOrchestrator({
     eventBus: new InMemoryEventBus({ development: false }),
     memory: {} as RuntimeMemoryPort,
+    conversation,
     promptBuilder: new PromptBuilder(),
     providers: {} as never
   });
@@ -281,6 +283,15 @@ describe.skipIf(!databaseUrl)("A8.2c speech Journal ingress with PostgreSQL", ()
       });
       expect(handoff.statusCode).toBe(200);
       expect(handleUserMessage).toHaveBeenCalledOnce();
+      const firstSpeechReceipt = await findSpeechReceipt("route-observation-1");
+      const firstSpeechTurn = handleUserMessage.mock.calls[0]?.[0] as {
+        payload: { sourceJournalRef: JournalEventRef };
+      };
+      expect(firstSpeechTurn.payload.sourceJournalRef).toEqual({
+        kind: "JOURNAL_EVENT",
+        namespace: firstSpeechReceipt.journalNamespace,
+        eventId: firstSpeechReceipt.eventId
+      });
       expect(conversationalReceiptAdmission.admit).not.toHaveBeenCalled();
       const duplicateHandoff = await app.inject({
         method: "POST",
@@ -310,6 +321,15 @@ describe.skipIf(!databaseUrl)("A8.2c speech Journal ingress with PostgreSQL", ()
       });
       expect(streamHandoff.statusCode).toBe(200);
       expect(streamUserMessage).toHaveBeenCalledOnce();
+      const secondSpeechReceipt = await findSpeechReceipt("route-observation-2");
+      const streamSpeechTurn = streamUserMessage.mock.calls[0]?.[0] as {
+        payload: { sourceJournalRef: JournalEventRef };
+      };
+      expect(streamSpeechTurn.payload.sourceJournalRef).toEqual({
+        kind: "JOURNAL_EVENT",
+        namespace: secondSpeechReceipt.journalNamespace,
+        eventId: secondSpeechReceipt.eventId
+      });
       expect(conversationalReceiptAdmission.admit).not.toHaveBeenCalled();
 
       const voiceMessage = await app.inject({
@@ -324,6 +344,15 @@ describe.skipIf(!databaseUrl)("A8.2c speech Journal ingress with PostgreSQL", ()
       });
       expect(voiceMessage.statusCode).toBe(200);
       expect(handleUserMessage).toHaveBeenCalledTimes(2);
+      const thirdSpeechReceipt = await findSpeechReceipt("route-observation-3");
+      const immediateVoiceTurn = handleUserMessage.mock.calls[1]?.[0] as {
+        payload: { sourceJournalRef: JournalEventRef };
+      };
+      expect(immediateVoiceTurn.payload.sourceJournalRef).toEqual({
+        kind: "JOURNAL_EVENT",
+        namespace: thirdSpeechReceipt.journalNamespace,
+        eventId: thirdSpeechReceipt.eventId
+      });
       expect(conversationalReceiptAdmission.admit).not.toHaveBeenCalled();
 
       const total = await pool!.query(
@@ -372,7 +401,8 @@ describe.skipIf(!databaseUrl)("A8.2c speech Journal ingress with PostgreSQL", ()
       resolveRetainedText: repository!.resolveRetainedText.bind(repository)
     };
     const admission = new HostSpeechReceiptAdmission(blockedRepository);
-    const runtime = createRuntime();
+    const conversation = new InMemoryConversationRepository();
+    const runtime = createRuntime(conversation);
     runtime.observeSpeechActivity({
       sessionId: "race-session",
       captureEpoch: "epoch-old",
@@ -415,8 +445,20 @@ describe.skipIf(!databaseUrl)("A8.2c speech Journal ingress with PostgreSQL", ()
         eventId: receipt.eventId
       })
     ).not.toBeNull();
+    expect(await conversation.listRecentMessages("race-session")).toEqual([]);
     expect(() =>
       runtime.commitSpeechTurn("race-observation", "race-session", "old speech")
     ).toThrow();
   });
 });
+
+async function findSpeechReceipt(observationId: string): Promise<any> {
+  const result = await pool!.query(
+    `select envelope from journal_events
+     where journal_namespace = $1
+       and envelope->'authority'->'correlations' @> $2::jsonb`,
+    [namespace, JSON.stringify([{ kind: "VOICE_OBSERVATION", observationId }])]
+  );
+  expect(result.rows).toHaveLength(1);
+  return result.rows[0]?.["envelope"];
+}

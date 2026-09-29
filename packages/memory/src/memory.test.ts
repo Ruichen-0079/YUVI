@@ -2360,6 +2360,10 @@ describe("MemoryRepository", () => {
     expect(combinedSql).toContain("p8_corrections_action_shape");
     expect(combinedSql).toContain("p8_corrections_target_shape");
     expect(combinedSql).toContain("p8_corrections_no_self_lineage");
+    expect(migrations.map((migration) => migration.name)).toContain(
+      "014_conversation_journal_ancestry_v1.sql"
+    );
+    expect(combinedSql).toContain("add column if not exists source_journal_ref jsonb null");
   });
 });
 

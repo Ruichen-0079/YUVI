@@ -4,8 +4,41 @@ import {
   EventTypeSchema,
   RuntimeEventSchema,
   TurnOriginSchema,
+  UserMessagePayloadSchema,
+  UserVoiceTranscriptPayloadSchema,
   createEvent
 } from "./index.js";
+
+describe("committed Journal ancestry Runtime carriers", () => {
+  it("accepts a typed JournalEventRef on user and finalized-speech payloads", () => {
+    const sourceJournalRef = {
+      kind: "JOURNAL_EVENT" as const,
+      namespace: "journal:local",
+      eventId: "jev1_0123456789abcdef"
+    };
+    expect(
+      UserMessagePayloadSchema.parse({
+        sessionId: "session-1",
+        content: "hello",
+        sourceJournalRef
+      }).sourceJournalRef
+    ).toEqual(sourceJournalRef);
+    expect(
+      UserVoiceTranscriptPayloadSchema.parse({
+        sessionId: "session-1",
+        content: "hello",
+        sourceJournalRef
+      }).sourceJournalRef
+    ).toEqual(sourceJournalRef);
+    expect(
+      UserMessagePayloadSchema.safeParse({
+        sessionId: "session-1",
+        content: "hello",
+        sourceJournalRef: { ...sourceJournalRef, eventId: "runtime-event-id" }
+      }).success
+    ).toBe(false);
+  });
+});
 
 describe("assistant-origin protocol metadata", () => {
   it("accepts the canonical assistant-initiated origin and idempotency metadata", () => {

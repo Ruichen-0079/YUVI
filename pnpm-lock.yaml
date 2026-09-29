@@ -319,6 +319,9 @@ importers:
       '@companion/database':
         specifier: workspace:*
         version: link:../database
+      '@companion/protocol':
+        specifier: workspace:*
+        version: link:../protocol
       pg:
         specifier: ^8.20.0
         version: 8.20.0

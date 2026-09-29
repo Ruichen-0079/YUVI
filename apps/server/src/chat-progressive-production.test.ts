@@ -46,7 +46,10 @@ function buildServerWithAdmission(env: NodeJS.ProcessEnv) {
       async admit() {
         return {
           status: "APPENDED" as const,
-          envelope: { eventId: "jev1_chatproductionreceipt000001" } as never
+          envelope: {
+            eventId: "jev1_chatproductionreceipt000001",
+            journalNamespace: "test:chat-production"
+          } as never
         };
       }
     }

@@ -14,7 +14,10 @@ function runtimeFor(
     async admit() {
       return {
         status: "APPENDED",
-        envelope: { eventId: "jev1_ssefixture0000000000000001" } as never
+        envelope: {
+          eventId: "jev1_ssefixture0000000000000001",
+          journalNamespace: "test:sse"
+        } as never
       };
     }
   }
