@@ -29,7 +29,9 @@ A research hypothesis never overrides a production authority boundary.
 
 For roadmap interpretation, [`version-roadmap.md`](version-roadmap.md) is the **release/version sequencing authority**. Detailed atom contracts remain in each version plan and in [`post-v0.1.3-roadmap.md`](post-v0.1.3-roadmap.md). Version grouping may delay technically independent work for product sequencing, but it does not erase technical dependencies or research stop gates.
 
-For A8.2 specifically, [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) is the **current authority**. Source audits found separate conversational, speech, standalone-vision, Product, Runtime-governed, proactive-consent, voice-control, external proactive-turn and standalone-TTS admission owners. A8.2e1–e3 and A8.2f1–f6 are implemented. F6 completed aggregate applicability and regression closure: Live2D asset administration and diagnostic/transient/internal surfaces are explicitly outside this semantic/control receipt family, while privacy withdrawal remains Journal-independent. Aggregate A8.2e, A8.2f and A8.2 are implemented; A9 effect accounting and A10 lineage remain planned.
+For A8.2 specifically, [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) is the **current authority**. Source audits found separate conversational, speech, standalone-vision, Product, Runtime-governed, proactive-consent, voice-control, external proactive-turn and standalone-TTS admission owners. A8.2e1–e3 and A8.2f1–f6 are implemented. F6 completed aggregate applicability and regression closure: Live2D asset administration and diagnostic/transient/internal surfaces are explicitly outside this semantic/control receipt family, while privacy withdrawal remains Journal-independent. Aggregate A8.2e, A8.2f and A8.2 are implemented; A9 effect accounting and aggregate A10 lineage remain planned, while A10.1a is implemented.
+
+For A10.1 specifically, [`a10.1-grounded-memory-roadmap.md`](a10.1-grounded-memory-roadmap.md) is the **current leaf execution authority**. A10.1a is implemented; A10.1b–e and A10.1f1–f3 remain planned. The family now owns committed Memory lineage plus the reusable grounded profile substrate: A10.1d opens the Mem0 modernization boundary, A10.1f1 provides a YUVI-owned `ProfileProvider` and required local materializer, A10.1f2 bridges the derived snapshot into `People.Model` with dirty/stale/regeneration semantics, and A10.1f3 closes aggregate Memory/Profile lineage. This does not move Person identity or authored Person/control authority into Mem0 or Profile; those remain governed elsewhere.
 
 For A12.1 specifically, [`a12.1-snowluma-contract.md`](a12.1-snowluma-contract.md) is the **current pinned SnowLuma source-contract authority**. Its status is `SOURCE CONTRACT ESTABLISHED — LIVE PROBE PENDING`: source analysis already constrains inbound identity/dedup and outbound idempotency/reconciliation semantics, while the remaining real QQ probes are allowed only to narrow explicitly unresolved remote behavior. It does not close A12.1 or authorize A12.2.
 
@@ -43,6 +45,7 @@ For substantial product UI work, [`frontend-execution-policy.md`](frontend-execu
 | Implemented reality and audited defects/gaps                                | [`implementation-baseline.md`](implementation-baseline.md)                                     |
 | Release/version sequence                                                    | [`version-roadmap.md`](version-roadmap.md)                                                     |
 | A8.2 durable journal + ingress leaf execution                               | [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md)                                           |
+| A10.1 grounded Memory/Profile leaf execution                                | [`a10.1-grounded-memory-roadmap.md`](a10.1-grounded-memory-roadmap.md)                         |
 | A12.1 pinned SnowLuma source/effect contract                                | [`a12.1-snowluma-contract.md`](a12.1-snowluma-contract.md)                                     |
 | Frontend design/implementation gates                                        | [`frontend-execution-policy.md`](frontend-execution-policy.md)                                 |
 | Writers, commit authority, capability/effect boundaries                     | [`authority.md`](authority.md)                                                                 |
@@ -85,7 +88,7 @@ The sequence is intentionally falsifiable. Later learned/latent mechanisms are n
 
 The old **Platform Complete** target is retired. v0.1.3 is the **Durable Causal History Foundation**.
 
-A0–A6, A7.1–A7.2, A8.1 and A8.2a–A8.2f6 are implemented engineering reality; see the [A8.1 contract](../validation/v0.1.3-a8.1-journal-contract.md), per-leaf A8.2 validation records indexed by [A8.2 ingress authority](a8.2-ingress-closure.md), and [A8.2f6 aggregate closure](../validation/v0.1.3-a8.2f6-aggregate-closure.md). A8.2a adds durable PostgreSQL append storage; A8.2b–d gate conversational, finalized speech and standalone vision input; A8.2e1/e2 gate Product and Runtime local controls; A8.2e3 journals accepted READY settings projections before changing volatile Runtime consent authority; A8.2f1–f4 commit bounded CONTROL receipts before voice controls, an external proactive-turn request, or standalone TTS provider resolution. The f3 receipt precedes creation/advancement of the Runtime stream, omits the volatile Runtime idempotency key, and does not affect internal scheduler wakes. Product voice-review receipts never retain raw audio, and privacy deletion of a review sample remains Journal-independent. UNKNOWN_DENIED only invalidates proactive authority and is not an authored false setting or Journal command. A8.2f5 disables manual Memory authoring/reactivation outside development, requires localhost for production privacy withdrawal, and keeps withdrawal Journal-independent; it does not claim cross-backend Mem0 erasure or repair A10 lineage. F6 finds no remaining current A8.2 ingress bypass and records applicability/privacy exceptions. Aggregate A8.2e, A8.2f and A8.2 are implemented for the documented semantic/control receipt family:
+A0–A6, A7.1–A7.2, A8.1 and A8.2a–A8.2f6 are implemented engineering reality; see the [A8.1 contract](../validation/v0.1.3-a8.1-journal-contract.md), per-leaf A8.2 validation records indexed by [A8.2 ingress authority](a8.2-ingress-closure.md), and [A8.2f6 aggregate closure](../validation/v0.1.3-a8.2f6-aggregate-closure.md). A10.1a is also implemented; see its [validation record](../validation/v0.1.3-a10.1a-llm-memory-grounding.md). A8.2a adds durable PostgreSQL append storage; A8.2b–d gate conversational, finalized speech and standalone vision input; A8.2e1/e2 gate Product and Runtime local controls; A8.2e3 journals accepted READY settings projections before changing volatile Runtime consent authority; A8.2f1–f4 commit bounded CONTROL receipts before voice controls, an external proactive-turn request, or standalone TTS provider resolution. The f3 receipt precedes creation/advancement of the Runtime stream, omits the volatile Runtime idempotency key, and does not affect internal scheduler wakes. Product voice-review receipts never retain raw audio, and privacy deletion of a review sample remains Journal-independent. UNKNOWN_DENIED only invalidates proactive authority and is not an authored false setting or Journal command. A8.2f5 disables manual Memory authoring/reactivation outside development, requires localhost for production privacy withdrawal, and keeps withdrawal Journal-independent; it does not claim cross-backend Mem0 erasure or repair aggregate A10 lineage. F6 finds no remaining current A8.2 ingress bypass and records applicability/privacy exceptions. Aggregate A8.2e, A8.2f and A8.2 are implemented for the documented semantic/control receipt family:
 
 ```text
 A8.2a Journal Store Foundation — IMPLEMENTED
@@ -120,30 +123,43 @@ A8.2 aggregate ingress closure — IMPLEMENTED
   ↓
 A10.1a fail-closed legacy LLM evidence — IMPLEMENTED
   ↓
-A10.1b–f grounded Memory lineage / aggregate closure — NEXT
+A10.1b committed Journal receipt ancestry
+  ↓
+A10.1c grounded legacy Memory writes
+  ↓
+A10.1d grounded finalized Mem0 ingestion + modernization boundary
+  ↓
+A10.1e grounded dream derivations
+  ↓
+A10.1f1 ProfileProvider ABI + local grounded materializer
+  ↓
+A10.1f2 People.Model bridge + dirty/regeneration semantics
+  ↓
+A10.1f3 aggregate Memory/Profile lineage closure
 ```
 
-The split does not create six semantic owners. All leaves share one durable Journal append authority and preserve each existing domain owner. Runtime remains the semantic execution authority but is not treated as a universal transport-ingress gate. Journal PostgreSQL availability must be independent of long-term Memory-backend selection while reusing the existing Supervisor/deployment PostgreSQL lifecycle; Mem0 activation must not silently disable Journal durability.
+The split does not create new competing semantic owners. All receipt leaves share one durable Journal append authority; A10.1 adds committed ancestry, grounded downstream consumers and a derived profile materializer without turning Memory/Profile into Person identity or world truth. Runtime remains the semantic execution authority but is not treated as a universal transport-ingress gate. Journal PostgreSQL availability must be independent of long-term Memory-backend selection while reusing the existing Supervisor/deployment PostgreSQL lifecycle; Mem0 activation must not silently disable Journal durability. The required profile baseline is local/private; a hosted Mem0 User Profiles adapter is optional and cannot become a mandatory cloud dependency.
 
 A12.1 now also has a pinned source-level SnowLuma contract at [`a12.1-snowluma-contract.md`](a12.1-snowluma-contract.md), validated in [`v0.1.3-a12.1-snowluma-source-contract.md`](../validation/v0.1.3-a12.1-snowluma-source-contract.md). The source phase establishes that SnowLuma's public OneBot `message_id` is a locally generated 32-bit hash rather than a globally unique QQ identity; ordinary inbound chat has no general source-backed dedup guarantee; ordinary private/group send has no effective remote idempotency and no authoritative lost-response reconciliation. Therefore ambiguous send failure remains `ATTEMPT → OUTCOME=UNKNOWN → NO AUTOMATIC RESEND`. A12.1 remains open for narrowly targeted live probes; A12.2 remains planned.
 
 The remaining v0.1.3 work is planned around:
 
-- durable append and inbound receipt admission for the provenance-aware Life Event Journal;
+- carrying committed Journal ancestry into new Memory/Profile consumers and grounding legacy, finalized Mem0 and dream-derived writes;
+- materializing a local/private derived profile substrate over eligible grounded Memory, then closing aggregate Memory/Profile lineage without making Profile a second evidence authority;
 - `INTENT → ATTEMPT → OUTCOME` accounting with explicit `UNKNOWN` and no blind replay;
-- lineage-bound Memory/Person/context consumers and repair of verified attribution defects;
+- governed controller/Person/voice/P8 control lineage and exact context-use manifests;
 - a fault-injectable synthetic surface conformance harness;
 - QQ/Snowluma as a real external architecture probe.
 
-Windows/macOS bring-up, three-platform parity, prospective state, measured dispositions, learned selection, autonomous exploration, post-training, broad P8 migration, Life Layer/hormone systems and full privacy-deletion machinery are not v0.1.3 closure requirements.
+Windows/macOS bring-up, three-platform parity, prospective state, measured dispositions, learned selection, autonomous exploration, post-training, broad P8 migration, Life Layer/hormone systems, People product UI and full privacy-deletion machinery are not v0.1.3 closure requirements. The reusable Profile substrate/materializer is inside A10.1; People productization remains v0.1.4.
 
 ## v0.1.4 product boundary
 
-v0.1.4 makes **People/Profile** a core YUVI feature after QQ has proven the external-surface foundation.
+v0.1.4 makes **People/Profile** a core YUVI product after v0.1.3 has already closed the grounded `ProfileProvider` substrate, local profile materialization, `People.Model` bridge and aggregate Memory/Profile lineage.
 
-QQ supplies principals, receipts and audience metadata; it does not own profiles. YUVI core owns governed principal→Person binding, evidence access, derived profile snapshots, disclosure and A4 context projection. Mem0 is treated as an optional backend/profile implementation asset behind YUVI contracts, not as Person truth or a mandatory cloud dependency.
+QQ supplies principals, receipts and audience metadata; it does not own profiles. YUVI core owns governed principal→Person binding, evidence access, profile product semantics, disclosure and A4 context projection. Mem0 is treated as an optional backend/profile implementation asset behind YUVI contracts, not as Person truth or a mandatory cloud dependency.
 
-The current local Mem0 pin/patch is audited before any upgrade. A provider-neutral native profile baseline must work even if the safe Mem0 decision is to keep the existing version or decline a hosted profile API.
+v0.1.4 must consume the A10.1f substrate rather than reopen the Memory backend to build a second profile generator. A10.1d owns the Mem0 modernization boundary; A10.1f owns the required local/private profile baseline. A hosted Mem0 User Profiles adapter may be hardened later as an optional provider, but its absence must not block People/Profile.
 
 **PF5 has a mandatory HUMAN / HIGH-CAPABILITY DESIGN GATE before product-surface implementation.** PF1–PF4 may proceed atomically when their technical prerequisites close, but PF5 must not let a bounded coding model invent the People page information architecture or visual direction. The approved design record must define layout, hierarchy, interaction/state behavior, provenance/conflict presentation, responsive behavior and visual constraints before implementation. PF5 closure also requires rendered screenshot/interactive review, not automated tests alone. See [`frontend-execution-policy.md`](frontend-execution-policy.md).
 
