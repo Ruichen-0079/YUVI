@@ -20,7 +20,7 @@ import {
   type ChatInput,
   type ChatStreamOptions
 } from "@companion/providers";
-import { type RuntimeEvent } from "@companion/protocol";
+import { createEvent, type RuntimeEvent } from "@companion/protocol";
 import { describe, expect, it } from "vitest";
 import { RuntimeOrchestrator, type RuntimeMemoryPort } from "./index.js";
 
@@ -262,6 +262,7 @@ describe("RuntimeOrchestrator", () => {
     const eventBus = new InMemoryEventBus({ development: false });
     const written: MemoryCandidate[] = [];
     const extractionInputs: string[] = [];
+    const groundingContexts: Array<{ sourceJournalRef: unknown; sourceText: string } | undefined> = [];
     const runtime = new RuntimeOrchestrator({
       eventBus,
       memory: {
@@ -307,9 +308,29 @@ describe("RuntimeOrchestrator", () => {
           }
           return [];
         },
-        async rememberCandidate(candidate): Promise<Memory> {
+        async processCandidateForStorage(candidate, _options, groundingContext) {
+          groundingContexts.push(groundingContext);
+          if (!groundingContext) {
+            return {
+              decision: "rejected" as const,
+              candidate,
+              rejectedReason: "missing-committed-source"
+            };
+          }
+          if (candidate.importance < 0.65) {
+            return {
+              decision: "rejected" as const,
+              candidate,
+              rejectedReason: `runtime-threshold:${candidate.reason}`
+            };
+          }
           written.push(candidate);
-          return createMemory(candidate);
+          return {
+            decision: "stored" as const,
+            candidate,
+            memory: createMemory(candidate),
+            storageReason: "test-grounded-boundary"
+          };
         },
         async rememberInteraction(): Promise<Memory> {
           throw new Error("legacy memory write should not be used");
@@ -319,39 +340,79 @@ describe("RuntimeOrchestrator", () => {
       providers: createMockProviders()
     });
 
+    await runtime.handleUserMessage(createEvent("user.message", {
+      sessionId: "test-session",
+      content: "hi",
+      sourceJournalRef: {
+        kind: "JOURNAL_EVENT",
+        namespace: "runtime-memory-test",
+        eventId: "jev1_1111111111111111"
+      }
+    }));
     await runtime.handleUserMessage({
       sessionId: "test-session",
-      content: "hi"
+      content: "记住：unreceipted input must not become legacy evidence"
     });
     await runtime.handleUserMessage(
-      {
+      createEvent("user.message", {
         sessionId: "test-session",
-        content: "记住：这个不应该写入，因为 writeMemory=false"
-      },
+        content: "记住：这个不应该写入，因为 writeMemory=false",
+        sourceJournalRef: {
+          kind: "JOURNAL_EVENT",
+          namespace: "runtime-memory-test",
+          eventId: "jev1_2222222222222222"
+        }
+      }),
       {
         writeMemory: false
       }
     );
-    const reply = await runtime.handleUserMessage({
+    const reply = await runtime.handleUserMessage(createEvent("user.message", {
       sessionId: "test-session",
-      content: "记住：我的项目路径是 /home/administrator/uv-main/uv-main"
-    });
-    await runtime.handleUserMessage({
+      content: "记住：我的项目路径是 /home/administrator/uv-main/uv-main",
+      sourceJournalRef: {
+        kind: "JOURNAL_EVENT",
+        namespace: "runtime-memory-test",
+        eventId: "jev1_3333333333333333"
+      }
+    }));
+    await runtime.handleUserMessage(createEvent("user.message", {
       sessionId: "test-session",
-      content: "secret metadata candidate"
-    });
+      content: "secret metadata candidate",
+      sourceJournalRef: {
+        kind: "JOURNAL_EVENT",
+        namespace: "runtime-memory-test",
+        eventId: "jev1_4444444444444444"
+      }
+    }));
 
-    expect(written).toHaveLength(1);
     expect(extractionInputs).toEqual([
       "hi",
+      "记住：unreceipted input must not become legacy evidence",
       "记住：我的项目路径是 /home/administrator/uv-main/uv-main",
       "secret metadata candidate"
     ]);
+    expect(written).toHaveLength(1);
     expect(written[0]).toMatchObject({
       type: "semantic",
       subtype: "path",
       reason: "explicit-remember",
       sourceTraceId: reply!.traceId
+    });
+    expect(groundingContexts).toHaveLength(3);
+    expect(groundingContexts[0]).toBeUndefined();
+    expect(groundingContexts[1]).toMatchObject({
+      sourceJournalRef: {
+        kind: "JOURNAL_EVENT",
+        namespace: "runtime-memory-test",
+        eventId: "jev1_3333333333333333"
+      },
+      sourceText: "记住：我的项目路径是 /home/administrator/uv-main/uv-main"
+    });
+    expect(groundingContexts[2]?.sourceJournalRef).toMatchObject({
+      kind: "JOURNAL_EVENT",
+      namespace: "runtime-memory-test",
+      eventId: "jev1_4444444444444444"
     });
     const history = runtime.getRecentMemoryCandidates(5);
     expect(history.some((candidate) => candidate.decision === "stored")).toBe(true);
@@ -362,6 +423,83 @@ describe("RuntimeOrchestrator", () => {
     });
     expect(JSON.stringify(rejected)).not.toContain("sk-super-secret");
     expect(JSON.stringify(rejected)).not.toContain("Bearer secret");
+  });
+
+  it("revalidates dashboard acceptance against private host grounding context", async () => {
+    const sourceText = "Remember that I prefer concise technical answers.";
+    const sourceJournalRef = {
+      kind: "JOURNAL_EVENT" as const,
+      namespace: "runtime-memory-test",
+      eventId: "jev1_6666666666666666"
+    };
+    const candidate: MemoryCandidate = {
+      type: "semantic",
+      subtype: "preference",
+      content: "I prefer concise technical answers.",
+      summary: "I prefer concise technical answers.",
+      importance: 0.92,
+      tags: [],
+      reason: "explicit-remember"
+    };
+    const groundingContexts: Array<
+      { sourceJournalRef: unknown; sourceText: string } | undefined
+    > = [];
+    const memory = createRecordingMemory([]);
+    memory.extractCandidates = async () => [candidate];
+    memory.processCandidateForStorage = async (proposed, options, groundingContext) => {
+      groundingContexts.push(groundingContext);
+      if (!options?.skipAdmissionPolicy) {
+        return {
+          decision: "rejected",
+          candidate: proposed,
+          rejectedReason: "awaiting-review"
+        };
+      }
+      return {
+        decision: "stored",
+        candidate: proposed,
+        memory: createMemory(proposed),
+        storageReason: "manual-accept"
+      };
+    };
+    const runtime = new RuntimeOrchestrator({
+      eventBus: new InMemoryEventBus({ development: false }),
+      memory,
+      promptBuilder: new PromptBuilder(),
+      providers: createMockProviders()
+    });
+
+    await runtime.handleUserMessage(
+      createEvent("user.message", {
+        sessionId: "candidate-review",
+        content: sourceText,
+        sourceJournalRef
+      })
+    );
+    const review = runtime.getRecentMemoryCandidates(1)[0];
+    expect(review?.decision).toBe("rejected");
+    expect(groundingContexts[0]).toEqual({ sourceJournalRef, sourceText });
+
+    await expect(
+      runtime.acceptMemoryCandidate(review!.id, { content: "I prefer astronomy." })
+    ).resolves.toBeNull();
+    expect(groundingContexts).toHaveLength(1);
+
+    const accepted = await runtime.acceptMemoryCandidate(
+      review!.id,
+      {
+        sourceJournalRef: {
+          kind: "JOURNAL_EVENT",
+          namespace: "attacker-controlled",
+          eventId: "jev1_aaaaaaaaaaaaaaaa"
+        },
+        lineage: { state: "GROUNDED" },
+        consumerKey: "attacker-controlled"
+      } as never
+    );
+    expect(accepted?.alreadyStored).toBe(false);
+    expect(groundingContexts).toHaveLength(2);
+    expect(groundingContexts[1]).toEqual({ sourceJournalRef, sourceText });
   });
 
   it("injects bounded same-session DirectContext without mixing unrelated sessions", async () => {

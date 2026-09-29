@@ -21,6 +21,7 @@ import type {
   Memory,
   MemoryCandidate,
   MemoryCandidateStorageResult,
+  MemoryGroundingContext,
   CurrentAffect,
   MemoryEvent,
   MemoryExtractorStatus,
@@ -291,6 +292,11 @@ type SessionTurnsCacheEntry = {
 export class RuntimeOrchestrator {
   private latestPromptPreview: RuntimePromptPreview | null = null;
   private readonly memoryCandidateHistory: RuntimeMemoryCandidateReview[] = [];
+  /** Private host context is not serialized in review DTOs or candidate metadata. */
+  private readonly memoryCandidateGrounding = new Map<string, {
+    context: MemoryGroundingContext;
+    candidateContent: string;
+  }>();
   private readonly sessionTurns = new Map<string, SessionTurnsCacheEntry>();
   private readonly assistantTurnClaims = new Map<string, AssistantTurnClaim>();
   private lifecycleState: RuntimeLifecycleState = "active";
@@ -1493,7 +1499,8 @@ export class RuntimeOrchestrator {
     > = {}
   ): Promise<RuntimeMemoryCandidateAcceptResult | null> {
     const review = this.memoryCandidateHistory.find((candidate) => candidate.id === id);
-    if (!review || !this.options.memory.rememberCandidate) {
+    const grounding = this.memoryCandidateGrounding.get(id);
+    if (!review || !grounding || !this.options.memory.processCandidateForStorage) {
       return null;
     }
     if (review.storedMemoryId) {
@@ -1509,6 +1516,11 @@ export class RuntimeOrchestrator {
 
     const contentChanged =
       patch.content !== undefined && patch.content.trim() !== review.content.trim();
+    if (contentChanged || review.content !== grounding.candidateContent) {
+      review.decision = "rejected";
+      review.rejectedReason = "candidate-content-changed-requires-new-grounded-source";
+      return null;
+    }
     const candidate: MemoryCandidate = {
       type: patch.type ?? review.type,
       content: patch.content ?? review.content,
@@ -1572,40 +1584,24 @@ export class RuntimeOrchestrator {
       candidate.sourceTraceId = review.sourceTraceId;
     }
 
-    if (this.options.memory.processCandidateForStorage) {
-      const result = await this.options.memory.processCandidateForStorage(candidate, {
-        source: "dashboard",
-        tags: candidate.tags,
-        skipAdmissionPolicy: true,
-        storageReason: "manual-accept"
-      });
-      if (result.decision !== "stored" || !result.memory) {
-        return null;
-      }
-      review.decision = "stored";
-      review.storedMemoryId = result.memory.id;
-      review.rejectedReason = undefined;
-      review.storageReason = result.storageReason ?? "manual-accept";
-      return {
-        alreadyStored: false,
-        memory: result.memory,
-        memoryId: result.memory.id,
-        message: "Memory candidate accepted and saved."
-      };
-    }
-
-    const memory = await this.options.memory.rememberCandidate(candidate, {
+    const result = await this.options.memory.processCandidateForStorage(candidate, {
       source: "dashboard",
-      tags: candidate.tags
-    });
+      tags: candidate.tags,
+      skipAdmissionPolicy: true,
+      storageReason: "manual-accept"
+    }, grounding.context);
+    if (result.decision !== "stored" || !result.memory) {
+      return null;
+    }
     review.decision = "stored";
-    review.storedMemoryId = memory.id;
+    review.storedMemoryId = result.memory.id;
     review.rejectedReason = undefined;
-    review.storageReason = "manual-accept";
+    review.storageReason = result.storageReason ?? "manual-accept";
+    this.memoryCandidateGrounding.delete(id);
     return {
       alreadyStored: false,
-      memory,
-      memoryId: memory.id,
+      memory: result.memory,
+      memoryId: result.memory.id,
       message: "Memory candidate accepted and saved."
     };
   }
@@ -1625,6 +1621,7 @@ export class RuntimeOrchestrator {
     }
     review.decision = "rejected";
     review.rejectedReason = reason;
+    this.memoryCandidateGrounding.delete(id);
     return review;
   }
 
@@ -4259,6 +4256,13 @@ export class RuntimeOrchestrator {
     }
   ): Promise<MemoryExtractionRuntimeDebug> {
     const initialExtractorStatus = this.getMemoryExtractorStatus();
+    const groundingContext: MemoryGroundingContext | undefined =
+      sourceEvent.payload.sourceJournalRef
+        ? {
+            sourceJournalRef: sourceEvent.payload.sourceJournalRef,
+            sourceText: sourceEvent.payload.content
+          }
+        : undefined;
     try {
       // Mem0 path: never run Legacy extract/dedupe/embed/repository write.
       if (this.options.memory.isMem0Backend?.()) {
@@ -4324,7 +4328,7 @@ export class RuntimeOrchestrator {
             this.processCandidateForStorage(candidate, {
               source: "runtime",
               tags: [sourceEvent.payload.sessionId]
-            })
+            }, groundingContext)
           )
         );
         const selected = decisions
@@ -4344,6 +4348,7 @@ export class RuntimeOrchestrator {
           decisions,
           storedMemories,
           sourceTraceId: sourceEvent.traceId,
+          groundingContext,
           rejectedReasons,
           extractorStatus
         });
@@ -4382,7 +4387,8 @@ export class RuntimeOrchestrator {
         assistantMessage: reply.payload.content,
         source: "runtime",
         sourceTraceId: sourceEvent.traceId,
-        tags: [sourceEvent.payload.sessionId]
+        tags: [sourceEvent.payload.sessionId],
+        groundingContext
       });
       return {
         ...initialExtractorStatus,
@@ -5117,31 +5123,16 @@ export class RuntimeOrchestrator {
 
   private async processCandidateForStorage(
     candidate: MemoryCandidate,
-    options: { source?: string; tags?: string[] }
+    options: { source?: string; tags?: string[] },
+    groundingContext?: MemoryGroundingContext
   ): Promise<MemoryCandidateStorageResult> {
     if (this.options.memory.processCandidateForStorage) {
-      return this.options.memory.processCandidateForStorage(candidate, options);
+      return this.options.memory.processCandidateForStorage(candidate, options, groundingContext);
     }
-    if (!this.options.memory.rememberCandidate) {
-      return {
-        decision: "rejected",
-        candidate,
-        rejectedReason: "memory service cannot store candidates"
-      };
-    }
-    if (candidate.importance < 0.65) {
-      return {
-        decision: "rejected",
-        candidate,
-        rejectedReason: `runtime-threshold:${candidate.reason}`
-      };
-    }
-    const memory = await this.options.memory.rememberCandidate(candidate, options);
     return {
-      decision: "stored",
+      decision: "rejected",
       candidate,
-      memory,
-      storageReason: "legacy importance threshold"
+      rejectedReason: "grounded-storage-boundary-unavailable"
     };
   }
 
@@ -5661,6 +5652,7 @@ export class RuntimeOrchestrator {
     sourceTraceId: string;
     rejectedReasons: string[];
     extractorStatus: MemoryExtractionRuntimeDebug;
+    groundingContext?: MemoryGroundingContext | undefined;
   }): RuntimeMemoryCandidateReview[] {
     const storedMemories = [...input.storedMemories];
     const reviews = input.candidates.map((candidate, index) => {
@@ -5684,7 +5676,18 @@ export class RuntimeOrchestrator {
     });
 
     this.memoryCandidateHistory.unshift(...reviews);
-    this.memoryCandidateHistory.splice(50);
+    const removed = this.memoryCandidateHistory.splice(50);
+    for (const review of removed) this.memoryCandidateGrounding.delete(review.id);
+    if (input.groundingContext) {
+      reviews.forEach((review, index) => {
+        if (review.decision === "rejected") {
+          this.memoryCandidateGrounding.set(review.id, {
+            context: input.groundingContext!,
+            candidateContent: input.candidates[index]?.content ?? review.content
+          });
+        }
+      });
+    }
     return reviews;
   }
 }

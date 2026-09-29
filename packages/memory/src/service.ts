@@ -71,6 +71,17 @@ import type {
   RetrievedMemoryDebug,
   UpdateMemoryInput
 } from "./types.js";
+import {
+  buildGroundedMemoryLineage,
+  groundedMemoryPayloadDigest,
+  JournalMemoryGroundingResolver,
+  MemoryGroundingError,
+  type CommittedJournalEvidenceReader,
+  type GroundedMemorySource,
+  type MemoryGroundingContext,
+  type MemoryGroundingResolver
+} from "./lineage.js";
+import { MemoryLineageConflictError } from "./repository.js";
 
 export type MemoryEmbeddingProvider = {
   readonly name: string;
@@ -93,6 +104,8 @@ export type MemoryServiceBackendConfig = {
   searchTimeoutMs?: number | undefined;
   writeTimeoutMs?: number | undefined;
   ingestionPolicy?: Pick<MemoryIngestionPolicy, "build"> | undefined;
+  groundingResolver?: MemoryGroundingResolver | undefined;
+  journalEvidenceReader?: CommittedJournalEvidenceReader | undefined;
   logger?:
     | {
         warn?(message: string, context?: Record<string, unknown>): void;
@@ -115,6 +128,7 @@ export class MemoryService {
   private readonly controllerEvidence: MemoryProvider | undefined;
   private readonly memoryProvider: MemoryProvider | undefined;
   private readonly memoryIngestionPolicy: Pick<MemoryIngestionPolicy, "build">;
+  private readonly groundingResolver: MemoryGroundingResolver | undefined;
 
   constructor(
     private readonly repository: MemoryRepository,
@@ -137,6 +151,11 @@ export class MemoryService {
     this.memoryProvider = this.mem0Backend ? new Mem0MemoryProvider(this.mem0Backend) : undefined;
     this.controllerEvidence = backend?.controllerEvidence;
     this.memoryIngestionPolicy = backend?.ingestionPolicy ?? new MemoryIngestionPolicy();
+    this.groundingResolver =
+      backend?.groundingResolver ??
+      (backend?.journalEvidenceReader
+        ? new JournalMemoryGroundingResolver(backend.journalEvidenceReader)
+        : undefined);
   }
 
   /** True when formal long-term memory is Mem0 (Legacy write/search path disabled). */
@@ -158,20 +177,36 @@ export class MemoryService {
   }
 
   async createMemory(input: CreateMemoryInput): Promise<Memory> {
+    if (!input.evidenceClassification) {
+      throw new Error(
+        "Direct legacy Memory creation must be explicitly classified as NON_EVIDENCE; factual writes use grounded candidate admission."
+      );
+    }
     return this.repository.createMemory(
       await this.withEmbedding(this.applyTestMemoryPolicy(input))
     );
   }
 
   async updateMemory(id: string, input: UpdateMemoryInput): Promise<Memory | null> {
-    const shouldRegenerate =
-      input.content !== undefined || input.summary !== undefined || input.tags !== undefined;
-    if (!shouldRegenerate) {
+    const lifecycleOnly = Object.keys(input).every((key) =>
+      ["status", "supersededAt", "supersededBy"].includes(key)
+    );
+    if (lifecycleOnly) {
       return this.repository.updateMemory(id, input);
     }
     const current = await this.repository.getMemoryById(id);
     if (!current) {
       return null;
+    }
+    if (current.lineage?.state === "GROUNDED") {
+      throw new Error(
+        "Grounded Memory lineage is immutable; record a new grounded correction instead."
+      );
+    }
+    const shouldRegenerate =
+      input.content !== undefined || input.summary !== undefined || input.tags !== undefined;
+    if (!shouldRegenerate) {
+      return this.repository.updateMemory(id, input);
     }
     const nextInput: CreateMemoryInput = {
       type: input.type ?? current.type,
@@ -237,6 +272,7 @@ export class MemoryService {
     source?: string;
     sourceTraceId?: string | null;
     tags?: string[];
+    groundingContext?: MemoryGroundingContext | undefined;
   }): Promise<Memory | null> {
     if (this.isMem0Backend()) {
       // Mem0 chat path uses storeConversationTurn / storeExplicitFact instead.
@@ -251,7 +287,7 @@ export class MemoryService {
       const result = await this.processCandidateForStorage(candidate, {
         source: input.source ?? "runtime",
         tags: input.tags ?? []
-      });
+      }, input.groundingContext);
       if (result.decision === "stored") {
         return result.memory ?? null;
       }
@@ -300,62 +336,17 @@ export class MemoryService {
 
   async rememberCandidate(
     candidate: MemoryCandidate,
-    options: { source?: string; tags?: string[] } = {}
+    options: { source?: string; tags?: string[] } = {},
+    groundingContext?: MemoryGroundingContext
   ): Promise<Memory> {
-    const normalized = this.applyRetentionPolicy(
-      this.normalizeCandidateForStorage(candidate),
-      options
-    );
-    return this.createMemory({
-      type: normalized.type,
-      subtype: normalized.subtype ?? null,
-      scope: normalized.scope ?? inferMemoryScope(normalized),
-      scopeId: normalized.scopeId ?? inferMemoryScopeId(normalized),
-      memoryLayer:
-        normalized.memoryLayer ?? inferMemoryLayer(normalized.type, normalized.subtype ?? null),
-      content: normalized.content,
-      summary: normalized.summary ?? this.compressForStorage(normalized.content),
-      importance: normalized.importance,
-      emotionValence: 0,
-      emotionArousal: 0,
-      source: options.source ?? "runtime",
-      sourceTraceId: normalized.sourceTraceId ?? null,
-      personaId: normalized.personaId ?? "default-persona",
-      subjectUserId: normalized.subjectUserId ?? "default-user",
-      createdByUserId: normalized.createdByUserId ?? normalized.subjectUserId ?? "default-user",
-      speakerId: normalized.speakerId ?? null,
-      voiceProfileId: normalized.voiceProfileId ?? null,
-      sessionId: normalized.sessionId ?? null,
-      metadata: {
-        ...(normalized.metadata ?? {}),
-        generatedBy: normalized.metadata?.["generatedBy"] ?? "memory-extractor",
-        reason: normalized.reason,
-        confidence: normalized.confidence ?? null,
-        sourceTraceId: normalized.sourceTraceId ?? null,
-        storageReason: normalized.metadata?.["storageReason"] ?? "explicit-save"
-      },
-      tags: Array.from(new Set([...(normalized.tags ?? []), ...(options.tags ?? [])])),
-      observedAt: normalized.observedAt ?? new Date(),
-      eventTime: normalized.eventTime ?? null,
-      validFrom:
-        normalized.validFrom ??
-        resolveCanonicalTemporalBounds(
-          normalized,
-          resolveTimezoneFromObservedAt(normalized.observedAt)
-        )?.validFrom ??
-        normalized.observedAt ??
-        new Date(),
-      validUntil:
-        normalized.validUntil ??
-        resolveCanonicalTemporalBounds(
-          normalized,
-          resolveTimezoneFromObservedAt(normalized.observedAt)
-        )?.validUntil ??
-        null,
-      expiresAt: normalized.expiresAt ?? null,
-      supersedes: normalized.possibleSupersedes ?? [],
-      contradicts: normalized.possibleContradictions ?? []
-    });
+    const result = await this.processCandidateForStorage(candidate, options, groundingContext);
+    if (result.decision !== "stored" || !result.memory) {
+      throw new MemoryGroundingError(
+        "lineage-validation-failed",
+        result.rejectedReason ?? "Candidate did not pass grounded Memory admission."
+      );
+    }
+    return result.memory;
   }
 
   async processCandidateForStorage(
@@ -365,7 +356,8 @@ export class MemoryService {
       tags?: string[];
       skipAdmissionPolicy?: boolean;
       storageReason?: string;
-    } = {}
+    } = {},
+    groundingContext?: MemoryGroundingContext
   ): Promise<MemoryCandidateStorageResult> {
     if (this.isMem0Backend()) {
       return {
@@ -383,13 +375,58 @@ export class MemoryService {
       };
     }
 
+    let groundedSource: GroundedMemorySource;
+    try {
+      groundedSource = await this.resolveGroundedSource(groundingContext);
+    } catch (error) {
+      if (error instanceof MemoryGroundingError) {
+        return { decision: "rejected", candidate, rejectedReason: error.code };
+      }
+      throw error;
+    }
+
     const claimGate = admitCandidateClaim(candidate);
     if (claimGate.decision === "rejected") {
       return claimGate;
     }
     candidate = claimGate.candidate;
 
-    const normalized = this.normalizeCandidateForStorage(candidate);
+    const normalized = this.normalizeCandidateForStorage({
+      ...candidate,
+      // Receipt recordedAt is the host observation anchor. Candidate clocks remain proposals.
+      observedAt: groundedSource.recordedAt
+    });
+    const lineage = buildGroundedMemoryLineage({
+      source: groundedSource,
+      candidate: normalized,
+      sourceText: groundingContext!.sourceText
+    });
+    const memoryInput = this.candidateMemoryInput(normalized, options);
+    const payloadDigest = groundedMemoryPayloadDigest({
+      type: memoryInput.type,
+      ...(memoryInput.subtype === undefined ? {} : { subtype: memoryInput.subtype }),
+      scope: memoryInput.scope ?? inferMemoryScope(normalized),
+      ...(memoryInput.scopeId === undefined
+        ? {}
+        : { scopeId: memoryInput.scopeId ?? inferMemoryScopeId(normalized) }),
+      memoryLayer: memoryInput.memoryLayer ?? inferMemoryLayer(memoryInput.type, memoryInput.subtype ?? null),
+      content: memoryInput.content,
+      summary: memoryInput.summary,
+      importance: memoryInput.importance ?? 0.5,
+      tags: memoryInput.tags ?? [],
+      eventTime: memoryInput.eventTime,
+      lineage
+    });
+    const existingGrounded = await this.repository.getGroundedMemoryByConsumerKey?.(lineage.consumerKey);
+    if (existingGrounded) {
+      if (existingGrounded.payloadDigest !== payloadDigest) throw new MemoryLineageConflictError();
+      return {
+        decision: "stored",
+        candidate: normalized,
+        memory: existingGrounded.memory,
+        storageReason: "grounded-idempotent-replay"
+      };
+    }
     const relationships = await this.detectCandidateRelationships(normalized);
     const correctionRelationships = await this.detectCorrectionRelationships(normalized);
     const mergedRelationships = mergeRelationshipSuggestions(
@@ -459,8 +496,7 @@ export class MemoryService {
           ? { possibleContradictions: normalized.possibleContradictions }
           : {})
     };
-    const memory = await this.rememberCandidate(
-      {
+    const finalCandidate = {
         ...storageCandidate,
         metadata: {
           ...(storageCandidate.metadata ?? {}),
@@ -472,15 +508,16 @@ export class MemoryService {
               }
             : {})
         }
-      },
-      options
-    );
-    await this.applyAutomaticSupersession(memory, supersedeIds);
+      };
+    const finalStorageCandidate = this.applyRetentionPolicy(finalCandidate, options);
+    const finalInput = this.candidateMemoryInput(finalStorageCandidate, options);
+    const memory = await this.persistGroundedCandidate(finalInput, lineage, payloadDigest);
+    await this.applyAutomaticSupersession(memory.memory, supersedeIds);
     return {
       decision: "stored",
       candidate: candidateWithRelationships,
-      memory,
-      storageReason: decision.reason
+      memory: memory.memory,
+      storageReason: memory.inserted ? decision.reason : "grounded-idempotent-replay"
     };
   }
 
@@ -528,6 +565,7 @@ export class MemoryService {
       summary: this.compressForStorage(content),
       importance: this.scoreImportance(content),
       source: "runtime",
+      evidenceClassification: "NON_EVIDENCE",
       metadata: { generatedBy: "runtime" },
       tags: []
     });
@@ -832,6 +870,93 @@ export class MemoryService {
     } finally {
       clearTimeout(timer);
     }
+  }
+
+  private async resolveGroundedSource(
+    context: MemoryGroundingContext | undefined
+  ): Promise<GroundedMemorySource> {
+    if (!context || !this.groundingResolver) {
+      throw new MemoryGroundingError(
+        "missing-committed-source",
+        "A committed Journal source and host grounding resolver are required."
+      );
+    }
+    return this.groundingResolver.resolve(context);
+  }
+
+  private candidateMemoryInput(
+    normalized: MemoryCandidate,
+    options: { source?: string; tags?: string[] }
+  ): CreateMemoryInput {
+    const observedAt = normalized.observedAt;
+    if (observedAt === undefined || observedAt === null) {
+      throw new MemoryGroundingError(
+        "lineage-validation-failed",
+        "Grounded candidate is missing the committed receipt observation time."
+      );
+    }
+    return {
+      type: normalized.type,
+      subtype: normalized.subtype ?? null,
+      scope: normalized.scope ?? inferMemoryScope(normalized),
+      scopeId: normalized.scopeId ?? inferMemoryScopeId(normalized),
+      memoryLayer:
+        normalized.memoryLayer ?? inferMemoryLayer(normalized.type, normalized.subtype ?? null),
+      content: normalized.content,
+      summary: normalized.summary ?? this.compressForStorage(normalized.content),
+      importance: normalized.importance,
+      emotionValence: 0,
+      emotionArousal: 0,
+      source: options.source ?? "runtime",
+      sourceTraceId: normalized.sourceTraceId ?? null,
+      personaId: normalized.personaId ?? "default-persona",
+      subjectUserId: normalized.subjectUserId ?? "default-user",
+      createdByUserId: normalized.createdByUserId ?? normalized.subjectUserId ?? "default-user",
+      speakerId: normalized.speakerId ?? null,
+      voiceProfileId: normalized.voiceProfileId ?? null,
+      sessionId: normalized.sessionId ?? null,
+      metadata: {
+        ...(normalized.metadata ?? {}),
+        generatedBy: normalized.metadata?.["generatedBy"] ?? "memory-extractor",
+        reason: normalized.reason,
+        confidence: normalized.confidence ?? null,
+        sourceTraceId: normalized.sourceTraceId ?? null,
+        storageReason: normalized.metadata?.["storageReason"] ?? "explicit-save"
+      },
+      tags: Array.from(new Set([...(normalized.tags ?? []), ...(options.tags ?? [])])),
+      observedAt,
+      eventTime: normalized.eventTime ?? null,
+      validFrom:
+        normalized.validFrom ??
+        resolveCanonicalTemporalBounds(
+          normalized,
+          resolveTimezoneFromObservedAt(observedAt)
+        )?.validFrom ??
+        observedAt,
+      validUntil:
+        normalized.validUntil ??
+        resolveCanonicalTemporalBounds(
+          normalized,
+          resolveTimezoneFromObservedAt(observedAt)
+        )?.validUntil ??
+        null,
+      expiresAt: normalized.expiresAt ?? null,
+      supersedes: normalized.possibleSupersedes ?? [],
+      contradicts: normalized.possibleContradictions ?? []
+    };
+  }
+
+  private async persistGroundedCandidate(
+    input: CreateMemoryInput,
+    lineage: ReturnType<typeof buildGroundedMemoryLineage>,
+    payloadDigest: string
+  ): Promise<{ memory: Memory; inserted: boolean }> {
+    const createGroundedMemory = this.repository.createGroundedMemory;
+    if (!createGroundedMemory) {
+      throw new Error("Memory repository does not support grounded lineage persistence.");
+    }
+    const memory = await this.withEmbedding(this.applyTestMemoryPolicy(input));
+    return createGroundedMemory.call(this.repository, { memory, lineage, payloadDigest });
   }
 
   async retrieveForPrompt(query: MemoryQuery): Promise<string[]> {

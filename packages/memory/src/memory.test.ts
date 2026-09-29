@@ -13,7 +13,8 @@ import {
 } from "./repository.js";
 import { MemoryMaintenanceService } from "./maintenance.js";
 import { MemoryScorer } from "./scorer.js";
-import { createMemoryDisplayText, extractSearchKeywords, MemoryService } from "./service.js";
+import { createMemoryDisplayText, extractSearchKeywords } from "./service.js";
+import { GroundedMemoryTestService } from "./test-grounding.js";
 import { LlmMemoryExtractor, RuleBasedMemoryExtractor } from "./extractor.js";
 import type { MemoryCandidate, MemoryExtractionInput, MemoryExtractor } from "./types.js";
 import { detectCurrentAffect } from "./affect.js";
@@ -128,7 +129,7 @@ describe("MemoryRepository", () => {
     expect(affect?.sourceTraceId).toBe("trace-affect");
 
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     const candidates = await service.extractCandidates({
       userMessage: "今天有点烦。",
       timestamp: "2026-05-26T10:00:00.000Z"
@@ -138,7 +139,7 @@ describe("MemoryRepository", () => {
 
   it("stores stable user preferences as semantic core memory", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(
+    const service = new GroundedMemoryTestService(
       repository,
       undefined,
       undefined,
@@ -170,7 +171,7 @@ describe("MemoryRepository", () => {
 
   it("stores durable emotional patterns but not one-off emotional state", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(
+    const service = new GroundedMemoryTestService(
       repository,
       undefined,
       undefined,
@@ -202,7 +203,7 @@ describe("MemoryRepository", () => {
 
   it("applies retention policy for explicit daily and smoke memories", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     const daily = await service.processCandidateForStorage(
       {
         type: "episodic",
@@ -221,17 +222,15 @@ describe("MemoryRepository", () => {
     expect(daily.memory?.expiresAt?.toISOString()).toBe("2026-06-02T08:00:00.000Z");
     expect(daily.memory?.metadata["retentionClass"]).toBe("episodic-daily");
 
-    const smoke = await service.rememberCandidate(
-      {
-        type: "semantic",
-        subtype: "test",
-        content: "Smoke test memory should expire quickly.",
-        importance: 0.5,
-        tags: ["smoke"],
-        reason: "smoke-test"
-      },
-      { source: "smoke" }
-    );
+    const smoke = await service.createMemory({
+      type: "semantic",
+      subtype: "test",
+      content: "Smoke test memory should expire quickly.",
+      importance: 0.5,
+      tags: ["smoke"],
+      source: "smoke",
+      evidenceClassification: "NON_EVIDENCE"
+    });
     expect(smoke.expiresAt).toBeInstanceOf(Date);
     expect((smoke.expiresAt?.getTime() ?? 0) - smoke.createdAt.getTime()).toBeLessThanOrEqual(
       86_400_000 + 1000
@@ -241,7 +240,7 @@ describe("MemoryRepository", () => {
 
   it("keeps smoke/test memories out of normal retrieval and fallback recent", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     const smoke = await service.createMemory({
       type: "semantic",
       content: "Smoke test memory.",
@@ -357,7 +356,7 @@ describe("MemoryRepository", () => {
 
   it("retrieves mixed Chinese and English memories from a natural-language turn", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     await repository.createMemory({
       type: "semantic",
       content: "用户正在开发 YUVI Runtime，一个类 AIRI 的 AI Companion Runtime。",
@@ -376,7 +375,7 @@ describe("MemoryRepository", () => {
 
   it("stores deterministic embedding metadata when an embedding provider is available", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository, undefined, undefined, undefined, {
+    const service = new GroundedMemoryTestService(repository, undefined, undefined, undefined, {
       provider: createTestEmbeddingProvider()
     });
 
@@ -397,7 +396,7 @@ describe("MemoryRepository", () => {
 
   it("stores memory without embedding if embedding generation fails", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository, undefined, undefined, undefined, {
+    const service = new GroundedMemoryTestService(repository, undefined, undefined, undefined, {
       provider: createFailingEmbeddingProvider()
     });
 
@@ -427,7 +426,7 @@ describe("MemoryRepository", () => {
 
   it("does not store vectors when embedding dimensions mismatch", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository, undefined, undefined, undefined, {
+    const service = new GroundedMemoryTestService(repository, undefined, undefined, undefined, {
       provider: createWrongDimensionEmbeddingProvider()
     });
 
@@ -447,7 +446,7 @@ describe("MemoryRepository", () => {
 
   it("regenerates embedding metadata when memory text changes", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository, undefined, undefined, undefined, {
+    const service = new GroundedMemoryTestService(repository, undefined, undefined, undefined, {
       provider: createTestEmbeddingProvider()
     });
     const created = await service.createMemory({
@@ -469,7 +468,7 @@ describe("MemoryRepository", () => {
 
   it("uses vector retrieval when configured but keeps exact keyword matches ranked first", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository, undefined, undefined, undefined, {
+    const service = new GroundedMemoryTestService(repository, undefined, undefined, undefined, {
       provider: createTestEmbeddingProvider()
     });
     await service.createMemory({
@@ -504,7 +503,7 @@ describe("MemoryRepository", () => {
 
   it("excludes non-active or temporally invalid memories from prompt retrieval", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     await repository.createMemory({
       type: "semantic",
       content: "Active YUVI Runtime memory.",
@@ -562,7 +561,7 @@ describe("MemoryRepository", () => {
 
   it("supports scope-filtered retrieval", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     await repository.createMemory({
       type: "semantic",
       content: "Project-scoped YUVI Runtime memory.",
@@ -591,7 +590,7 @@ describe("MemoryRepository", () => {
 
   it("excludes unrelated project scope memories while keeping matching project and session memory", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     await repository.createMemory({
       type: "semantic",
       content: "YUVI Runtime uses DeepSeek for chat.",
@@ -638,7 +637,7 @@ describe("MemoryRepository", () => {
 
   it("allows archived memories only when manual search opts in", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     await repository.createMemory({
       type: "semantic",
       content: "Archived YUVI Runtime provider decision.",
@@ -666,7 +665,7 @@ describe("MemoryRepository", () => {
 
   it("updates lastAccessedAt when a memory is selected", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     const created = await repository.createMemory({
       type: "semantic",
       content: "YUVI Runtime prompt retrieval uses scoped memory.",
@@ -688,7 +687,7 @@ describe("MemoryRepository", () => {
 
   it("deduplicates display-equivalent memories and prefers semantic memory", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     const content = "用户正在开发 YUVI Runtime，一个类 AIRI 的 AI Companion Runtime。";
     await repository.createMemory({
       type: "working",
@@ -722,7 +721,7 @@ describe("MemoryRepository", () => {
 
   it("ranks concise semantic memories ahead of verbose runtime episodic memories", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     await repository.createMemory({
       type: "episodic",
       content: [
@@ -763,7 +762,7 @@ describe("MemoryRepository", () => {
 
   it("searches memory tags and metadata through the local repository fallback", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     await repository.createMemory({
       type: "semantic",
       subtype: "project",
@@ -789,7 +788,7 @@ describe("MemoryRepository", () => {
 
   it("returns retrieval debug metadata for summary, tag, command, and path matches", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     await repository.createMemory({
       type: "semantic",
       subtype: "project",
@@ -840,7 +839,7 @@ describe("MemoryRepository", () => {
 
   it("supports Postgres Search v2 filter shape in the in-memory fallback", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     await repository.createMemory({
       type: "semantic",
       subtype: "provider-choice",
@@ -958,7 +957,7 @@ describe("MemoryRepository", () => {
 
   it("stores runtime source trace and subtype metadata", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
 
     const memory = await service.rememberInteraction({
       userMessage: "记住：用户偏好 Chat 使用 DeepSeek。",
@@ -981,7 +980,7 @@ describe("MemoryRepository", () => {
 
   it("does not store ordinary interactions without extractor candidates", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
 
     const memory = await service.rememberInteraction({
       userMessage: "What is TypeScript?",
@@ -1033,7 +1032,7 @@ describe("MemoryRepository", () => {
   it("classifies ordinary relative-time daily events as rejected episodic candidates", async () => {
     const extractor = new RuleBasedMemoryExtractor();
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository, undefined, undefined, extractor);
+    const service = new GroundedMemoryTestService(repository, undefined, undefined, extractor);
 
     const candidates = await extractor.extractCandidates({
       userMessage: "我今早吃了芒果蛋糕",
@@ -1072,7 +1071,7 @@ describe("MemoryRepository", () => {
   it("stores explicit remembered daily events as time-bound episodic recall memories", async () => {
     const extractor = new RuleBasedMemoryExtractor();
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository, undefined, undefined, extractor);
+    const service = new GroundedMemoryTestService(repository, undefined, undefined, extractor);
     const candidates = await extractor.extractCandidates({
       userMessage: "记住：我今早吃了芒果蛋糕",
       timestamp: "2026-05-23T02:00:00.000Z",
@@ -1124,7 +1123,7 @@ describe("MemoryRepository", () => {
 
     it("A stores explicit breakfast remember requests even when ordinary one-off", async () => {
       const repository = new InMemoryMemoryRepository();
-      const service = new MemoryService(
+      const service = new GroundedMemoryTestService(
         repository,
         undefined,
         undefined,
@@ -1157,7 +1156,7 @@ describe("MemoryRepository", () => {
 
     it("B rejects ordinary one-off breakfast statements without explicit remember intent", async () => {
       const repository = new InMemoryMemoryRepository();
-      const service = new MemoryService(
+      const service = new GroundedMemoryTestService(
         repository,
         undefined,
         undefined,
@@ -1176,7 +1175,7 @@ describe("MemoryRepository", () => {
 
     it("C keeps only the user-source candidate when assistant restates the same fact", async () => {
       const repository = new InMemoryMemoryRepository();
-      const service = new MemoryService(
+      const service = new GroundedMemoryTestService(
         repository,
         undefined,
         undefined,
@@ -1209,7 +1208,7 @@ describe("MemoryRepository", () => {
 
     it("D does not create a second memory when assistant recalls a prior saved fact", async () => {
       const repository = new InMemoryMemoryRepository();
-      const service = new MemoryService(
+      const service = new GroundedMemoryTestService(
         repository,
         undefined,
         undefined,
@@ -1244,7 +1243,7 @@ describe("MemoryRepository", () => {
 
     it("E allows user correction candidates without assistant-only rejection", async () => {
       const repository = new InMemoryMemoryRepository();
-      const service = new MemoryService(
+      const service = new GroundedMemoryTestService(
         repository,
         undefined,
         undefined,
@@ -1341,7 +1340,7 @@ describe("MemoryRepository", () => {
 
     it("I deduplicates near-identical breakfast candidates by fingerprint", async () => {
       const repository = new InMemoryMemoryRepository();
-      const service = new MemoryService(
+      const service = new GroundedMemoryTestService(
         repository,
         undefined,
         undefined,
@@ -1367,7 +1366,7 @@ describe("MemoryRepository", () => {
 
     it("J allows manual accept to bypass ordinary one-off rejection", async () => {
       const repository = new InMemoryMemoryRepository();
-      const service = new MemoryService(
+      const service = new GroundedMemoryTestService(
         repository,
         undefined,
         undefined,
@@ -1392,7 +1391,7 @@ describe("MemoryRepository", () => {
 
     it("A stores user corrections over ordinary one-off daily event rejection", async () => {
       const repository = new InMemoryMemoryRepository();
-      const service = new MemoryService(
+      const service = new GroundedMemoryTestService(
         repository,
         undefined,
         undefined,
@@ -1423,7 +1422,7 @@ describe("MemoryRepository", () => {
 
     it("B auto-supersedes stale breakfast memory after user correction", async () => {
       const repository = new InMemoryMemoryRepository();
-      const service = new MemoryService(
+      const service = new GroundedMemoryTestService(
         repository,
         undefined,
         undefined,
@@ -1455,7 +1454,7 @@ describe("MemoryRepository", () => {
 
     it("C does not treat unrelated 其实 statements as correction without prior memory", async () => {
       const repository = new InMemoryMemoryRepository();
-      const service = new MemoryService(
+      const service = new GroundedMemoryTestService(
         repository,
         undefined,
         undefined,
@@ -1534,7 +1533,7 @@ describe("MemoryRepository", () => {
 
     it("H recomputes temporal fields after edited canonical content", async () => {
       const repository = new InMemoryMemoryRepository();
-      const service = new MemoryService(repository);
+      const service = new GroundedMemoryTestService(repository);
       const original = await service.processCandidateForStorage(
         {
           type: "episodic",
@@ -1568,7 +1567,7 @@ describe("MemoryRepository", () => {
 
     it("I retrieves corrected breakfast fact instead of superseded memory", async () => {
       const repository = new InMemoryMemoryRepository();
-      const service = new MemoryService(
+      const service = new GroundedMemoryTestService(
         repository,
         undefined,
         undefined,
@@ -1600,7 +1599,7 @@ describe("MemoryRepository", () => {
 
     it("K keeps canonical event date stable across near-identical phrasing", async () => {
       const repository = new InMemoryMemoryRepository();
-      const service = new MemoryService(
+      const service = new GroundedMemoryTestService(
         repository,
         undefined,
         undefined,
@@ -1640,7 +1639,7 @@ describe("MemoryRepository", () => {
 
   it("excludes stale episodic memories from normal retrieval but allows historical episodic lookup", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     await repository.createMemory({
       type: "episodic",
       subtype: "event",
@@ -1688,7 +1687,7 @@ describe("MemoryRepository", () => {
 
   it("rejects low-confidence temporal normalization instead of rewriting aggressively", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     const result = await service.processCandidateForStorage({
       type: "episodic",
       subtype: "event",
@@ -1844,7 +1843,7 @@ describe("MemoryRepository", () => {
 
   it("auto-supersedes provider preferences in the same project scope", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     const old = await repository.createMemory({
       type: "semantic",
       subtype: "provider-choice",
@@ -1883,7 +1882,7 @@ describe("MemoryRepository", () => {
 
   it("auto-supersedes project paths in the same project scope only", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     const sameProjectOld = await repository.createMemory({
       type: "semantic",
       subtype: "path",
@@ -1928,7 +1927,7 @@ describe("MemoryRepository", () => {
 
   it("suggests but does not auto-apply safety-sensitive contradictions", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     const old = await repository.createMemory({
       type: "semantic",
       subtype: "fact",
@@ -1960,7 +1959,7 @@ describe("MemoryRepository", () => {
 
   it("keeps superseded memories out of normal retrieval but available in historical search", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository);
+    const service = new GroundedMemoryTestService(repository);
     const old = await repository.createMemory({
       type: "semantic",
       subtype: "provider-choice",
@@ -2110,7 +2109,7 @@ describe("MemoryRepository", () => {
       { enabled: true, providerConfigured: true, providerName: "test-reasoner" }
     );
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository, undefined, undefined, extractor);
+    const service = new GroundedMemoryTestService(repository, undefined, undefined, extractor);
 
     const candidates = await service.extractCandidates({
       userMessage: "The weather is nice today.",
@@ -2172,7 +2171,7 @@ describe("MemoryRepository", () => {
       { enabled: true, providerConfigured: true }
     );
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository, undefined, undefined, extractor);
+    const service = new GroundedMemoryTestService(repository, undefined, undefined, extractor);
 
     const candidates = await service.extractCandidates({
       userMessage: "What do you think of astronomy?",
@@ -2201,7 +2200,7 @@ describe("MemoryRepository", () => {
       { enabled: true, providerConfigured: true }
     );
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(repository, undefined, undefined, extractor);
+    const service = new GroundedMemoryTestService(repository, undefined, undefined, extractor);
     const firstObservedAt = new Date();
     const correctionObservedAt = new Date(firstObservedAt.getTime() + 60_000);
 

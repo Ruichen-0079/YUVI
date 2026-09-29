@@ -8,6 +8,8 @@ export type {
   MemoryCandidate,
   MemoryOriginRole,
   MemoryCandidateStorageResult,
+  MemoryGroundingContext,
+  MemoryGroundingResolver,
   CurrentAffect,
   CurrentAffectLabel,
   MemoryExtractionInput,
@@ -33,6 +35,23 @@ export type {
   RetrievedMemoryDebug,
   Relation
 } from "./types.js";
+export {
+  JournalMemoryGroundingResolver,
+  LEGACY_MEMORY_GROUNDING_POLICY,
+  MEMORY_LINEAGE_VERSION,
+  MemoryGroundingError,
+  MemoryLineageV1Schema,
+  getMemoryLineageState,
+  legacyIncompleteMemoryLineage,
+  buildGroundedMemoryLineage,
+  groundedMemoryPayloadDigest,
+  type GroundedMemoryLineageV1,
+  type GroundedMemorySource,
+  type MemoryGroundingFailureCode,
+  type MemoryLineageState,
+  type MemoryLineageV1,
+  type CommittedJournalEvidenceReader
+} from "./lineage.js";
 export type {
   MemoryClaim,
   MemoryClaimAttributionInput,
@@ -183,6 +202,9 @@ export { normalizePostgresConnectionString } from "./postgres-connection.js";
 export {
   InMemoryMemoryRepository,
   PostgresMemoryRepository,
+  MemoryLineageConflictError,
+  type GroundedMemoryRepositoryWrite,
+  type GroundedMemoryRepositoryResult,
   createMemoryRepositoryFromEnv,
   type MemoryRepository
 } from "./repository.js";

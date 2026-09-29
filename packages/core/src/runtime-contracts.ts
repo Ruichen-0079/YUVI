@@ -16,6 +16,7 @@ import type {
   Memory,
   MemoryCandidate,
   MemoryCandidateStorageResult,
+  MemoryGroundingContext,
   MemoryConversationTurnWriteResult,
   MemoryExtractorStatus,
   MemoryIngestionCoordinatorPort,
@@ -307,7 +308,8 @@ export type RuntimeMemoryPort = {
   getExtractorStatus?(): MemoryExtractorStatus;
   rememberCandidate?(
     candidate: MemoryCandidate,
-    options?: { source?: string; tags?: string[] }
+    options?: { source?: string; tags?: string[] },
+    groundingContext?: MemoryGroundingContext
   ): Promise<Memory>;
   processCandidateForStorage?(
     candidate: MemoryCandidate,
@@ -316,7 +318,8 @@ export type RuntimeMemoryPort = {
       tags?: string[];
       skipAdmissionPolicy?: boolean;
       storageReason?: string;
-    }
+    },
+    groundingContext?: MemoryGroundingContext
   ): Promise<MemoryCandidateStorageResult>;
   rememberInteraction(input: {
     userMessage: string;
@@ -324,6 +327,7 @@ export type RuntimeMemoryPort = {
     source?: string;
     sourceTraceId?: string | null;
     tags?: string[];
+    groundingContext?: MemoryGroundingContext | undefined;
   }): Promise<Memory | null>;
 };
 

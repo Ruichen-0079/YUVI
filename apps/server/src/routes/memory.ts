@@ -259,6 +259,7 @@ export async function registerMemoryRoutes(
       type: input.data.type as MemoryType,
       content: input.data.content,
       source: input.data.source,
+      evidenceClassification: "NON_EVIDENCE",
       tags: input.data.tags
     };
 

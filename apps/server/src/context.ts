@@ -317,6 +317,7 @@ export async function createAppContext(
         ),
         searchTimeoutMs: runtimeConfig.memory.mem0TimeoutMs,
         writeTimeoutMs: 180_000,
+        journalEvidenceReader: journalRepository ?? undefined,
         logger: runtimeLogger
       }
     );

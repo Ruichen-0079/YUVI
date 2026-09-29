@@ -1,4 +1,5 @@
 import type { MemoryClaim, MemoryClaimAttributionInput } from "./provider.js";
+import type { MemoryLineageV1 } from "./lineage.js";
 
 export const MemoryTypes = [
   "working",
@@ -74,6 +75,12 @@ export type Memory = {
   voiceProfileId?: string | null;
   sessionId?: string | null;
   metadata: Record<string, unknown>;
+  /** Null for pre-lineage compatibility rows; inspect with getMemoryLineageState. */
+  lineage?: MemoryLineageV1 | null;
+  /** Explicitly marks synthetic/admin working data that is not evidence. */
+  evidenceClassification?: "NON_EVIDENCE";
+  /** Durable uniqueness identity is host-generated inside the grounded write path. */
+  lineageConsumerKey?: string | null;
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -119,6 +126,7 @@ export type CreateMemoryInput = {
   voiceProfileId?: string | null;
   sessionId?: string | null;
   metadata?: Record<string, unknown>;
+  evidenceClassification?: "NON_EVIDENCE";
   tags?: string[];
   observedAt?: Date | string | null;
   eventTime?: Date | string | null;
@@ -215,6 +223,9 @@ export type MemoryCandidateStorageResult = {
   storageReason?: string;
   rejectedReason?: string;
 };
+
+export type MemoryGroundingContext = import("./lineage.js").MemoryGroundingContext;
+export type MemoryGroundingResolver = import("./lineage.js").MemoryGroundingResolver;
 
 export type MemoryExtractorMode = "rule-based" | "llm";
 export type MemoryExtractorActive = "rule-based" | "llm" | "fallback-rule-based" | "disabled";

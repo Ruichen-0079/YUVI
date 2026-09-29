@@ -76,7 +76,7 @@ A10.1 leaf authority: [`a10.1-grounded-memory-roadmap.md`](a10.1-grounded-memory
 
 ## Current state
 
-A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2f6 and aggregate A8.2 are implemented reality. A10.1a and A10.1b are implemented. A10.1c–f, A9, A10.2/A10.3, A11 and A12 remain planned/open engineering, with A12.1 already holding a pinned source-level SnowLuma contract while its live probe remains pending.
+A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2f6 and aggregate A8.2 are implemented reality. A10.1a–c are implemented. A10.1d–f, A9, A10.2/A10.3, A11 and A12 remain planned/open engineering, with A12.1 already holding a pinned source-level SnowLuma contract while its live probe remains pending.
 
 ### Milestone 1 — Evidence Foundation
 

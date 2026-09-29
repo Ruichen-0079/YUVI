@@ -868,9 +868,12 @@ describe("server", () => {
         subtype: "event",
         memoryLayer: "recall",
         decision: "rejected",
-        rejectedReason: "ordinary-one-off-daily-event"
+        // This server fixture supplies only a typed receipt ref, not a committed
+        // Journal parent readable by MemoryService. Grounding therefore fails
+        // closed before the ordinary-event admission rule can be observed here.
+        rejectedReason: "missing-committed-source"
       });
-      expect(candidates.json().candidates[0].content).not.toContain("今早");
+      expect(candidates.json().candidates[0].content).toContain("芒果蛋糕");
       expect(candidates.body).not.toContain("test_deepseek_secret");
     } finally {
       await app.close();
@@ -1143,17 +1146,15 @@ describe("server", () => {
         retrievedMemoryCount: 0
       });
       const afterWriteOnly = await app.inject({ method: "GET", url: "/memory/recent?limit=10" });
-      expect(afterWriteOnly.json().memories).toHaveLength(2);
-      expect(afterWriteOnly.json().memories[0]).toMatchObject({
-        type: "semantic",
-        subtype: "provider-choice",
-        source: "runtime",
-        sourceTraceId: writeOnly.json().traceId
-      });
+      // The conversation route fixture does not commit into the Journal used
+      // by MemoryService, so an explicit remember proposal has no verifiable
+      // source and must not become a durable evidence-backed row.
+      expect(afterWriteOnly.json().memories).toHaveLength(1);
       expect(writeOnlyPrompt.json().memoryCandidates[0]).toMatchObject({
         type: "semantic",
         subtype: "provider-choice",
-        decision: "stored",
+        decision: "rejected",
+        rejectedReason: "missing-committed-source",
         sourceTraceId: writeOnly.json().traceId
       });
 
@@ -1188,12 +1189,7 @@ describe("server", () => {
           tags: ["accepted"]
         }
       });
-      expect(acceptedCandidate.statusCode).toBe(200);
-      expect(acceptedCandidate.json()).toMatchObject({
-        ok: true,
-        alreadyStored: true,
-        message: expect.stringContaining("already stored")
-      });
+      expect(acceptedCandidate.statusCode).toBe(404);
       const afterAlreadyStoredAccept = await app.inject({
         method: "GET",
         url: "/memory/recent?limit=10"
@@ -1204,7 +1200,7 @@ describe("server", () => {
           .memories.filter(
             (memory: { content: string }) => memory.content === "用户偏好 Reasoning 使用 DeepSeek。"
           )
-      ).toHaveLength(1);
+      ).toHaveLength(0);
 
       const rejectedCandidate = await app.inject({
         method: "POST",
@@ -1214,8 +1210,8 @@ describe("server", () => {
       expect(rejectedCandidate.statusCode).toBe(200);
       expect(rejectedCandidate.json().candidate).toMatchObject({
         id: candidateId,
-        decision: "stored",
-        rejectedReason: "Candidate is already stored and was not rejected."
+        decision: "rejected",
+        rejectedReason: "Not useful now."
       });
 
       const readOnly = await app.inject({
@@ -1235,10 +1231,10 @@ describe("server", () => {
       const readOnlyPrompt = await app.inject({ method: "GET", url: "/debug/prompt/latest" });
       expect(readOnlyPrompt.json().readMemory).toBe(true);
       expect(readOnlyPrompt.json().writeMemory).toBe(false);
-      expect(readOnlyPrompt.json().retrievedMemoryCount).toBeGreaterThan(0);
+      expect(readOnlyPrompt.json().retrievedMemoryCount).toBe(1);
       expect(readOnlyPrompt.body).toContain("用户偏好 Chat 使用 DeepSeek");
       const afterReadOnly = await app.inject({ method: "GET", url: "/memory/recent?limit=10" });
-      expect(afterReadOnly.json().memories).toHaveLength(2);
+      expect(afterReadOnly.json().memories).toHaveLength(1);
 
       const enabled = await app.inject({
         method: "POST",

@@ -10,7 +10,7 @@ import {
   type MemoryEvent
 } from "./index.js";
 import { InMemoryMemoryRepository } from "./repository.js";
-import { MemoryService } from "./service.js";
+import { GroundedMemoryTestService } from "./test-grounding.js";
 import { RuleBasedMemoryExtractor } from "./extractor.js";
 
 const PRIMARY = "person_ruichen";
@@ -259,7 +259,7 @@ describe("Atom 12 memory claim attribution", () => {
 
   it("lets MemoryService supersede wrong attribution while keeping the old row auditable", async () => {
     const repository = new InMemoryMemoryRepository();
-    const service = new MemoryService(
+    const service = new GroundedMemoryTestService(
       repository,
       undefined,
       undefined,
@@ -305,7 +305,15 @@ describe("Atom 12 memory claim attribution", () => {
           subject: { entityId: PRIMARY, resolution: "resolved" }
         }
       },
-      { source: "runtime", skipAdmissionPolicy: true }
+      { source: "runtime", skipAdmissionPolicy: true },
+      {
+        sourceJournalRef: {
+          kind: "JOURNAL_EVENT",
+          namespace: "test-only-memory-journal",
+          eventId: "jev1_bbbbbbbbbbbbbbbb"
+        },
+        sourceText: "A second committed source for this attribution correction."
+      }
     );
     expect(corrected.decision).toBe("stored");
     const stale = await repository.getMemoryById(originalId!);

@@ -19,7 +19,30 @@ import type {
   Relation,
   UpdateMemoryInput
 } from "./types.js";
+import {
+  MemoryLineageV1Schema,
+  type GroundedMemoryLineageV1,
+  type MemoryLineageV1
+} from "./lineage.js";
 import { parseMemoryRepositoryEnv, type MemoryRepositoryKind } from "./env.js";
+
+export type GroundedMemoryRepositoryWrite = {
+  memory: CreateMemoryInput;
+  lineage: GroundedMemoryLineageV1;
+  payloadDigest: string;
+};
+
+export type GroundedMemoryRepositoryResult = {
+  memory: Memory;
+  inserted: boolean;
+};
+
+export class MemoryLineageConflictError extends Error {
+  constructor(message = "Grounded Memory consumer key conflicts with an existing logical payload.") {
+    super(message);
+    this.name = "MemoryLineageConflictError";
+  }
+}
 
 export interface MemoryRepository {
   readonly kind: MemoryRepositoryKind;
@@ -36,6 +59,8 @@ export interface MemoryRepository {
     | "postgres-hybrid-keyword"
     | "postgres-hybrid";
   createMemory(input: CreateMemoryInput): Promise<Memory>;
+  createGroundedMemory?(input: GroundedMemoryRepositoryWrite): Promise<GroundedMemoryRepositoryResult>;
+  getGroundedMemoryByConsumerKey?(key: string): Promise<{ memory: Memory; payloadDigest: string } | null>;
   getMemoryById(id: string): Promise<Memory | null>;
   updateMemory(id: string, input: UpdateMemoryInput): Promise<Memory | null>;
   deleteMemory(id: string): Promise<boolean>;
@@ -83,6 +108,49 @@ export class PostgresMemoryRepository implements MemoryRepository {
   }
 
   async createMemory(input: CreateMemoryInput): Promise<Memory> {
+    const memory = await this.insertMemory(input, null, null);
+    if (!memory) throw new Error("Memory insert did not return its created row.");
+    return memory;
+  }
+
+  async createGroundedMemory(
+    input: GroundedMemoryRepositoryWrite
+  ): Promise<GroundedMemoryRepositoryResult> {
+    const lineage = MemoryLineageV1Schema.parse(input.lineage);
+    if (
+      lineage.state !== "GROUNDED" ||
+      !isSha256Digest(input.payloadDigest) ||
+      input.memory.evidenceClassification !== undefined
+    ) {
+      throw new TypeError("Grounded Memory persistence requires valid GROUNDED lineage and a digest.");
+    }
+    const inserted = await this.insertMemory(input.memory, lineage, input.payloadDigest, true);
+    if (inserted) return { memory: inserted, inserted: true };
+    const existing = await this.getGroundedMemoryByConsumerKey(lineage.consumerKey);
+    if (!existing) throw new Error("Grounded Memory uniqueness row disappeared after conflict.");
+    if (existing.payloadDigest !== input.payloadDigest) throw new MemoryLineageConflictError();
+    return { memory: existing.memory, inserted: false };
+  }
+
+  async getGroundedMemoryByConsumerKey(
+    key: string
+  ): Promise<{ memory: Memory; payloadDigest: string } | null> {
+    const result = await this.pool.query(
+      "select *, lineage_payload_digest from memories where lineage_consumer_key = $1",
+      [key]
+    );
+    const row = result.rows[0];
+    return row
+      ? { memory: mapMemoryRow(row), payloadDigest: String(row["lineage_payload_digest"] ?? "") }
+      : null;
+  }
+
+  private async insertMemory(
+    input: CreateMemoryInput,
+    lineage: MemoryLineageV1 | null,
+    payloadDigest: string | null,
+    idempotent = false
+  ): Promise<Memory | null> {
     const now = new Date();
     const scope = input.scope ?? inferDefaultScope(input);
     const memoryLayer = input.memoryLayer ?? inferMemoryLayer(input.type, input.subtype ?? null);
@@ -96,14 +164,16 @@ export class PostgresMemoryRepository implements MemoryRepository {
         persona_id, subject_user_id, created_by_user_id, speaker_id, voice_profile_id, session_id,
         metadata, tags,
         observed_at, event_time, valid_from, valid_until, expires_at, superseded_at,
-        supersedes, superseded_by, contradicts
+        supersedes, superseded_by, contradicts,
+        memory_lineage, lineage_consumer_key, lineage_payload_digest, evidence_classification
       ) values (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
         $14, $15, $16, $17, $18,
         $19, $20, $21, $22, $23, $24,
         $25, $26,
-        $27, $28, $29, $30, $31, $32, $33, $34, $35
-      ) returning *`,
+        $27, $28, $29, $30, $31, $32, $33, $34, $35,
+        $36::jsonb, $37, $38, $39
+      ) ${idempotent ? "on conflict (lineage_consumer_key) where lineage_consumer_key is not null do nothing" : ""} returning *`,
       [
         input.type,
         input.subtype ?? null,
@@ -142,11 +212,14 @@ export class PostgresMemoryRepository implements MemoryRepository {
         toNullableDate(input.supersededAt),
         input.supersedes ?? [],
         input.supersededBy ?? null,
-        input.contradicts ?? []
+        input.contradicts ?? [],
+        lineage ? JSON.stringify(lineage) : null,
+        lineage?.state === "GROUNDED" ? lineage.consumerKey : null,
+        payloadDigest,
+        input.evidenceClassification ?? null
       ]
     );
-
-    return mapMemoryRow(requireOne(result.rows));
+    return result.rows.length > 0 ? mapMemoryRow(result.rows[0]!) : null;
   }
 
   async getMemoryById(id: string): Promise<Memory | null> {
@@ -713,6 +786,10 @@ export class PostgresMemoryRepository implements MemoryRepository {
 export class InMemoryMemoryRepository implements MemoryRepository {
   readonly kind = "in-memory";
   private readonly memories: Memory[] = [];
+  private readonly groundedConsumers = new Map<
+    string,
+    { payloadDigest: string; memory: Memory }
+  >();
   private readonly entities: Entity[] = [];
   private readonly relations: Relation[] = [];
 
@@ -725,11 +802,53 @@ export class InMemoryMemoryRepository implements MemoryRepository {
   }
 
   async createMemory(input: CreateMemoryInput): Promise<Memory> {
+    const memory = this.createMemoryRecord(input);
+    this.memories.push(memory);
+    return memory;
+  }
+
+  async createGroundedMemory(
+    input: GroundedMemoryRepositoryWrite
+  ): Promise<GroundedMemoryRepositoryResult> {
+    const lineage = MemoryLineageV1Schema.parse(input.lineage);
+    if (
+      lineage.state !== "GROUNDED" ||
+      !isSha256Digest(input.payloadDigest) ||
+      input.memory.evidenceClassification !== undefined
+    ) {
+      throw new TypeError("Grounded Memory persistence requires valid GROUNDED lineage and a digest.");
+    }
+    const existing = this.groundedConsumers.get(lineage.consumerKey);
+    if (existing) {
+      if (existing.payloadDigest !== input.payloadDigest) throw new MemoryLineageConflictError();
+      return { memory: existing.memory, inserted: false };
+    }
+    const memory = this.createMemoryRecord(input.memory, lineage, lineage.consumerKey);
+    this.memories.push(memory);
+    this.groundedConsumers.set(lineage.consumerKey, {
+      payloadDigest: input.payloadDigest,
+      memory
+    });
+    return { memory, inserted: true };
+  }
+
+  async getGroundedMemoryByConsumerKey(
+    key: string
+  ): Promise<{ memory: Memory; payloadDigest: string } | null> {
+    const entry = this.groundedConsumers.get(key);
+    return entry ? { memory: entry.memory, payloadDigest: entry.payloadDigest } : null;
+  }
+
+  private createMemoryRecord(
+    input: CreateMemoryInput,
+    lineage: MemoryLineageV1 | null = null,
+    lineageConsumerKey: string | null = null
+  ): Memory {
     const now = new Date();
     const scope = input.scope ?? inferDefaultScope(input);
     const memoryLayer = input.memoryLayer ?? inferMemoryLayer(input.type, input.subtype ?? null);
     const observedAt = toDateOrDefault(input.observedAt, now);
-    const memory: Memory = {
+    return {
       id: crypto.randomUUID(),
       type: input.type,
       subtype: input.subtype ?? null,
@@ -763,6 +882,11 @@ export class InMemoryMemoryRepository implements MemoryRepository {
         input.voiceProfileId ?? metadataString(input.metadata, "voiceProfileId") ?? null,
       sessionId: input.sessionId ?? metadataString(input.metadata, "sessionId") ?? null,
       metadata: input.metadata ?? {},
+      lineage,
+      lineageConsumerKey,
+      ...(input.evidenceClassification
+        ? { evidenceClassification: input.evidenceClassification }
+        : {}),
       tags: input.tags ?? [],
       createdAt: now,
       updatedAt: now,
@@ -777,8 +901,6 @@ export class InMemoryMemoryRepository implements MemoryRepository {
       supersededBy: input.supersededBy ?? null,
       contradicts: input.contradicts ?? []
     };
-    this.memories.push(memory);
-    return memory;
   }
 
   async getMemoryById(id: string): Promise<Memory | null> {
@@ -1073,6 +1195,11 @@ export function createMemoryRepositoryFromEnv(
 }
 
 function mapMemoryRow(row: QueryResultRow): Memory {
+  const rawLineage = row["memory_lineage"];
+  const lineageValue = parseJsonValue(rawLineage);
+  const lineage = lineageValue === null ? null : MemoryLineageV1Schema.parse(lineageValue);
+  const evidenceClassification =
+    row["evidence_classification"] === "NON_EVIDENCE" ? "NON_EVIDENCE" : undefined;
   return {
     id: row["id"],
     type: row["type"] as MemoryType,
@@ -1116,6 +1243,9 @@ function mapMemoryRow(row: QueryResultRow): Memory {
     sessionId:
       row["session_id"] ?? metadataString(parseMetadata(row["metadata"]), "sessionId") ?? null,
     metadata: parseMetadata(row["metadata"]),
+    lineage,
+    ...(evidenceClassification ? { evidenceClassification } : {}),
+    lineageConsumerKey: row["lineage_consumer_key"] ?? null,
     tags: row["tags"] ?? [],
     createdAt: row["created_at"],
     updatedAt: row["updated_at"],
@@ -1131,6 +1261,20 @@ function mapMemoryRow(row: QueryResultRow): Memory {
     contradicts: row["contradicts"] ?? [],
     ...searchMetadataFromRow(row)
   };
+}
+
+function isSha256Digest(value: string): boolean {
+  return /^[a-f0-9]{64}$/u.test(value);
+}
+
+function parseJsonValue(value: unknown): unknown | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value) as unknown;
+  } catch {
+    throw new Error("Stored Memory lineage JSON is malformed.");
+  }
 }
 
 function searchMetadataFromRow(row: QueryResultRow): {
