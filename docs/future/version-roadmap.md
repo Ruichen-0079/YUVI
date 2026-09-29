@@ -106,7 +106,9 @@ A7.1 → A7.2 → A8.1
                   ↓
                A8.2 aggregate ingress closure — IMPLEMENTED
                   ↓
-                A10.1
+                A10.1a fail-closed legacy LLM evidence — IMPLEMENTED
+                  ↓
+                A10.1b–f lineage and aggregate closure — PLANNED
 ```
 
 A8.2 was split only after the required implementation audit found independent production ingress owners. Runtime remains the single semantic execution authority but is not a universal transport-ingress gate. The leaf split is source-driven and must not be implemented as a new generic ingress manager.
@@ -130,9 +132,9 @@ Result:
 - a versioned journal command, envelope and evidence-selector contract exists;
 - the durable Journal store has one ordered append authority independent of long-term Memory-backend choice;
 - ordinary conversational HTTP/SSE/WebSocket inputs and finalized speech observations become durable receipts before Runtime semantic processing; standalone vision commits a durable receipt before provider analysis without retaining raw image content; the e1–e3 local-control leaves preserve their existing owners and surface-specific identity/audience/retention limits;
-- A8.2f5 closes production manual Memory authority; A8.2f6 closes aggregate applicability and regression review. A10.1 is the next dependency-ordered implementation;
-- the reproduced legacy LLM Memory attribution defect is then closed by A10.1;
-- new evidence-backed Memory writes require committed lineage.
+- A8.2f5 closes production manual Memory authority; A8.2f6 closes aggregate applicability and regression review. A10.1a is implemented, and A10.1b is the next dependency-ordered implementation;
+- A10.1a closes the reproduced legacy LLM Memory attribution defect by skipping the ungrounded LLM provider path and retaining rule-based extraction; A10.1 aggregate remains incomplete;
+- A10.1b–f will require committed lineage for new evidence-backed Memory writes; A10.1a closes only the legacy optional LLM admission path, and aggregate A10.1 remains incomplete.
 
 This is the first intentional checkpoint. Perform an authority-bypass audit before continuing to external effects.
 

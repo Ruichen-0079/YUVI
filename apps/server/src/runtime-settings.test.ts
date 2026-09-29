@@ -55,6 +55,7 @@ describe("runtime settings contract", () => {
   it("validates typed settings without echoing values", () => {
     const result = validateRuntimeSettings({
       MEMORY_REPOSITORY: "sqlite",
+      MEMORY_EXTRACTOR: "external",
       EVENT_BUS: "nats",
       SERVER_PORT: "6121abc",
       PROVIDER_ALLOW_MOCKS: "maybe",
@@ -69,6 +70,7 @@ describe("runtime settings contract", () => {
     });
     expect(result.fieldErrors).toMatchObject({
       MEMORY_REPOSITORY: expect.any(String),
+      MEMORY_EXTRACTOR: expect.any(String),
       EVENT_BUS: expect.any(String),
       EMBEDDING_PROVIDER: expect.any(String),
       SERVER_PORT: expect.any(String),
@@ -87,6 +89,12 @@ describe("runtime settings contract", () => {
       validateRuntimeSettings({ MEMORY_REPOSITORY: "postgres" }).fieldErrors["MEMORY_REPOSITORY"]
     ).toEqual(expect.any(String));
     expect(validateRuntimeSettings({}).fieldErrors).not.toHaveProperty("EMBEDDING_PROVIDER");
+    expect(validateRuntimeSettings({ MEMORY_EXTRACTOR: "" }).fieldErrors).toMatchObject({
+      MEMORY_EXTRACTOR: expect.any(String)
+    });
+    expect(validateRuntimeSettings({ MEMORY_EXTRACTOR: "llm" }).fieldErrors).not.toHaveProperty(
+      "MEMORY_EXTRACTOR"
+    );
     expect(
       validateRuntimeSettings({ EMBEDDING_PROVIDER: "openai-compatible" }).fieldErrors
     ).not.toHaveProperty("EMBEDDING_PROVIDER");

@@ -4354,7 +4354,7 @@ export class RuntimeOrchestrator {
           rejectedCount: decisions.filter((decision) => decision.decision === "rejected").length,
           rejectedReasons,
           candidates: reviewedCandidates,
-          ...(selected.length > 0
+          ...(selected.length > 0 || extractorStatus.skippedReason
             ? {}
             : { skippedReason: "Memory service rejected all extracted candidates." })
         };

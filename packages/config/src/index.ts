@@ -163,7 +163,7 @@ export function parseRuntimeConfig(env: RuntimeConfigEnv = process.env): Runtime
     },
     memory: {
       repository: parseMemoryRepository(env["MEMORY_REPOSITORY"]),
-      extractor: parseMemoryExtractor(env["MEMORY_EXTRACTOR"]),
+      extractor: parseMemoryExtractorDriver(env["MEMORY_EXTRACTOR"]),
       backend: parseMemoryBackend(env["MEMORY_BACKEND"]),
       databaseUrl: emptyToUndefined(env["DATABASE_URL"]),
       mem0BaseUrl: emptyToUndefined(env["MEM0_BASE_URL"]) ?? "http://127.0.0.1:6131",
@@ -466,15 +466,15 @@ function parseMemoryRepository(value: string | undefined): MemoryRepositoryDrive
   return "in-memory";
 }
 
-function parseMemoryExtractor(value: string | undefined): MemoryExtractorDriver {
+export function parseMemoryExtractorDriver(value: string | undefined): MemoryExtractorDriver {
   if (value === "llm") {
     return "llm";
   }
-  if (!value || value === "rule-based") {
+  if (value === undefined || value === "rule-based") {
     return "rule-based";
   }
 
-  return "llm";
+  throw new Error(`Unsupported MEMORY_EXTRACTOR '${value}'. Supported values: rule-based, llm.`);
 }
 
 /**

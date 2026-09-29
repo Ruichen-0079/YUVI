@@ -124,6 +124,29 @@ function characterResponse(body: RecordedRequest, content: string, reasoningCont
 }
 
 describe("ordinary production Character path", () => {
+  it("rejects an unknown extractor mode on reload before replacing the Runtime", async () => {
+    const env = productionTestEnv();
+    process.env = { ...env };
+    const app = Fastify({ logger: false });
+    const context = await createAppContext(app.log, loadServerConfig(env));
+    const runtimeBeforeReload = context.runtime;
+
+    try {
+      await expect(
+        context.reloadRuntimeConfig({ ...env, MEMORY_EXTRACTOR: "external" })
+      ).rejects.toThrow("Unsupported MEMORY_EXTRACTOR 'external'");
+      expect(context.runtime).toBe(runtimeBeforeReload);
+    } finally {
+      await context.runtime.sealAndDrainMemoryWrites();
+      context.embodiedPresentationBridge.close();
+      await context.memoryIngestionCoordinator.shutdown({ graceMs: 2000 });
+      await context.conversationRepository.close?.();
+      await context.finalizedIngestionRepository.close?.();
+      await context.memoryRepository.close?.();
+      await app.close();
+    }
+  });
+
   it("keeps the live proactive subscription connected across runtime reload", async () => {
     const env = {
       ...productionTestEnv(),

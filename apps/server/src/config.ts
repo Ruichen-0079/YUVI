@@ -3,6 +3,7 @@ import {
   MAX_COGNITION_LIMITS,
   type RuntimeCognitionLimits
 } from "@companion/core";
+import { parseMemoryExtractorDriver } from "@companion/config";
 
 export type ServerConfig = {
   cognitionInteraction: RuntimeCognitionLimits;
@@ -73,7 +74,7 @@ export function loadServerConfig(
     logLevel: env["LOG_LEVEL"] ?? "info",
     runtimeMode: parseRuntimeMode(env["RUNTIME_MODE"] ?? env["NODE_ENV"]),
     eventBus: parseEventBus(env["EVENT_BUS"] ?? env["EVENT_BUS_DRIVER"]),
-    memoryExtractor: parseMemoryExtractor(env["MEMORY_EXTRACTOR"]),
+    memoryExtractor: parseMemoryExtractorDriver(env["MEMORY_EXTRACTOR"]),
     directContext: {
       enabled: parseBoolean(env["DIRECT_CONTEXT_ENABLED"], true),
       maxTurns: parsePositiveInteger(env["DIRECT_CONTEXT_MAX_TURNS"], 6),
@@ -151,17 +152,6 @@ function parseEventBus(value: string | undefined): "in-memory" | "nats" {
   }
 
   throw new Error(`Unsupported EVENT_BUS '${value}'. Supported values: in-memory, nats.`);
-}
-
-function parseMemoryExtractor(value: string | undefined): "rule-based" | "llm" {
-  if (value === "llm") {
-    return "llm";
-  }
-  if (!value || value === "rule-based") {
-    return "rule-based";
-  }
-
-  throw new Error(`Unsupported MEMORY_EXTRACTOR '${value}'. Supported values: rule-based, llm.`);
 }
 
 function emptyToUndefined(value: string | undefined): string | undefined {

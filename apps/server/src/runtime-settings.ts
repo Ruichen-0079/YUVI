@@ -239,8 +239,8 @@ export function validateRuntimeSettings(
     add("OUTPUT_LANGUAGE", `Supported values are ${CHARACTER_OUTPUT_LANGUAGES.join(", ")}.`);
   }
 
-  const extractor = value("MEMORY_EXTRACTOR")?.trim();
-  if (extractor && !["llm", "rule-based"].includes(extractor)) {
+  const extractor = value("MEMORY_EXTRACTOR");
+  if (extractor !== undefined && !["llm", "rule-based"].includes(extractor)) {
     add("MEMORY_EXTRACTOR", "Supported values are llm and rule-based.");
   }
 

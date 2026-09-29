@@ -206,6 +206,15 @@ describe("runtime config", () => {
       "rule-based"
     );
     expect(parseRuntimeConfig({ MEMORY_EXTRACTOR: "llm" }).memory.extractor).toBe("llm");
+    expect(
+      parseRuntimeConfig({ MEMORY_BACKEND: "shadow", MEMORY_EXTRACTOR: "llm" }).memory
+    ).toMatchObject({ backend: "legacy", extractor: "llm" });
+    expect(() => parseRuntimeConfig({ MEMORY_EXTRACTOR: "external" })).toThrow(
+      "Unsupported MEMORY_EXTRACTOR 'external'"
+    );
+    expect(() => parseRuntimeConfig({ MEMORY_EXTRACTOR: "" })).toThrow(
+      "Unsupported MEMORY_EXTRACTOR ''"
+    );
   });
 
   it("merges runtime env as .env, process env, then .env.local", async () => {

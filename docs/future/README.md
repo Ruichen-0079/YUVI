@@ -118,7 +118,9 @@ A8.2f aggregate closure — IMPLEMENTED
   ↓
 A8.2 aggregate ingress closure — IMPLEMENTED
   ↓
-A10.1 grounded Memory admission / lineage repair — NEXT
+A10.1a fail-closed legacy LLM evidence — IMPLEMENTED
+  ↓
+A10.1b–f grounded Memory lineage / aggregate closure — NEXT
 ```
 
 The split does not create six semantic owners. All leaves share one durable Journal append authority and preserve each existing domain owner. Runtime remains the semantic execution authority but is not treated as a universal transport-ingress gate. Journal PostgreSQL availability must be independent of long-term Memory-backend selection while reusing the existing Supervisor/deployment PostgreSQL lifecycle; Mem0 activation must not silently disable Journal durability.

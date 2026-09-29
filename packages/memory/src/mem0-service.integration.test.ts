@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { MemoryService } from "./service.js";
+import { LlmMemoryExtractor } from "./extractor.js";
 import { InMemoryMemoryRepository } from "./repository.js";
 import type { MemoryBackend } from "./backend.js";
 import { detectExplicitForgetRequest, detectExplicitRememberRequest } from "./intent.js";
@@ -131,11 +132,22 @@ describe("MemoryService mem0 mode", () => {
 
   it("does not run legacy extraction or processCandidate storage in mem0 mode", async () => {
     const backend = createMockBackend();
+    let legacyReasonerCalls = 0;
+    const extractor = new LlmMemoryExtractor(
+      {
+        async generateReasoning() {
+          legacyReasonerCalls += 1;
+          return { reasoning: '{"candidates":[]}' };
+        }
+      },
+      undefined,
+      { enabled: true, providerConfigured: true }
+    );
     const service = new MemoryService(
       new InMemoryMemoryRepository(),
       undefined,
       undefined,
-      undefined,
+      extractor,
       { enabled: false },
       { kind: "mem0", mem0: backend }
     );
@@ -144,6 +156,7 @@ describe("MemoryService mem0 mode", () => {
       assistantMessage: "Noted"
     });
     expect(candidates).toEqual([]);
+    expect(legacyReasonerCalls).toBe(0);
     const processed = await service.processCandidateForStorage({
       type: "semantic",
       content: "tea",

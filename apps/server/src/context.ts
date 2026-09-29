@@ -35,7 +35,11 @@ import {
   HostVoiceControlReceiptAdmission,
   type VoiceControlReceiptAdmission
 } from "./voice-control-receipt-admission.js";
-import { getRuntimeEnvDir } from "@companion/config";
+import {
+  getRuntimeEnvDir,
+  parseMemoryExtractorDriver,
+  parseRuntimeConfig
+} from "@companion/config";
 import { createFileP8CorrectionStore, createFileVoiceBindingReferences } from "@companion/core";
 import { captureKdeScreen, screenCaptureAvailable } from "./screen-capture.js";
 import type {
@@ -68,7 +72,6 @@ import {
   type MemoryRepository,
   type RecentEpisodeStore
 } from "@companion/memory";
-import { parseRuntimeConfig } from "@companion/config";
 import { normalizeCharacterOutputLanguage } from "@companion/character-abi";
 import { PromptBuilder } from "@companion/prompt-builder";
 import {
@@ -509,12 +512,9 @@ export async function createAppContext(
         }
       }
 
+      const extractorMode = parseMemoryExtractorDriver(reloadEnv["MEMORY_EXTRACTOR"]);
       const nextProviders = createProviderRegistryFromEnv(reloadEnv);
-      const nextMemory = createMemoryService(
-        nextProviders,
-        parseMemoryExtractorMode(reloadEnv["MEMORY_EXTRACTOR"]),
-        reloadEnv
-      );
+      const nextMemory = createMemoryService(nextProviders, extractorMode, reloadEnv);
       const nextRuntime = createRuntime(
         nextProviders,
         nextMemory,
@@ -627,10 +627,6 @@ function parseStrictPositiveInteger(value: string | undefined, fallback: number)
   }
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
-}
-
-function parseMemoryExtractorMode(value: string | undefined): "rule-based" | "llm" {
-  return value === "llm" ? "llm" : "rule-based";
 }
 
 function unavailableMemoryProvider(): MemoryProvider {

@@ -99,6 +99,7 @@ describe("server", () => {
       expect(prompt.json().providerMock).toBe(true);
       expect(prompt.json().memoryExtractorMode).toBe("llm");
       expect(prompt.json().fallbackUsed).toBe(true);
+      expect(prompt.json().memoryExtractionSkippedReason).toContain("provider is not configured");
       expect(prompt.json().memoryExtractionCandidateCount).toBeTypeOf("number");
       expect(prompt.json().storedMemoryCount).toBeTypeOf("number");
       expect(prompt.json().rejectedMemoryCount).toBeTypeOf("number");
@@ -3039,6 +3040,9 @@ describe("server", () => {
       const devSettings = await devApp.inject({ method: "GET", url: "/settings/runtime" });
       expect(devSettings.statusCode).toBe(200);
       const devMemory = devSettings.json().memory;
+      expect(devMemory.memoryExtractor).toBe("llm");
+      expect(devMemory.memoryExtractorActive).toBe("fallback-rule-based");
+      expect(devMemory.memoryExtractorSkippedReason).toContain("provider is not configured");
       expect(devMemory).toHaveProperty("memoryExtractorFailureStage");
       expect(devMemory).toHaveProperty("memoryExtractorSelectedOutputSource");
       expect(devMemory).toHaveProperty("memoryExtractorAnswerLength");
