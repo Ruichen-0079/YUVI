@@ -1,3 +1,8 @@
+import {
+  preserveEpisodeEvidence,
+  withEpisodeEvidence,
+  EpisodeSourceEvidenceV1Schema
+} from "./episode-source-evidence.js";
 import type { Pool } from "pg";
 import { createPostgresPool } from "@companion/database";
 import type { QueryResultRow } from "pg";
@@ -27,6 +32,7 @@ export interface RecentEpisodeStore {
       consolidatedAt?: string | null | undefined;
       consolidationJobId?: string | null | undefined;
       recurrenceCount?: number | undefined;
+      expectedSourceEvidenceDigest?: string | undefined;
     }
   ): Promise<RecentEpisode | null>;
   rollover(query: RecentEpisodeListQuery & { maxActive?: number | undefined }): Promise<number>;
@@ -43,7 +49,7 @@ export class InMemoryRecentEpisodeStore implements RecentEpisodeStore {
     if (existing) {
       this.digestIndex.delete(existing.sourceDigest);
     }
-    const stored = cloneEpisode(episode);
+    const stored = cloneEpisode(preserveEpisodeEvidence(episode, existing));
     this.episodes.set(stored.id, stored);
     this.digestIndex.set(stored.sourceDigest, stored.id);
     return cloneEpisode(stored);
@@ -85,10 +91,16 @@ export class InMemoryRecentEpisodeStore implements RecentEpisodeStore {
       consolidatedAt?: string | null | undefined;
       consolidationJobId?: string | null | undefined;
       recurrenceCount?: number | undefined;
+      expectedSourceEvidenceDigest?: string | undefined;
     } = {}
   ): Promise<RecentEpisode | null> {
     const existing = this.episodes.get(id);
-    if (!existing) return null;
+    if (
+      !existing ||
+      (fields.expectedSourceEvidenceDigest &&
+        existing.sourceEvidenceDigest !== fields.expectedSourceEvidenceDigest)
+    )
+      return null;
     const next: RecentEpisode = {
       ...existing,
       status,
@@ -140,17 +152,29 @@ export class PostgresRecentEpisodeStore implements RecentEpisodeStore {
   }
 
   async upsert(episode: RecentEpisode): Promise<RecentEpisode> {
-    const result = await this.pool.query(
-      `insert into recent_episodes (
+    const client = await this.pool.connect();
+    try {
+      await client.query("begin");
+      await client.query("select pg_advisory_xact_lock(hashtextextended($1, 0))", [episode.id]);
+      const prior = await client.query(
+        "select * from recent_episodes where episode_id = $1 for update",
+        [episode.id]
+      );
+      episode = preserveEpisodeEvidence(
+        episode,
+        prior.rows[0] ? mapEpisodeRow(prior.rows[0]) : null
+      );
+      const result = await client.query(
+        `insert into recent_episodes (
         episode_id, session_id, persona_id, subject_user_id, memory_scope,
         started_at, ended_at, recorded_at, occurred_at, temporal_confidence,
         status, source_turn_ids, source_digest, what_happened, user_statements,
         task_state, unresolved, outcome, assistant_context, metadata,
         recurrence_count, last_accessed_at, expires_at, consolidated_at,
-        consolidation_job_id
+        consolidation_job_id, source_evidence, source_evidence_version, source_evidence_digest, source_coverage_state
       ) values (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb,$13,$14,$15::jsonb,
-        $16,$17,$18,$19,$20::jsonb,$21,$22,$23,$24,$25
+        $16,$17,$18,$19,$20::jsonb,$21,$22,$23,$24,$25,$26::jsonb,$27,$28,$29
       )
       on conflict (episode_id) do update set
         session_id = excluded.session_id,
@@ -173,37 +197,52 @@ export class PostgresRecentEpisodeStore implements RecentEpisodeStore {
         source_digest = excluded.source_digest,
         last_accessed_at = excluded.last_accessed_at,
         expires_at = excluded.expires_at,
+        source_evidence = excluded.source_evidence,
+        source_evidence_version = excluded.source_evidence_version,
+        source_evidence_digest = excluded.source_evidence_digest,
+        source_coverage_state = excluded.source_coverage_state,
         updated_at = now()
       returning *`,
-      [
-        episode.id,
-        episode.sessionId,
-        episode.personaId,
-        episode.subjectUserId,
-        episode.memoryScope,
-        episode.startedAt,
-        episode.endedAt,
-        episode.recordedAt,
-        episode.occurredAt,
-        episode.temporalConfidence,
-        episode.status,
-        JSON.stringify(episode.sourceTurnIds),
-        episode.sourceDigest,
-        episode.whatHappened,
-        JSON.stringify(episode.userStatements),
-        episode.taskState,
-        episode.unresolved,
-        episode.outcome,
-        episode.assistantContext,
-        JSON.stringify(episode.metadata),
-        episode.recurrenceCount,
-        episode.lastAccessedAt,
-        episode.expiresAt,
-        episode.consolidatedAt,
-        episode.consolidationJobId
-      ]
-    );
-    return mapEpisodeRow(result.rows[0]);
+        [
+          episode.id,
+          episode.sessionId,
+          episode.personaId,
+          episode.subjectUserId,
+          episode.memoryScope,
+          episode.startedAt,
+          episode.endedAt,
+          episode.recordedAt,
+          episode.occurredAt,
+          episode.temporalConfidence,
+          episode.status,
+          JSON.stringify(episode.sourceTurnIds),
+          episode.sourceDigest,
+          episode.whatHappened,
+          JSON.stringify(episode.userStatements),
+          episode.taskState,
+          episode.unresolved,
+          episode.outcome,
+          episode.assistantContext,
+          JSON.stringify(episode.metadata),
+          episode.recurrenceCount,
+          episode.lastAccessedAt,
+          episode.expiresAt,
+          episode.consolidatedAt,
+          episode.consolidationJobId,
+          episode.sourceEvidence ? JSON.stringify(episode.sourceEvidence) : null,
+          episode.sourceEvidence?.version ?? null,
+          episode.sourceEvidenceDigest ?? null,
+          episode.sourceCoverage ?? "LEGACY_INCOMPLETE"
+        ]
+      );
+      await client.query("commit");
+      return mapEpisodeRow(result.rows[0]);
+    } catch (error) {
+      await client.query("rollback");
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async getById(id: string): Promise<RecentEpisode | null> {
@@ -250,6 +289,7 @@ export class PostgresRecentEpisodeStore implements RecentEpisodeStore {
       consolidatedAt?: string | null | undefined;
       consolidationJobId?: string | null | undefined;
       recurrenceCount?: number | undefined;
+      expectedSourceEvidenceDigest?: string | undefined;
     } = {}
   ): Promise<RecentEpisode | null> {
     const result = await this.pool.query(
@@ -260,14 +300,15 @@ export class PostgresRecentEpisodeStore implements RecentEpisodeStore {
            recurrence_count = coalesce($5, recurrence_count),
            last_accessed_at = now(),
            updated_at = now()
-       where episode_id = $1
+       where episode_id = $1 and ($6::text is null or source_evidence_digest = $6)
        returning *`,
       [
         id,
         status,
         fields.consolidatedAt ?? null,
         fields.consolidationJobId ?? null,
-        fields.recurrenceCount ?? null
+        fields.recurrenceCount ?? null,
+        fields.expectedSourceEvidenceDigest ?? null
       ]
     );
     return result.rows[0] ? mapEpisodeRow(result.rows[0]) : null;
@@ -318,7 +359,7 @@ export function reconstructableRetentionMs(): number {
 
 function mapEpisodeRow(row: QueryResultRow | undefined): RecentEpisode {
   if (!row) throw new Error("Recent episode row was empty.");
-  return {
+  const episode: RecentEpisode = {
     id: String(row["episode_id"]),
     sessionId: String(row["session_id"]),
     personaId: row["persona_id"] ?? null,
@@ -345,6 +386,18 @@ function mapEpisodeRow(row: QueryResultRow | undefined): RecentEpisode {
     consolidatedAt: row["consolidated_at"] ? toIso(row["consolidated_at"]) : null,
     consolidationJobId: row["consolidation_job_id"] ?? null
   };
+  const projected = withEpisodeEvidence(
+    episode,
+    row["source_evidence"] ? EpisodeSourceEvidenceV1Schema.parse(row["source_evidence"]) : null
+  );
+  if (
+    row["source_evidence"] &&
+    (projected.sourceEvidenceDigest !== row["source_evidence_digest"] ||
+      projected.sourceCoverage !== row["source_coverage_state"] ||
+      projected.sourceEvidence?.version !== row["source_evidence_version"])
+  )
+    throw new Error("EPISODE_SOURCE_EVIDENCE_INVALID");
+  return projected;
 }
 
 function asStringArray(value: unknown): string[] {
@@ -388,10 +441,5 @@ function parseMs(value: string): number {
 }
 
 function cloneEpisode(episode: RecentEpisode): RecentEpisode {
-  return {
-    ...episode,
-    sourceTurnIds: [...episode.sourceTurnIds],
-    userStatements: [...episode.userStatements],
-    metadata: { ...episode.metadata }
-  };
+  return structuredClone(episode);
 }

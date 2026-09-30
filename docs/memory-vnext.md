@@ -49,11 +49,11 @@ something repeated, or treat assistant prose as user truth.
 - L1 groups completed conversation turns by session and a 30-minute gap
   under one stable logical episode id (`episode:<sessionId>:<firstTurnId>`).
   Later messages in the same gap update that episode; they do not create a
-  second recurrence observation. User-grounded fields are searchable evidence.
+  second recurrence observation. Compact user statements are searchable context; only validated first-class source mappings can authorize Dream evidence.
   Assistant output is stored as non-authoritative continuity and is labeled
   `Assistant previously said (non-authoritative, not evidence)` in the
   Character-facing projection. Retention is seven days with rollover. Restart
-  reconstructs from `conversation_messages` and upserts by logical episode id.
+  reconstructs from `conversation_messages` and upserts by logical episode id. A10.1e resolves full persisted source text and exact Journal refs before compaction; historical/unavailable source entries remain incomplete across reconstruction.
 - L2 is existing durable evidence. Dream may propose additional
   `MemoryWriteEventInput` values.
 
@@ -69,9 +69,13 @@ Delivery authority is `MemoryProvider.writeEventIdempotent` plus
 delivery). Keys are `yuvi:dream-job:<jobId>:event:<payloadDigest>`. Dream
 does not call `writeEvent`. `reconcile_required` is not due work and is never
 auto-retried. An explicit `reconcileJob()` path may rewrite only after
-`reconcileEvent` returns `not_applied`. Jobs are claimed atomically
+`reconcileEvent` returns `not_applied`, and only for exact frozen grounded payloads. Old ungrounded not-applied work fails closed. Jobs are claimed atomically
 (`FOR UPDATE SKIP LOCKED` in PostgreSQL; serialized claim in memory). Missing
 writer/provider skips the job without marking L1 episodes consolidated.
+
+A10.1e adds first-class `episode-source-evidence.v1` with GROUNDED/PARTIAL/LEGACY_INCOMPLETE coverage. Each statement preserves source message identity, original-text digest and its committed parent/selector, origin, authority and time. Episodes and compact strings are representations, not original receipts. Assistant context never enters this map.
+
+Admission freezes a bounded `dream-source-snapshot.v1`; later episode mutation cannot change queued work. Only grounded entries derive children. Recurrence dedupe merges contributing source sets without confidence upgrades. `memory-lineage.v1` DREAM_DERIVATION children are always DERIVED and system/unverified, with per-parent source snapshots and no invented aggregate authority/occurrence time. Canonical source set + policy + semantic fingerprint determines the consumer key before C1 delivery hashing. Reclaimed frozen payloads enter reconciliation before extraction. Historical complete effects remain history; pending work without a grounded snapshot fails closed.
 
 “Dream” is a product metaphor. It does not simulate hidden experiences.
 
@@ -100,3 +104,5 @@ Temporal or Continuity subsystems.
 
 Migration `012_memory_vnext_v1.sql` adds `recent_episodes` and `dream_jobs`.
 These are Yuvi-owned ledgers, not a second MemoryEvent store.
+
+Migration `016_episode_dream_source_evidence_v1.sql` adds nullable first-class episode source columns and `dream_jobs.source_snapshot`. It applies idempotently and performs no text/trace/time ancestry backfill. Stable episode upserts fence old source IDs; grounded new entries can extend them with PARTIAL coverage. Existing data is preserved. [A10.1e validation](validation/v0.1.3-a10.1e-grounded-dream-derivations.md) records PostgreSQL and real Mem0 acceptance. Profile work remains A10.1f1–f3, and aggregate A10.1 is incomplete.

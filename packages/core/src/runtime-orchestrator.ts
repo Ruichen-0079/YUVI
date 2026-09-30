@@ -5236,6 +5236,7 @@ export class RuntimeOrchestrator {
       directContextText: "",
       messages: memoryEligibleMessages(messages, true),
       episodeStore: this.recentEpisodeStore,
+      groundingResolver: this.options.episodeGroundingResolver,
       persistEpisodes: true
     });
     const newest = assembly.episodes[0];

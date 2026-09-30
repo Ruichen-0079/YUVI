@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { randomBytes, randomUUID } from "node:crypto";
 import { spawn, type ChildProcess } from "node:child_process";
 import { once } from "node:events";
@@ -21,7 +22,13 @@ import {
   MemoryIngestionCoordinator,
   Mem0MemoryProvider,
   Mem0MemoryBackend,
-  MemoryLineageV1Schema
+  MemoryLineageV1Schema,
+  assembleMemoryVNextContext,
+  PostgresRecentEpisodeStore,
+  PostgresDreamJobStore,
+  DreamConsolidationEngine,
+  canonicalDreamSources,
+  stampDreamWriteEvent
 } from "@companion/memory";
 import { readSqlMigrations } from "../../../packages/memory/src/migrations.js";
 import { decodeMemoryLineage } from "../../../packages/memory/src/lineage-encoding.js";
@@ -44,7 +51,7 @@ async function startSidecar() {
   await once(socket, "listening");
   const port = (socket.address() as net.AddressInfo).port;
   await new Promise<void>((resolve) => socket.close(() => resolve()));
-  const source = path.resolve("services/memory-mem0/src");
+  const source = fileURLToPath(new URL("../../../services/memory-mem0/src/", import.meta.url));
   const env = {
     ...process.env,
     PYTHONPATH: source,
@@ -245,6 +252,124 @@ describe.skipIf(!databaseUrl || (!python && !executable))(
       if (runtimeDir) await rm(runtimeDir, { recursive: true, force: true });
     }, 30_000);
 
+    it("round-trips a grounded multi-parent DERIVED Dream through frozen PostgreSQL work, real Mem0 and restart", async () => {
+      const text = "Please remember: I prefer tea 🍵.";
+      const conversation = new PostgresConversationRepository(pool);
+      const episodes = new PostgresRecentEpisodeStore(pool);
+      const jobs = new PostgresDreamJobStore(pool);
+      for (const [index, speech] of [false, true].entries()) {
+        const sourceJournalRef = await appendReceipt(text, speech);
+        const sessionId = `dream-real-${index}`;
+        await conversation.appendMessage({
+          id: `dream-user-${index}`,
+          sessionId,
+          traceId: `dream-trace-${index}`,
+          parentMessageId: null,
+          role: "user",
+          status: "completed",
+          content: text,
+          sourceJournalRef,
+          createdAt: "2026-09-30T08:00:00Z",
+          completedAt: "2026-09-30T08:00:00Z",
+          metadata: {}
+        });
+        const messages = await conversation.listRecentMessages(sessionId, { limit: 10 });
+        await assembleMemoryVNextContext({
+          now: new Date("2026-09-30T09:00:00Z"),
+          queryText: "",
+          directContextText: "",
+          messages,
+          sessionId,
+          memoryScope: "dream-real-private",
+          episodeStore: episodes,
+          persistEpisodes: true,
+          groundingResolver: new JournalMemoryGroundingResolver(journal)
+        });
+      }
+      const sources = await episodes.listActive({
+        now: new Date("2026-09-30T09:00:00Z"),
+        limit: 10
+      });
+      const grounded = sources.filter((episode) => episode.sessionId.startsWith("dream-real"));
+      expect(grounded).toHaveLength(2);
+      expect(grounded.every((episode) => episode.sourceCoverage === "GROUNDED")).toBe(true);
+      const write = vi.spyOn(provider, "writeEventIdempotent");
+      const engine = new DreamConsolidationEngine(jobs, episodes, { provider });
+      const considered = await engine.consider({
+        episode: grounded[0]!,
+        existing: grounded,
+        now: new Date("2026-09-30T09:00:00Z")
+      });
+      const complete = await engine.runJob(
+        considered.job!,
+        new Date("2026-09-30T09:00:00Z"),
+        "real-dream"
+      );
+      expect(complete.status, JSON.stringify(complete) + logs.slice(-2000)).toBe("complete");
+      expect(complete.resultEventPayloads).toHaveLength(1);
+      const event = complete.resultEventPayloads![0]!;
+      const lineage = MemoryLineageV1Schema.parse(event.lineage);
+      if (lineage.state !== "GROUNDED" || lineage.origin !== "DERIVED" || !("sources" in lineage))
+        throw new Error("expected derived");
+      expect(lineage.sources).toEqual(
+        canonicalDreamSources(
+          grounded.flatMap((episode) =>
+            episode.sourceEvidence!.statements.map((entry) => entry.source!)
+          )
+        )
+      );
+      expect(lineage.sources.map((source) => source.origin).sort()).toEqual([
+        "EXTERNAL_OBSERVATION",
+        "USER_ASSERTION"
+      ]);
+      expect(event.assertion).toEqual({ source: "system", verification: "unverified" });
+      expect(event.claim).toBeUndefined();
+      expect(write.mock.calls[0]![0].lineage).toEqual(lineage);
+      const reloaded = (await new PostgresDreamJobStore(pool).getById(complete.jobId))!;
+      expect(reloaded.resultEventPayloads![0]!.lineage).toEqual(lineage);
+      const outcome = write.mock.results[0]!;
+      const result = await outcome.value;
+      const id = result.event!.id;
+      const row = await pool.query(`select payload from ${collection} where id = $1`, [
+        id.replace(/^mem0:/, "")
+      ]);
+      expect(decodeMemoryLineage(row.rows[0]!["payload"])).toEqual(lineage);
+      expect((await provider.getEvent({ id, scope: event.scope }))?.lineage).toEqual(lineage);
+      const search = await provider.retrieveRelevant({
+        text: "tea preference",
+        scope: event.scope
+      });
+      expect(search.events[0]?.lineage).toEqual(lineage);
+      expect((await provider.writeEventIdempotent(event)).status).toBe("unchanged");
+      const conflictingLineage = structuredClone(lineage);
+      conflictingLineage.consumerKey = "mld1_conflict";
+      const conflicting = stampDreamWriteEvent(complete.jobId, {
+        ...event,
+        lineage: conflictingLineage
+      });
+      expect(conflicting.payloadDigest).not.toBe(event.payloadDigest);
+      expect(
+        await provider.writeEventIdempotent({
+          ...conflicting,
+          idempotencyKey: event.idempotencyKey!
+        })
+      ).toMatchObject({ status: "rejected", failureClass: "definitive_rejection" });
+
+      expect(await provider.reconcileEvent(event)).toMatchObject({ status: "applied" });
+      write.mockRestore();
+      await stopSidecar();
+      await startSidecar();
+      expect((await provider.getEvent({ id, scope: event.scope }))?.lineage).toEqual(lineage);
+      expect((await provider.writeEventIdempotent(event)).status).toBe("unchanged");
+      expect(
+        (
+          await pool.query(
+            `select count(*)::int as count from ${collection} where payload->>'user_id' = $1`,
+            [event.scope]
+          )
+        ).rows[0]!.count
+      ).toBe(1);
+    }, 60_000);
     it("preserves existing pgvector layout, embedding, collection and historical row", async () => {
       expect(await backend.health()).toMatchObject({
         components: {

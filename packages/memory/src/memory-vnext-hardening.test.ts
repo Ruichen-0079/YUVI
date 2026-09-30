@@ -1,3 +1,4 @@
+import { assembleDreamFixtureEpisodes } from "./dream-test-fixture.js";
 import { Pool } from "pg";
 import { afterAll, describe, expect, it } from "vitest";
 import { activateAssociativeMemories } from "./associative-recall.js";
@@ -63,7 +64,7 @@ describe("Memory vNext adversarial hardening", () => {
         );
       }
     });
-    const episode = assembleRecentEpisodes({
+    const episode = assembleDreamFixtureEpisodes({
       messages: [
         message("1", "user", "记住：我住在上海。", "2026-08-31T08:00:00.000Z"),
         message("2", "assistant", "好。", "2026-08-31T08:00:01.000Z")
@@ -102,7 +103,7 @@ describe("Memory vNext adversarial hardening", () => {
       reconcileEvent: async () => ({ status: "unknown" })
     };
     const engine = new DreamConsolidationEngine(jobs, store, { provider });
-    const episode = assembleRecentEpisodes({
+    const episode = assembleDreamFixtureEpisodes({
       messages: [
         message("1", "user", "记住：我喜欢蓝色。", "2026-08-31T08:00:00.000Z"),
         message("2", "assistant", "好。", "2026-08-31T08:00:01.000Z")
@@ -134,7 +135,7 @@ describe("Memory vNext adversarial hardening", () => {
         return events.map((): MemoryWriteEventOutcome => ({ status: "written" }));
       }
     });
-    const episode = assembleRecentEpisodes({
+    const episode = assembleDreamFixtureEpisodes({
       messages: [
         message("1", "user", "记住：我用 DeepSeek。", "2026-08-31T08:00:00.000Z"),
         message("2", "assistant", "好。", "2026-08-31T08:00:01.000Z")
@@ -165,9 +166,9 @@ describe("Memory vNext adversarial hardening", () => {
       message("u1", "user", "我喜欢蓝色。", "2026-08-31T09:00:00.000Z"),
       message("a1", "assistant", "好的。", "2026-08-31T09:00:01.000Z")
     ];
-    const snapshotA = assembleRecentEpisodes({ messages: firstMessages, now, timezone })[0]!;
+    const snapshotA = assembleDreamFixtureEpisodes({ messages: firstMessages, now, timezone })[0]!;
     await store.upsert(snapshotA);
-    const snapshotB = assembleRecentEpisodes({
+    const snapshotB = assembleDreamFixtureEpisodes({
       messages: [
         ...firstMessages,
         message("u2", "user", "我们继续刚才的话题。", "2026-08-31T09:05:00.000Z"),
@@ -194,7 +195,7 @@ describe("Memory vNext adversarial hardening", () => {
     const store = new InMemoryRecentEpisodeStore();
     const jobs = new InMemoryDreamJobStore();
     const engine = new DreamConsolidationEngine(jobs, store);
-    const first = assembleRecentEpisodes({
+    const first = assembleDreamFixtureEpisodes({
       messages: [
         message("a-u", "user", "我喜欢蓝色。", "2026-08-31T08:00:00.000Z", "session-a"),
         message("a-a", "assistant", "好。", "2026-08-31T08:00:01.000Z", "session-a")
@@ -203,7 +204,7 @@ describe("Memory vNext adversarial hardening", () => {
       timezone,
       sessionId: "session-a"
     })[0]!;
-    const second = assembleRecentEpisodes({
+    const second = assembleDreamFixtureEpisodes({
       messages: [
         message("b-u", "user", "我还是喜欢蓝色。", "2026-08-31T09:40:00.000Z", "session-b"),
         message("b-a", "assistant", "明白。", "2026-08-31T09:40:01.000Z", "session-b")
@@ -223,7 +224,7 @@ describe("Memory vNext adversarial hardening", () => {
   });
 
   it("does not present assistant hallucination as L1 factual evidence", async () => {
-    const episodes = assembleRecentEpisodes({
+    const episodes = assembleDreamFixtureEpisodes({
       messages: [
         message("1", "user", "木星有几颗卫星？", "2026-08-31T09:00:00.000Z"),
         message(
@@ -273,7 +274,7 @@ describe("Memory vNext adversarial hardening", () => {
     const store = new InMemoryRecentEpisodeStore();
     const jobs = new InMemoryDreamJobStore();
     const engine = new DreamConsolidationEngine(jobs, store);
-    const episode = assembleRecentEpisodes({
+    const episode = assembleDreamFixtureEpisodes({
       messages: [
         message("1", "user", "记住：我住在上海。", "2026-08-31T08:00:00.000Z"),
         message("2", "assistant", "好。", "2026-08-31T08:00:01.000Z")
@@ -324,7 +325,7 @@ describe("Memory vNext adversarial hardening", () => {
     const store = new InMemoryRecentEpisodeStore();
     const jobs = new InMemoryDreamJobStore();
     const engine = new DreamConsolidationEngine(jobs, store);
-    const episode = assembleRecentEpisodes({
+    const episode = assembleDreamFixtureEpisodes({
       messages: [
         message("1", "user", "我喜欢蓝色。", "2026-08-31T08:00:00.000Z"),
         message("2", "assistant", "好。", "2026-08-31T08:00:01.000Z")
@@ -361,7 +362,7 @@ describe("Memory vNext adversarial hardening", () => {
       }
     };
     const engine = new DreamConsolidationEngine(jobs, store, { provider });
-    const episode = assembleRecentEpisodes({
+    const episode = assembleDreamFixtureEpisodes({
       messages: [
         message("1", "user", "记住：我住在上海。", "2026-08-31T08:00:00.000Z"),
         message("2", "assistant", "好。", "2026-08-31T08:00:01.000Z")
@@ -405,7 +406,7 @@ describe("Memory vNext adversarial hardening", () => {
       reconcileEvent: async () => ({ status: "not_applied" })
     };
     const engine = new DreamConsolidationEngine(jobs, store, { provider });
-    const episode = assembleRecentEpisodes({
+    const episode = assembleDreamFixtureEpisodes({
       messages: [
         message("1", "user", "记住：我用 DeepSeek。", "2026-08-31T08:00:00.000Z"),
         message("2", "assistant", "好。", "2026-08-31T08:00:01.000Z")
@@ -445,7 +446,7 @@ describe("Memory vNext adversarial hardening", () => {
       reconcileEvent: async () => ({ status: "unknown" })
     };
     const engine = new DreamConsolidationEngine(jobs, store, { provider });
-    const episode = assembleRecentEpisodes({
+    const episode = assembleDreamFixtureEpisodes({
       messages: [
         message("1", "user", "记住：我喜欢蓝色。", "2026-08-31T08:00:00.000Z"),
         message("2", "assistant", "好。", "2026-08-31T08:00:01.000Z")

@@ -36,18 +36,18 @@ const AudienceSnapshotSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("GROUP"), channelRef: opaque, membership: MembershipSnapshotSchema }).strict(),
   z.object({ kind: z.literal("UNKNOWN"), reason: opaque }).strict()
 ]);
-const OccurrenceTimeSchema = z.discriminatedUnion("state", [
+export const OccurrenceTimeSchema = z.discriminatedUnion("state", [
   z.object({ state: z.literal("UNKNOWN") }).strict(),
   z.object({ state: z.literal("INSTANT"), at: z.string().datetime({ offset: true }), clockSource: opaque, uncertaintyMs: z.number().finite().nonnegative() }).strict(),
   z.object({ state: z.literal("INTERVAL"), start: z.string().datetime({ offset: true }), end: z.string().datetime({ offset: true }), clockSource: opaque, uncertaintyMs: z.number().finite().nonnegative() }).strict()
 ]);
-const GroundedAuthoritySchema = z.object({
+export const GroundedAuthoritySchema = z.object({
   principal: PrincipalSnapshotSchema,
   binding: BindingSnapshotSchema,
   audience: AudienceSnapshotSchema
 }).strict();
 
-export const MemoryLineageV1Schema = z.discriminatedUnion("state", [
+const DirectMemoryLineageV1Schema = z.discriminatedUnion("state", [
   z.object({
     version: z.literal(MEMORY_LINEAGE_VERSION),
     state: z.literal("GROUNDED"),
@@ -75,6 +75,65 @@ export const MemoryLineageV1Schema = z.discriminatedUnion("state", [
     state: z.literal("LEGACY_INCOMPLETE")
   }).strict()
 ]);
+
+/** Each derived parent retains its own authority and clocks; no aggregate source is invented. */
+export const DerivedSourceSnapshotSchema = z
+  .object({
+    ref: JournalEventRefSchema,
+    selector: SourceSelectorSchema.refine((selector) => selector.modality === "TEXT"),
+    origin: z.enum(["USER_ASSERTION", "EXTERNAL_OBSERVATION"]),
+    authority: GroundedAuthoritySchema,
+    sourceTime: z
+      .object({
+        recordedAt: z.string().datetime({ offset: true }),
+        occurrenceTime: OccurrenceTimeSchema
+      })
+      .strict()
+  })
+  .strict();
+export type DerivedSourceSnapshot = z.infer<typeof DerivedSourceSnapshotSchema>;
+const DerivedMemoryLineageV1Schema = z
+  .object({
+    version: z.literal(MEMORY_LINEAGE_VERSION),
+    state: z.literal("GROUNDED"),
+    origin: z.literal("DERIVED"),
+    parents: z
+      .array(z.object({ ref: JournalEventRefSchema, selector: SourceSelectorSchema }).strict())
+      .min(1)
+      .max(256),
+    sources: z.array(DerivedSourceSnapshotSchema).min(1).max(256),
+    sourceAvailability: z.object({ state: z.literal("RETAINED_SELECTABLE") }).strict(),
+    consumerKey: opaque,
+    derivation: z
+      .object({
+        kind: z.literal("DREAM_DERIVATION"),
+        producer: opaque,
+        producerVersion: opaque,
+        policyVersion: opaque
+      })
+      .strict()
+  })
+  .strict()
+  .superRefine((lineage, ctx) => {
+    if (
+      JSON.stringify(lineage.parents) !==
+      JSON.stringify(lineage.sources.map(({ ref, selector }) => ({ ref, selector })))
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Derived parents and source snapshots conflict."
+      });
+    }
+  });
+export const MemoryLineageV1Schema = z.union([
+  DirectMemoryLineageV1Schema,
+  DerivedMemoryLineageV1Schema
+]);
+export type DerivedMemoryLineageV1 = z.infer<typeof DerivedMemoryLineageV1Schema>;
+export type DirectGroundedMemoryLineageV1 = Extract<
+  z.infer<typeof DirectMemoryLineageV1Schema>,
+  { state: "GROUNDED" }
+>;
 
 export type MemoryLineageV1 = z.infer<typeof MemoryLineageV1Schema>;
 export type GroundedMemoryLineageV1 = Extract<MemoryLineageV1, { state: "GROUNDED" }>;
@@ -262,7 +321,7 @@ export function buildGroundedMemoryLineage(input: {
     explicitRememberRequested?: boolean;
   }>;
   sourceText: string;
-}): GroundedMemoryLineageV1 {
+}): DirectGroundedMemoryLineageV1 {
   const derivationKind = explicitRemember(input.sourceText)
     ? "EXPLICIT_REMEMBER"
     : correction(input.sourceText)
@@ -289,7 +348,7 @@ export function buildGroundedMemoryLineage(input: {
     }))
     .digest("base64url")}`;
 
-  const lineage = MemoryLineageV1Schema.parse({
+  const lineage = DirectMemoryLineageV1Schema.parse({
     version: MEMORY_LINEAGE_VERSION,
     state: "GROUNDED",
     parents: [{ ref: input.source.parent, selector: input.source.selector }],

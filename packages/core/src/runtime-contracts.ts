@@ -1,3 +1,4 @@
+import type { MemoryGroundingResolver } from "@companion/memory";
 import type { VoiceBindingReferences } from "./voice-binding-references.js";
 import type { CharacterAbiSemanticSection } from "@companion/character-abi";
 import type { CanonicalContext } from "@companion/prompt-builder";
@@ -69,6 +70,7 @@ export type RuntimeOrchestratorOptions = {
   memoryContextBuilder?: Pick<MemoryContextBuilder, "build"> | undefined;
   recentEpisodeStore?: RecentEpisodeStore | undefined;
   dreamJobStore?: DreamJobStore | undefined;
+  episodeGroundingResolver?: MemoryGroundingResolver | undefined;
   dreamWriter?: DreamWriter | undefined;
   dreamProvider?: MemoryProvider | undefined;
   logger?: RuntimeLogger;

@@ -1,3 +1,5 @@
+import { captureEpisodeSources, preserveEpisodeEvidence } from "./episode-source-evidence.js";
+import type { MemoryGroundingResolver } from "./lineage.js";
 import type { ConversationMessage } from "./conversation-repository.js";
 import { activateAssociativeMemories, type AssociativeRecallResult } from "./associative-recall.js";
 import {
@@ -49,6 +51,7 @@ export type MemoryVNextAssembleInput = {
   lastTurnIntruded?: boolean | undefined;
   episodeStore?: RecentEpisodeStore | undefined;
   persistEpisodes?: boolean | undefined;
+  groundingResolver?: MemoryGroundingResolver | undefined;
   maxPromptCharacters?: number | undefined;
   budgets?: Partial<MemoryHierarchyBudgets> | undefined;
 };
@@ -94,6 +97,14 @@ export async function assembleMemoryVNextContext(
   const budgets = normalizeMemoryHierarchyBudgets(input.budgets);
   const reconstructed = assembleRecentEpisodes({
     messages: excludeCurrentUserTurn(input.messages, input.currentTurnText),
+    ...(input.persistEpisodes
+      ? {
+          capturedSources: await captureEpisodeSources(
+            excludeCurrentUserTurn(input.messages, input.currentTurnText),
+            input.groundingResolver
+          )
+        }
+      : {}),
     now: input.now,
     timezone: input.timezone,
     sessionId: input.sessionId,
@@ -105,7 +116,8 @@ export async function assembleMemoryVNextContext(
 
   if (input.persistEpisodes && input.episodeStore) {
     for (const episode of reconstructed) {
-      await input.episodeStore.upsert(episode);
+      const persisted = await input.episodeStore.upsert(episode);
+      reconstructed[reconstructed.indexOf(episode)] = persisted;
     }
     await input.episodeStore.rollover({
       now: input.now,
@@ -244,7 +256,7 @@ function mergeEpisodes(stored: RecentEpisode[], reconstructed: RecentEpisode[]):
   for (const episode of reconstructed) {
     const existing = byId.get(episode.id);
     if (!existing || episode.sourceTurnIds.length >= existing.sourceTurnIds.length) {
-      byId.set(episode.id, episode);
+      byId.set(episode.id, preserveEpisodeEvidence(episode, existing));
     }
   }
   return [...byId.values()].sort((left, right) => right.endedAt.localeCompare(left.endedAt));

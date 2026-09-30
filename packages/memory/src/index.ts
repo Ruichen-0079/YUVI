@@ -45,6 +45,8 @@ export {
   legacyIncompleteMemoryLineage,
   buildGroundedMemoryLineage,
   groundedMemoryPayloadDigest,
+  type DerivedMemoryLineageV1,
+  type DerivedSourceSnapshot,
   type GroundedMemoryLineageV1,
   type GroundedMemorySource,
   type MemoryGroundingFailureCode,
@@ -424,3 +426,7 @@ export {
 export { modelContextBudget } from "./context-compression.js";
 
 export { LocalControllerEvidenceProvider } from "./providers/local-controller-evidence.js";
+
+export * from "./episode-source-evidence.js";
+
+export * from "./dream-source.js";

@@ -1,3 +1,14 @@
+import {
+  freezeDreamSources,
+  dreamSourceDigest,
+  groundedDreamStatements,
+  freezeDerivedDreamEvent,
+  isGroundedDreamEvent,
+  DreamSourceSnapshotV1Schema,
+  type DreamSourceSnapshotV1
+} from "./dream-source.js";
+import { canonicalLineageJson } from "./lineage-encoding.js";
+import type { DerivedSourceSnapshot } from "./lineage.js";
 import type { Pool } from "pg";
 import { createPostgresPool } from "@companion/database";
 import type { QueryResultRow } from "pg";
@@ -10,7 +21,7 @@ import {
   stampDreamWriteEvent
 } from "./dream-delivery.js";
 import { DEFAULT_MEMORY_HIERARCHY_BUDGETS, type MemoryHierarchyBudgets } from "./hierarchy.js";
-import { jaccardSimilarity, sha256Hex, tokenizeMemoryText } from "./memory-vnext-text.js";
+import { jaccardSimilarity, tokenizeMemoryText } from "./memory-vnext-text.js";
 import type { MemoryProvider, MemoryWriteEventInput, MemoryWriteEventOutcome } from "./provider.js";
 import { sourceTurnIdsOverlap, type RecentEpisode } from "./recent-episode.js";
 import type { RecentEpisodeStore } from "./recent-episode-store.js";
@@ -46,6 +57,7 @@ export type DreamJob = {
   subjectUserId: string | null;
   sourceEpisodeIds: string[];
   sourceDigest: string;
+  sourceSnapshot?: DreamSourceSnapshotV1 | null;
   payload: Record<string, unknown>;
   resultEventPayloads: MemoryWriteEventInput[] | null;
   resultSummary: string | null;
@@ -90,14 +102,7 @@ export class InMemoryDreamJobStore implements DreamJobStore {
     const existingId = this.digestIndex.get(job.sourceDigest);
     if (existingId) {
       const existing = this.jobs.get(existingId);
-      if (
-        existing &&
-        (existing.status === "complete" ||
-          existing.status === "processing" ||
-          existing.status === "pending")
-      ) {
-        return cloneJob(existing);
-      }
+      if (existing) return cloneJob(existing);
     }
     const stored = cloneJob(job);
     this.jobs.set(stored.jobId, stored);
@@ -196,6 +201,16 @@ export class InMemoryDreamJobStore implements DreamJobStore {
   }
 
   async save(job: DreamJob): Promise<DreamJob> {
+    const prior = this.jobs.get(job.jobId);
+    if (
+      prior &&
+      (canonicalLineageJson(prior.sourceSnapshot ?? null) !==
+        canonicalLineageJson(job.sourceSnapshot ?? null) ||
+        (prior.resultEventPayloads &&
+          canonicalLineageJson(prior.resultEventPayloads) !==
+            canonicalLineageJson(job.resultEventPayloads)))
+    )
+      throw new Error("DREAM_FROZEN_PAYLOAD_CONFLICT");
     const stored = cloneJob(job);
     this.jobs.set(stored.jobId, stored);
     this.digestIndex.set(stored.sourceDigest, stored.jobId);
@@ -258,12 +273,13 @@ export class DreamConsolidationEngine {
     }
 
     const sourceEpisodeIds = [...new Set(members.map((item) => item.id))].sort();
-    const sourceDigest = sha256Hex(
-      members
-        .map((item) => item.sourceDigest)
-        .sort()
-        .join("|")
-    );
+    if (
+      !members.some((episode) => episode.sourceEvidence?.statements.some((entry) => entry.source))
+    ) {
+      return { triggered: false, skippedReason: "legacy-lineage-incomplete" };
+    }
+    const sourceSnapshot = freezeDreamSources(members);
+    const sourceDigest = dreamSourceDigest(sourceSnapshot, input.episode.memoryScope);
     const existing = await this.jobs.getByDigest(sourceDigest);
     if (existing?.status === "complete") {
       return { triggered: false, job: existing, skippedReason: "already-complete" };
@@ -288,6 +304,7 @@ export class DreamConsolidationEngine {
       subjectUserId: input.episode.subjectUserId,
       sourceEpisodeIds,
       sourceDigest,
+      sourceSnapshot,
       payload: {
         version: DREAM_CONSOLIDATION_VERSION,
         userOnly: true,
@@ -339,6 +356,8 @@ export class DreamConsolidationEngine {
     const provider = this.options.provider;
     if (!provider?.reconcileEvent) return job;
     const events = job.resultEventPayloads ?? [];
+    if (!events.length) return job;
+    const retryEvents: MemoryWriteEventInput[] = [];
     let needsRetry = false;
     let stillAmbiguous = false;
     for (const event of events) {
@@ -346,13 +365,31 @@ export class DreamConsolidationEngine {
       if (result.status === "applied") continue;
       if (result.status === "not_applied") {
         needsRetry = true;
+        retryEvents.push(event);
         continue;
       }
       stillAmbiguous = true;
     }
     if (stillAmbiguous) return job;
+    if (
+      retryEvents.some(
+        (event) =>
+          !isGroundedDreamEvent(event) ||
+          stampDreamWriteEvent(job.jobId, event).payloadDigest !== event.payloadDigest ||
+          stampDreamWriteEvent(job.jobId, event).idempotencyKey !== event.idempotencyKey
+      )
+    ) {
+      return this.jobs.save({
+        ...job,
+        status: "terminal_failed",
+        lastErrorCode: "DREAM_LEGACY_LINEAGE_MISSING",
+        leaseOwner: null,
+        leaseExpiresAt: null,
+        updatedAt: now.toISOString()
+      });
+    }
     if (needsRetry && provider.writeEventIdempotent) {
-      const retried = await deliverDreamEventsIdempotent(provider, events);
+      const retried = await deliverDreamEventsIdempotent(provider, retryEvents);
       if (retried.some(isAmbiguousWriteOutcome)) return job;
       if (!retried.every(isSuccessfulWriteOutcome)) return job;
     } else if (needsRetry) {
@@ -360,9 +397,16 @@ export class DreamConsolidationEngine {
     }
     const episodes = await this.loadEpisodes(job.sourceEpisodeIds);
     for (const episode of episodes) {
+      if (
+        !job.sourceSnapshot ||
+        job.sourceSnapshot.episodes.find((source) => source.episodeId === episode.id)
+          ?.evidenceDigest !== episode.sourceEvidenceDigest
+      )
+        continue;
       await this.episodes.markStatus(episode.id, "consolidated", {
         consolidatedAt: now.toISOString(),
-        consolidationJobId: job.jobId
+        consolidationJobId: job.jobId,
+        expectedSourceEvidenceDigest: episode.sourceEvidenceDigest ?? undefined
       });
     }
     return this.jobs.save({
@@ -380,21 +424,6 @@ export class DreamConsolidationEngine {
 
   private async executeClaimedJob(claimed: DreamJob, now: Date): Promise<DreamJob> {
     try {
-      const episodes = await this.loadEpisodes(claimed.sourceEpisodeIds);
-      const events = await this.extractUserGroundedEvents(episodes, claimed);
-      if (events.length === 0) {
-        return this.jobs.save({
-          ...claimed,
-          status: "skipped",
-          resultEventPayloads: [],
-          resultSummary: "No user-grounded long-term evidence extracted.",
-          leaseOwner: null,
-          leaseExpiresAt: null,
-          completedAt: now.toISOString(),
-          updatedAt: now.toISOString()
-        });
-      }
-
       if ((claimed.resultEventPayloads?.length ?? 0) > 0) {
         return this.jobs.save({
           ...claimed,
@@ -403,6 +432,35 @@ export class DreamConsolidationEngine {
           lastErrorCode: "AMBIGUOUS_WRITE",
           leaseOwner: null,
           leaseExpiresAt: null,
+          updatedAt: now.toISOString()
+        });
+      }
+
+      if (!claimed.sourceSnapshot) {
+        return this.jobs.save({
+          ...claimed,
+          status: "terminal_failed",
+          lastErrorCode: "DREAM_LEGACY_LINEAGE_MISSING",
+          leaseOwner: null,
+          leaseExpiresAt: null,
+          updatedAt: now.toISOString()
+        });
+      }
+      const snapshot = DreamSourceSnapshotV1Schema.parse(claimed.sourceSnapshot);
+      if (dreamSourceDigest(snapshot, claimed.memoryScope) !== claimed.sourceDigest)
+        throw new Error("DREAM_SOURCE_SNAPSHOT_CONFLICT");
+      const episodes = await this.loadEpisodes(claimed.sourceEpisodeIds);
+      const events = await this.extractUserGroundedEvents(snapshot, claimed);
+      if (events.length === 0) {
+        return this.jobs.save({
+          ...claimed,
+          status: "skipped",
+          resultEventPayloads: [],
+          resultSummary: "No grounded long-term derivation extracted.",
+          lastErrorCode: "DREAM_NO_GROUNDED_OUTPUT",
+          leaseOwner: null,
+          leaseExpiresAt: null,
+          completedAt: now.toISOString(),
           updatedAt: now.toISOString()
         });
       }
@@ -428,7 +486,7 @@ export class DreamConsolidationEngine {
         updatedAt: now.toISOString()
       });
       const outcomes = await this.deliver(stamped);
-      if (outcomes.some(isAmbiguousWriteOutcome)) {
+      if (outcomes.length !== stamped.length || outcomes.some(isAmbiguousWriteOutcome)) {
         return this.jobs.save({
           ...claimed,
           status: "reconcile_required",
@@ -456,9 +514,15 @@ export class DreamConsolidationEngine {
       }
 
       for (const episode of episodes) {
+        if (
+          snapshot.episodes.find((source) => source.episodeId === episode.id)?.evidenceDigest !==
+          episode.sourceEvidenceDigest
+        )
+          continue;
         await this.episodes.markStatus(episode.id, "consolidated", {
           consolidatedAt: now.toISOString(),
-          consolidationJobId: claimed.jobId
+          consolidationJobId: claimed.jobId,
+          expectedSourceEvidenceDigest: episode.sourceEvidenceDigest ?? undefined
         });
       }
 
@@ -466,13 +530,24 @@ export class DreamConsolidationEngine {
         ...claimed,
         status: "complete",
         resultEventPayloads: stamped,
-        resultSummary: `Consolidated ${stamped.length} user-grounded event(s) from ${episodes.length} episode(s).`,
+        resultSummary: `Consolidated ${stamped.length} source-backed derived event(s) from ${episodes.length} episode(s).`,
         leaseOwner: null,
         leaseExpiresAt: null,
         completedAt: now.toISOString(),
         updatedAt: now.toISOString()
       });
     } catch (error) {
+      const persisted = await this.jobs.getById(claimed.jobId);
+      if (persisted?.resultEventPayloads?.length) {
+        return this.jobs.save({
+          ...persisted,
+          status: "reconcile_required",
+          lastErrorCode: "AMBIGUOUS_WRITE",
+          leaseOwner: null,
+          leaseExpiresAt: null,
+          updatedAt: now.toISOString()
+        });
+      }
       return this.jobs.save({
         ...claimed,
         status: "terminal_failed",
@@ -494,7 +569,15 @@ export class DreamConsolidationEngine {
       return deliverDreamEventsIdempotent(this.options.provider, events);
     }
     if (this.options.writer) {
-      return this.options.writer(events);
+      try {
+        return await this.options.writer(events);
+      } catch {
+        return events.map(() => ({
+          status: "rejected",
+          failureClass: "ambiguous",
+          errorCode: "MEMORY_WRITE_AMBIGUOUS"
+        }));
+      }
     }
     return [];
   }
@@ -509,42 +592,42 @@ export class DreamConsolidationEngine {
   }
 
   private async extractUserGroundedEvents(
-    episodes: RecentEpisode[],
+    snapshot: DreamSourceSnapshotV1,
     job: DreamJob
   ): Promise<MemoryWriteEventInput[]> {
     const ingestion = this.options.ingestion ?? new MemoryIngestionPolicy();
-    const userStatements = episodes.flatMap((episode) => episode.userStatements);
-    const unique = dedupeStatements(userStatements);
-    const events: MemoryWriteEventInput[] = [];
-    for (const [index, statement] of unique.entries()) {
+    const statements = new Map<string, { text: string; sources: DerivedSourceSnapshot[] }>();
+    for (const entry of groundedDreamStatements(snapshot)) {
+      const key = entry.statement.replace(/\s+/gu, "").toLocaleLowerCase();
+      const current = statements.get(key);
+      if (current) current.sources.push(entry.source!);
+      else statements.set(key, { text: entry.statement, sources: [entry.source!] });
+    }
+    const outputs = new Map<
+      string,
+      { event: MemoryWriteEventInput; sources: DerivedSourceSnapshot[] }
+    >();
+    for (const { text, sources } of statements.values()) {
       const result = await ingestion.build({
-        userMessage: statement,
+        userMessage: text,
         assistantMessage: "Consolidation context only; assistant prose is not evidence.",
-        scope: job.memoryScope ?? "user",
-        sessionId: episodes[0]?.sessionId,
-        personaId: job.personaId,
-        subjectUserId: job.subjectUserId,
-        observedAt: episodes[0]?.occurredAt ?? episodes[0]?.recordedAt,
-        conversationId: episodes[0]?.sessionId,
-        idempotencyKey: `${job.sourceDigest}:${index}`
+        scope: job.memoryScope ?? "user"
       });
       for (const event of result.events) {
         if (event.assertion?.source !== "user") continue;
-        events.push({
-          ...event,
-          confidence: event.confidence ?? null,
-          metadata: {
-            ...event.metadata,
-            dreamJobId: job.jobId,
-            dreamTrigger: job.triggerKind,
-            sourceEpisodeIds: job.sourceEpisodeIds,
-            recurrenceDoesNotUpgradeConfidence: true,
-            assistantNonAuthoritative: true
-          }
+        const key = canonicalLineageJson({
+          kind: event.kind,
+          content: event.content.normalize("NFC"),
+          scope: event.scope
         });
+        const existing = outputs.get(key);
+        if (existing) existing.sources.push(...sources);
+        else outputs.set(key, { event, sources: [...sources] });
       }
     }
-    return events;
+    return [...outputs.entries()]
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([, output]) => freezeDerivedDreamEvent(output.event, output.sources));
   }
 }
 
@@ -586,27 +669,8 @@ function isDue(job: DreamJob, nowMs: number): boolean {
   return false;
 }
 
-function dedupeStatements(statements: string[]): string[] {
-  const seen = new Set<string>();
-  const result: string[] = [];
-  for (const statement of statements) {
-    const key = statement.replace(/\s+/g, "").toLocaleLowerCase();
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
-    result.push(statement);
-  }
-  return result;
-}
-
 function cloneJob(job: DreamJob): DreamJob {
-  return {
-    ...job,
-    sourceEpisodeIds: [...job.sourceEpisodeIds],
-    payload: { ...job.payload },
-    resultEventPayloads: job.resultEventPayloads
-      ? job.resultEventPayloads.map((event) => ({ ...event, metadata: { ...event.metadata } }))
-      : null
-  };
+  return structuredClone(job);
 }
 
 export class PostgresDreamJobStore implements DreamJobStore {
@@ -636,9 +700,9 @@ export class PostgresDreamJobStore implements DreamJobStore {
         job_id, trigger_kind, status, memory_scope, persona_id, subject_user_id,
         source_episode_ids, source_digest, payload, result_event_payloads,
         result_summary, attempt_count, lease_owner, lease_expires_at,
-        last_error_code, last_error_message, created_at, updated_at, completed_at
+        last_error_code, last_error_message, created_at, updated_at, completed_at, source_snapshot
       ) values (
-        $1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9::jsonb,$10::jsonb,$11,$12,$13,$14,$15,$16,$17,$18,$19
+        $1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9::jsonb,$10::jsonb,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20::jsonb
       )
       on conflict (source_digest) do update set
         updated_at = dream_jobs.updated_at
@@ -742,9 +806,9 @@ export class PostgresDreamJobStore implements DreamJobStore {
         job_id, trigger_kind, status, memory_scope, persona_id, subject_user_id,
         source_episode_ids, source_digest, payload, result_event_payloads,
         result_summary, attempt_count, lease_owner, lease_expires_at,
-        last_error_code, last_error_message, created_at, updated_at, completed_at
+        last_error_code, last_error_message, created_at, updated_at, completed_at, source_snapshot
       ) values (
-        $1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9::jsonb,$10::jsonb,$11,$12,$13,$14,$15,$16,$17,$18,$19
+        $1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9::jsonb,$10::jsonb,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20::jsonb
       )
       on conflict (job_id) do update set
         trigger_kind = excluded.trigger_kind,
@@ -759,9 +823,12 @@ export class PostgresDreamJobStore implements DreamJobStore {
         last_error_message = excluded.last_error_message,
         updated_at = excluded.updated_at,
         completed_at = excluded.completed_at
+      where dream_jobs.source_snapshot is not distinct from excluded.source_snapshot
+        and (dream_jobs.result_event_payloads is null or dream_jobs.result_event_payloads = excluded.result_event_payloads)
       returning *`,
       bindJob(job)
     );
+    if (!result.rows[0]) throw new Error("DREAM_FROZEN_PAYLOAD_CONFLICT");
     return mapJobRow(result.rows[0]);
   }
 
@@ -790,7 +857,8 @@ function bindJob(job: DreamJob): unknown[] {
     job.lastErrorMessage,
     job.createdAt,
     job.updatedAt,
-    job.completedAt
+    job.completedAt,
+    job.sourceSnapshot ? JSON.stringify(job.sourceSnapshot) : null
   ];
 }
 
@@ -805,6 +873,9 @@ function mapJobRow(row: QueryResultRow | undefined): DreamJob {
     subjectUserId: row["subject_user_id"] ?? null,
     sourceEpisodeIds: asJsonArray(row["source_episode_ids"]),
     sourceDigest: String(row["source_digest"]),
+    sourceSnapshot: row["source_snapshot"]
+      ? DreamSourceSnapshotV1Schema.parse(row["source_snapshot"])
+      : null,
     payload: asJsonObject(row["payload"]),
     resultEventPayloads: row["result_event_payloads"]
       ? (asJsonValue(row["result_event_payloads"]) as MemoryWriteEventInput[])

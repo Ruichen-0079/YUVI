@@ -1,3 +1,4 @@
+import { assembleDreamFixtureEpisodes } from "./dream-test-fixture.js";
 import { Pool } from "pg";
 import { afterAll, describe, expect, it } from "vitest";
 import { activateAssociativeMemories } from "./associative-recall.js";
@@ -170,7 +171,7 @@ describe("Dream consolidation", () => {
     const store = new InMemoryRecentEpisodeStore();
     const jobs = new InMemoryDreamJobStore();
     const engine = new DreamConsolidationEngine(jobs, store);
-    const [episode] = assembleRecentEpisodes({
+    const [episode] = assembleDreamFixtureEpisodes({
       messages: [
         message("1", "user", "你好", "2026-08-31T09:00:00.000Z"),
         message("2", "assistant", "你好", "2026-08-31T09:00:01.000Z")
@@ -194,7 +195,7 @@ describe("Dream consolidation", () => {
         return events.map((): MemoryWriteEventOutcome => ({ status: "written" }));
       }
     });
-    const first = assembleRecentEpisodes({
+    const first = assembleDreamFixtureEpisodes({
       messages: [
         message("1", "user", "我喜欢蓝色。", "2026-08-31T08:00:00.000Z"),
         message("2", "assistant", "我们关系更好了，你现在更信任我。", "2026-08-31T08:00:01.000Z")
@@ -202,7 +203,7 @@ describe("Dream consolidation", () => {
       now,
       timezone
     })[0]!;
-    const second = assembleRecentEpisodes({
+    const second = assembleDreamFixtureEpisodes({
       messages: [
         message("3", "user", "我还是喜欢蓝色。", "2026-08-31T09:00:00.000Z"),
         message("4", "assistant", "我们关系更好了，你现在更信任我。", "2026-08-31T09:00:01.000Z")
@@ -231,12 +232,12 @@ describe("Dream consolidation", () => {
     const engine = new DreamConsolidationEngine(jobs, store, {
       writer: async (events) =>
         events.map((event) => {
-          expect(event.assertion).toEqual({ source: "user", verification: "unverified" });
+          expect(event.assertion).toEqual({ source: "system", verification: "unverified" });
           expect(event.metadata?.["recurrenceDoesNotUpgradeConfidence"]).toBe(true);
           return { status: "written" as const };
         })
     });
-    const first = assembleRecentEpisodes({
+    const first = assembleDreamFixtureEpisodes({
       messages: [
         message("1", "user", "我喜欢蓝色。", "2026-08-31T08:00:00.000Z"),
         message("2", "assistant", "记下了。", "2026-08-31T08:00:01.000Z")
@@ -244,7 +245,7 @@ describe("Dream consolidation", () => {
       now,
       timezone
     })[0]!;
-    const second = assembleRecentEpisodes({
+    const second = assembleDreamFixtureEpisodes({
       messages: [
         message("3", "user", "我还是喜欢蓝色。", "2026-08-31T09:00:00.000Z"),
         message("4", "assistant", "好。", "2026-08-31T09:00:01.000Z")
@@ -269,7 +270,7 @@ describe("Dream consolidation", () => {
         return events.map(() => ({ status: "written" as const }));
       }
     });
-    const first = assembleRecentEpisodes({
+    const first = assembleDreamFixtureEpisodes({
       messages: [
         message("1", "user", "记住：我用 DeepSeek 做 Reasoning。", "2026-08-31T08:00:00.000Z"),
         message("2", "assistant", "好。", "2026-08-31T08:00:01.000Z")
@@ -316,7 +317,7 @@ describe("Dream consolidation", () => {
     const engine = new DreamConsolidationEngine(jobs, store, {
       writer: async () => [{ status: "rejected", failureClass: "ambiguous", errorCode: "TIMEOUT" }]
     });
-    const episode = assembleRecentEpisodes({
+    const episode = assembleDreamFixtureEpisodes({
       messages: [
         message("1", "user", "记住：我住在上海。", "2026-08-31T08:00:00.000Z"),
         message("2", "assistant", "好。", "2026-08-31T08:00:01.000Z")

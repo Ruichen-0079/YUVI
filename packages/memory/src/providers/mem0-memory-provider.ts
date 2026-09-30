@@ -122,7 +122,11 @@ export function mapMem0RecordToMemoryEvent(
   if (participants.length > 0) event.participants = participants;
   if (assertion !== undefined) event.assertion = assertion;
   const claim = deserializeClaimMetadata(metadata);
-  if (lineage?.state === "GROUNDED" && lineage.derivation.kind === "FINALIZED_INGESTION") {
+  if (
+    lineage?.state === "GROUNDED" &&
+    lineage.derivation.kind === "FINALIZED_INGESTION" &&
+    "sourceTime" in lineage
+  ) {
     const source = lineage.origin === "USER_ASSERTION" ? "user" : "unknown";
     const occurrence = lineage.sourceTime.occurrenceTime;
     if (
@@ -135,6 +139,17 @@ export function mapMem0RecordToMemoryEvent(
     ) {
       throw new MemoryLineageEncodingError();
     }
+  }
+  if (
+    lineage?.state === "GROUNDED" &&
+    lineage.derivation.kind === "DREAM_DERIVATION" &&
+    (assertion?.source !== "system" ||
+      assertion.verification !== "unverified" ||
+      claim !== undefined ||
+      observedAt !== undefined ||
+      occurredAt !== undefined)
+  ) {
+    throw new MemoryLineageEncodingError();
   }
   if (claim !== undefined) event.claim = claim;
   return event;

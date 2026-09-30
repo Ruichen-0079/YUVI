@@ -1,5 +1,10 @@
+import { parent, receipt, readerFor } from "../../memory/src/journal-evidence.test-fixture.js";
 import { InMemoryEventBus } from "@companion/event-bus";
-import { InMemoryConversationRepository, InMemoryRecentEpisodeStore } from "@companion/memory";
+import {
+  InMemoryConversationRepository,
+  InMemoryRecentEpisodeStore,
+  JournalMemoryGroundingResolver
+} from "@companion/memory";
 import { PromptBuilder } from "@companion/prompt-builder";
 import {
   createMockChatProvider,
@@ -32,6 +37,51 @@ function createMemory(): RuntimeMemoryPort {
 }
 
 describe("Runtime Memory vNext vertical slice", () => {
+  it("carries the persisted user receipt into episode grounding and a DERIVED Dream writer", async () => {
+    const text = "Please remember: I prefer tea 🍵.";
+    const conversation = new InMemoryConversationRepository(),
+      recentEpisodeStore = new InMemoryRecentEpisodeStore();
+    const writes: import("@companion/memory").MemoryWriteEventInput[] = [];
+    const runtime = new RuntimeOrchestrator({
+      eventBus: new InMemoryEventBus({ development: false }),
+      memory: createMemory(),
+      promptBuilder: new PromptBuilder(),
+      providers: createProviders(),
+      conversation,
+      recentEpisodeStore,
+      episodeGroundingResolver: new JournalMemoryGroundingResolver(
+        readerFor(receipt({ text }), text)
+      ),
+      dreamWriter: async (events) => {
+        writes.push(...events);
+        return events.map(() => ({ status: "written" }));
+      }
+    });
+    await runtime.handleUserMessage(
+      { sessionId: "grounded-dream", content: text, sourceJournalRef: parent },
+      { readMemory: true, writeMemory: true }
+    );
+    await vi.waitFor(() => expect(writes).toHaveLength(1));
+    const rows = await conversation.listRecentMessages("grounded-dream", { limit: 10 });
+    expect(rows.find((row) => row.role === "user")?.sourceJournalRef).toEqual(parent);
+    const episodes = await recentEpisodeStore.listActive({
+      now: new Date(),
+      sessionId: "grounded-dream",
+      includeRolled: true
+    });
+    // Completed episodes leave the active view; inspect by stable source identity.
+    const episode = await recentEpisodeStore.getById(
+      `episode:grounded-dream:${rows.find((row) => row.role === "user")!.id}`
+    );
+    expect(episode?.sourceEvidence?.statements[0]?.source?.ref).toEqual(parent);
+    expect(writes[0]?.lineage?.state === "GROUNDED" ? writes[0].lineage.origin : undefined).toBe(
+      "DERIVED"
+    );
+    expect(writes[0]?.assertion).toEqual({ source: "system", verification: "unverified" });
+    expect(episodes.every((item) => item.sourceCoverage !== "LEGACY_INCOMPLETE")).toBe(true);
+    await runtime.sealAndDrainMemoryWrites();
+  });
+
   it("keeps alternating people in one production session out of each other's durable episodes", async () => {
     const conversation = new InMemoryConversationRepository();
     const recentEpisodeStore = new InMemoryRecentEpisodeStore();

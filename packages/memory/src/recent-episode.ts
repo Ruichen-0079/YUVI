@@ -1,3 +1,9 @@
+import type {
+  EpisodeSourceEvidenceV1,
+  EpisodeSourceCoverage,
+  EpisodeStatementSource
+} from "./episode-source-evidence.js";
+import { withEpisodeEvidence, EPISODE_SOURCE_EVIDENCE_VERSION } from "./episode-source-evidence.js";
 import type { ConversationMessage } from "./conversation-repository.js";
 import {
   DEFAULT_L1_EPISODE_CHARS,
@@ -42,6 +48,9 @@ export type RecentEpisode = {
   status: RecentEpisodeStatus;
   sourceTurnIds: string[];
   sourceDigest: string;
+  sourceEvidence?: EpisodeSourceEvidenceV1 | null;
+  sourceEvidenceDigest?: string | null;
+  sourceCoverage?: EpisodeSourceCoverage;
   whatHappened: string;
   userStatements: string[];
   taskState: string | null;
@@ -58,6 +67,7 @@ export type RecentEpisode = {
 
 export type RecentEpisodeAssembleInput = {
   messages: readonly ConversationMessage[];
+  capturedSources?: ReadonlyMap<string, EpisodeStatementSource> | undefined;
   now: Date;
   timezone?: string | undefined;
   recordedAt?: Date | string | undefined;
@@ -89,6 +99,7 @@ export function assembleRecentEpisodes(input: RecentEpisodeAssembleInput): Recen
 
   return groups.map((group) =>
     buildEpisode(group, {
+      capturedSources: input.capturedSources,
       now: input.now,
       recordedAt,
       retentionMs,
@@ -178,6 +189,7 @@ function groupMessages(messages: ConversationMessage[], gapMs: number): Conversa
 function buildEpisode(
   messages: ConversationMessage[],
   options: {
+    capturedSources?: ReadonlyMap<string, EpisodeStatementSource> | undefined;
     now: Date;
     recordedAt: string;
     retentionMs: number;
@@ -229,7 +241,7 @@ function buildEpisode(
     (parseDate(endedAt)?.getTime() ?? options.now.getTime()) + options.retentionMs
   ).toISOString();
 
-  return {
+  const episode: RecentEpisode = {
     id: `episode:${sessionId}:${first.id}`,
     sessionId,
     personaId,
@@ -262,6 +274,20 @@ function buildEpisode(
     consolidatedAt: null,
     consolidationJobId: null
   };
+  return withEpisodeEvidence(
+    episode,
+    options.capturedSources
+      ? {
+          version: EPISODE_SOURCE_EVIDENCE_VERSION,
+          statements: userMessages
+            .map((message) => options.capturedSources!.get(message.id))
+            .filter((entry): entry is EpisodeStatementSource => !!entry),
+          historicalMessageIds: userMessages
+            .filter((message) => !options.capturedSources!.has(message.id))
+            .map((message) => message.id)
+        }
+      : null
+  );
 }
 
 export const ASSISTANT_CONTEXT_DISCLAIMER =

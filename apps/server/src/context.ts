@@ -372,6 +372,9 @@ export async function createAppContext(
       outputLanguage,
       recentEpisodeStore,
       dreamJobStore,
+      episodeGroundingResolver: journalRepository
+        ? new JournalMemoryGroundingResolver(journalRepository)
+        : undefined,
       ...(provider ? { dreamProvider: provider } : {}),
       logger: runtimeLogger,
       ...(character

@@ -40,7 +40,8 @@ describe("YUVI lineage encoding and Mem0 round-trip", () => {
     "losslessly preserves long refs, Unicode, unresolved authority and %s time",
     async (state) => {
       const input = await event();
-      if (input.lineage?.state !== "GROUNDED") throw new Error("expected grounded lineage");
+      if (input.lineage?.state !== "GROUNDED" || !("sourceTime" in input.lineage))
+        throw new Error("expected grounded lineage");
       input.lineage.sourceTime.occurrenceTime =
         state === "UNKNOWN"
           ? { state }
