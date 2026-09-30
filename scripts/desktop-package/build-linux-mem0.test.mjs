@@ -19,7 +19,7 @@ function artifact({ manifest = LINUX_MEM0_MANIFEST, files = 850, bytes = 52 * 10
   fs.writeFileSync(path.join(root, "yuvi-mem0"), linuxMem0MigrationWrapper(), { mode: 0o755 });
   fs.writeFileSync(path.join(root, LINUX_MEM0_REAL_EXE_NAME), "ELF-placeholder", { mode: 0o755 });
   fs.mkdirSync(path.join(root, "_internal"));
-  for (const file of ["base_library.zip", "libpython3.11.so.1.0", "certifi/cacert.pem", "mem0ai-0.1.107.dist-info/METADATA"]) {
+  for (const file of ["base_library.zip", "libpython3.11.so.1.0", "certifi/cacert.pem", "mem0ai-2.2.1.dist-info/METADATA"]) {
     fs.mkdirSync(path.dirname(path.join(root, "_internal", file)), { recursive: true });
     fs.writeFileSync(path.join(root, "_internal", file), "fixture");
   }

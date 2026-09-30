@@ -99,38 +99,21 @@ Sidecar process lifecycle uses FastAPI **lifespan** (not deprecated `on_event`):
 | Default Runtime backend | **legacy** (Mem0 is opt-in) |
 | Python | **3.11** |
 
-### mem0ai 0.1.107 field notes
+### mem0ai 2.2.1 field notes
 
-PGVector config uses discrete fields (**not** `connection_string`):
+PGVector uses `connection_string` plus explicit collection/dimensions settings. Connection options (including private schema search paths/SSL) are preserved. Mem0 2.2.1 uses psycopg3/`psycopg-pool`; the YUVI atomic idempotency protocol retains its own psycopg2 connection. Pool shutdown is explicit. Existing `(id UUID, vector vector(1024), payload JSONB)` rows remain readable; no collection recreation or re-embedding is performed.
 
-`dbname`, `user`, `password`, `host`, `port`, `collection_name`, `embedding_model_dims`, `hnsw`, `diskann`
+Search/list now use `filters={"user_id": scope}` and `top_k`. Updates use `text`; lineage-bearing evidence cannot be mutated through update. The upstream Ollama name/model detection fix makes the old detection patch unnecessary. Only a version-gated private `yuvi-*` no-pull guard remains; missing private tags fail `EMBEDDER_MODEL_NOT_LOCAL`, unsupported versions fail `MEM0_EMBEDDER_PATCH_UNSUPPORTED`. Public tags delegate to upstream behavior.
 
-Extra packages required by Mem0:
+Finalized metadata carries the dedicated YUVI bounded canonical JSON lineage encoding, version and SHA-256 (65,536 UTF-8 bytes). The sidecar validates transport integrity without deciding committed Journal authority. Semantic admission belongs to the host. Caller metadata cannot replace keyed delivery identity; grounded corrections require new source-backed admission. Telemetry is disabled before Mem0 imports, and packaged mode does not discover `.env` files.
 
-- `ollama` (Python client for the embedder)
-- `psycopg2-binary` (Mem0 pgvector driver imports `psycopg2`, not psycopg v3)
-
-**Ollama local-model patch (version-gated):** applies **only** for
-`mem0ai==0.1.107`.
-
-Startup policy:
-
-| Embedder tag | Unsupported mem0ai | Supported 0.1.107 |
-|--------------|--------------------|-------------------|
-| Private (`yuvi-*` after stripping namespace) | **Fail fast** `MEM0_EMBEDDER_PATCH_UNSUPPORTED` (`strict_version=True`); no Mem0 init; no pull | Patch applied; private tags never auto-pulled |
-| Public (e.g. `qwen3-embedding:0.6b`) | Warning + skip patch; stock pull-if-missing continues | Patch applied; public missing → pull |
-
-On 0.1.107 the patch:
-
-- Detects local models via modern `model` field (not only `name`)
-- **Never auto-pulls** private `yuvi-*` tags; missing → stable
-  `EMBEDDER_MODEL_NOT_LOCAL`
+Local OSS has no User Profiles generator; hosted `MemoryClient` (Python 2.2.1 / Node 3.3.0 and 3.3.1) calls cloud profile APIs. This sidecar adds no hosted dependency or profile behavior.
 
 ### Memory LLM capability mode (no placeholder keys)
 
 mem0ai always constructs an LLM at `Memory.from_config`. When `MEM0_LLM_MODEL` +
-`MEM0_LLM_API_KEY` are **empty**, the sidecar registers a local **`yuvi_noop`**
-LLM provider:
+`MEM0_LLM_API_KEY` are **empty**, the sidecar intercepts its owned **`yuvi_noop`**
+factory marker under an exact 2.2.1 version gate (the upstream config allowlist still excludes custom providers):
 
 - **No** forged / placeholder API keys
 - **No** outbound LLM network calls
@@ -142,7 +125,7 @@ LLM provider:
 
 When Memory LLM is configured:
 
-- Provider fields follow mem0ai 0.1.107 (`openai` uses `openai_base_url`;
+- Provider fields follow mem0ai 2.2.1 (`openai` uses `openai_base_url`;
   `deepseek` uses `deepseek_base_url`)
 - `capabilities.infer=true` when mem0 + embedder + vector are healthy
 - `infer=true` performs real fact extraction / update / delete tools
@@ -175,7 +158,7 @@ Pinned direct versions (see pyproject for authoritative list):
 
 | Package | Version |
 |---------|---------|
-| mem0ai | 0.1.107 |
+| mem0ai | 2.2.1 |
 | fastapi | 0.115.12 |
 | uvicorn | 0.34.2 |
 | pydantic | 2.11.4 |
@@ -225,7 +208,7 @@ curl http://127.0.0.1:6131/health
 - `DELETE /v1/memories/{id}`
 - `GET /v1/memories/{id}/history` — normalized from mem0ai SQLite history
 
-### History semantics (mem0ai 0.1.107)
+### History semantics (mem0ai 2.2.1)
 
 History is supported via Mem0's local SQLite history DB (`memory.history(id)`).
 
@@ -238,7 +221,7 @@ Normalized entries: `{ id, memoryId, event, previousValue, newValue, createdAt }
 | Wrong scope (when `scope` query set) | Empty `items` list (no cross-scope leak) |
 
 Not an undefined “depends on version” API: this sidecar always returns the YUVI
-history envelope above for 0.1.107.
+history envelope above for 2.2.1.
 
 Scope is the Mem0 `user_id` and must be built by Runtime via:
 
@@ -287,3 +270,5 @@ python scripts/live_infer_acceptance.py   # needs MEM0_LLM_* configured
 - Legacy memory migration
 - Graph memory / Graphiti
 - Default `MEMORY_BACKEND=mem0`
+
+The [A10.1d validation record](../../docs/validation/v0.1.3-a10.1d-grounded-finalized-mem0.md) records the 0.1.107 → 2.2.1 migration and real PostgreSQL/Ollama/packaged Linux checks. Finalized evidence delivery always uses `infer=false`.

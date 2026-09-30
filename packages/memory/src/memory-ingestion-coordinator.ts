@@ -1,3 +1,4 @@
+import type { JournalEventRef } from "@companion/protocol";
 import {
   DEFAULT_MEMORY_INGESTION_MAX_DELIVERY_ATTEMPTS,
   executeFinalizedIngestionEvent
@@ -125,7 +126,9 @@ export type MemoryIngestionCoordinatorOptions = {
   provider: MemoryProvider;
   admit?: (input: FinalizedIngestionAdmissionInput) => Promise<FinalizedIngestionAdmission>;
   conversation?: {
-    getMessageById?(messageId: string): Promise<{ role: string; content: string } | null>;
+    getMessageById?(
+      messageId: string
+    ): Promise<{ role: string; content: string; sourceJournalRef?: JournalEventRef | null } | null>;
   };
   clock?: () => Date;
   logger?: MemoryIngestionCoordinatorLogger;
@@ -185,7 +188,13 @@ export class MemoryIngestionCoordinator implements MemoryIngestionCoordinatorPor
     | undefined;
   private readonly conversation:
     | {
-        getMessageById?(messageId: string): Promise<{ role: string; content: string } | null>;
+        getMessageById?(
+          messageId: string
+        ): Promise<{
+          role: string;
+          content: string;
+          sourceJournalRef?: JournalEventRef | null;
+        } | null>;
       }
     | undefined;
   private readonly clock: () => Date;
@@ -661,13 +670,17 @@ export class MemoryIngestionCoordinator implements MemoryIngestionCoordinatorPor
       subjectUserId: row.subjectUserId,
       finalizedAt: row.finalizedAt,
       ingestionRequested: true,
-      userMessage,
+      userMessage: userMessage.content,
+      sourceText: userMessage.content,
+      sourceJournalRef: userMessage.sourceJournalRef,
       assistantMessage: row.content,
       sessionId: row.conversationId
     });
   }
 
-  private async resolveUserMessage(row: MissingFinalizedConversationTurn): Promise<string | null> {
+  private async resolveUserMessage(
+    row: MissingFinalizedConversationTurn
+  ): Promise<{ content: string; sourceJournalRef?: JournalEventRef | null } | null> {
     if (!row.sourceUserEventId || !this.conversation?.getMessageById) {
       return null;
     }
@@ -675,8 +688,7 @@ export class MemoryIngestionCoordinator implements MemoryIngestionCoordinatorPor
     if (!user || user.role !== "user") {
       return null;
     }
-    const content = user.content.trim();
-    return content ? content : null;
+    return user.content.trim() ? user : null;
   }
 
   private async listDueWork(limit: number): Promise<FinalizedIngestionEvent[]> {

@@ -336,6 +336,7 @@ export type RuntimePromptBuilderPort = {
 };
 
 export type HandleUserMessageInput = {
+  sourceJournalRef?: import("@companion/protocol").JournalEventRef | undefined;
   sessionId: string;
   content: string;
   voiceOutput?: boolean | undefined;

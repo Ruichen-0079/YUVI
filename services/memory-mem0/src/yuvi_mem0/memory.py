@@ -15,6 +15,7 @@ from typing import Any
 import httpx
 
 from yuvi_mem0.config import Settings, get_settings
+from yuvi_mem0.lineage_encoding import validate_lineage_encoding
 from yuvi_mem0.errors import (
     EMBEDDER_UNAVAILABLE,
     INTERNAL_ERROR,
@@ -53,6 +54,7 @@ class Mem0Service:
         self._embed_cache: tuple[float, str, str | None] | None = None
         self._vector_cache: tuple[float, str, str | None] | None = None
         self._idempotency_lock = threading.RLock()
+        self._idempotency_conn: Any | None = None
 
     def shutdown(self) -> None:
         """
@@ -62,16 +64,28 @@ class Mem0Service:
         recreate Memory (startup path only — not per request).
         """
         memory = self._memory
+        connection = getattr(self, "_idempotency_conn", None)
+        if connection is not None:
+            connection.close()
+            self._idempotency_conn = None
         self._memory = None
         self._embed_cache = None
         self._vector_cache = None
         if memory is None:
             return
-        # Best-effort close of known mem0ai 0.1.107 resources.
+        # Memory.close releases SQLite only in 2.2.1. Close PGVector pools explicitly.
+        close = getattr(memory, "close", None)
+        if callable(close):
+            close()
         for attr in ("db", "vector_store", "_telemetry_vector_store"):
             obj = getattr(memory, attr, None)
             if obj is None:
                 continue
+            pool = getattr(obj, "connection_pool", None)
+            if pool is not None:
+                closer = getattr(pool, "close", None) or getattr(pool, "closeall", None)
+                if callable(closer):
+                    closer()
             for method_name in ("close", "disconnect", "shutdown"):
                 method = getattr(obj, method_name, None)
                 if not callable(method):
@@ -101,7 +115,7 @@ class Mem0Service:
                 patch_ollama_embedder,
             )
 
-            # Private yuvi-* tags require the 0.1.107 patch (strict fail-fast).
+            # Private yuvi-* tags require the 2.2.1 patch (strict fail-fast).
             # Public models: warn + skip patch on unsupported mem0ai; keep pull.
             private_embedder = is_private_ollama_tag(self.settings.mem0_embedder_model)
             try:
@@ -111,7 +125,7 @@ class Mem0Service:
                 self._init_error = exc.message
                 if exc.code == MEM0_EMBEDDER_PATCH_UNSUPPORTED:
                     logger.error(
-                        "Mem0 refuse start: private embedder requires mem0ai==0.1.107 "
+                        "Mem0 refuse start: private embedder requires mem0ai==2.2.1 "
                         "patch (model=%s)",
                         self.settings.mem0_embedder_model,
                     )
@@ -144,6 +158,9 @@ class Mem0Service:
 
                 register_yuvi_noop_llm()
             self._memory = Memory.from_config(config)
+            vector_store = self._memory.vector_store
+            if vector_store.collection_name not in vector_store.list_cols():
+                vector_store.create_col()
             self._ensure_idempotency_table()
             self._init_error = None
             logger.info(
@@ -355,6 +372,7 @@ class Mem0Service:
             )
         memory = self.ensure_ready()
         metadata = request.metadata.model_dump(exclude_none=True)
+        validate_lineage_encoding(metadata)
         metadata.setdefault("schemaVersion", 1)
 
         payload: Any
@@ -406,6 +424,7 @@ class Mem0Service:
         memory = self.ensure_ready()
         payload = self._request_payload(request)
         metadata = request.metadata.model_dump(exclude_none=True)
+        validate_lineage_encoding(metadata)
         metadata.update(
             {
                 "user_id": request.scope,
@@ -420,7 +439,7 @@ class Mem0Service:
         with self._idempotency_lock:
             self._ensure_idempotency_table()
             vector_store = getattr(memory, "vector_store", None)
-            connection = getattr(vector_store, "conn", None)
+            connection = self._storage_connection()
             collection = getattr(vector_store, "collection_name", None)
             if connection is None or not isinstance(collection, str):
                 raise SidecarError(
@@ -573,7 +592,7 @@ class Mem0Service:
         with self._idempotency_lock:
             self._ensure_idempotency_table()
             vector_store = getattr(memory, "vector_store", None)
-            connection = getattr(vector_store, "conn", None)
+            connection = self._storage_connection()
             collection = getattr(vector_store, "collection_name", None)
             if connection is None or not isinstance(collection, str):
                 return MemoryReconciliationResult(status="unknown", errorCode="BACKEND_UNAVAILABLE")
@@ -633,10 +652,20 @@ class Mem0Service:
                     status="unknown", errorCode=f"{type(exc).__name__}"
                 )
 
+    def _storage_connection(self) -> Any:
+        """YUVI-owned transaction connection; independent of Mem0's pooled driver."""
+        connection = getattr(self, "_idempotency_conn", None)
+        if connection is None or getattr(connection, "closed", False):
+            import psycopg2
+
+            connection = psycopg2.connect(self.settings.mem0_pg_connection_string, connect_timeout=3)
+            self._idempotency_conn = connection
+        return connection
+
     def _ensure_idempotency_table(self) -> None:
         memory = self._memory
         vector_store = getattr(memory, "vector_store", None) if memory is not None else None
-        connection = getattr(vector_store, "conn", None)
+        connection = self._storage_connection()
         if connection is None:
             return
         with connection.cursor() as cursor:
@@ -699,8 +728,8 @@ class Mem0Service:
         try:
             raw = memory.search(
                 request.query,
-                user_id=request.scope,
-                limit=request.limit,
+                filters={"user_id": request.scope},
+                top_k=request.limit,
             )
         except Exception as exc:  # noqa: BLE001
             raise SidecarError(
@@ -734,7 +763,7 @@ class Mem0Service:
         memory = self.ensure_ready()
         try:
             if hasattr(memory, "get_all"):
-                raw = memory.get_all(user_id=scope)
+                raw = memory.get_all(filters={"user_id": scope}, top_k=offset + limit)
             else:
                 raw = []
         except Exception as exc:  # noqa: BLE001
@@ -750,6 +779,9 @@ class Mem0Service:
 
     def update(self, memory_id: str, request: UpdateMemoryRequest) -> MemoryRecord:
         memory = self.ensure_ready()
+        existing_record = self.get(memory_id, scope=request.scope)
+        if "yuviLineageEncoding" in existing_record.metadata:
+            raise SidecarError(VALIDATION_ERROR, "Grounded evidence is immutable; admit a new source-backed correction.", status_code=409)
         if request.scope:
             # Enforce scope isolation before update.
             self.get(memory_id, scope=request.scope)
@@ -758,7 +790,7 @@ class Mem0Service:
             if yuvi_identity is not None:
                 self._update_yuvi_memory(memory, memory_id, request.content, yuvi_identity)
             elif hasattr(memory, "update"):
-                memory.update(memory_id, data=request.content)
+                memory.update(memory_id, text=request.content)
             else:
                 raise SidecarError(
                     INTERNAL_ERROR,
@@ -845,7 +877,7 @@ class Mem0Service:
 
     def history(self, memory_id: str, scope: str | None = None) -> list[MemoryHistoryEntry]:
         """
-        Normalize mem0ai 0.1.107 history rows into MemoryHistoryEntry.
+        Normalize mem0ai 2.2.1 history rows into MemoryHistoryEntry.
 
         mem0 stores history in a local SQLite history.db keyed by memory_id.
         When scope is provided we verify the memory belongs to that scope first.

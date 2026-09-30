@@ -74,7 +74,7 @@ def test_build_mem0_config_with_real_llm() -> None:
     assert config["vector_store"]["config"]["diskann"] is False
     assert config["vector_store"]["config"]["host"] == "127.0.0.1"
     assert config["vector_store"]["config"]["dbname"] == "yuvi"
-    assert "connection_string" not in config["vector_store"]["config"]
+    assert config["vector_store"]["config"]["connection_string"] == settings.mem0_pg_connection_string
     assert config["llm"]["provider"] == "openai"
     assert config["llm"]["config"]["api_key"] == "test-key"
     assert config["llm"]["config"]["openai_base_url"] == "https://api.deepseek.com"

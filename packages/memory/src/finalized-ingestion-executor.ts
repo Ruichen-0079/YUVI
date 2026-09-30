@@ -1,3 +1,4 @@
+import { MemoryLineageV1Schema } from "./lineage.js";
 import type {
   FinalizedIngestionEvent,
   FinalizedIngestionRepository,
@@ -41,6 +42,27 @@ export async function executeFinalizedIngestionEvent(input: {
   });
   if (!claimed) {
     return { claimed: false, dispatched: false, event: null, outcome: null };
+  }
+
+  const lineage = MemoryLineageV1Schema.safeParse(claimed.eventPayload.lineage);
+  if (
+    !lineage.success ||
+    lineage.data.state !== "GROUNDED" ||
+    lineage.data.derivation.kind !== "FINALIZED_INGESTION"
+  ) {
+    const outcome: FinalizedIngestionEventOutcome = {
+      status: "rejected",
+      errorCode: "MEMORY_FINALIZED_LINEAGE_MISSING",
+      failureClass: "definitive_rejection"
+    };
+    const recorded = await input.repository.recordEventOutcome({
+      finalizedTurnId: claimed.finalizedTurnId,
+      eventId: claimed.eventId,
+      leaseOwner: input.leaseOwner,
+      expectedVersion: claimed.version,
+      outcome
+    });
+    return { claimed: true, dispatched: false, event: recorded, outcome };
   }
 
   // Budget is previous durable dispatches only. Claim/preflight is not an attempt.

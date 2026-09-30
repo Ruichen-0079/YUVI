@@ -1,7 +1,7 @@
+import { FinalizedIngestionService } from "./finalized-test-fixture.js";
 import { Pool } from "pg";
 import { describe, expect, it, vi } from "vitest";
 import {
-  FinalizedIngestionService,
   InMemoryFinalizedIngestionRepository,
   PostgresFinalizedIngestionRepository,
   type FinalizedIngestionEvent,
@@ -741,12 +741,8 @@ describe("MemoryIngestionCoordinator", () => {
     await draining;
 
     expect(provider.writes).toHaveLength(2);
-    expect(
-      (await repository.listEvents(first.turn.finalizedTurnId))[0]?.status
-    ).toBe("complete");
-    expect(
-      (await repository.listEvents(second.turn.finalizedTurnId))[0]?.status
-    ).toBe("complete");
+    expect((await repository.listEvents(first.turn.finalizedTurnId))[0]?.status).toBe("complete");
+    expect((await repository.listEvents(second.turn.finalizedTurnId))[0]?.status).toBe("complete");
   });
 
   it("releases the coordinator slot after a provider failure", async () => {

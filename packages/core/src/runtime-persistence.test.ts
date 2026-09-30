@@ -1,7 +1,7 @@
+import { FinalizedIngestionService } from "../../memory/src/finalized-test-fixture.js";
 import { InMemoryEventBus } from "@companion/event-bus";
 import {
   InMemoryConversationRepository,
-  FinalizedIngestionService,
   InMemoryFinalizedIngestionRepository,
   type ConversationMessageInput,
   type MemoryConversationTurnWriteResult,
@@ -145,7 +145,7 @@ function deferred<T>(): {
 describe("RuntimeOrchestrator", () => {
   it("persists a host-carried Journal receipt ref separately from Runtime message identity", async () => {
     const conversation = new InMemoryConversationRepository();
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus: new InMemoryEventBus({ development: false }),
       memory: createMem0RecordingMemory(async () => completeMemoryWrite()),
       conversation,
@@ -181,12 +181,54 @@ describe("RuntimeOrchestrator", () => {
     expect(assistant?.sourceJournalRef).toBeNull();
   });
 
+  it.each([false, true])(
+    "passes exact host ancestry and source text into finalized admission (stream=%s)",
+    async (stream) => {
+      const ledger = new InMemoryFinalizedIngestionRepository();
+      const service = new FinalizedIngestionService(ledger);
+      const admit = vi.spyOn(service, "admit");
+      const sourceJournalRef: JournalEventRef = {
+        kind: "JOURNAL_EVENT",
+        namespace: "host:opaque",
+        eventId: "jev1_0123456789abcdef"
+      };
+      const input = {
+        sessionId: "exact-source",
+        content: "  I prefer tea 🍵.\n",
+        sourceJournalRef,
+        personaId: "alice",
+        subjectUserId: "compat-only"
+      };
+      const runtime = createDeliveryRuntime({
+        eventBus: new InMemoryEventBus({ development: false }),
+        memory: createMem0RecordingMemory(async () => completeMemoryWrite()),
+        finalizedIngestion: service,
+        promptBuilder: new PromptBuilder(),
+        providers: createMockProviders()
+      });
+      if (stream) await collectRuntimeStream(runtime.streamUserMessage(input));
+      else await runtime.handleUserMessage(input);
+      await runtime.sealAndDrainMemoryWrites();
+      expect(admit).toHaveBeenCalledTimes(1);
+      expect(admit.mock.calls[0]?.[0]).toMatchObject({
+        sourceJournalRef,
+        sourceText: input.content,
+        userMessage: input.content
+      });
+      const events = await ledger.listEvents(admit.mock.calls[0]![0].finalizedTurnId);
+      expect(events[0]?.eventPayload.lineage).toMatchObject({
+        state: "GROUNDED",
+        parents: [{ ref: sourceJournalRef }]
+      });
+    }
+  );
+
   it("keeps unresolved committed speech out of non-streaming finalized ingestion even when writes are requested", async () => {
     const conversation = new InMemoryConversationRepository();
     const ledger = new InMemoryFinalizedIngestionRepository();
     const notifyAdmitted = vi.fn();
     const store = vi.fn(async () => completeMemoryWrite());
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus: new InMemoryEventBus({ development: false }),
       memory: createMem0RecordingMemory(store),
       conversation,
@@ -252,7 +294,7 @@ describe("RuntimeOrchestrator", () => {
         return { status: "written", eventId: id, event };
       }
     });
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus,
       memory,
       voicePersonaId: "alice",
@@ -345,6 +387,9 @@ describe("RuntimeOrchestrator", () => {
     expect(assistant?.sourceJournalRef).toBeNull();
     expect(assistant?.finalizedTurnId).toBeTruthy();
     expect(turn?.status).toBe("pending");
+    expect(
+      (await ledger.listEvents(assistant!.finalizedTurnId!))[0]?.eventPayload.lineage
+    ).toMatchObject({ state: "GROUNDED", parents: [{ ref: journalRef }] });
     expect(admissions).toEqual([assistant?.finalizedTurnId]);
     expect(published.some((event) => event.type === "agent.reply")).toBe(true);
     expect(published.some((event) => event.type === "assistant.message")).toBe(true);
@@ -358,7 +403,7 @@ describe("RuntimeOrchestrator", () => {
     });
     const memoryWrites: unknown[] = [];
     const conversation = new RecordingConversationRepository();
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus,
       memory: createMem0RecordingMemory(async (input) => {
         memoryWrites.push(input);
@@ -400,7 +445,7 @@ describe("RuntimeOrchestrator", () => {
     admit
       .mockRejectedValueOnce(new Error("transient admission outage"))
       .mockImplementation((input) => originalAdmit(input));
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus,
       memory: createMem0RecordingMemory(async () => completeMemoryWrite()),
       finalizedIngestion: service,
@@ -433,7 +478,7 @@ describe("RuntimeOrchestrator", () => {
       }
       return originalLookup(messageId);
     };
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus: new InMemoryEventBus({ development: false }),
       memory: createMem0RecordingMemory(async () => completeMemoryWrite()),
       conversation,
@@ -457,40 +502,25 @@ describe("RuntimeOrchestrator", () => {
     expect(lookups).toBe(2);
   });
 
-  it("evicts a failed finalized memory write and deduplicates its later success", async () => {
-    let writes = 0;
+  it("fails closed when finalized Mem0 has no durable admission port", async () => {
+    const store = vi.fn(async () => completeMemoryWrite());
     const runtime = new RuntimeOrchestrator({
       eventBus: new InMemoryEventBus({ development: false }),
-      memory: createMem0RecordingMemory(async (input) => {
-        writes += 1;
-        if (writes === 1) {
-          throw new Error("transient memory outage");
-        }
-        return completeMemoryWrite(
-          typeof input["idempotencyKey"] === "string" ? input["idempotencyKey"] : undefined
-        );
-      }),
+      memory: createMem0RecordingMemory(store),
       promptBuilder: new PromptBuilder(),
       providers: createMockProviders()
     });
-    const event = createEvent("user.message", {
-      sessionId: "retry-memory-session",
+    await runtime.handleUserMessage({
+      sessionId: "no-ledger",
       content: "I prefer concise replies."
     });
-
-    await runtime.handleUserMessage(event);
     await runtime.drainMemoryWrites();
-    await runtime.handleUserMessage(event);
-    await runtime.drainMemoryWrites();
-    await runtime.handleUserMessage(event);
-    await runtime.drainMemoryWrites();
-
-    expect(writes).toBe(2);
-    expect(runtime.getRuntimeCacheStats().finalizedMemoryWrites).toBe(1);
+    expect(store).not.toHaveBeenCalled();
+    expect(runtime.getLatestPromptPreview()).toMatchObject({ memoryWriteStatus: "failed" });
   });
 
   it("bounds completed runtime cache entries and expires inactive session state", async () => {
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus: new InMemoryEventBus({ development: false }),
       memory: createMem0RecordingMemory(async () => completeMemoryWrite()),
       promptBuilder: new PromptBuilder(),
@@ -508,7 +538,7 @@ describe("RuntimeOrchestrator", () => {
       sessionTurns: 256,
       finalizedTurnIds: 256,
       finalizedMemoryWrites: 0,
-      finalizedAdmissions: 0
+      finalizedAdmissions: 256
     });
 
     vi.useFakeTimers();
@@ -541,7 +571,7 @@ describe("RuntimeOrchestrator", () => {
         typeof input["idempotencyKey"] === "string" ? input["idempotencyKey"] : undefined
       );
     });
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus,
       memory,
       conversation: new InMemoryConversationRepository(),
@@ -567,10 +597,10 @@ describe("RuntimeOrchestrator", () => {
     expect(writes).toHaveLength(1);
     expect(writes[0]).toMatchObject({
       assistantMessageId: assistant?.id,
-      idempotencyKey: `yuvi:finalized-turn:${assistant?.id}`,
+      idempotencyKey: expect.stringMatching(/^yuvi:finalized-turn:/),
       assistantMessage: reply!.payload.content
     });
-    expect(runtime.getLatestPromptPreview()).toMatchObject({ memoryWriteStatus: "complete" });
+    expect(runtime.getLatestPromptPreview()).toMatchObject({ memoryWriteStatus: "partial" });
   });
 
   it("admits finalized memory through the ledger before publishing the assistant event", async () => {
@@ -599,7 +629,7 @@ describe("RuntimeOrchestrator", () => {
     });
     const conversation = new InMemoryConversationRepository();
     const ledger = new InMemoryFinalizedIngestionRepository();
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus,
       memory,
       conversation,
@@ -641,7 +671,7 @@ describe("RuntimeOrchestrator", () => {
       published.push(event);
     });
     const ledger = new InMemoryFinalizedIngestionRepository();
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus,
       memory: createMem0RecordingMemory(async () => completeMemoryWrite()),
       conversation: new InMemoryConversationRepository(),
@@ -689,7 +719,7 @@ describe("RuntimeOrchestrator", () => {
     });
     const ledger = new InMemoryFinalizedIngestionRepository();
     const conversation = new InMemoryConversationRepository();
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus,
       memory,
       conversation,
@@ -864,7 +894,7 @@ describe("RuntimeOrchestrator", () => {
         typeof input["idempotencyKey"] === "string" ? input["idempotencyKey"] : undefined
       );
     });
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus,
       memory,
       promptBuilder: new PromptBuilder(),
@@ -891,7 +921,7 @@ describe("RuntimeOrchestrator", () => {
     expect(drained).toBe(false);
     release();
     await drain;
-    expect(runtime.getLatestPromptPreview()).toMatchObject({ memoryWriteStatus: "complete" });
+    expect(runtime.getLatestPromptPreview()).toMatchObject({ memoryWriteStatus: "partial" });
   });
 
   it("seals an in-flight runtime before reload and drains its late finalized write", async () => {
@@ -917,7 +947,7 @@ describe("RuntimeOrchestrator", () => {
       replyPublished();
       await replyRelease;
     });
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus,
       memory: createMem0RecordingMemory(async (input) => {
         writes.push(input);
@@ -964,7 +994,7 @@ describe("RuntimeOrchestrator", () => {
 
   it("lifecycle-guards direct maybeStoreMemory calls while active", async () => {
     const writes: Array<Record<string, unknown>> = [];
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus: new InMemoryEventBus({ development: false }),
       memory: createMem0RecordingMemory(async (input) => {
         writes.push(input);
@@ -992,7 +1022,7 @@ describe("RuntimeOrchestrator", () => {
       writeStarted = resolve;
     });
     const writes: Array<Record<string, unknown>> = [];
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus: new InMemoryEventBus({ development: false }),
       memory: createMem0RecordingMemory(async (input) => {
         writes.push(input);
@@ -1028,7 +1058,7 @@ describe("RuntimeOrchestrator", () => {
 
   it("rejects direct maybeStoreMemory calls after sealing begins", async () => {
     const writes: Array<Record<string, unknown>> = [];
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus: new InMemoryEventBus({ development: false }),
       memory: createMem0RecordingMemory(async (input) => {
         writes.push(input);
@@ -1048,7 +1078,7 @@ describe("RuntimeOrchestrator", () => {
 
   it("rejects direct maybeStoreMemory calls after disposal", async () => {
     const writes: Array<Record<string, unknown>> = [];
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus: new InMemoryEventBus({ development: false }),
       memory: createMem0RecordingMemory(async (input) => {
         writes.push(input);
@@ -1067,7 +1097,7 @@ describe("RuntimeOrchestrator", () => {
 
   it("writes semantic memory once only after a successful stream finalizes", async () => {
     const calls: Array<Record<string, unknown>> = [];
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus: new InMemoryEventBus({ development: false }),
       memory: createMem0RecordingMemory(async (input) => {
         calls.push(input);
@@ -1098,9 +1128,9 @@ describe("RuntimeOrchestrator", () => {
     });
     const completed = await iterator.next();
     expect(completed.value).toMatchObject({ type: "completed", content: "firstsecond" });
-    expect(calls).toHaveLength(1);
     await runtime.drainMemoryWrites();
-    expect(runtime.getLatestPromptPreview()).toMatchObject({ memoryWriteStatus: "complete" });
+    expect(calls).toHaveLength(1);
+    expect(runtime.getLatestPromptPreview()).toMatchObject({ memoryWriteStatus: "partial" });
   });
 
   it("performs one finalized ingestion after provider fallback before output", async () => {
@@ -1113,7 +1143,7 @@ describe("RuntimeOrchestrator", () => {
         message: "primary unavailable"
       })
     });
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus: new InMemoryEventBus({ development: false }),
       memory: createMem0RecordingMemory(async (input) => {
         calls.push(input);
@@ -1143,7 +1173,7 @@ describe("RuntimeOrchestrator", () => {
 
   it("does not ingest partial or cancelled streams", async () => {
     const partialCalls: Array<Record<string, unknown>> = [];
-    const partialRuntime = new RuntimeOrchestrator({
+    const partialRuntime = createDeliveryRuntime({
       eventBus: new InMemoryEventBus({ development: false }),
       memory: createMem0RecordingMemory(async (input) => {
         partialCalls.push(input);
@@ -1177,7 +1207,7 @@ describe("RuntimeOrchestrator", () => {
 
     const cancellationCalls: Array<Record<string, unknown>> = [];
     const controller = new AbortController();
-    const cancellationRuntime = new RuntimeOrchestrator({
+    const cancellationRuntime = createDeliveryRuntime({
       eventBus: new InMemoryEventBus({ development: false }),
       memory: createMem0RecordingMemory(async (input) => {
         cancellationCalls.push(input);
@@ -1209,7 +1239,7 @@ describe("RuntimeOrchestrator", () => {
     eventBus.subscribe("assistant.message", () => {
       controller.abort();
     });
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus,
       memory: createMem0RecordingMemory(async (input) => {
         writes.push(input);
@@ -1240,7 +1270,7 @@ describe("RuntimeOrchestrator", () => {
     eventBus.subscribe("runtime.error", (event) => {
       diagnostics.push(event);
     });
-    const runtime = new RuntimeOrchestrator({
+    const runtime = createDeliveryRuntime({
       eventBus,
       memory: createMem0RecordingMemory(async () => {
         throw new Error("Mem0 unavailable");
@@ -1258,7 +1288,7 @@ describe("RuntimeOrchestrator", () => {
     await runtime.drainMemoryWrites();
 
     expect(reply!.type).toBe("agent.reply");
-    expect(runtime.getLatestPromptPreview()).toMatchObject({ memoryWriteStatus: "failed" });
+    expect(runtime.getLatestPromptPreview()).toMatchObject({ memoryWriteStatus: "partial" });
     expect(diagnostics).toHaveLength(1);
     expect(diagnostics[0]?.payload).toMatchObject({
       category: "memory",
@@ -1285,7 +1315,9 @@ function completeMemoryWrite(idempotencyKey?: string): MemoryConversationTurnWri
 function createDirectMemoryTurn(sessionId: string) {
   const sourceEvent = createEvent("user.message", {
     sessionId,
-    content: "I prefer concise replies."
+    content: "I prefer concise replies.",
+    personaId: "alice",
+    subjectUserId: "user-a"
   });
   const reply = createEvent(
     "agent.reply",
@@ -1325,6 +1357,38 @@ function createMem0RecordingMemory(
     isMem0Backend() {
       return true;
     },
+    getMemoryProvider() {
+      return {
+        async retrieveRelevant() {
+          return { status: "empty", events: [], source: "test", limited: false };
+        },
+        async getEvent() {
+          return null;
+        },
+        async writeEvent() {
+          throw new Error("unkeyed test dispatch forbidden");
+        },
+        async writeEventIdempotent(input) {
+          let result: MemoryConversationTurnWriteResult;
+          try {
+            result = await store({ ...input.metadata, ...input });
+          } catch {
+            return {
+              status: "rejected",
+              errorCode: "MEMORY_WRITE_FAILED",
+              failureClass: "definitive_rejection"
+            };
+          }
+          return result.ok
+            ? { status: "written", eventId: "mem0:test" }
+            : {
+                status: "rejected",
+                errorCode: "TEST_REJECTED",
+                failureClass: "definitive_rejection"
+              };
+        }
+      };
+    },
     async storeConversationTurn(input) {
       return store(input as unknown as Record<string, unknown>);
     },
@@ -1332,6 +1396,40 @@ function createMem0RecordingMemory(
       return null;
     }
   };
+}
+
+/** Delivery fault fixture: production grounding is tested separately with committed Journal evidence. */
+function createDeliveryRuntime(options: ConstructorParameters<typeof RuntimeOrchestrator>[0]) {
+  const repository = new InMemoryFinalizedIngestionRepository();
+  const fixture = new FinalizedIngestionService(repository, {
+    async build(input) {
+      return {
+        turnKind: "normal",
+        events: [
+          {
+            kind: "fact",
+            content: input.userMessage,
+            scope: input.scope,
+            metadata: {
+              assistantMessageId: input.assistantMessageId,
+              assistantMessage: input.assistantMessage
+            }
+          }
+        ]
+      };
+    }
+  });
+  const admit = fixture.admit.bind(fixture);
+  fixture.admit = (input) =>
+    admit({
+      ...input,
+      personaId: input.personaId ?? "alice",
+      subjectUserId: input.subjectUserId ?? "user-a"
+    });
+  return new RuntimeOrchestrator({
+    ...options,
+    finalizedIngestion: options.finalizedIngestion ?? fixture
+  });
 }
 
 function finalizedStatusAdmission(finalizedTurnId: string) {
@@ -1421,7 +1519,7 @@ async function runFinalizedStatusSchedule(fixture: {
       return { status: "written", eventId: "memory:status-test" };
     }
   });
-  const runtime = new RuntimeOrchestrator({
+  const runtime = createDeliveryRuntime({
     eventBus: new InMemoryEventBus({ development: false }),
     memory,
     finalizedIngestion: fixture.service,
@@ -1429,6 +1527,15 @@ async function runFinalizedStatusSchedule(fixture: {
     providers: createMockProviders()
   });
   const { sourceEvent, reply } = createDirectMemoryTurn(`status-${fixture.turnId}`);
+  const source = finalizedStatusAdmission(fixture.turnId);
+  sourceEvent.id = source.sourceUserEventId;
+  sourceEvent.traceId = source.traceId;
+  sourceEvent.payload.sessionId = source.conversationId;
+  sourceEvent.payload.content = source.userMessage;
+  sourceEvent.payload.personaId = source.personaId;
+  sourceEvent.payload.subjectUserId = source.subjectUserId;
+  reply.timestamp = source.finalizedAt;
+  reply.payload.content = source.assistantMessage;
   const schedule = (
     runtime as unknown as {
       scheduleMem0TurnWrite: (

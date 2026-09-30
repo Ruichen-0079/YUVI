@@ -1,3 +1,5 @@
+import type { MemoryLineageV1 } from "./lineage.js";
+
 /**
  * Vendor-neutral, runtime-facing memory contracts.
  *
@@ -128,6 +130,8 @@ export type MemoryEvent = {
 
   assertion?: MemoryEventAssertion;
   claim?: MemoryClaim;
+  /** Host-validated evidence ancestry; separate from arbitrary provider metadata. */
+  lineage?: MemoryLineageV1;
   confidence?: number | null;
 
   /** Non-authoritative evidence metadata; never Runtime state. */
@@ -185,6 +189,8 @@ export type MemoryWriteEventInput = {
   participants?: string[];
   assertion?: MemoryEventAssertion;
   claim?: MemoryClaim;
+  /** Host-validated evidence ancestry; separate from arbitrary provider metadata. */
+  lineage?: MemoryLineageV1;
   confidence?: number | null;
   metadata?: Record<string, unknown>;
   signal?: AbortSignal;

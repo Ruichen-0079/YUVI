@@ -90,10 +90,10 @@ class Settings(BaseSettings):
 
     def build_mem0_config(self) -> dict:
         """
-        Build Memory.from_config dict for mem0ai==0.1.107.
+        Build Memory.from_config dict for mem0ai==2.2.1.
 
-        PGVector fields (verified): dbname, collection_name, embedding_model_dims,
-        user, password, host, port, diskann, hnsw — not connection_string.
+        PGVector 2.2.1 accepts connection_string; preserve SSL/search_path URL options.
+        Existing collection_name, dimensions and index settings stay fixed.
         """
         if not self.has_pg:
             raise ValueError("MEM0_PG_CONNECTION_STRING is required for Mem0 initialization.")
@@ -111,6 +111,7 @@ class Settings(BaseSettings):
             "vector_store": {
                 "provider": "pgvector",
                 "config": {
+                    "connection_string": self.mem0_pg_connection_string,
                     "dbname": pg["dbname"],
                     "collection_name": self.mem0_pg_collection,
                     "embedding_model_dims": self.mem0_embedder_dimensions,
@@ -139,14 +140,14 @@ class Settings(BaseSettings):
         return config
 
     def _build_real_llm_config(self) -> dict:
-        """Map MEM0_LLM_* to mem0ai 0.1.107 provider config fields."""
+        """Map MEM0_LLM_* to mem0ai 2.2.1 provider config fields."""
         provider_raw = (self.mem0_llm_provider or "openai").strip().lower()
         model = self.mem0_llm_model.strip()
         api_key = self.mem0_llm_api_key.strip()
         base_url = self.mem0_llm_base_url.strip().rstrip("/")
         temperature = float(self.mem0_llm_temperature)
 
-        # deepseek is a first-class provider in mem0ai 0.1.107.
+        # deepseek is a first-class provider in mem0ai 2.2.1.
         if provider_raw in ("deepseek",):
             llm_config: dict = {
                 "model": model,

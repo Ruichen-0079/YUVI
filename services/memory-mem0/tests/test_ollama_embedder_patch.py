@@ -73,7 +73,7 @@ def test_patch_applied_only_for_supported_version() -> None:
     result = patch_ollama_embedder()
     assert result.applied is True
     assert result.mem0_version == SUPPORTED_MEM0AI_VERSION
-    assert result.reason == "patched_mem0ai_0_1_107"
+    assert result.reason == "patched_mem0ai_2_2_1"
     assert result.code is None
     assert last_patch_result() == result
     # Idempotent
@@ -119,6 +119,9 @@ def _fake_client_module(monkeypatch: pytest.MonkeyPatch, local_models: list[str]
             self.model = model
 
     class ListResponse:
+        def __getitem__(self, key):
+            return getattr(self, key)
+
         def __init__(self, models: list[str]) -> None:
             self.models = [Model(m) for m in models]
 

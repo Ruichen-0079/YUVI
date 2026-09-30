@@ -1647,6 +1647,7 @@ export class RuntimeOrchestrator {
             {
               sessionId: input.sessionId,
               content: input.content,
+              sourceJournalRef: input.sourceJournalRef,
               ...identityPayload(input)
             },
             {
@@ -1784,6 +1785,7 @@ export class RuntimeOrchestrator {
             {
               sessionId: input.sessionId,
               content: input.content,
+              sourceJournalRef: input.sourceJournalRef,
               ...identityPayload(input)
             },
             {
@@ -2028,6 +2030,8 @@ export class RuntimeOrchestrator {
             finalizedTurnId,
             assistantMessageId,
             sourceUserEventId: userEvent.id,
+            sourceJournalRef: userEvent.payload.sourceJournalRef,
+            sourceText: userEvent.payload.content,
             conversationId: userEvent.payload.sessionId,
             traceId: userEvent.traceId,
             personaId: userEvent.payload.personaId,
@@ -4040,6 +4044,8 @@ export class RuntimeOrchestrator {
           finalizedTurnId: durableFinalizedTurnId,
           assistantMessageId: canonicalAssistantId,
           sourceUserEventId: sourceEvent.id,
+          sourceJournalRef: sourceEvent.payload.sourceJournalRef,
+          sourceText: sourceEvent.payload.content,
           conversationId: sourceEvent.payload.sessionId,
           traceId: sourceEvent.traceId,
           personaId: sourceEvent.payload.personaId,
@@ -4051,21 +4057,7 @@ export class RuntimeOrchestrator {
           sessionId: sourceEvent.payload.sessionId
         });
         if (!admitted || !this.options.finalizedIngestion) {
-          if (!store) {
-            throw new Error("Semantic memory store handler is unavailable.");
-          }
-          return store({
-            userMessage: sourceEvent.payload.content,
-            assistantMessage: assistantText,
-            sessionId: sourceEvent.payload.sessionId,
-            personaId: sourceEvent.payload.personaId,
-            subjectUserId: sourceEvent.payload.subjectUserId,
-            userMessageId: sourceEvent.id,
-            assistantMessageId: canonicalAssistantId,
-            traceId: sourceEvent.traceId,
-            idempotencyKey,
-            conversationId: sourceEvent.payload.sessionId
-          });
+          throw new Error("MEMORY_FINALIZED_LEDGER_REQUIRED: finalized Memory requires durable grounded admission.");
         }
         if (admitted.turn.status === "skipped") {
           return {
@@ -4575,6 +4567,8 @@ export class RuntimeOrchestrator {
           finalizedTurnId,
           assistantMessageId: assistantMessage.id,
           sourceUserEventId: sourceEvent.id,
+          sourceJournalRef: sourceEvent.payload.sourceJournalRef,
+          sourceText: sourceEvent.payload.content,
           conversationId: sourceEvent.payload.sessionId,
           traceId: sourceEvent.traceId,
           personaId: sourceEvent.payload.personaId,

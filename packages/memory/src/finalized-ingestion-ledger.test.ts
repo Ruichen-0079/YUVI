@@ -1,8 +1,8 @@
+import { FinalizedIngestionService } from "./finalized-test-fixture.js";
 import { Pool } from "pg";
 import { describe, expect, it } from "vitest";
 import {
   FINALIZED_INGESTION_POLICY_VERSION,
-  FinalizedIngestionService,
   InMemoryFinalizedIngestionRepository,
   PostgresFinalizedIngestionRepository
 } from "./finalized-ingestion-ledger.js";

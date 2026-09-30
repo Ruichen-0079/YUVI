@@ -97,8 +97,8 @@ export function validatePython311(candidate, options = {}) {
       `PyInstaller 6.13.0 is required (detected ${String(info.pyinstaller ?? "missing")}).`
     );
   }
-  if (info.mem0ai !== "0.1.107") {
-    throw new Error(`mem0ai 0.1.107 is required (detected ${String(info.mem0ai ?? "missing")}).`);
+  if (info.mem0ai !== "2.2.1") {
+    throw new Error(`mem0ai 2.2.1 is required (detected ${String(info.mem0ai ?? "missing")}).`);
   }
   return {
     ...info,

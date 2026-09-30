@@ -19,10 +19,10 @@ _BUILD_SPEC.loader.exec_module(build)
 
 def test_layout_is_anchored_to_script_not_cwd() -> None:
     layout = build.resolve_layout()
-    assert layout.repo_root == Path("C:/Dev/UV-main").resolve()
+    assert layout.repo_root == _BUILD_PATH.parents[3]
     assert layout.source_root == layout.memory_root / "src"
-    assert layout.output_dir == Path("C:/Dev/UV-main/build/desktop/win32-x64/mem0").resolve()
-    assert layout.work_dir == Path("C:/Dev/UV-main/build/.pyinstaller/mem0").resolve()
+    assert layout.output_dir == layout.repo_root / "build/desktop/win32-x64/mem0"
+    assert layout.work_dir == layout.repo_root / "build/.pyinstaller/mem0"
 
 
 def test_cleanup_rejects_unsafe_paths() -> None:
@@ -91,13 +91,13 @@ def test_artifact_validation_rejects_env_and_nested_executable(tmp_path: Path) -
 
 
 def test_build_does_not_use_caller_environment_as_project_root(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
 ) -> None:
     original = os.getcwd()
     try:
-        monkeypatch.chdir(Path("C:/"))
+        monkeypatch.chdir(tmp_path)
         layout = build.resolve_layout()
-        assert layout.repo_root == Path("C:/Dev/UV-main").resolve()
+        assert layout.repo_root == _BUILD_PATH.parents[3]
         assert original != os.getcwd() or platform.system() == "Windows"
     finally:
         os.chdir(original)

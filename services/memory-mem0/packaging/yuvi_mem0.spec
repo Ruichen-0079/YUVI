@@ -55,6 +55,9 @@ hiddenimports = [
     "mem0.utils.factory",
     "psycopg",
     "psycopg_binary",
+    "psycopg_pool",
+    "sqlalchemy",
+    "mem0.memory.notices",
     "psycopg2",
     "httpx",
     "ollama",
@@ -67,6 +70,7 @@ hiddenimports = [
 
 datas = [
     *copy_metadata("mem0ai"),
+    *collect_data_files("mem0", includes=["memory/oss_notices_config.json"]),
     *collect_data_files("certifi"),
 ]
 

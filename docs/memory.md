@@ -87,7 +87,7 @@ store and is not treated as the ledger.
 
 The canonical ordering is:
 
-`assistant finalization → conversation persistence → ledger admission and event materialization → coordinator wake → shared C1 delivery executor`
+`committed user receipt → assistant finalization / conversation persistence → exact Journal grounding → policy materialization / frozen lineage-bearing child admission → coordinator wake → shared C1 delivery executor`
 
 Each finalized turn receives an immutable `finalized_turn_id`. Each materialized
 child receives a content-derived stable event identity and a persisted backend
@@ -111,8 +111,7 @@ block application readiness. Historical assistant rows with
 `ingestion_requested = NULL` stay outside automatic recovery. Automatic
 missing-admission remains restricted to completed assistant rows with
 `ingestion_requested = true`, a finalized identity, and recoverable
-user/persona scope. A future `missingAdmissionAfter` / policy-epoch cutover
-is deferred while factual-v1/schema-1 is unchanged.
+user/persona scope. Recovery obtains exact persisted user text and `sourceJournalRef`; missing/malformed ancestry produces terminal materialization failure without children. The grounded policy epoch is `factual-v1/schema-2/grounded-a10.1d`. Old pending/retryable children lacking finalized lineage fail closed before dispatch with `MEMORY_FINALIZED_LINEAGE_MISSING`. Historical terminal rows are not rewritten; uncertain old effects retain exact reconciliation before any possible dispatch guard.
 
 Ordinary backend delivery is gated by `MEMORY_INGESTION_MAX_DELIVERY_ATTEMPTS`
 (default 8). The budget counts durable dispatch markers only, not claims or
@@ -151,7 +150,7 @@ followed by the normal assistant finalization, ingestion admission, durable
 Mem0 write scheduling, and optional TTS side effect. STT failures stop before a
 user turn is persisted; later chat failures leave the persisted user turn
 without a finalized assistant row. The transcript retains language,
-confidence, speaker, and voice-profile metadata when supplied.
+confidence, speaker, and voice-profile metadata when supplied. These fields are descriptive, not Journal identity authority. Real speech retains `EXTERNAL_OBSERVATION`; mock text retains `USER_ASSERTION`. Lineage preserves committed `recordedAt` and exact `occurrenceTime`, including UNKNOWN.
 
 ## Categories
 

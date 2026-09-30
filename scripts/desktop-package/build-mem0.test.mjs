@@ -19,7 +19,7 @@ const probe = (overrides = {}) => ({
     pointerSize: 64,
     machine: "AMD64",
     pyinstaller: "6.13.0",
-    mem0ai: "0.1.107",
+    mem0ai: "2.2.1",
     ...overrides
   }),
   stderr: ""

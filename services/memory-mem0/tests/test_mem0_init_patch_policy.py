@@ -74,7 +74,10 @@ def test_private_model_supported_version_starts(
         @classmethod
         def from_config(cls, _config: dict) -> FakeMemory:
             calls["from_config"] += 1
-            return cls()
+            from types import SimpleNamespace
+            result = cls()
+            result.vector_store = SimpleNamespace(collection_name="test", list_cols=lambda: ["test"])
+            return result
 
     monkeypatch.setattr(mem0_main, "Memory", FakeMemory)
     # Also patch the import path used inside initialize
@@ -83,6 +86,7 @@ def test_private_model_supported_version_starts(
     monkeypatch.setattr(mem0_pkg, "Memory", FakeMemory)
 
     svc = Mem0Service(settings=_settings(model="yuvi-embedding:0.6b"))
+    monkeypatch.setattr(svc, "_ensure_idempotency_table", lambda: None)
     svc.initialize()
     assert svc.ready is True
     assert calls["from_config"] == 1
@@ -137,12 +141,16 @@ def test_public_model_unsupported_version_warns_and_continues(
         @classmethod
         def from_config(cls, _config: dict) -> FakeMemory:
             calls["from_config"] += 1
-            return cls()
+            from types import SimpleNamespace
+            result = cls()
+            result.vector_store = SimpleNamespace(collection_name="test", list_cols=lambda: ["test"])
+            return result
 
     monkeypatch.setattr(mem0_pkg, "Memory", FakeMemory)
 
     svc = Mem0Service(settings=_settings(model="qwen3-embedding:0.6b"))
     with caplog.at_level(logging.WARNING, logger="yuvi_mem0.memory"):
+        monkeypatch.setattr(svc, "_ensure_idempotency_table", lambda: None)
         with pytest.warns(UserWarning, match=MEM0_EMBEDDER_PATCH_UNSUPPORTED):
             svc.initialize()
     assert svc.ready is True

@@ -19,7 +19,7 @@ export const LINUX_MEM0_MANIFEST = Object.freeze({
 });
 
 const PYINSTALLER_VERSION = "6.13.0";
-const MEM0_VERSION = "0.1.107";
+const MEM0_VERSION = "2.2.1";
 const SPEC = path.join(MEM0_SERVICE_ROOT, "packaging", "yuvi_mem0.spec");
 
 function regularFile(file) {
@@ -218,7 +218,7 @@ export function validateLinuxMem0Artifact(artifactDir, options = {}) {
   const bytes = files.reduce((sum, file) => sum + fs.statSync(file).size, 0);
   // PyInstaller packs pure Python into the executable; file counts vary with
   // wheel/platform layout and cannot prove completeness (released Linux has 871).
-  for (const required of ["base_library.zip", "libpython3.11.so.1.0", "certifi/cacert.pem", "mem0ai-0.1.107.dist-info/METADATA"]) {
+  for (const required of ["base_library.zip", "libpython3.11.so.1.0", "certifi/cacert.pem", "mem0ai-2.2.1.dist-info/METADATA"]) {
     if (!regularFile(path.join(internal, required)))
       throw new Error(`Linux Mem0 artifact is incomplete: missing ${required}.`);
   }

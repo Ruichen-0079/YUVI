@@ -55,7 +55,7 @@ export const MemoryLineageV1Schema = z.discriminatedUnion("state", [
     sourceAvailability: z.object({ state: z.literal("RETAINED_SELECTABLE") }).strict(),
     consumerKey: opaque,
     derivation: z.object({
-      kind: z.enum(["RULE_BASED_EXTRACTION", "EXPLICIT_REMEMBER", "CORRECTION"]),
+      kind: z.enum(["RULE_BASED_EXTRACTION", "EXPLICIT_REMEMBER", "CORRECTION", "FINALIZED_INGESTION"]),
       producer: opaque,
       producerVersion: opaque,
       policyVersion: opaque

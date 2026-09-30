@@ -1,8 +1,6 @@
+import { FinalizedIngestionService } from "./finalized-test-fixture.js";
 import { describe, expect, it, vi } from "vitest";
-import {
-  FinalizedIngestionService,
-  InMemoryFinalizedIngestionRepository
-} from "./finalized-ingestion-ledger.js";
+import { InMemoryFinalizedIngestionRepository } from "./finalized-ingestion-ledger.js";
 import { executeFinalizedIngestionEvent } from "./finalized-ingestion-executor.js";
 import type { MemoryBackend } from "./backend.js";
 import type { MemoryProvider } from "./provider.js";

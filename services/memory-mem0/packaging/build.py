@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 PYINSTALLER_VERSION = "6.13.0"
-MEM0_VERSION = "0.1.107"
+MEM0_VERSION = "2.2.1"
 MANIFEST = {
     "schemaVersion": 1,
     "protocolVersion": 1,

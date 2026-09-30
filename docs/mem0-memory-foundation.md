@@ -43,14 +43,16 @@ Mem0 → MemoryBackend → Mem0MemoryProvider
      → MemoryContextBuilder → PromptBuilder
 
 WRITE
-Conversation → MemoryIngestionPolicy → MemoryWriteEventInput
-            → MemoryProvider.writeEvent() → Mem0MemoryProvider
-            → MemoryBackend → Mem0
+Committed Journal receipt → shared host grounding → MemoryIngestionPolicy
+            → frozen lineage-bearing finalized child / payload identity
+            → existing keyed executor → Mem0MemoryProvider
+            → local MemoryBackend / idempotent sidecar → Mem0
 ```
 
 `MemoryIngestionPolicy` is the factual/user-claim boundary. Normal completed
 conversation turns create only user-grounded factual events, each dispatched
-through `writeEvent()` with `infer=false`; assistant prose is context, not a
+through the existing finalized ledger/executor and `writeEventIdempotent()` with
+`infer=false`; assistant prose is context, not a
 default fact source. Explicit remember creates one `user_claim` event with
 `assertion.source=user` and `verification=unverified`. It is evidence of a
 claim, not verified truth. Assistant-only relationship or affect prose is
@@ -99,7 +101,7 @@ administrator delete, repair, rollback, or audit mechanism.
 ## 5. Sidecar and storage implementation
 
 Path: `services/memory-mem0/`. The sidecar is Python 3.11, FastAPI, Mem0 OSS
-(`mem0ai==0.1.107`), Ollama embeddings, and PostgreSQL/pgvector.
+(`mem0ai==2.2.1`), Ollama embeddings, and PostgreSQL/pgvector.
 
 ```text
 YUVI Runtime :6121
@@ -133,3 +135,11 @@ MEMORY_PERSONA_ID=lumi
 
 No chat-provider credentials are copied into the sidecar. `MEM0_LLM_*` is an
 independent configuration surface.
+
+## A10.1d grounded finalized boundary
+
+The live and restart admission paths carry exact Journal ancestry and source text. `MemoryLineageV1` is a first-class vendor-neutral write/read field, frozen into the ledger before payload digest/event key/idempotency identity. Its finalized consumer key uses parent, policy and semantic fingerprint without a circular dependency. Reserved metadata stores bounded canonical JSON (65,536 UTF-8 bytes), encoding version and SHA-256; generic metadata stays primitive and bounded. Invalid/conflicting lineage errors fail closed. Host scope IDs never resolve principal/binding/audience or turn speech observation into authenticated self-report.
+
+Python OSS 2.2.1 uses current `search(filters=..., top_k=...)` and `get_all(filters=..., top_k=...)`, psycopg3 PGVector pools, and explicit pool shutdown. The YUVI idempotency transaction uses its own psycopg2 connection; existing vector row layout is preserved. No destructive schema migration/re-embedding is required. The upstream Ollama name/model detection patch is removed; only an exact-version private-tag no-pull guard remains. The gated noop factory seam remains necessary because eager LLM construction and the hardcoded provider allowlist still exist. Telemetry is disabled before Mem0 import.
+
+User Profiles are hosted capabilities in Python `MemoryClient` and Node 3.3.0/3.3.1; local OSS `Memory.from_config` exposes no profile generator. Profile product behavior remains A10.1f. See [A10.1d validation](validation/v0.1.3-a10.1d-grounded-finalized-mem0.md) for upstream source audit and real/package validation.

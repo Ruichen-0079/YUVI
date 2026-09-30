@@ -1,4 +1,12 @@
 import {
+  decodeMemoryLineage,
+  encodeMemoryLineage,
+  isReservedMemoryMetadataKey,
+  LINEAGE_METADATA_KEYS,
+  canonicalLineageJson,
+  MemoryLineageEncodingError
+} from "../lineage-encoding.js";
+import {
   MemoryBackendError,
   type MemoryBackend,
   type MemoryReconciliationResult,
@@ -83,6 +91,7 @@ export function mapMem0RecordToMemoryEvent(
   if (!sourceRecordId) {
     throw new Mem0MemoryProviderError("MEMORY_RECORD_INVALID", "Mem0 record is missing an id.");
   }
+  const lineage = decodeMemoryLineage(record.metadata ?? {});
   const metadata = sanitizeSemanticMetadata(record.metadata);
   const memoryType = readString(metadata, "memoryType")?.toLowerCase();
   const kind = resolveKind(metadata, memoryType);
@@ -96,7 +105,8 @@ export function mapMem0RecordToMemoryEvent(
     source: MEM0_MEMORY_SOURCE,
     sourceRecordId,
     scope,
-    metadata
+    metadata,
+    ...(lineage ? { lineage } : {})
   };
 
   const recordedAt = normalizeTimestamp(record.createdAt);
@@ -112,6 +122,20 @@ export function mapMem0RecordToMemoryEvent(
   if (participants.length > 0) event.participants = participants;
   if (assertion !== undefined) event.assertion = assertion;
   const claim = deserializeClaimMetadata(metadata);
+  if (lineage?.state === "GROUNDED" && lineage.derivation.kind === "FINALIZED_INGESTION") {
+    const source = lineage.origin === "USER_ASSERTION" ? "user" : "unknown";
+    const occurrence = lineage.sourceTime.occurrenceTime;
+    if (
+      assertion?.verification !== "unverified" ||
+      assertion.source !== source ||
+      claim !== undefined ||
+      observedAt !== normalizeTimestamp(lineage.sourceTime.recordedAt) ||
+      occurredAt !==
+        (occurrence.state === "INSTANT" ? normalizeTimestamp(occurrence.at) : undefined)
+    ) {
+      throw new MemoryLineageEncodingError();
+    }
+  }
   if (claim !== undefined) event.claim = claim;
   return event;
 }
@@ -258,6 +282,16 @@ export class Mem0MemoryProvider implements MemoryProvider {
           };
         }
       }
+      try {
+        assertReturnedLineage(input, event);
+      } catch (error) {
+        return {
+          status: "rejected",
+          eventId,
+          errorCode: safeErrorCode(error, "MEMORY_LINEAGE_INVALID"),
+          failureClass: "ambiguous"
+        };
+      }
       return {
         status: result.operation === "unchanged" ? "unchanged" : "written",
         eventId,
@@ -363,6 +397,7 @@ export class Mem0MemoryProvider implements MemoryProvider {
         response.record === undefined || response.record === null
           ? null
           : mapMem0RecordToMemoryEvent(response.record as MemoryRecord, scope);
+      assertReturnedLineage(input, event);
       return {
         status: response.operation === "unchanged" ? "unchanged" : "written",
         eventId,
@@ -403,7 +438,11 @@ export class Mem0MemoryProvider implements MemoryProvider {
 }
 
 export function buildWriteMetadata(input: MemoryWriteEventInput): MemoryRecordMetadata {
-  const metadata = sanitizeSemanticMetadata(input.metadata);
+  const metadata = sanitizeSemanticMetadata(
+    Object.fromEntries(
+      Object.entries(input.metadata ?? {}).filter(([key]) => !isReservedMemoryMetadataKey(key))
+    )
+  );
   metadata["yuviEventKind"] = input.kind;
   if (input.assertion) {
     metadata["yuviAssertionSource"] = input.assertion.source;
@@ -419,16 +458,20 @@ export function buildWriteMetadata(input: MemoryWriteEventInput): MemoryRecordMe
   if (participants.length > 0) metadata["yuviParticipants"] = participants;
   if (input.conversationId?.trim()) metadata.conversationId = input.conversationId.trim();
   if (input.idempotencyKey?.trim()) metadata["yuviIngestionKey"] = input.idempotencyKey.trim();
+  if (input.payloadDigest?.trim()) metadata["yuviPayloadDigest"] = input.payloadDigest.trim();
   if (input.claim) {
     Object.assign(metadata, serializeClaimMetadata(input.claim));
   }
+  if (input.lineage) Object.assign(metadata, encodeMemoryLineage(input.lineage));
   return metadata;
 }
 
 export function sanitizeSemanticMetadata(value: unknown): MemoryRecordMetadata {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const lineage = decodeMemoryLineage(value as Record<string, unknown>);
   const out: MemoryRecordMetadata = {};
   for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+    if (LINEAGE_METADATA_KEYS.includes(key as (typeof LINEAGE_METADATA_KEYS)[number])) continue;
     if (
       key.length === 0 ||
       key.length > MAX_METADATA_KEY_LENGTH ||
@@ -439,6 +482,7 @@ export function sanitizeSemanticMetadata(value: unknown): MemoryRecordMetadata {
     const safe = sanitizeMetadataValue(entry);
     if (safe !== undefined) out[key] = safe;
   }
+  if (lineage) Object.assign(out, encodeMemoryLineage(lineage));
   return out;
 }
 
@@ -601,19 +645,25 @@ function classifyRetrievalError(error: unknown): string {
     if (error.retryable) return "MEMORY_UNAVAILABLE";
     return error.code || "MEMORY_BACKEND_ERROR";
   }
-  if (error instanceof Mem0MemoryProviderError) return error.code;
+  if (error instanceof Mem0MemoryProviderError || error instanceof MemoryLineageEncodingError)
+    return error.code;
   return "MEMORY_PROVIDER_ERROR";
 }
 
 function safeErrorCode(error: unknown, fallback: string): string {
-  if (error instanceof MemoryBackendError || error instanceof Mem0MemoryProviderError) {
+  if (
+    error instanceof MemoryBackendError ||
+    error instanceof Mem0MemoryProviderError ||
+    error instanceof MemoryLineageEncodingError
+  ) {
     return error.code || fallback;
   }
   return fallback;
 }
 
 function classifyWriteFailure(error: unknown): MemoryWriteFailureClass {
-  if (error instanceof Mem0MemoryProviderError) return "definitive_rejection";
+  if (error instanceof Mem0MemoryProviderError || error instanceof MemoryLineageEncodingError)
+    return "definitive_rejection";
   if (error instanceof MemoryBackendError) {
     if (
       error.code === "VALIDATION_ERROR" ||
@@ -627,4 +677,13 @@ function classifyWriteFailure(error: unknown): MemoryWriteFailureClass {
     return "ambiguous";
   }
   return "ambiguous";
+}
+
+function assertReturnedLineage(input: MemoryWriteEventInput, event: MemoryEvent | null): void {
+  if (
+    input.lineage &&
+    (!event?.lineage || canonicalLineageJson(input.lineage) !== canonicalLineageJson(event.lineage))
+  ) {
+    throw new MemoryLineageEncodingError();
+  }
 }

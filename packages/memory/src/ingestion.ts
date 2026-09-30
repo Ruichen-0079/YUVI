@@ -1,3 +1,4 @@
+import type { GroundedMemorySource } from "./lineage.js";
 import {
   admitDurableMemoryClaim,
   serializeClaimMetadata
@@ -29,6 +30,8 @@ export type MemoryIngestionInput = {
   cancelledOrFailed?: boolean | undefined;
   turnKind?: Mem0TurnKind | undefined;
   claim?: MemoryClaimAttributionInput | undefined;
+  /** Host authority; compatibility subjectUserId remains storage scope only. */
+  groundedSource?: GroundedMemorySource | undefined;
 };
 
 export type MemoryIngestionResult = {
@@ -303,6 +306,7 @@ export class MemoryIngestionPolicy {
     event: MemoryWriteEventInput,
     input: MemoryIngestionInput
   ): MemoryWriteEventInput | null {
+    if (input.groundedSource) return event;
     const subjectId = input.subjectUserId?.trim();
     if (!subjectId) return event;
     const admitted = admitDurableMemoryClaim({

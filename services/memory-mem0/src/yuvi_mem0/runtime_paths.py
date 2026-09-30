@@ -145,7 +145,7 @@ def prepare_runtime_environment() -> RuntimePaths:
     paths.log_dir.mkdir(parents=True, exist_ok=True)
 
     # These values intentionally override stale inherited values.  Mem0
-    # 0.1.107 reads MEM0_DIR for config/history/migration paths and
+    # 2.2.1 reads MEM0_DIR for config/history/migration paths and
     # MEM0_TELEMETRY as a case-insensitive boolean string.
     os.environ["MEM0_DIR"] = str(paths.data_dir)
     os.environ["MEM0_TELEMETRY"] = "false"

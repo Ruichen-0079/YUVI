@@ -57,6 +57,7 @@ def test_same_key_conflict_is_deterministic_without_backend_write() -> None:
         vector_store=SimpleNamespace(conn=connection, collection_name="memories"),
         embedding_model=SimpleNamespace(embed=lambda *_args: [0.1]),
     )
+    service._idempotency_conn = connection
     service._idempotency_lock = __import__("threading").RLock()
 
     request = IdempotentMemoryWriteRequest(
@@ -77,6 +78,7 @@ def _fake_service(connection: object, collection: str) -> Mem0Service:
         vector_store=SimpleNamespace(conn=connection, collection_name=collection),
         embedding_model=SimpleNamespace(embed=lambda *_args: [0.1, 0.2, 0.3]),
     )
+    service._idempotency_conn = connection
     service._idempotency_lock = threading.RLock()
     return service
 
@@ -124,6 +126,7 @@ def _actual_mem0_update_memory(connection: object, collection: str):
     memory.config = MemoryConfig()
     memory.collection_name = collection
     memory.api_version = "v1.1"
+    memory._entity_store = None
     memory.graph = None
     memory.llm = type("Llm", (), {})()
     memory.vector_store = _PostgresVectorStore(connection, collection)
@@ -142,6 +145,7 @@ def _actual_mem0_update_memory(connection: object, collection: str):
 class _UpdateService(Mem0Service):
     def __init__(self, connection: object, collection: str) -> None:
         self._memory = _actual_mem0_update_memory(connection, collection)
+        self._idempotency_conn = connection
         self._idempotency_lock = threading.RLock()
 
     def ensure_ready(self):  # type: ignore[no-untyped-def]

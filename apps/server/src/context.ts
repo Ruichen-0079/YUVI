@@ -1,3 +1,4 @@
+import { JournalMemoryGroundingResolver } from "@companion/memory";
 import { productEnvironment, readProductSettings } from "./services/product-store.js";
 import { join } from "node:path";
 import { createPostgresPool } from "@companion/database";
@@ -244,7 +245,11 @@ export async function createAppContext(
     parseMemoryRepositoryEnv().kind === "postgres" && databasePool
       ? new PostgresDreamJobStore(databasePool)
       : new InMemoryDreamJobStore();
-  const finalizedIngestion = new FinalizedIngestionService(finalizedIngestionRepository!);
+  const finalizedIngestion = new FinalizedIngestionService(
+    finalizedIngestionRepository!,
+    undefined,
+    journalRepository ? new JournalMemoryGroundingResolver(journalRepository) : undefined
+  );
   const ruleBasedExtractor = new RuleBasedMemoryExtractor();
   const runtimeLogger = createRuntimeLogger(logger);
   const proactiveStateStore: RuntimeProactiveStateStore = createFileProactiveStateStore(bootEnv);

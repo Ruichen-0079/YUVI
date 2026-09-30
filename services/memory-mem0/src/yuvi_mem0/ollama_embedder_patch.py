@@ -1,16 +1,8 @@
-"""
-Version-gated patch for mem0ai OllamaEmbedding (private local tags).
+"""Private local model guard, audited and gated to mem0ai==2.2.1.
 
-Supported only for **mem0ai==0.1.107**.
-
-Why:
-1. 0.1.107 local-model detection used ``model.get("name")``, while modern
-   ``ollama`` clients expose field ``model``. That falsely misses private tags
-   such as ``yuvi-embedding:0.6b`` and triggers registry ``pull`` (fails).
-2. Private YUVI tags must never be auto-pulled; missing models fail fast.
-
-On any other mem0ai version the patch is **not** applied (no silent guess).
-A clear warning is emitted; callers may treat that as incompatible.
+Upstream now recognizes both name/model fields, so YUVI no longer patches
+that detection bug. Upstream still pulls a missing model; this guard prevents
+any registry pull for a private tag and delegates public tags unchanged.
 """
 
 from __future__ import annotations
@@ -23,7 +15,7 @@ from typing import Any, Callable
 logger = logging.getLogger("yuvi_mem0.ollama_embedder_patch")
 
 # Only this exact package version is known-safe for this monkey-patch.
-SUPPORTED_MEM0AI_VERSION = "0.1.107"
+SUPPORTED_MEM0AI_VERSION = "2.2.1"
 
 # Stable error token for missing private/local-only models (tests assert this).
 EMBEDDER_MODEL_NOT_LOCAL = "EMBEDDER_MODEL_NOT_LOCAL"
@@ -197,21 +189,15 @@ def patch_ollama_embedder(*, strict_version: bool = False) -> PatchResult:
                 ),
             )
 
-        # Official / public models: keep stock *intent* (pull-if-missing).
-        # Do not call original() here — 0.1.107 uses list()["models"] +
-        # model.get("name"), which breaks on modern ollama ListResponse objects
-        # and would also re-introduce false-miss/pull races.
-        try:
-            self.client.pull(wanted)
-        except Exception as exc:  # noqa: BLE001
-            raise RuntimeError(f"Failed to pull public Ollama model '{wanted}': {exc}") from exc
+        # Upstream 2.2.1 fixes model field detection; preserve its public behavior.
+        original(self)
 
     OllamaEmbedding._ensure_model_exists = _ensure_model_exists  # type: ignore[method-assign]
     _PATCHED = True
     result = PatchResult(
         applied=True,
         mem0_version=mem0_version,
-        reason="patched_mem0ai_0_1_107",
+        reason="patched_mem0ai_2_2_1",
         code=None,
     )
     _LAST_RESULT = result

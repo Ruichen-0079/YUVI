@@ -76,7 +76,7 @@ A10.1 leaf authority: [`a10.1-grounded-memory-roadmap.md`](a10.1-grounded-memory
 
 ## Current state
 
-A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2f6 and aggregate A8.2 are implemented reality. A10.1a–c are implemented. A10.1d–f, A9, A10.2/A10.3, A11 and A12 remain planned/open engineering, with A12.1 already holding a pinned source-level SnowLuma contract while its live probe remains pending.
+A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2f6 and aggregate A8.2 are implemented reality. A10.1a–d are implemented. A10.1e–f, A9, A10.2/A10.3, A11 and A12 remain planned/open engineering, with A12.1 already holding a pinned source-level SnowLuma contract while its live probe remains pending.
 
 ### Milestone 1 — Evidence Foundation
 
@@ -305,3 +305,5 @@ Revealed disposition, constrained exploration, post-training and deeper artifici
 ## Working rule
 
 Prefer the smallest explicit mechanism that passes preregistered tests. Reuse an existing authoritative seam when the capability naturally belongs there; do not postpone adjacent work only to reopen the same provider/storage boundary in the next release.
+
+A10.1d implemented reality is recorded in [its validation record](../validation/v0.1.3-a10.1d-grounded-finalized-mem0.md): committed Journal grounding precedes durable finalized child admission, frozen lineage survives the local Mem0 2.2.1 boundary, and delivery/reconciliation retains existing identities. A10.1a–d are implemented; A10.1e and A10.1f1–f3 remain planned. Aggregate A10.1 is incomplete.

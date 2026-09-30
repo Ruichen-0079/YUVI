@@ -1,3 +1,10 @@
+import type { JournalEventRef } from "@companion/protocol";
+import {
+  MemoryGroundingError,
+  type MemoryGroundingResolver,
+  type GroundedMemorySource
+} from "./lineage.js";
+import { freezeFinalizedMemoryEvent } from "./finalized-memory-lineage.js";
 import { createHash } from "node:crypto";
 import type { Pool, QueryResultRow } from "pg";
 import { createPostgresPool } from "@companion/database";
@@ -17,7 +24,7 @@ import type {
   MemoryWriteEventOutcome
 } from "./provider.js";
 
-export const FINALIZED_INGESTION_POLICY_VERSION = "factual-v1/schema-1";
+export const FINALIZED_INGESTION_POLICY_VERSION = "factual-v1/schema-2/grounded-a10.1d";
 
 export type FinalizedIngestionTurnStatus =
   | "pending"
@@ -123,6 +130,8 @@ export type FinalizedIngestionAdmissionInput = {
   finalizedAt: string;
   ingestionRequested: boolean;
   userMessage: string;
+  sourceText?: string | undefined;
+  sourceJournalRef?: JournalEventRef | null | undefined;
   assistantMessage: string;
   sessionId?: string | undefined;
   language?: string | null | undefined;
@@ -357,6 +366,8 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
         if (!existingTurn) {
           throw new Error(`Finalized ingestion turn '${turn.finalizedTurnId}' was not returned.`);
         }
+        if (existingTurn.sourceDigest !== turn.sourceDigest)
+          throw new Error("FINALIZED_INGESTION_SOURCE_CONFLICT");
         return {
           turn: existingTurn,
           events: await this.listEventsWithClient(turn.finalizedTurnId, tx)
@@ -1010,6 +1021,8 @@ export class InMemoryFinalizedIngestionRepository implements FinalizedIngestionR
     }>;
   }): Promise<FinalizedIngestionAdmission> {
     const existing = this.turns.get(input.turn.finalizedTurnId);
+    if (existing && existing.sourceDigest !== input.turn.sourceDigest)
+      throw new Error("FINALIZED_INGESTION_SOURCE_CONFLICT");
     if (!existing) {
       this.turns.set(input.turn.finalizedTurnId, cloneTurn(input.turn));
       for (const event of input.events) {
@@ -1459,7 +1472,8 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
     private readonly ingestionPolicy: Pick<
       MemoryIngestionPolicy,
       "build"
-    > = new MemoryIngestionPolicy()
+    > = new MemoryIngestionPolicy(),
+    private readonly groundingResolver?: MemoryGroundingResolver
   ) {}
 
   getTurn(finalizedTurnId: string) {
@@ -1467,20 +1481,26 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
   }
 
   async admit(input: FinalizedIngestionAdmissionInput): Promise<FinalizedIngestionAdmission> {
-    const existing = await this.repository.getTurn(input.finalizedTurnId);
-    if (existing) {
-      return {
-        turn: existing,
-        events: await this.repository.listEvents(input.finalizedTurnId)
-      };
-    }
-    const now = new Date().toISOString();
     const identity = resolveMem0ChatIdentity({
       subjectUserId: input.subjectUserId,
       personaId: input.personaId
     });
     const memoryScope = identity.ok ? buildChatMemoryScope(identity.identity) : null;
     const sourceDigest = digestSource(input, memoryScope);
+    const existing = await this.repository.getTurn(input.finalizedTurnId);
+    if (existing) {
+      if (
+        existing.policyVersion === FINALIZED_INGESTION_POLICY_VERSION &&
+        existing.sourceDigest !== sourceDigest
+      ) {
+        throw new Error("FINALIZED_INGESTION_SOURCE_CONFLICT");
+      }
+      return {
+        turn: existing,
+        events: await this.repository.listEvents(input.finalizedTurnId)
+      };
+    }
+    const now = new Date().toISOString();
     const baseTurn = {
       finalizedTurnId: input.finalizedTurnId,
       assistantMessageId: input.assistantMessageId,
@@ -1559,6 +1579,40 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
       });
     }
 
+    let source: GroundedMemorySource;
+    try {
+      if (!input.sourceJournalRef || !this.groundingResolver || input.sourceText === undefined) {
+        throw new MemoryGroundingError(
+          "missing-committed-source",
+          "Finalized Memory requires committed source ancestry and exact text."
+        );
+      }
+      if (input.sourceText !== input.userMessage) {
+        throw new MemoryGroundingError(
+          "source-text-mismatch",
+          "Finalized extraction text differs from its host source."
+        );
+      }
+      source = await this.groundingResolver.resolve({
+        sourceJournalRef: input.sourceJournalRef,
+        sourceText: input.sourceText
+      });
+    } catch (error) {
+      return this.repository.admit({
+        turn: {
+          ...baseTurn,
+          status: "terminal_failed",
+          failureStage: "materialization",
+          lastErrorCode:
+            error instanceof MemoryGroundingError
+              ? `MEMORY_GROUNDING_${error.code.toUpperCase().replaceAll("-", "_")}`
+              : "MEMORY_GROUNDING_SOURCE_UNAVAILABLE",
+          lastErrorMessage: "Committed source grounding failed before child admission."
+        },
+        events: []
+      });
+    }
+
     const ingestionInput: MemoryIngestionInput = {
       userMessage: input.userMessage,
       assistantMessage: input.assistantMessage,
@@ -1571,7 +1625,8 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
       traceId: input.traceId,
       conversationId: input.conversationId,
       language: input.language,
-      observedAt: input.finalizedAt,
+      observedAt: source.recordedAt,
+      groundedSource: source,
       turnKind,
       idempotencyKey: input.finalizedTurnId
     };
@@ -1601,9 +1656,26 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
       });
     }
 
-    const materialized = extraction.events.map((event) =>
-      materializeEvent(input.finalizedTurnId, event)
-    );
+    let materialized: ReturnType<typeof materializeEvent>[];
+    try {
+      materialized = extraction.events.map((event) =>
+        materializeEvent(
+          input.finalizedTurnId,
+          freezeFinalizedMemoryEvent(source, event, FINALIZED_INGESTION_POLICY_VERSION)
+        )
+      );
+    } catch {
+      return this.repository.admit({
+        turn: {
+          ...baseTurn,
+          status: "terminal_failed",
+          failureStage: "materialization",
+          lastErrorCode: "MEMORY_GROUNDING_LINEAGE_VALIDATION_FAILED",
+          lastErrorMessage: "Frozen lineage validation failed."
+        },
+        events: []
+      });
+    }
     return this.repository.admit({
       turn: {
         ...baseTurn,
@@ -1728,6 +1800,11 @@ function digestSource(input: FinalizedIngestionAdmissionInput, memoryScope: stri
       finalizedTurnId: input.finalizedTurnId,
       assistantMessageId: input.assistantMessageId,
       sourceUserEventId: input.sourceUserEventId ?? null,
+      sourceJournalRef: input.sourceJournalRef ?? null,
+      sourceText: input.sourceText ?? null,
+      ingestionRequested: input.ingestionRequested,
+      turnKind: input.turnKind ?? null,
+      language: input.language ?? null,
       conversationId: input.conversationId,
       traceId: input.traceId,
       personaId: input.personaId ?? null,

@@ -39,11 +39,11 @@ def _write_artifact(root: Path, *, manifest: dict | None = None) -> Path:
 def test_layout_uses_script_location_not_cwd(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    script = Path(r"C:\Dev\UV-main\services\memory-mem0\packaging\smoke.py")
+    script = tmp_path / "repo/services/memory-mem0/packaging/smoke.py"
     monkeypatch.chdir(tmp_path)
     layout = smoke.resolve_layout(script)
-    assert layout.repo_root == Path(r"C:\Dev\UV-main")
-    assert layout.artifact_source == Path(r"C:\Dev\UV-main\build\desktop\win32-x64\mem0")
+    assert layout.repo_root == tmp_path / "repo"
+    assert layout.artifact_source == tmp_path / "repo/build/desktop/win32-x64/mem0"
 
 
 def test_manifest_must_match_exactly(tmp_path: Path) -> None:
@@ -224,7 +224,8 @@ def test_cleanup_guard_rejects_repo(tmp_path: Path, monkeypatch: pytest.MonkeyPa
         smoke.safe_cleanup_cleanroom(tmp_path / "repo")
 
 
-def test_process_tree_helper_uses_parent_links() -> None:
+def test_process_tree_helper_uses_parent_links(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(smoke.sys, "platform", "win32")
     before = {
         10: smoke.ProcessInfo(10, 1, "yuvi-mem0.exe"),
         11: smoke.ProcessInfo(11, 10, "child.exe"),
