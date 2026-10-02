@@ -61,6 +61,9 @@ import {
   createConversationRepositoryFromEnv,
   createFinalizedIngestionRepositoryFromEnv,
   createRecentEpisodeStoreFromEnv,
+  InMemoryProfileSnapshotStore,
+  LocalProfileProvider,
+  PostgresProfileSnapshotStore,
   FinalizedIngestionService,
   MemoryIngestionCoordinator,
   InMemoryDreamJobStore,
@@ -71,6 +74,8 @@ import {
   type FinalizedIngestionRepository,
   type MemoryProvider,
   type MemoryRepository,
+  type ProfileProvider,
+  type ProfileSnapshotStore,
   type RecentEpisodeStore
 } from "@companion/memory";
 import { normalizeCharacterOutputLanguage } from "@companion/character-abi";
@@ -123,6 +128,7 @@ export type AppContext = {
   finalizedIngestion: FinalizedIngestionService;
   memoryIngestionCoordinator: MemoryIngestionCoordinator;
   memory: MemoryService;
+  profileProvider: ProfileProvider;
   providers: ProviderRegistry;
   runtime: RuntimeOrchestrator;
   embodiedPresentationBridge: EmbodiedPresentationBridge;
@@ -194,6 +200,9 @@ export async function createAppContext(
   };
   const databaseUrl = process.env["DATABASE_URL"]?.trim();
   const databasePool = databaseUrl ? createPostgresPool(databaseUrl) : undefined;
+  const profileSnapshotStore: ProfileSnapshotStore = databasePool
+    ? new PostgresProfileSnapshotStore(databasePool)
+    : new InMemoryProfileSnapshotStore();
   const journalRepository = databasePool
     ? new PostgresJournalRepository(databasePool, {
         namespace: process.env["YUVI_JOURNAL_NAMESPACE"] ?? "yuvi:default",
@@ -439,11 +448,16 @@ export async function createAppContext(
 
   let providers: ProviderRegistry;
   let memory: MemoryService;
+  let profileProvider: ProfileProvider;
   let coordinator: MemoryIngestionCoordinator;
   let runtime: RuntimeOrchestrator;
   try {
     providers = createProviderRegistryFromEnv(bootEnv);
     memory = createMemoryService(providers);
+    profileProvider = new LocalProfileProvider({
+      resolveSourceReader: () => memory.getProfileMemorySourceReader(),
+      store: profileSnapshotStore
+    });
     coordinator = new MemoryIngestionCoordinator({
       repository: finalizedIngestionRepository!,
       provider: memory.getMemoryProvider() ?? unavailableMemoryProvider(),
@@ -498,6 +512,7 @@ export async function createAppContext(
     finalizedIngestion,
     memoryIngestionCoordinator: coordinator,
     memory,
+    profileProvider,
     providers,
     runtime,
     embodiedPresentationBridge,

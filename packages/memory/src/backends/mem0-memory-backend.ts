@@ -48,6 +48,7 @@ type SidecarEnvelope<T> = {
 type RequestOptions = {
   signal?: AbortSignal;
   timeoutMs?: number;
+  maxResponseBytes?: number;
   query?: Record<string, string>;
 };
 
@@ -214,12 +215,17 @@ export class Mem0MemoryBackend implements MemoryBackend {
 
   async list(input: ListMemoryInput, signal?: AbortSignal): Promise<ListMemoryResult> {
     assertScope(input.scope);
+    if (input.mode === "bounded_snapshot" && (input.limit !== 4096 || (input.offset !== undefined && input.offset !== 0))) {
+      throw new MemoryBackendError("VALIDATION_ERROR", "Bounded snapshot listing requires limit 4096 and offset zero.");
+    }
     const opts: RequestOptions = {
       query: {
         scope: input.scope,
         limit: String(input.limit ?? 20),
-        offset: String(input.offset ?? 0)
-      }
+        offset: String(input.offset ?? 0),
+        ...(input.mode === "bounded_snapshot" ? { mode: "bounded_snapshot" } : {})
+      },
+      ...(input.mode === "bounded_snapshot" ? { timeoutMs: 30_000, maxResponseBytes: 67_108_864 } : {})
     };
     if (signal) opts.signal = signal;
     const data = await this.request<ListMemoryResult>("GET", "/v1/memories", undefined, opts);
@@ -227,6 +233,7 @@ export class Mem0MemoryBackend implements MemoryBackend {
       items: Array.isArray(data?.items) ? data.items : []
     };
     if (data?.total !== undefined) result.total = data.total;
+    if (data?.snapshot !== undefined) result.snapshot = data.snapshot;
     return result;
   }
 
@@ -312,14 +319,22 @@ export class Mem0MemoryBackend implements MemoryBackend {
       }
       const response = await this.fetchImpl(url, init);
       let envelope: SidecarEnvelope<T>;
-      try {
-        envelope = (await response.json()) as SidecarEnvelope<T>;
-      } catch {
-        throw new MemoryBackendError(
-          "INTERNAL_ERROR",
-          `Sidecar returned non-JSON response (${response.status}).`,
-          { retryable: response.status >= 500 }
-        );
+      if (options.maxResponseBytes !== undefined) {
+        const text = await readResponseWithByteLimit(response, options.maxResponseBytes);
+        try { envelope = JSON.parse(text) as SidecarEnvelope<T>; }
+        catch {
+          throw new MemoryBackendError("BACKEND_ERROR", "Sidecar snapshot response was not valid JSON.");
+        }
+      } else {
+        try {
+          envelope = (await response.json()) as SidecarEnvelope<T>;
+        } catch {
+          throw new MemoryBackendError(
+            "INTERNAL_ERROR",
+            `Sidecar returned non-JSON response (${response.status}).`,
+            { retryable: response.status >= 500 }
+          );
+        }
       }
       if (!response.ok || envelope.ok === false) {
         const code = envelope.error?.code ?? mapHttpCode(response.status);
@@ -356,6 +371,31 @@ export class Mem0MemoryBackend implements MemoryBackend {
       }
     }
   }
+}
+
+async function readResponseWithByteLimit(response: Response, maxBytes: number): Promise<string> {
+  const reader = response.body?.getReader();
+  if (!reader) throw new TypeError("Sidecar snapshot response body is unavailable.");
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > maxBytes) {
+        await reader.cancel();
+        throw new MemoryBackendError("PROFILE_SOURCE_BYTES_BOUND", "Sidecar snapshot response exceeded its byte bound.");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const joined = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { joined.set(chunk, offset); offset += chunk.byteLength; }
+  return new TextDecoder("utf-8", { fatal: true }).decode(joined);
 }
 
 function assertScope(scope: string): void {

@@ -43,6 +43,8 @@ from yuvi_mem0.schemas import (
 )
 
 logger = logging.getLogger("yuvi_mem0.memory")
+PROFILE_SNAPSHOT_ROW_LIMIT = 4096
+PROFILE_SNAPSHOT_RAW_BYTE_LIMIT = 67_108_864
 
 
 class Mem0Service:
@@ -714,9 +716,38 @@ class Mem0Service:
             return None
         if expected_digest is not None and payload.get("yuviPayloadDigest") != expected_digest:
             return None
+        return self._vector_record_from_payload(memory_id, scope, payload)
+
+    @staticmethod
+    def _vector_record_from_payload(
+        memory_id: str, scope: str, payload: dict[str, Any], *, strict: bool = False
+    ) -> MemoryRecord:
+        content = payload.get("data")
+        actual_scope = payload.get("user_id")
+        if strict and (
+            not isinstance(memory_id, str)
+            or not isinstance(content, str)
+            or not content
+            or not isinstance(actual_scope, str)
+            or actual_scope != scope
+        ):
+            raise SidecarError(
+                "MEMORY_RECORD_INVALID",
+                "Mem0 snapshot row is missing valid identity, content, or scope.",
+                status_code=500,
+            )
+        if strict:
+            return MemoryRecord(
+                id=memory_id,
+                content=content,
+                scope=actual_scope,
+                metadata=payload,
+                createdAt=_as_optional_str(payload.get("created_at")),
+                updatedAt=_as_optional_str(payload.get("updated_at")),
+            )
         return MemoryRecord(
             id=memory_id,
-            content=str(payload.get("data") or ""),
+            content=str(content or ""),
             scope=scope,
             metadata=payload,
             createdAt=_as_optional_str(payload.get("created_at")),
@@ -776,6 +807,99 @@ class Mem0Service:
         items = self._extract_list(raw)
         sliced = items[offset : offset + limit]
         return [self._to_record(item, default_scope=scope) for item in sliced]
+
+    def list_profile_snapshot(self, scope: str) -> tuple[list[MemoryRecord], dict[str, Any]]:
+        """Read one deterministic, scoped PGVector snapshot without reading vectors."""
+        if not isinstance(scope, str) or not scope:
+            raise SidecarError(VALIDATION_ERROR, "scope is required.", status_code=400)
+        memory = self.ensure_ready()
+        with self._idempotency_lock:
+            vector_store = getattr(memory, "vector_store", None)
+            collection = getattr(vector_store, "collection_name", None)
+            if not isinstance(collection, str):
+                raise SidecarError(INTERNAL_ERROR, "Mem0 collection is unavailable.", status_code=503)
+            table = _safe_identifier(collection)
+            connection = self._storage_connection()
+            named_cursor = None
+            try:
+                with connection.cursor() as transaction_cursor:
+                    transaction_cursor.execute("BEGIN READ ONLY")
+                    transaction_cursor.execute("SET LOCAL statement_timeout = '30000ms'")
+                named_cursor = connection.cursor(name=f"yuvi_profile_{uuid.uuid4().hex}")
+                named_cursor.itersize = 100
+                named_cursor.execute(
+                    f"select id, case when octet_length(payload::text) <= %s then payload end as payload, "
+                    f"octet_length(payload::text) as payload_bytes "
+                    f"from {table} where payload->>'user_id' = %s order by id asc limit %s",
+                    (PROFILE_SNAPSHOT_RAW_BYTE_LIMIT, scope, PROFILE_SNAPSHOT_ROW_LIMIT + 1),
+                )
+                items: list[MemoryRecord] = []
+                raw_bytes = 0
+                response_bytes = 256
+                row_count = 0
+                for batch in iter(lambda: named_cursor.fetchmany(100), []):
+                    for raw_id, payload, payload_bytes in batch:
+                        row_count += 1
+                        raw_bytes += int(payload_bytes or 0)
+                        if payload is None or int(payload_bytes or 0) > PROFILE_SNAPSHOT_RAW_BYTE_LIMIT:
+                            named_cursor.close()
+                            named_cursor = None
+                            connection.rollback()
+                            return [], {"mode": "bounded_snapshot", "exhausted": False, "rawBytesExceeded": True}
+                        if raw_bytes > PROFILE_SNAPSHOT_RAW_BYTE_LIMIT:
+                            named_cursor.close()
+                            named_cursor = None
+                            connection.rollback()
+                            return [], {"mode": "bounded_snapshot", "exhausted": False, "rawBytesExceeded": True}
+                        if row_count > PROFILE_SNAPSHOT_ROW_LIMIT:
+                            continue
+                        try:
+                            exact_id = str(uuid.UUID(str(raw_id)))
+                        except (ValueError, TypeError, AttributeError) as exc:
+                            raise SidecarError("MEMORY_RECORD_INVALID", "Mem0 snapshot row id is invalid.", status_code=500) from exc
+                        if not isinstance(payload, dict):
+                            raise SidecarError("MEMORY_RECORD_INVALID", "Mem0 snapshot payload is invalid.", status_code=500)
+                        if payload.get("user_id") != scope:
+                            raise SidecarError("MEMORY_SCOPE_MISMATCH", "Mem0 snapshot row is outside the requested scope.", status_code=500)
+                        record = self._vector_record_from_payload(exact_id, scope, payload, strict=True)
+                        response_bytes += len(record.model_dump_json().encode("utf-8"))
+                        if response_bytes > PROFILE_SNAPSHOT_RAW_BYTE_LIMIT:
+                            named_cursor.close()
+                            named_cursor = None
+                            connection.rollback()
+                            return [], {"mode": "bounded_snapshot", "exhausted": False, "rawBytesExceeded": True}
+                        items.append(record)
+                if named_cursor is not None:
+                    named_cursor.close()
+                    named_cursor = None
+                connection.commit()
+                return items, {
+                    "mode": "bounded_snapshot",
+                    "exhausted": row_count <= PROFILE_SNAPSHOT_ROW_LIMIT,
+                    "rawBytesExceeded": False,
+                }
+            except SidecarError:
+                if named_cursor is not None:
+                    try:
+                        named_cursor.close()
+                    except Exception:  # noqa: BLE001
+                        pass
+                try:
+                    connection.rollback()
+                except Exception:  # noqa: BLE001
+                    pass
+                raise
+            except Exception as exc:  # noqa: BLE001
+                if named_cursor is not None:
+                    try:
+                        named_cursor.close()
+                    except Exception:  # noqa: BLE001
+                        pass
+                try:
+                    connection.rollback()
+                except Exception:  # noqa: BLE001
+                    pass
+                raise SidecarError(INTERNAL_ERROR, "Bounded Mem0 snapshot read failed.", retryable=True, status_code=503) from exc
 
     def update(self, memory_id: str, request: UpdateMemoryRequest) -> MemoryRecord:
         memory = self.ensure_ready()

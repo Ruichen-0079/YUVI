@@ -86,9 +86,16 @@ class MemorySearchResponse(BaseModel):
     items: list[MemoryRecord]
 
 
+class MemorySnapshotMarker(BaseModel):
+    mode: Literal["bounded_snapshot"]
+    exhausted: bool
+    rawBytesExceeded: bool
+
+
 class MemoryListResponse(BaseModel):
     items: list[MemoryRecord]
     total: int | None = None
+    snapshot: MemorySnapshotMarker | None = None
 
 
 class MemoryHistoryEntry(BaseModel):

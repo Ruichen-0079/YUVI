@@ -116,11 +116,17 @@ export type ListMemoryInput = {
   scope: string;
   limit?: number;
   offset?: number;
+  mode?: "bounded_snapshot";
 };
 
 export type ListMemoryResult = {
   items: MemoryRecord[];
   total?: number;
+  snapshot?: {
+    mode: "bounded_snapshot";
+    exhausted: boolean;
+    rawBytesExceeded: boolean;
+  };
 };
 
 export type UpdateMemoryInput = {

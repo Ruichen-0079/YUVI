@@ -430,3 +430,9 @@ export { LocalControllerEvidenceProvider } from "./providers/local-controller-ev
 export * from "./episode-source-evidence.js";
 
 export * from "./dream-source.js";
+
+export * from "./profile-types.js";
+export * from "./profile-source-reader.js";
+export * from "./profile-materializer.js";
+export * from "./profile-snapshot-store.js";
+export * from "./profile-provider.js";

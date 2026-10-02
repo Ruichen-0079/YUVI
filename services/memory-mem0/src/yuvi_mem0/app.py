@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Query, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from yuvi_mem0 import __version__
@@ -189,12 +190,29 @@ def get_memory(memory_id: str, scope: str | None = Query(default=None)) -> dict[
 @app.get("/v1/memories")
 def list_memories(
     scope: str = Query(min_length=1),
-    limit: int = Query(default=20, ge=1, le=100),
+    limit: int = Query(default=20, ge=1),
     offset: int = Query(default=0, ge=0),
+    mode: str | None = Query(default=None),
 ) -> dict[str, Any]:
     started = time.perf_counter()
     service = get_service()
-    items = service.list_memories(scope=scope, limit=limit, offset=offset)
+    if mode is None:
+        if limit > 100:
+            raise RequestValidationError([{
+                "type": "less_than_equal",
+                "loc": ("query", "limit"),
+                "msg": "Input should be less than or equal to 100",
+                "input": limit,
+                "ctx": {"le": 100},
+            }])
+        items = service.list_memories(scope=scope, limit=limit, offset=offset)
+        snapshot = None
+    elif mode != "bounded_snapshot":
+        raise SidecarError("ENUMERATION_UNSUPPORTED", "Requested Memory enumeration mode is unsupported.", status_code=501)
+    else:
+        if limit != 4096 or offset != 0:
+            raise SidecarError("VALIDATION_ERROR", "Bounded snapshot mode requires limit 4096 and offset zero.", status_code=400)
+        items, snapshot = service.list_profile_snapshot(scope=scope)
     duration = int((time.perf_counter() - started) * 1000)
     log_event(
         logger,
@@ -203,8 +221,8 @@ def list_memories(
         scope_hash=hash_scope(scope),
         result_count=len(items),
     )
-    payload = MemoryListResponse(items=items, total=len(items))
-    return _ok(payload.model_dump(), duration)
+    payload = MemoryListResponse(items=items, total=len(items), snapshot=snapshot)
+    return _ok(payload.model_dump(exclude={"snapshot"} if snapshot is None else set()), duration)
 
 
 @app.put("/v1/memories/{memory_id}")

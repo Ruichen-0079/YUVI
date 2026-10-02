@@ -17,6 +17,12 @@ import {
   serializeClaimMetadata
 } from "./claim.js";
 import type { MemoryBackend } from "./backend.js";
+import {
+  LegacyProfileMemorySourceReader,
+  Mem0ProfileMemorySourceReader,
+  UnavailableProfileMemorySourceReader
+} from "./profile-source-reader.js";
+import type { ProfileMemorySourceReader } from "./profile-types.js";
 import type { MemoryConversationTurnWriteResult, MemoryProvider } from "./provider.js";
 import { Mem0MemoryProvider } from "./providers/mem0-memory-provider.js";
 import { MemoryIngestionPolicy } from "./ingestion.js";
@@ -174,6 +180,15 @@ export class MemoryService {
 
   getMemoryProvider(): MemoryProvider | undefined {
     return this.memoryProvider;
+  }
+
+  /** Internal f1 reader over this service's active backend instances. */
+  getProfileMemorySourceReader(): ProfileMemorySourceReader {
+    if (this.backendKind === "mem0" && this.mem0Backend) {
+      return new Mem0ProfileMemorySourceReader(this.mem0Backend);
+    }
+    if (this.backendKind === "legacy") return new LegacyProfileMemorySourceReader(this.repository);
+    return new UnavailableProfileMemorySourceReader();
   }
 
   async createMemory(input: CreateMemoryInput): Promise<Memory> {

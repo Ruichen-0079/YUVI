@@ -1,4 +1,5 @@
 import type { Pool, QueryResultRow } from "pg";
+import Cursor from "pg-cursor";
 import { createPostgresPool } from "@companion/database";
 import type {
   CreateEntityInput,
@@ -25,6 +26,42 @@ import {
   type MemoryLineageV1
 } from "./lineage.js";
 import { parseMemoryRepositoryEnv, type MemoryRepositoryKind } from "./env.js";
+import { MEMORY_CLAIM_METADATA } from "./claim.js";
+import { parseMemoryScope } from "./scope.js";
+import { canonicalLineageJson } from "./lineage-encoding.js";
+
+export type ProfileLegacySourceRow = {
+  id: string;
+  subjectUserId: string | null;
+  personaId: string | null;
+  scope: string;
+  scopeId: string | null;
+  type: string;
+  subtype: string | null;
+  content: string | null;
+  status: string;
+  validFrom: string | null;
+  validUntil: string | null;
+  expiresAt: string | null;
+  supersededAt: string | null;
+  supersedes: string[] | null;
+  supersededBy: string | null;
+  contradicts: string[] | null;
+  lineage: unknown;
+  lineageConsumerKey: string | null;
+  evidenceClassification: string | null;
+  claimMetadata: unknown;
+  contentByteLength: number;
+  lineageByteLength: number;
+  relationshipsOversized: boolean;
+  rawByteLength: number;
+};
+
+export type ProfileLegacySourceSnapshot = {
+  records: ProfileLegacySourceRow[];
+  exhausted: boolean;
+  rawBytesExceeded: boolean;
+};
 
 export type GroundedMemoryRepositoryWrite = {
   memory: CreateMemoryInput;
@@ -65,6 +102,11 @@ export interface MemoryRepository {
   updateMemory(id: string, input: UpdateMemoryInput): Promise<Memory | null>;
   deleteMemory(id: string): Promise<boolean>;
   listRecentMemories(limit?: number): Promise<Memory[]>;
+  listProfileSourceSnapshot(input: {
+    scope: string;
+    rawLimit: 4096;
+    signal?: AbortSignal;
+  }): Promise<ProfileLegacySourceSnapshot>;
   searchMemoriesByTextFallback(query: MemorySearchQuery): Promise<Memory[]>;
   searchMemoriesByEmbedding(query: MemorySearchQuery): Promise<Memory[]>;
   updateMemoryAccess(id: string): Promise<void>;
@@ -368,6 +410,112 @@ export class PostgresMemoryRepository implements MemoryRepository {
     );
 
     return result.rows.map(mapMemoryRow);
+  }
+
+  async listProfileSourceSnapshot(input: {
+    scope: string;
+    rawLimit: 4096;
+    signal?: AbortSignal;
+  }): Promise<ProfileLegacySourceSnapshot> {
+    const parts = parseMemoryScope(input.scope);
+    const client = await this.pool.connect();
+    const cursorName = `yuvi_profile_${crypto.randomUUID().replace(/-/gu, "")}`;
+    let cursor: InstanceType<typeof Cursor> | undefined;
+    let began = false;
+    const rows: ProfileLegacySourceRow[] = [];
+    let rowCount = 0;
+    let rawBytesExceeded = false;
+    const abort = () => { void closeCursor(cursor).catch(() => undefined); };
+    input.signal?.addEventListener("abort", abort, { once: true });
+    try {
+      if (input.signal?.aborted) throw new ProfileSnapshotReadAbortError();
+      await client.query("begin transaction isolation level repeatable read read only");
+      began = true;
+      await client.query("set local statement_timeout = '30000ms'");
+      const claimKeys = Object.values(MEMORY_CLAIM_METADATA)
+        .filter((key) => key !== MEMORY_CLAIM_METADATA.supersedes && key !== MEMORY_CLAIM_METADATA.memoryStatus);
+      const claimProjection = claimKeys.map((key) => `'${key}', metadata->'${key}'`).join(", ");
+      const query = `
+        with scoped as (
+          select id, subject_user_id, persona_id, scope, scope_id, type, subtype, content, status,
+            valid_from, valid_until, expires_at, superseded_at, supersedes, superseded_by,
+            contradicts, memory_lineage, lineage_consumer_key, evidence_classification,
+            jsonb_strip_nulls(jsonb_build_object(${claimProjection})) as claim_metadata
+          from memories
+          where subject_user_id = $1 and persona_id = $2
+          order by id asc
+          limit $3
+        ), sized as (
+          select scoped.*,
+            octet_length((jsonb_build_object(
+              'id', id::text, 'subjectUserId', subject_user_id, 'personaId', persona_id,
+              'scope', scope, 'scopeId', scope_id, 'type', type, 'subtype', subtype,
+              'content', content, 'status', status, 'validFrom', valid_from,
+              'validUntil', valid_until, 'expiresAt', expires_at, 'supersededAt', superseded_at,
+              'supersedes', supersedes, 'supersededBy', superseded_by, 'contradicts', contradicts,
+              'lineage', memory_lineage, 'lineageConsumerKey', lineage_consumer_key,
+              'evidenceClassification', evidence_classification, 'claimMetadata', claim_metadata
+            ))::text) as raw_row_bytes,
+            octet_length(content) as content_byte_length,
+            octet_length(coalesce(memory_lineage::text, '')) as lineage_byte_length,
+            cardinality(supersedes) as supersedes_count,
+            cardinality(contradicts) as contradicts_count
+          from scoped
+        ), bounded as (
+          select sized.*, sum(raw_row_bytes) over (order by id asc) as cumulative_raw_bytes
+          from sized
+        )
+        select id::text as id, subject_user_id as "subjectUserId", persona_id as "personaId",
+          scope, scope_id as "scopeId", type, subtype,
+          case when cumulative_raw_bytes <= 67108864 and content_byte_length <= 65536 then content end as content,
+          status, valid_from as "validFrom", valid_until as "validUntil", expires_at as "expiresAt",
+          superseded_at as "supersededAt",
+          case when cumulative_raw_bytes <= 67108864 and supersedes_count <= 4096 then supersedes end as supersedes,
+          superseded_by as "supersededBy",
+          case when cumulative_raw_bytes <= 67108864 and contradicts_count <= 4096 then contradicts end as contradicts,
+          case when cumulative_raw_bytes <= 67108864 and lineage_byte_length <= 65536 then memory_lineage end as lineage,
+          lineage_consumer_key as "lineageConsumerKey", evidence_classification as "evidenceClassification",
+          case when cumulative_raw_bytes <= 67108864 then claim_metadata end as "claimMetadata",
+          content_byte_length as "contentByteLength", lineage_byte_length as "lineageByteLength",
+          (supersedes_count > 4096 or contradicts_count > 4096) as "relationshipsOversized",
+          raw_row_bytes as "rawByteLength",
+          (cumulative_raw_bytes > 67108864) as "rawBytesExceeded"
+        from bounded order by id asc`;
+      cursor = new Cursor(query, [parts.userId, parts.characterId, input.rawLimit + 1]);
+      // pg-cursor extends Client.query at runtime; pg's public types omit that overload.
+      await client.query(cursor as never);
+      while (true) {
+        if (input.signal?.aborted) throw new ProfileSnapshotReadAbortError();
+        const batch = await readCursorRows(cursor, 100);
+        if (batch.length === 0) break;
+        for (const row of batch) {
+          rowCount += 1;
+          if (row["rawBytesExceeded"] === true) {
+            rawBytesExceeded = true;
+            break;
+          }
+          rows.push(mapProfileLegacySourceRow(row));
+        }
+        if (rawBytesExceeded) break;
+      }
+      await closeCursor(cursor);
+      cursor = undefined;
+      await client.query("rollback");
+      began = false;
+      return {
+        records: rawBytesExceeded ? [] : rows,
+        exhausted: !rawBytesExceeded && rowCount <= input.rawLimit,
+        rawBytesExceeded
+      };
+    } catch (error) {
+      await closeCursor(cursor).catch(() => undefined);
+      if (began) await client.query("rollback").catch(() => undefined);
+      if (input.signal?.aborted || error instanceof ProfileSnapshotReadAbortError) throw new ProfileSnapshotReadAbortError();
+      throw error;
+    } finally {
+      input.signal?.removeEventListener("abort", abort);
+      client.release();
+    }
   }
 
   async getVectorIndexStatus(): Promise<MemoryVectorIndexStatus> {
@@ -1032,6 +1180,39 @@ export class InMemoryMemoryRepository implements MemoryRepository {
       .slice(0, limit);
   }
 
+  async listProfileSourceSnapshot(input: {
+    scope: string;
+    rawLimit: 4096;
+    signal?: AbortSignal;
+  }): Promise<ProfileLegacySourceSnapshot> {
+    const parts = parseMemoryScope(input.scope);
+    if (input.signal?.aborted) throw new ProfileSnapshotReadAbortError();
+    const candidates: Memory[] = [];
+    for (const memory of this.memories) {
+      if (memory.subjectUserId === parts.userId && memory.personaId === parts.characterId) {
+        candidates.push(memory);
+      }
+    }
+    candidates.sort((a, b) => ordinalCompare(a.id.toLowerCase(), b.id.toLowerCase()));
+    const selected = candidates.slice(0, input.rawLimit + 1);
+    const rawByteLengths: number[] = [];
+    let rawBytes = 0;
+    for (const memory of selected) {
+      const remaining = 67_108_864 - rawBytes;
+      const rowBytes = profileLegacySourceRawByteLength(memory, remaining);
+      if (rowBytes > remaining) return { records: [], exhausted: false, rawBytesExceeded: true };
+      rawByteLengths.push(rowBytes);
+      rawBytes += rowBytes;
+    }
+    const projected = selected.map((memory, index) => toProfileLegacySourceRow(memory, rawByteLengths[index]!));
+    if (input.signal?.aborted) throw new ProfileSnapshotReadAbortError();
+    return {
+      records: projected,
+      exhausted: selected.length <= input.rawLimit,
+      rawBytesExceeded: false
+    };
+  }
+
   async searchMemoriesByTextFallback(query: MemorySearchQuery): Promise<Memory[]> {
     const searchText = (query.text ?? "").toLowerCase();
     return this.memories
@@ -1266,6 +1447,205 @@ function mapMemoryRow(row: QueryResultRow): Memory {
 function isSha256Digest(value: string): boolean {
   return /^[a-f0-9]{64}$/u.test(value);
 }
+
+export class ProfileSnapshotReadAbortError extends Error {
+  readonly code = "PROFILE_READ_CANCELLED";
+  constructor() { super("Profile source snapshot read was cancelled."); this.name = "ProfileSnapshotReadAbortError"; }
+}
+
+type ProfilePgCursor = {
+  read(count: number, callback: (error: Error | null, rows: unknown[]) => void): void;
+  close(callback: (error?: Error | null) => void): void;
+};
+
+function readCursorRows(cursor: ProfilePgCursor, count: number): Promise<QueryResultRow[]> {
+  return new Promise((resolve, reject) => {
+    cursor.read(count, (error, rows) => error ? reject(error) : resolve(rows as QueryResultRow[]));
+  });
+}
+
+function closeCursor(cursor: ProfilePgCursor | undefined): Promise<void> {
+  if (!cursor) return Promise.resolve();
+  return new Promise((resolve, reject) => cursor.close((error) => error ? reject(error) : resolve()));
+}
+
+function mapProfileLegacySourceRow(row: QueryResultRow): ProfileLegacySourceRow {
+  const claimMetadata = row["claimMetadata"];
+  return {
+    id: row["id"],
+    subjectUserId: row["subjectUserId"] ?? null,
+    personaId: row["personaId"] ?? null,
+    scope: row["scope"],
+    scopeId: row["scopeId"] ?? null,
+    type: row["type"],
+    subtype: row["subtype"] ?? null,
+    content: row["content"] ?? null,
+    status: row["status"],
+    validFrom: profileIsoOrRaw(row["validFrom"]),
+    validUntil: profileIsoOrRaw(row["validUntil"]),
+    expiresAt: profileIsoOrRaw(row["expiresAt"]),
+    supersededAt: profileIsoOrRaw(row["supersededAt"]),
+    supersedes: Array.isArray(row["supersedes"]) ? [...row["supersedes"]] : null,
+    supersededBy: row["supersededBy"] ?? null,
+    contradicts: Array.isArray(row["contradicts"]) ? [...row["contradicts"]] : null,
+    lineage: row["lineage"] ?? null,
+    lineageConsumerKey: row["lineageConsumerKey"] ?? null,
+    evidenceClassification: row["evidenceClassification"] ?? null,
+    claimMetadata: claimMetadata && typeof claimMetadata === "object" && !Array.isArray(claimMetadata)
+      ? structuredClone(claimMetadata) : {},
+    contentByteLength: Number(row["contentByteLength"]),
+    lineageByteLength: Number(row["lineageByteLength"]),
+    relationshipsOversized: row["relationshipsOversized"] === true,
+    rawByteLength: Number(row["rawByteLength"])
+  };
+}
+
+function toProfileLegacySourceRow(memory: Memory, rawByteLength: number): ProfileLegacySourceRow {
+  const claimMetadata: Record<string, unknown> = {};
+  for (const key of Object.values(MEMORY_CLAIM_METADATA)) {
+    if (key === MEMORY_CLAIM_METADATA.supersedes || key === MEMORY_CLAIM_METADATA.memoryStatus) continue;
+    if (Object.hasOwn(memory.metadata, key)) claimMetadata[key] = structuredClone(memory.metadata[key]);
+  }
+  const content = typeof memory.content === "string" ? memory.content : null;
+  const lineage = memory.lineage ?? null;
+  const contentByteLength = content === null ? 0 : Buffer.byteLength(content, "utf8");
+  const lineageByteLength = lineage === null ? 0 : canonicalJsonByteLength(lineage, 67_108_864);
+  const supersedes = uniqueProfileReferences(memory.supersedes ?? []);
+  const contradicts = uniqueProfileReferences(memory.contradicts ?? []);
+  const relationshipsOversized = supersedes === null || contradicts === null;
+  const all = {
+    id: memory.id,
+    subjectUserId: memory.subjectUserId ?? null,
+    personaId: memory.personaId ?? null,
+    scope: memory.scope,
+    scopeId: memory.scopeId ?? null,
+    type: memory.type,
+    subtype: memory.subtype ?? null,
+    content,
+    status: memory.status,
+    validFrom: profileIsoOrRaw(memory.validFrom),
+    validUntil: profileIsoOrRaw(memory.validUntil),
+    expiresAt: profileIsoOrRaw(memory.expiresAt),
+    supersededAt: profileIsoOrRaw(memory.supersededAt),
+    supersedes: supersedes ?? [],
+    supersededBy: memory.supersededBy ?? null,
+    contradicts: contradicts ?? [],
+    lineage,
+    lineageConsumerKey: memory.lineageConsumerKey ?? null,
+    evidenceClassification: memory.evidenceClassification ?? null,
+    claimMetadata
+  };
+  return {
+    ...all,
+    content: contentByteLength <= 65_536 ? content : null,
+    lineage: lineageByteLength <= 65_536 ? structuredClone(lineage) : null,
+    supersedes: relationshipsOversized ? null : all.supersedes,
+    contradicts: relationshipsOversized ? null : all.contradicts,
+    contentByteLength,
+    lineageByteLength,
+    relationshipsOversized,
+    rawByteLength
+  };
+}
+
+function profileLegacySourceRawByteLength(memory: Memory, limit: number): number {
+  const claimMetadata: Record<string, unknown> = {};
+  for (const key of Object.values(MEMORY_CLAIM_METADATA)) {
+    if (key === MEMORY_CLAIM_METADATA.supersedes || key === MEMORY_CLAIM_METADATA.memoryStatus) continue;
+    if (Object.hasOwn(memory.metadata, key)) claimMetadata[key] = memory.metadata[key];
+  }
+  const rawRow = {
+    id: memory.id,
+    subjectUserId: memory.subjectUserId ?? null,
+    personaId: memory.personaId ?? null,
+    scope: memory.scope,
+    scopeId: memory.scopeId ?? null,
+    type: memory.type,
+    subtype: memory.subtype ?? null,
+    content: typeof memory.content === "string" ? memory.content : null,
+    status: memory.status,
+    validFrom: profileIsoOrRaw(memory.validFrom),
+    validUntil: profileIsoOrRaw(memory.validUntil),
+    expiresAt: profileIsoOrRaw(memory.expiresAt),
+    supersededAt: profileIsoOrRaw(memory.supersededAt),
+    supersedes: memory.supersedes ?? [],
+    supersededBy: memory.supersededBy ?? null,
+    contradicts: memory.contradicts ?? [],
+    lineage: memory.lineage ?? null,
+    lineageConsumerKey: memory.lineageConsumerKey ?? null,
+    evidenceClassification: memory.evidenceClassification ?? null,
+    claimMetadata
+  };
+  return canonicalJsonByteLength(rawRow, limit);
+}
+
+function uniqueProfileReferences(values: string[]): string[] | null {
+  const unique = new Set<string>();
+  for (const value of values) {
+    unique.add(value);
+    if (unique.size > 4096) return null;
+  }
+  return [...unique].sort(ordinalCompare);
+}
+
+function canonicalJsonByteLength(value: unknown, limit: number): number {
+  const overflow = limit + 1;
+  if (value === null) return 4;
+  if (typeof value === "string") return jsonStringByteLength(value);
+  if (typeof value === "boolean") return value ? 4 : 5;
+  if (typeof value === "number") return Buffer.byteLength(JSON.stringify(value), "utf8");
+  if (typeof value !== "object") return 0;
+  if (Array.isArray(value)) {
+    let total = 2;
+    for (let index = 0; index < value.length; index += 1) {
+      if (index > 0) total += 1;
+      total += canonicalJsonByteLength(value[index], limit - total);
+      if (total > limit) return overflow;
+    }
+    return total;
+  }
+  const record = value as Record<string, unknown>;
+  const keys = Object.keys(record).filter((key) => record[key] !== undefined).sort();
+  let total = 2;
+  for (let index = 0; index < keys.length; index += 1) {
+    if (index > 0) total += 1;
+    const key = keys[index]!;
+    total += jsonStringByteLength(key) + 1;
+    total += canonicalJsonByteLength(record[key], limit - total);
+    if (total > limit) return overflow;
+  }
+  return total;
+}
+
+function jsonStringByteLength(value: string): number {
+  let total = 2;
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code === 0x22 || code === 0x5c) total += 2;
+    else if (code <= 0x1f) total += code === 0x08 || code === 0x09 || code === 0x0a || code === 0x0c || code === 0x0d ? 2 : 6;
+    else if (code >= 0xd800 && code <= 0xdbff) {
+      const next = value.charCodeAt(index + 1);
+      if (next >= 0xdc00 && next <= 0xdfff) { total += 4; index += 1; }
+      else total += 6;
+    } else if (code >= 0xdc00 && code <= 0xdfff) total += 6;
+    else if (code <= 0x7f) total += 1;
+    else if (code <= 0x7ff) total += 2;
+    else total += 3;
+  }
+  return total;
+}
+
+function profileIsoOrRaw(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  if (value instanceof Date) return Number.isFinite(value.getTime()) ? value.toISOString() : "Invalid Date";
+  if (typeof value === "string") {
+    const parsed = new Date(value);
+    return Number.isFinite(parsed.getTime()) ? parsed.toISOString() : value;
+  }
+  return String(value);
+}
+
+function ordinalCompare(a: string, b: string): number { return a < b ? -1 : a > b ? 1 : 0; }
 
 function parseJsonValue(value: unknown): unknown | null {
   if (value === null || value === undefined) return null;
