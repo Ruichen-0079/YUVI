@@ -119,10 +119,16 @@ export function mem0HealthOk(body: unknown): boolean {
   const record = body as Record<string, unknown>;
   const data = record["data"];
   if (data && typeof data === "object") {
-    const status = (data as Record<string, unknown>)["status"];
-    return status === "healthy" || status === "degraded";
+    const payload = data as Record<string, unknown>;
+    const capabilities = payload["capabilities"];
+    const supportsProfileSnapshot =
+      Boolean(capabilities) &&
+      typeof capabilities === "object" &&
+      (capabilities as Record<string, unknown>)["profileSnapshotMode"] === "bounded_snapshot";
+    const status = payload["status"];
+    return supportsProfileSnapshot && (status === "healthy" || status === "degraded");
   }
-  return record["ok"] === true;
+  return false;
 }
 
 export function ttsWrapperHealthOk(body: unknown): boolean {

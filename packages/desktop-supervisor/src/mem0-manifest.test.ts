@@ -20,7 +20,8 @@ afterEach(() => {
 function validManifest(): Mem0Manifest {
   return {
     schemaVersion: 1,
-    protocolVersion: 1,
+    protocolVersion: 2,
+    profileSnapshotMode: "bounded_snapshot",
     platform: "win32",
     arch: "x64",
     executable: "yuvi-mem0.exe",
@@ -61,6 +62,14 @@ describe("Mem0 manifest", () => {
     });
   });
 
+  it("rejects packaged Mem0 artifacts that do not declare bounded snapshot support", () => {
+    const tree = fixture();
+    const oldManifest = { ...validManifest(), protocolVersion: 1 } as Record<string, unknown>;
+    delete oldManifest["profileSnapshotMode"];
+    fs.writeFileSync(tree.manifestPath, JSON.stringify(oldManifest));
+    expect(() => readMem0Manifest(tree.manifestPath)).toThrow(/protocolVersion must be 2/i);
+  });
+
   it("rejects missing and invalid JSON files", () => {
     const tree = fixture();
     expect(() => readMem0Manifest(path.join(tree.dir, "missing.json"))).toThrow(
@@ -74,7 +83,8 @@ describe("Mem0 manifest", () => {
     [null, "object"],
     [[], "object"],
     [{ ...validManifest(), schemaVersion: 2 }, "schemaVersion"],
-    [{ ...validManifest(), protocolVersion: 2 }, "protocolVersion"],
+    [{ ...validManifest(), protocolVersion: 1 }, "protocolVersion"],
+    [{ ...validManifest(), profileSnapshotMode: "unsupported" }, "profileSnapshotMode"],
     [{ ...validManifest(), platform: "darwin" }, "platform"],
     [{ ...validManifest(), arch: "arm64" }, "arch"],
     [{ ...validManifest(), healthPath: "/status" }, "healthPath"],

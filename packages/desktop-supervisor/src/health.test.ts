@@ -7,13 +7,20 @@ it.each(["healthy", "degraded", "unhealthy"])(
   async (status) => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => new Response(JSON.stringify({ ok: true, data: { status } })))
+      vi.fn(async () => new Response(JSON.stringify({
+        ok: true,
+        data: { status, capabilities: { profileSnapshotMode: "bounded_snapshot" } }
+      })))
     );
     const result = await probeHttpHealth("http://localhost/health", { validateBody: mem0HealthOk });
     expect(result.ok).toBe(status !== "unhealthy");
     expect(result.degraded).toBe(status === "degraded");
   }
 );
+
+it("rejects a healthy Mem0 instance without bounded snapshot support", () => {
+  expect(mem0HealthOk({ ok: true, data: { status: "healthy", capabilities: { crud: true } } })).toBe(false);
+});
 
 it("distinguishes local TTS warmup from ready without accepting arbitrary JSON", async () => {
   const { ttsWrapperHealthOk } = await import("./health.js");

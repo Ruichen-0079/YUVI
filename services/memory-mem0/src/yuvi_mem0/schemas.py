@@ -124,6 +124,7 @@ class HealthCapabilities(BaseModel):
     infer: bool = False
     crud: bool = False
     search: bool = False
+    profileSnapshotMode: Literal["bounded_snapshot"] = "bounded_snapshot"
 
 
 class HealthEmbedding(BaseModel):

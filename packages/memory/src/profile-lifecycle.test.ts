@@ -76,13 +76,14 @@ function lineage(index: number): GroundedMemoryLineageV1 {
 function source(
   index: number,
   content = "profile evidence " + index,
-  validUntil: string | null = null
+  validUntil: string | null = null,
+  backend: "legacy" | "mem0" = "legacy"
 ): ProfileEvidenceSourceV1 {
   const id = "00000000-0000-4000-8000-" + index.toString(16).padStart(12, "0");
   const normalized = canonicalizeGroundedLineage(lineage(index));
   return ProfileEvidenceSourceV1Schema.parse({
     version: "yuvi-profile-evidence-source.v1",
-    memory: { memoryId: "legacy:" + id, backend: "legacy", sourceRecordId: id },
+    memory: { memoryId: backend + ":" + id, backend, sourceRecordId: id },
     scope,
     nativeScope: { kind: "user", scopeId: null },
     kind: "fact",
@@ -106,7 +107,8 @@ function source(
 function readOutcome(
   sources: ProfileEvidenceSourceV1[],
   asOf: string,
-  state: ProfileSourceReadOutcome["state"] = "COMPLETE"
+  state: ProfileSourceReadOutcome["state"] = "COMPLETE",
+  backend: "legacy" | "mem0" = "legacy"
 ): ProfileSourceReadOutcome {
   const excludedCounts = {
     LEGACY_INCOMPLETE: 0,
@@ -123,7 +125,7 @@ function readOutcome(
   };
   return {
     state,
-    backend: "legacy",
+    backend,
     sources: structuredClone(sources),
     reasons:
       state === "COMPLETE"
@@ -256,6 +258,103 @@ function wrapStore(
 }
 
 describe("A10.1f2 fenced Profile lifecycle", () => {
+  it("replays a historical empty snapshot across backend changes and verifies with the active backend", async () => {
+    const h = harness([]);
+    const first = await h.provider.generate({ subject });
+    expect(first.state).toBe("INSUFFICIENT_EVIDENCE");
+    if (!first.snapshot) throw new Error("Expected the initial empty snapshot.");
+    const original = structuredClone(first.snapshot);
+
+    const readerB = {
+      listEligibleSources: async ({ asOf }: { asOf: string }) =>
+        readOutcome([], asOf, "COMPLETE", "mem0")
+    };
+    const providerB = new LocalProfileProvider({
+      resolveSourceReader: () => readerB,
+      store: h.snapshots,
+      now: () => new Date(h.now.value)
+    });
+    const replay = await providerB.generate({ subject });
+    expect(replay.state).toBe("INSUFFICIENT_EVIDENCE");
+    if (replay.state !== "INSUFFICIENT_EVIDENCE") {
+      throw new Error("Expected an insufficient-evidence replay.");
+    }
+    expect(replay.persistence).toBe("REPLAY");
+    expect(replay.snapshot?.profileRevision).toBe(original.profileRevision);
+    expect(replay.snapshot?.sourceSet.backend).toBe("legacy");
+    expect(replay.sourceRead?.backend).toBe("mem0");
+
+    const composition: CapturedProfileComposition = {
+      reader: readerB,
+      provider: providerB,
+      backend: "mem0",
+      compositionToken: {}
+    };
+    h.coordinator = new ProfileLifecycleCoordinator(
+      h.lifecycle,
+      undefined,
+      composition,
+      () => new Date(h.now.value)
+    );
+    await h.lifecycle.enroll(subject);
+    await runCycle(h);
+
+    const row = await h.lifecycle.get(subject);
+    expect(row?.candidateRevision).toBe(original.profileRevision);
+    expect(row?.candidateBackend).toBe("mem0");
+    const outcome = await h.coordinator.readScopeModel({ subject, readMemory: true });
+    expect(outcome.state).toBe("EMPTY");
+    if (outcome.state !== "EMPTY") throw new Error("Expected a live-proved empty model.");
+    expect(outcome.model.freshness.backend).toBe("mem0");
+    expect(outcome.model.snapshot.sourceSet.backend).toBe("legacy");
+    expect(outcome.model.snapshot).toEqual(original);
+    expect(
+      await h.snapshots.getRevision({ subject, profileRevision: original.profileRevision })
+    ).toEqual(original);
+  });
+
+  it("rejects a non-empty historical snapshot whose backend differs from the active composition", async () => {
+    const h = harness([source(12)]);
+    const historical = await h.provider.generate({ subject });
+    if (!historical.snapshot) throw new Error("Expected a non-empty historical snapshot.");
+    expect(historical.snapshot.sourceSet.backend).toBe("legacy");
+
+    const readerB = {
+      listEligibleSources: async ({ asOf }: { asOf: string }) =>
+        readOutcome([], asOf, "COMPLETE", "mem0")
+    };
+    const providerB = {
+      capabilities: () => h.provider.capabilities(),
+      getProfile: (input: Parameters<LocalProfileProvider["getProfile"]>[0]) =>
+        h.provider.getProfile(input),
+      generate: async () => ({
+        state: historical.snapshot!.generationState,
+        snapshot: historical.snapshot!,
+        persistence: "REPLAY" as const,
+        sourceRead: readOutcome([], new Date(h.now.value).toISOString(), "COMPLETE", "mem0")
+      })
+    };
+    const composition: CapturedProfileComposition = {
+      reader: readerB,
+      provider: providerB,
+      backend: "mem0",
+      compositionToken: {}
+    };
+    h.coordinator = new ProfileLifecycleCoordinator(
+      h.lifecycle,
+      undefined,
+      composition,
+      () => new Date(h.now.value)
+    );
+    await h.lifecycle.enroll(subject);
+    await runCycle(h);
+
+    const row = await h.lifecycle.get(subject);
+    expect(row?.candidateRevision).toBeNull();
+    expect(row?.regenerationNeeded).toBe(true);
+    expect(row?.lastError).toBe("PROFILE_POLICY_UNSUPPORTED");
+  });
+
   it("rejects S1 pre-read, S2 generation read, S2 post-read", async () => {
     const h = harness();
     const a = source(1),

@@ -194,11 +194,14 @@ export class ProfileLifecycleCoordinator {
         .catch(() => undefined);
       return failed(row, "STORE_ERROR", this.now());
     }
+    const emptyReplay =
+      snapshot.generationState === "INSUFFICIENT_EVIDENCE" &&
+      snapshot.sourceSet.sources.length === 0;
     if (
       snapshot.profileRevision !== row.candidateRevision ||
       canonicalLineageJson(snapshot.subject) !== canonicalLineageJson(subject) ||
       snapshot.producer.materializerVersion !== PROFILE_MATERIALIZER_VERSION ||
-      snapshot.sourceSet.backend !== row.candidateBackend
+      (!emptyReplay && snapshot.sourceSet.backend !== row.candidateBackend)
     ) {
       await this.store
         .observeFailure(row.subjectKey, "ERROR", "STORE_ERROR")
@@ -656,10 +659,13 @@ export class ProfileLifecycleCoordinator {
       return;
     }
     const dGen = digestCompleteRead(generated.sourceRead);
+    const generatedEmptyReplay =
+      generatedSnapshot.generationState === "INSUFFICIENT_EVIDENCE" &&
+      generatedSnapshot.sourceSet.sources.length === 0;
     const generatedPolicyValid =
       generatedSnapshot.producer.materializerVersion === PROFILE_MATERIALIZER_VERSION &&
       canonicalLineageJson(generatedSnapshot.subject) === canonicalLineageJson(subject) &&
-      generatedSnapshot.sourceSet.backend === handle.backend;
+      (generatedEmptyReplay || generatedSnapshot.sourceSet.backend === handle.backend);
     if (!this.localFence(handle, signal, heartbeatLost)) {
       await this.store.failAttempt(claim, signal.aborted ? "CANCELLED" : "COMPOSITION_CHANGED");
       return;

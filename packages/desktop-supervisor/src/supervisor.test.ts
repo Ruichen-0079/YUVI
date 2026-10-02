@@ -181,7 +181,8 @@ function packagedConfig(env: Record<string, string> = {}): SupervisorConfig {
     path.join(mem0Dir, "mem0-manifest.json"),
     JSON.stringify({
       schemaVersion: 1,
-      protocolVersion: 1,
+      protocolVersion: 2,
+      profileSnapshotMode: "bounded_snapshot",
       platform: "win32",
       arch: "x64",
       executable: "yuvi-mem0.exe",

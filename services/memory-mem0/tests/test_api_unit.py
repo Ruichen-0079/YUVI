@@ -65,6 +65,7 @@ def test_health_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
     assert body["data"]["collection"] == "yuvi_mem0_qwen3_1024_v1"
     assert body["data"]["components"]["memoryLlm"] == "not_configured"
     assert body["data"]["capabilities"]["infer"] is False
+    assert body["data"]["capabilities"]["profileSnapshotMode"] == "bounded_snapshot"
     assert body["data"]["status"] == "degraded"
 
 

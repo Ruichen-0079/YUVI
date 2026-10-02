@@ -12,6 +12,7 @@ import { materializeProfileSnapshot } from "./profile-materializer.js";
 import { InMemoryProfileSnapshotStore } from "./profile-snapshot-store.js";
 import { LocalProfileProvider } from "./profile-provider.js";
 import { InMemoryProfileLifecycleStore } from "./profile-lifecycle-store.js";
+import type { ProfileSubjectV1 } from "./profile-types.js";
 import {
   ProfileLifecycleCoordinator,
   type CapturedProfileComposition
@@ -19,6 +20,28 @@ import {
 
 const sidecarUrl = process.env["YUVI_MEM0_PROFILE_INTEGRATION_URL"];
 const asOf = "2026-10-02T00:00:00.000Z";
+
+async function runUntilSelected(
+  coordinator: ProfileLifecycleCoordinator,
+  lifecycle: InMemoryProfileLifecycleStore,
+  subject: ProfileSubjectV1,
+  now: { value: Date }
+) {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const row = await lifecycle.get(subject);
+    if (
+      row?.candidateRevision &&
+      row.candidateVersion === row.controlVersion &&
+      !row.regenerationNeeded &&
+      row.lastError === null
+    )
+      return row;
+    if (row?.nextAttemptAt && Date.parse(row.nextAttemptAt) > now.value.getTime())
+      now.value = new Date(row.nextAttemptAt);
+    await (coordinator as unknown as { runTick(): Promise<void> }).runTick();
+  }
+  throw new Error("Profile lifecycle did not select a candidate within the bounded test ticks.");
+}
 
 describe.skipIf(!sidecarUrl)("A10.1f1/f2 real local Mem0 integration", () => {
   it("reads a complete 101-record scope, maps finalized and Dream lineage, and replays locally", async () => {
@@ -150,6 +173,7 @@ describe.skipIf(!sidecarUrl)("A10.1f1/f2 real local Mem0 integration", () => {
     const lineage = makeLineage(identity, "f2-live", "FINALIZED_INGESTION");
     const content = "Please remember that I prefer concise explanations.";
     let memoryId: string | null = null;
+    let externalMemoryId: string | null = null;
     const now = { value: new Date(asOf) };
     const reader = new Mem0ProfileMemorySourceReader(backend);
     const provider = new LocalProfileProvider({
@@ -200,12 +224,10 @@ describe.skipIf(!sidecarUrl)("A10.1f1/f2 real local Mem0 integration", () => {
         return;
       }
       expect(initialRead.state).toBe("COMPLETE");
-      const enrolled = await lifecycle.enroll(subject);
-      now.value = new Date(enrolled.nextAttemptAt!);
-      await (coordinator as unknown as { runTick(): Promise<void> }).runTick();
-      const candidateRevision = (await lifecycle.get(subject))?.candidateRevision;
-      expect(typeof candidateRevision).toBe("string");
-      expect(candidateRevision).toMatch(/^pf1_/u);
+      await lifecycle.enroll(subject);
+      const firstCandidateRow = await runUntilSelected(coordinator, lifecycle, subject, now);
+      const firstCandidateRevision = firstCandidateRow?.candidateRevision;
+      expect(firstCandidateRevision).toMatch(/^pf1_/u);
 
       const verified = await coordinator.readScopeModel({ subject, readMemory: true });
       expect(verified.state).toBe("AVAILABLE");
@@ -214,19 +236,60 @@ describe.skipIf(!sidecarUrl)("A10.1f1/f2 real local Mem0 integration", () => {
       expect(verified.model.freshness.completeness).toBe("COMPLETE");
       expect(verified.model.personBinding.state).toBe("UNBOUND_SCOPE");
 
+      const externalLineage = makeLineage(
+        identity + "-external",
+        "f2-external-add",
+        "FINALIZED_INGESTION"
+      );
+      const externalWrite = await backend.add({
+        scope,
+        content,
+        infer: false,
+        metadata: {
+          ...encodeMemoryLineage(externalLineage),
+          memoryType: "fact",
+          yuviAssertionSource: "user",
+          yuviVerification: "unverified",
+          yuviObservedAt: externalLineage.sourceTime.recordedAt
+        }
+      });
+      externalMemoryId = externalWrite.memoryId;
+      const addedRead = await reader.listEligibleSources({ subject, asOf });
+      expect(addedRead.state, JSON.stringify(addedRead)).toBe("COMPLETE");
+      if (addedRead.state !== "COMPLETE")
+        throw new Error("External present-state addition must remain completely readable.");
+      expect(addedRead.sources).toHaveLength(2);
+
+      const afterExternalAdd = await coordinator.readScopeModel({ subject, readMemory: true });
+      expect(afterExternalAdd.state).toBe("WITHHELD");
+      expect(afterExternalAdd.model).toBeNull();
+      expect((await lifecycle.get(subject))?.regenerationNeeded).toBe(true);
+
+      const expandedRow = await runUntilSelected(coordinator, lifecycle, subject, now);
+      const expandedCandidateRevision = expandedRow.candidateRevision;
+      expect(expandedCandidateRevision).toMatch(/^pf1_/u);
+      expect(expandedCandidateRevision).not.toBe(firstCandidateRevision);
+      const verifiedAfterAdd = await coordinator.readScopeModel({ subject, readMemory: true });
+      expect(verifiedAfterAdd.state).toBe("AVAILABLE");
+
       await backend.delete({ memoryId, scope });
       const afterDelete = await reader.listEligibleSources({ subject, asOf });
       expect(afterDelete.state).toBe("COMPLETE");
       if (afterDelete.state !== "COMPLETE")
         throw new Error("Present-state deletion must remain a complete source read.");
-      expect(afterDelete.sources).toHaveLength(0);
+      expect(afterDelete.sources).toHaveLength(1);
 
       const withheld = await coordinator.readScopeModel({ subject, readMemory: true });
       expect(withheld.state).toBe("WITHHELD");
       expect(withheld.model).toBeNull();
       expect((await lifecycle.get(subject))?.regenerationNeeded).toBe(true);
+
+      await backend.delete({ memoryId: externalWrite.memoryId, scope });
+      externalMemoryId = null;
     } finally {
       if (memoryId) await backend.delete({ memoryId, scope }).catch(() => undefined);
+      if (externalMemoryId)
+        await backend.delete({ memoryId: externalMemoryId, scope }).catch(() => undefined);
       await coordinator.shutdown({ graceMs: 2_000 });
     }
   }, 60_000);

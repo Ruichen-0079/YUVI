@@ -5,6 +5,7 @@ import type { Mem0Manifest } from "./types.js";
 const MEM0_MANIFEST_FIELDS = new Set([
   "schemaVersion",
   "protocolVersion",
+  "profileSnapshotMode",
   "platform",
   "arch",
   "executable",
@@ -44,8 +45,11 @@ export function validateMem0Manifest(raw: unknown): Mem0Manifest {
   if (obj["schemaVersion"] !== 1) {
     throw manifestError("schemaVersion must be 1");
   }
-  if (obj["protocolVersion"] !== 1) {
-    throw manifestError("protocolVersion must be 1");
+  if (obj["protocolVersion"] !== 2) {
+    throw manifestError("protocolVersion must be 2");
+  }
+  if (obj["profileSnapshotMode"] !== "bounded_snapshot") {
+    throw manifestError("profileSnapshotMode must be bounded_snapshot");
   }
   const platform = obj["platform"];
   if (platform !== "win32" && platform !== "linux") {
@@ -72,7 +76,8 @@ export function validateMem0Manifest(raw: unknown): Mem0Manifest {
   }
   return {
     schemaVersion: 1,
-    protocolVersion: 1,
+    protocolVersion: 2,
+    profileSnapshotMode: "bounded_snapshot",
     platform,
     arch: "x64",
     executable,

@@ -34,7 +34,8 @@ function artifact({ manifest = LINUX_MEM0_MANIFEST, files = 850, bytes = 52 * 10
 test("Linux Mem0 manifest is fixed to the managed loopback contract", () => {
   assert.deepEqual(LINUX_MEM0_MANIFEST, {
     schemaVersion: 1,
-    protocolVersion: 1,
+    protocolVersion: 2,
+    profileSnapshotMode: "bounded_snapshot",
     platform: "linux",
     arch: "x64",
     executable: "yuvi-mem0",

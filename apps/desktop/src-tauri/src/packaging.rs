@@ -38,6 +38,7 @@ pub struct PackagedLaunch {
 struct Mem0Manifest {
     schema_version: u8,
     protocol_version: u8,
+    profile_snapshot_mode: String,
     platform: String,
     arch: String,
     executable: String,
@@ -252,7 +253,8 @@ pub fn resolve_packaged_launch(
     let manifest: Mem0Manifest =
         serde_json::from_str(&manifest_text).map_err(|e| format!("Mem0 manifest invalid: {e}"))?;
     if manifest.schema_version != 1
-        || manifest.protocol_version != 1
+        || manifest.protocol_version != 2
+        || manifest.profile_snapshot_mode != "bounded_snapshot"
         || manifest.platform != "win32"
         || manifest.arch != "x64"
         || manifest.executable != "yuvi-mem0.exe"
@@ -585,7 +587,7 @@ mod tests {
         fs::write(mem0.join("_internal").join("placeholder.dat"), b"x").unwrap();
         fs::write(
       mem0.join("mem0-manifest.json"),
-      r#"{"schemaVersion":1,"protocolVersion":1,"platform":"win32","arch":"x64","executable":"yuvi-mem0.exe","healthPath":"/health","defaultHost":"127.0.0.1","defaultPort":6131}"#,
+      r#"{"schemaVersion":1,"protocolVersion":2,"profileSnapshotMode":"bounded_snapshot","platform":"win32","arch":"x64","executable":"yuvi-mem0.exe","healthPath":"/health","defaultHost":"127.0.0.1","defaultPort":6131}"#,
     )
     .unwrap();
 
@@ -802,7 +804,7 @@ mod tests {
         fs::write(rt.join("yuvi-runtime-server.mjs"), "x").unwrap();
         fs::write(rt.join("runtime-manifest.json"), r#"{"schemaVersion":1,"platform":"win32","arch":"x64","nodeExecutable":"node.exe","runtimeEntry":"yuvi-runtime-server.mjs"}"#).unwrap();
         write_mem0_fixture(&root);
-        fs::write(root.join("mem0").join("mem0-manifest.json"), r#"{"schemaVersion":1,"protocolVersion":1,"platform":"win32","arch":"x64","executable":"yuvi-mem0.exe","healthPath":"/health","defaultHost":"127.0.0.1","defaultPort":6131,"extra":true}"#).unwrap();
+        fs::write(root.join("mem0").join("mem0-manifest.json"), r#"{"schemaVersion":1,"protocolVersion":2,"profileSnapshotMode":"bounded_snapshot","platform":"win32","arch":"x64","executable":"yuvi-mem0.exe","healthPath":"/health","defaultHost":"127.0.0.1","defaultPort":6131,"extra":true}"#).unwrap();
         assert!(resolve_packaged_launch(root, dir.path().join("state")).is_err());
     }
 

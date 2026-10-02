@@ -226,7 +226,8 @@ export type SupervisorLayout =
 
 export type Mem0Manifest = {
   schemaVersion: 1;
-  protocolVersion: 1;
+  protocolVersion: 2;
+  profileSnapshotMode: "bounded_snapshot";
   platform: "win32" | "linux";
   arch: "x64";
   executable: string;

@@ -55,7 +55,8 @@ function makePackagedResourceTree(): {
     mem0ManifestPath,
     JSON.stringify({
       schemaVersion: 1,
-      protocolVersion: 1,
+      protocolVersion: 2,
+      profileSnapshotMode: "bounded_snapshot",
       platform: "win32",
       arch: "x64",
       executable: "yuvi-mem0.exe",
@@ -667,7 +668,8 @@ describe("packaged supervisor layout", () => {
 function validMem0Manifest() {
   return {
     schemaVersion: 1,
-    protocolVersion: 1,
+    protocolVersion: 2,
+    profileSnapshotMode: "bounded_snapshot",
     platform: "win32",
     arch: "x64",
     executable: "yuvi-mem0.exe",

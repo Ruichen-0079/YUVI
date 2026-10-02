@@ -9,7 +9,8 @@ export const LINUX_MEM0_EXE_NAME = "yuvi-mem0";
 export const LINUX_MEM0_REAL_EXE_NAME = "yuvi-mem0.bin";
 export const LINUX_MEM0_MANIFEST = Object.freeze({
   schemaVersion: 1,
-  protocolVersion: 1,
+  protocolVersion: 2,
+  profileSnapshotMode: "bounded_snapshot",
   platform: "linux",
   arch: "x64",
   executable: LINUX_MEM0_EXE_NAME,

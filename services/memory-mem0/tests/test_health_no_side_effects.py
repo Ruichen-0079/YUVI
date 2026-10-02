@@ -28,6 +28,7 @@ def test_health_does_not_reinitialize_mem0(monkeypatch) -> None:  # type: ignore
     assert calls["init"] == 0
     assert data.components.memoryLlm == "not_configured"
     assert data.capabilities.infer is False
+    assert data.capabilities.profileSnapshotMode == "bounded_snapshot"
     assert data.status == "degraded"
 
 

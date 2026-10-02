@@ -14,7 +14,8 @@ import {
 
 export const MEM0_MANIFEST = Object.freeze({
   schemaVersion: 1,
-  protocolVersion: 1,
+  protocolVersion: 2,
+  profileSnapshotMode: "bounded_snapshot",
   platform: "win32",
   arch: "x64",
   executable: MEM0_EXE_NAME,
