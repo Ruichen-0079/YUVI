@@ -436,3 +436,5 @@ export * from "./profile-source-reader.js";
 export * from "./profile-materializer.js";
 export * from "./profile-snapshot-store.js";
 export * from "./profile-provider.js";
+export * from "./profile-lifecycle-store.js";
+export * from "./profile-lifecycle.js";

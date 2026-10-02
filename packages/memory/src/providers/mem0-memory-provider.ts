@@ -156,13 +156,24 @@ export function mapMem0RecordToMemoryEvent(
 }
 
 export class Mem0MemoryProvider implements MemoryProvider {
-  constructor(private readonly backend: MemoryBackend) {
+  private profileNotificationFailureCount = 0;
+  constructor(
+    private readonly backend: MemoryBackend,
+    private readonly onProfileMutation?: (input: {
+      scope: string;
+      reason: "DELIVERY_OBSERVED";
+    }) => Promise<void> | void
+  ) {
     if (backend.kind !== "mem0") {
       throw new Mem0MemoryProviderError(
         "MEMORY_BACKEND_KIND_INVALID",
         `Mem0MemoryProvider requires a mem0 backend; received ${backend.kind}.`
       );
     }
+  }
+
+  getProfileNotificationFailureCount(): number {
+    return this.profileNotificationFailureCount;
   }
 
   async retrieveRelevant(input: MemoryRetrievalInput): Promise<MemoryRetrievalOutcome> {
@@ -429,13 +440,14 @@ export class Mem0MemoryProvider implements MemoryProvider {
   }
 
   async reconcileEvent(
-    input: Pick<MemoryWriteEventInput, "idempotencyKey" | "payloadDigest">
+    input: Pick<MemoryWriteEventInput, "idempotencyKey" | "payloadDigest"> & { scope?: string }
   ): Promise<MemoryReconciliationResult> {
     const key = input.idempotencyKey?.trim();
     const digest = input.payloadDigest?.trim();
     if (!key || !digest)
       return { status: "unknown", errorCode: "MEMORY_IDEMPOTENCY_INPUT_MISSING" };
     if (!this.backend.reconcileIdempotency) {
+      if (input.scope) await this.notifyReconciliation(input.scope);
       return { status: "unknown", errorCode: "MEMORY_RECONCILIATION_UNSUPPORTED" };
     }
     try {
@@ -448,6 +460,29 @@ export class Mem0MemoryProvider implements MemoryProvider {
         status: "unknown",
         errorCode: safeErrorCode(error, "MEMORY_RECONCILIATION_UNAVAILABLE")
       };
+    } finally {
+      if (input.scope) await this.notifyReconciliation(input.scope);
+    }
+  }
+
+  private async notifyReconciliation(scope: string): Promise<void> {
+    if (!this.onProfileMutation) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const completed = await Promise.race([
+        Promise.resolve(this.onProfileMutation({ scope, reason: "DELIVERY_OBSERVED" })).then(
+          () => true,
+          () => false
+        ),
+        new Promise<boolean>((resolve) => {
+          timer = setTimeout(() => resolve(false), 1_000);
+        })
+      ]);
+      if (!completed) this.profileNotificationFailureCount += 1;
+    } catch {
+      this.profileNotificationFailureCount += 1;
+    } finally {
+      if (timer) clearTimeout(timer);
     }
   }
 }

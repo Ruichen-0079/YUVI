@@ -270,6 +270,6 @@ export interface MemoryProvider {
   writeEvent(input: MemoryWriteEventInput): Promise<MemoryWriteEventOutcome>;
   writeEventIdempotent?(input: MemoryWriteEventInput): Promise<MemoryWriteEventOutcome>;
   reconcileEvent?(
-    input: Pick<MemoryWriteEventInput, "idempotencyKey" | "payloadDigest">
+    input: Pick<MemoryWriteEventInput, "idempotencyKey" | "payloadDigest"> & { scope?: string }
   ): Promise<MemoryReconciliationResult>;
 }

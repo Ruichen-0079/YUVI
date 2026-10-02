@@ -1,6 +1,7 @@
 import { applyRuntimeEnv, readRuntimeEnvFiles } from "../packages/config/src/index.js";
 import {
   MemoryMaintenanceService,
+  PostgresProfileLifecycleStore,
   createMemoryRepositoryFromEnv,
   type MemoryMaintenanceOptions,
   type MemoryScope
@@ -12,6 +13,15 @@ async function main(): Promise<void> {
   await loadRuntimeEnv();
   const options = parseArgs(process.argv.slice(2));
   const repository = createMemoryRepositoryFromEnv(process.env);
+  const databaseClient = repository.getDatabaseClient?.();
+  if (repository.kind === "postgres" && databaseClient && "connect" in databaseClient) {
+    const lifecycleStore = new PostgresProfileLifecycleStore(
+      databaseClient as ConstructorParameters<typeof PostgresProfileLifecycleStore>[0]
+    );
+    repository.setProfileMutationNotifier?.(({ scope, reason }) =>
+      lifecycleStore.invalidateScope(scope, reason)
+    );
+  }
   const service = new MemoryMaintenanceService(repository);
 
   try {

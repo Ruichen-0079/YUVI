@@ -73,7 +73,7 @@ export async function reconcileDreamEvent(
     return { status: "unknown", errorCode: "MEMORY_RECONCILIATION_UNSUPPORTED" };
   }
   try {
-    return await provider.reconcileEvent({ idempotencyKey, payloadDigest });
+    return await provider.reconcileEvent({ idempotencyKey, payloadDigest, scope: event.scope });
   } catch {
     return { status: "unknown", errorCode: "MEMORY_RECONCILIATION_UNAVAILABLE" };
   }

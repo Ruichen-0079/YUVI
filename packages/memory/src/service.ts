@@ -118,6 +118,10 @@ export type MemoryServiceBackendConfig = {
         info?(message: string, context?: Record<string, unknown>): void;
       }
     | undefined;
+  onProfileMutation?: (input: {
+    scope: string;
+    reason: "DELIVERY_DISPATCHED" | "DELIVERY_OBSERVED" | "MEMORY_CHANGED" | "MEMORY_WITHDRAWN";
+  }) => Promise<void> | void;
 };
 
 export class MemoryService {
@@ -154,7 +158,9 @@ export class MemoryService {
     this.mem0SearchTimeoutMs = backend?.searchTimeoutMs ?? MEM0_CHAT_SEARCH_TIMEOUT_MS;
     this.mem0WriteTimeoutMs = backend?.writeTimeoutMs ?? MEM0_CHAT_WRITE_TIMEOUT_MS;
     this.mem0Logger = backend?.logger ?? embedding?.logger;
-    this.memoryProvider = this.mem0Backend ? new Mem0MemoryProvider(this.mem0Backend) : undefined;
+    this.memoryProvider = this.mem0Backend
+      ? new Mem0MemoryProvider(this.mem0Backend, backend?.onProfileMutation)
+      : undefined;
     this.controllerEvidence = backend?.controllerEvidence;
     this.memoryIngestionPolicy = backend?.ingestionPolicy ?? new MemoryIngestionPolicy();
     this.groundingResolver =
@@ -171,6 +177,22 @@ export class MemoryService {
 
   getBackendKind(): "legacy" | "mem0" {
     return this.isMem0Backend() ? "mem0" : "legacy";
+  }
+
+  getProfileMutationDiagnostics(): {
+    backendNotificationFailureCount: number;
+    reconciliationNotificationFailureCount: number;
+  } {
+    const backend = this.mem0Backend as
+      | (MemoryBackend & { getProfileNotificationFailureCount?: () => number })
+      | undefined;
+    const provider = this.memoryProvider as
+      | (MemoryProvider & { getProfileNotificationFailureCount?: () => number })
+      | undefined;
+    return {
+      backendNotificationFailureCount: backend?.getProfileNotificationFailureCount?.() ?? 0,
+      reconciliationNotificationFailureCount: provider?.getProfileNotificationFailureCount?.() ?? 0
+    };
   }
 
   /** Runtime-facing semantic retrieval provider; legacy mode remains facade-only. */
@@ -299,10 +321,14 @@ export class MemoryService {
       sourceTraceId: input.sourceTraceId
     });
     for (const candidate of candidates) {
-      const result = await this.processCandidateForStorage(candidate, {
-        source: input.source ?? "runtime",
-        tags: input.tags ?? []
-      }, input.groundingContext);
+      const result = await this.processCandidateForStorage(
+        candidate,
+        {
+          source: input.source ?? "runtime",
+          tags: input.tags ?? []
+        },
+        input.groundingContext
+      );
       if (result.decision === "stored") {
         return result.memory ?? null;
       }
@@ -424,7 +450,8 @@ export class MemoryService {
       ...(memoryInput.scopeId === undefined
         ? {}
         : { scopeId: memoryInput.scopeId ?? inferMemoryScopeId(normalized) }),
-      memoryLayer: memoryInput.memoryLayer ?? inferMemoryLayer(memoryInput.type, memoryInput.subtype ?? null),
+      memoryLayer:
+        memoryInput.memoryLayer ?? inferMemoryLayer(memoryInput.type, memoryInput.subtype ?? null),
       content: memoryInput.content,
       summary: memoryInput.summary,
       importance: memoryInput.importance ?? 0.5,
@@ -432,7 +459,9 @@ export class MemoryService {
       eventTime: memoryInput.eventTime,
       lineage
     });
-    const existingGrounded = await this.repository.getGroundedMemoryByConsumerKey?.(lineage.consumerKey);
+    const existingGrounded = await this.repository.getGroundedMemoryByConsumerKey?.(
+      lineage.consumerKey
+    );
     if (existingGrounded) {
       if (existingGrounded.payloadDigest !== payloadDigest) throw new MemoryLineageConflictError();
       return {
@@ -512,18 +541,18 @@ export class MemoryService {
           : {})
     };
     const finalCandidate = {
-        ...storageCandidate,
-        metadata: {
-          ...(storageCandidate.metadata ?? {}),
-          storageReason: decision.reason,
-          ...(hasCorrectionRequest(normalized)
-            ? {
-                correctionRequested: true,
-                correctedMemoryIds: correctionRelationships.relatedMemoryIds
-              }
-            : {})
-        }
-      };
+      ...storageCandidate,
+      metadata: {
+        ...(storageCandidate.metadata ?? {}),
+        storageReason: decision.reason,
+        ...(hasCorrectionRequest(normalized)
+          ? {
+              correctionRequested: true,
+              correctedMemoryIds: correctionRelationships.relatedMemoryIds
+            }
+          : {})
+      }
+    };
     const finalStorageCandidate = this.applyRetentionPolicy(finalCandidate, options);
     const finalInput = this.candidateMemoryInput(finalStorageCandidate, options);
     const memory = await this.persistGroundedCandidate(finalInput, lineage, payloadDigest);
@@ -943,17 +972,13 @@ export class MemoryService {
       eventTime: normalized.eventTime ?? null,
       validFrom:
         normalized.validFrom ??
-        resolveCanonicalTemporalBounds(
-          normalized,
-          resolveTimezoneFromObservedAt(observedAt)
-        )?.validFrom ??
+        resolveCanonicalTemporalBounds(normalized, resolveTimezoneFromObservedAt(observedAt))
+          ?.validFrom ??
         observedAt,
       validUntil:
         normalized.validUntil ??
-        resolveCanonicalTemporalBounds(
-          normalized,
-          resolveTimezoneFromObservedAt(observedAt)
-        )?.validUntil ??
+        resolveCanonicalTemporalBounds(normalized, resolveTimezoneFromObservedAt(observedAt))
+          ?.validUntil ??
         null,
       expiresAt: normalized.expiresAt ?? null,
       supersedes: normalized.possibleSupersedes ?? [],

@@ -188,9 +188,7 @@ export class MemoryIngestionCoordinator implements MemoryIngestionCoordinatorPor
     | undefined;
   private readonly conversation:
     | {
-        getMessageById?(
-          messageId: string
-        ): Promise<{
+        getMessageById?(messageId: string): Promise<{
           role: string;
           content: string;
           sourceJournalRef?: JournalEventRef | null;
@@ -586,7 +584,8 @@ export class MemoryIngestionCoordinator implements MemoryIngestionCoordinatorPor
       try {
         result = await this.provider.reconcileEvent({
           idempotencyKey: claimed.backendIdempotencyKey,
-          payloadDigest
+          payloadDigest,
+          scope: claimed.eventPayload.scope
         });
       } catch (error) {
         result = {

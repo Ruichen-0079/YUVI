@@ -613,4 +613,20 @@ describe("Mem0MemoryProvider canonical mapping", () => {
       ).resolves.toMatchObject({ status });
     }
   );
+
+  it("notifies the original reconciliation scope without changing an ambiguous outcome", async () => {
+    const notices: Array<{ scope: string; reason: string }> = [];
+    const provider = new Mem0MemoryProvider(
+      backend({ reconcileIdempotency: vi.fn(async () => ({ status: "in_flight" as const })) }),
+      async (notice) => {
+        notices.push(notice);
+        throw new Error("lifecycle store unavailable");
+      }
+    );
+    await expect(
+      provider.reconcileEvent!({ idempotencyKey: "key-1", payloadDigest: "digest-1", scope })
+    ).resolves.toMatchObject({ status: "in_flight" });
+    expect(notices).toEqual([{ scope, reason: "DELIVERY_OBSERVED" }]);
+    expect(provider.getProfileNotificationFailureCount()).toBe(1);
+  });
 });

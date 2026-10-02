@@ -62,8 +62,12 @@ import {
   createFinalizedIngestionRepositoryFromEnv,
   createRecentEpisodeStoreFromEnv,
   InMemoryProfileSnapshotStore,
+  InMemoryProfileLifecycleStore,
   LocalProfileProvider,
   PostgresProfileSnapshotStore,
+  PostgresProfileLifecycleStore,
+  ProfileLifecycleCoordinator,
+  ScopePeopleModelReader,
   FinalizedIngestionService,
   MemoryIngestionCoordinator,
   InMemoryDreamJobStore,
@@ -76,6 +80,8 @@ import {
   type MemoryRepository,
   type ProfileProvider,
   type ProfileSnapshotStore,
+  type CapturedProfileComposition,
+  type ProfileLifecycleStore,
   type RecentEpisodeStore
 } from "@companion/memory";
 import { normalizeCharacterOutputLanguage } from "@companion/character-abi";
@@ -129,6 +135,9 @@ export type AppContext = {
   memoryIngestionCoordinator: MemoryIngestionCoordinator;
   memory: MemoryService;
   profileProvider: ProfileProvider;
+  profileLifecycleStore: ProfileLifecycleStore;
+  profileLifecycle: ProfileLifecycleCoordinator;
+  scopePeopleModelReader: ScopePeopleModelReader;
   providers: ProviderRegistry;
   runtime: RuntimeOrchestrator;
   embodiedPresentationBridge: EmbodiedPresentationBridge;
@@ -203,6 +212,9 @@ export async function createAppContext(
   const profileSnapshotStore: ProfileSnapshotStore = databasePool
     ? new PostgresProfileSnapshotStore(databasePool)
     : new InMemoryProfileSnapshotStore();
+  const profileLifecycleStore: ProfileLifecycleStore = databasePool
+    ? new PostgresProfileLifecycleStore(databasePool)
+    : new InMemoryProfileLifecycleStore();
   const journalRepository = databasePool
     ? new PostgresJournalRepository(databasePool, {
         namespace: process.env["YUVI_JOURNAL_NAMESPACE"] ?? "yuvi:default",
@@ -262,6 +274,7 @@ export async function createAppContext(
   const ruleBasedExtractor = new RuleBasedMemoryExtractor();
   const runtimeLogger = createRuntimeLogger(logger);
   const proactiveStateStore: RuntimeProactiveStateStore = createFileProactiveStateStore(bootEnv);
+  let profileLifecycleCoordinator: ProfileLifecycleCoordinator;
 
   function createMemoryService(
     providers: ProviderRegistry,
@@ -296,7 +309,9 @@ export async function createAppContext(
             mem0WriteTimeoutMs: 180_000,
             ...(runtimeConfig.memory.mem0HealthTimeoutMs !== undefined
               ? { mem0HealthTimeoutMs: runtimeConfig.memory.mem0HealthTimeoutMs }
-              : {})
+              : {}),
+            onProfileMutation: ({ scope, reason }) =>
+              profileLifecycleCoordinator.invalidateScope({ scope, reason })
           })
         : undefined;
 
@@ -332,6 +347,8 @@ export async function createAppContext(
         searchTimeoutMs: runtimeConfig.memory.mem0TimeoutMs,
         writeTimeoutMs: 180_000,
         journalEvidenceReader: journalRepository ?? undefined,
+        onProfileMutation: ({ scope, reason }) =>
+          profileLifecycleCoordinator.invalidateScope({ scope, reason }),
         logger: runtimeLogger
       }
     );
@@ -452,8 +469,17 @@ export async function createAppContext(
   let coordinator: MemoryIngestionCoordinator;
   let runtime: RuntimeOrchestrator;
   try {
+    profileLifecycleCoordinator = new ProfileLifecycleCoordinator(
+      profileLifecycleStore,
+      runtimeLogger
+    );
+    memoryRepository.setProfileMutationNotifier?.(({ scope, reason }) =>
+      profileLifecycleCoordinator.invalidateScope({ scope, reason })
+    );
     providers = createProviderRegistryFromEnv(bootEnv);
     memory = createMemoryService(providers);
+    const initialComposition = captureProfileComposition(memory, profileSnapshotStore);
+    await profileLifecycleCoordinator.replaceComposition(initialComposition);
     profileProvider = new LocalProfileProvider({
       resolveSourceReader: () => memory.getProfileMemorySourceReader(),
       store: profileSnapshotStore
@@ -507,12 +533,16 @@ export async function createAppContext(
     ttsReceiptAdmission,
     voiceControlReceiptAdmission,
     async closeDatabasePool() {
+      await profileLifecycleCoordinator.shutdown({ graceMs: 2_000 });
       await databasePool?.end();
     },
     finalizedIngestion,
     memoryIngestionCoordinator: coordinator,
     memory,
     profileProvider,
+    profileLifecycleStore,
+    profileLifecycle: profileLifecycleCoordinator,
+    scopePeopleModelReader: new ScopePeopleModelReader(profileLifecycleCoordinator),
     providers,
     runtime,
     embodiedPresentationBridge,
@@ -539,6 +569,7 @@ export async function createAppContext(
       const extractorMode = parseMemoryExtractorDriver(reloadEnv["MEMORY_EXTRACTOR"]);
       const nextProviders = createProviderRegistryFromEnv(reloadEnv);
       const nextMemory = createMemoryService(nextProviders, extractorMode, reloadEnv);
+      const nextProfileComposition = captureProfileComposition(nextMemory, profileSnapshotStore);
       const nextRuntime = createRuntime(
         nextProviders,
         nextMemory,
@@ -564,14 +595,16 @@ export async function createAppContext(
       context.memoryIngestionCoordinator.replaceProvider(
         nextMemory.getMemoryProvider() ?? unavailableMemoryProvider()
       );
-      context.providers = nextProviders;
-      context.memory = nextMemory;
-      context.runtime = nextRuntime;
-      context.runtime.startProactiveScheduler({
-        sessionId: "default",
-        readMemory: true,
-        personaId: parseRuntimeConfig(reloadEnv).memory.personaId,
-        subjectUserId: parseRuntimeConfig(reloadEnv).memory.subjectUserId
+      await context.profileLifecycle.replaceComposition(nextProfileComposition, () => {
+        context.providers = nextProviders;
+        context.memory = nextMemory;
+        context.runtime = nextRuntime;
+        context.runtime.startProactiveScheduler({
+          sessionId: "default",
+          readMemory: true,
+          personaId: parseRuntimeConfig(reloadEnv).memory.personaId,
+          subjectUserId: parseRuntimeConfig(reloadEnv).memory.subjectUserId
+        });
       });
 
       const appliedKeys: string[] = [];
@@ -601,6 +634,20 @@ export async function createAppContext(
   };
 
   return context;
+}
+
+function captureProfileComposition(
+  memory: MemoryService,
+  store: ProfileSnapshotStore
+): CapturedProfileComposition {
+  const reader = memory.getProfileMemorySourceReader();
+  const provider = new LocalProfileProvider({ resolveSourceReader: () => reader, store });
+  return {
+    reader,
+    provider,
+    backend: memory.getBackendKind(),
+    compositionToken: {}
+  };
 }
 
 function sameRuntimeSettingValue(

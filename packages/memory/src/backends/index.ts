@@ -15,6 +15,10 @@ export type MemoryBackendFactoryOptions = {
   mem0WriteTimeoutMs?: number;
   mem0HealthTimeoutMs?: number;
   fetchImpl?: typeof fetch;
+  onProfileMutation?: (input: {
+    scope: string;
+    reason: "DELIVERY_DISPATCHED" | "DELIVERY_OBSERVED" | "MEMORY_CHANGED" | "MEMORY_WITHDRAWN";
+  }) => Promise<void> | void;
 };
 
 /**
@@ -40,6 +44,7 @@ export function createMemoryBackend(options: MemoryBackendFactoryOptions = {}): 
       writeTimeoutMs?: number;
       healthTimeoutMs?: number;
       fetchImpl?: typeof fetch;
+      onProfileMutation?: NonNullable<MemoryBackendFactoryOptions["onProfileMutation"]>;
     } = { baseUrl };
     if (options.mem0TimeoutMs !== undefined) mem0Options.timeoutMs = options.mem0TimeoutMs;
     if (options.mem0WriteTimeoutMs !== undefined) {
@@ -49,6 +54,7 @@ export function createMemoryBackend(options: MemoryBackendFactoryOptions = {}): 
       mem0Options.healthTimeoutMs = options.mem0HealthTimeoutMs;
     }
     if (options.fetchImpl !== undefined) mem0Options.fetchImpl = options.fetchImpl;
+    if (options.onProfileMutation) mem0Options.onProfileMutation = options.onProfileMutation;
     return new Mem0MemoryBackend(mem0Options);
   }
   throw new MemoryBackendError(

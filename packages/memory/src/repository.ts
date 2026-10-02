@@ -27,7 +27,7 @@ import {
 } from "./lineage.js";
 import { parseMemoryRepositoryEnv, type MemoryRepositoryKind } from "./env.js";
 import { MEMORY_CLAIM_METADATA } from "./claim.js";
-import { parseMemoryScope } from "./scope.js";
+import { buildMemoryScope, parseMemoryScope } from "./scope.js";
 import { canonicalLineageJson } from "./lineage-encoding.js";
 
 export type ProfileLegacySourceRow = {
@@ -74,8 +74,15 @@ export type GroundedMemoryRepositoryResult = {
   inserted: boolean;
 };
 
+export type ProfileMutationNotifier = (input: {
+  scope: string;
+  reason: "MEMORY_ADMITTED" | "MEMORY_CHANGED" | "MEMORY_WITHDRAWN";
+}) => Promise<void> | void;
+
 export class MemoryLineageConflictError extends Error {
-  constructor(message = "Grounded Memory consumer key conflicts with an existing logical payload.") {
+  constructor(
+    message = "Grounded Memory consumer key conflicts with an existing logical payload."
+  ) {
     super(message);
     this.name = "MemoryLineageConflictError";
   }
@@ -87,6 +94,8 @@ export interface MemoryRepository {
     query(text: string, values?: unknown[]): Promise<{ rows: QueryResultRow[] }>;
     end(): Promise<void>;
   };
+  setProfileMutationNotifier?(notifier: ProfileMutationNotifier | undefined): void;
+  getProfileMutationDiagnostics?(): { notificationFailureCount: number };
   healthCheck(): Promise<{ status: "healthy" | "unavailable"; message?: string }>;
   getRetrievalMode?():
     | "in-memory-keyword"
@@ -96,8 +105,12 @@ export interface MemoryRepository {
     | "postgres-hybrid-keyword"
     | "postgres-hybrid";
   createMemory(input: CreateMemoryInput): Promise<Memory>;
-  createGroundedMemory?(input: GroundedMemoryRepositoryWrite): Promise<GroundedMemoryRepositoryResult>;
-  getGroundedMemoryByConsumerKey?(key: string): Promise<{ memory: Memory; payloadDigest: string } | null>;
+  createGroundedMemory?(
+    input: GroundedMemoryRepositoryWrite
+  ): Promise<GroundedMemoryRepositoryResult>;
+  getGroundedMemoryByConsumerKey?(
+    key: string
+  ): Promise<{ memory: Memory; payloadDigest: string } | null>;
   getMemoryById(id: string): Promise<Memory | null>;
   updateMemory(id: string, input: UpdateMemoryInput): Promise<Memory | null>;
   deleteMemory(id: string): Promise<boolean>;
@@ -120,6 +133,8 @@ export class PostgresMemoryRepository implements MemoryRepository {
   readonly kind = "postgres";
   private readonly pool: Pool;
   private readonly ownsPool: boolean;
+  private profileMutationNotifier: ProfileMutationNotifier | undefined;
+  private profileNotificationFailureCount = 0;
 
   constructor(connectionString: string | Pool) {
     this.ownsPool = typeof connectionString === "string";
@@ -149,6 +164,14 @@ export class PostgresMemoryRepository implements MemoryRepository {
     return this.pool;
   }
 
+  setProfileMutationNotifier(notifier: ProfileMutationNotifier | undefined): void {
+    this.profileMutationNotifier = notifier;
+  }
+
+  getProfileMutationDiagnostics(): { notificationFailureCount: number } {
+    return { notificationFailureCount: this.profileNotificationFailureCount };
+  }
+
   async createMemory(input: CreateMemoryInput): Promise<Memory> {
     const memory = await this.insertMemory(input, null, null);
     if (!memory) throw new Error("Memory insert did not return its created row.");
@@ -164,10 +187,15 @@ export class PostgresMemoryRepository implements MemoryRepository {
       !isSha256Digest(input.payloadDigest) ||
       input.memory.evidenceClassification !== undefined
     ) {
-      throw new TypeError("Grounded Memory persistence requires valid GROUNDED lineage and a digest.");
+      throw new TypeError(
+        "Grounded Memory persistence requires valid GROUNDED lineage and a digest."
+      );
     }
     const inserted = await this.insertMemory(input.memory, lineage, input.payloadDigest, true);
-    if (inserted) return { memory: inserted, inserted: true };
+    if (inserted) {
+      await this.notifyProfileMutation([inserted], "MEMORY_ADMITTED");
+      return { memory: inserted, inserted: true };
+    }
     const existing = await this.getGroundedMemoryByConsumerKey(lineage.consumerKey);
     if (!existing) throw new Error("Grounded Memory uniqueness row disappeared after conflict.");
     if (existing.payloadDigest !== input.payloadDigest) throw new MemoryLineageConflictError();
@@ -384,20 +412,44 @@ export class PostgresMemoryRepository implements MemoryRepository {
     }
 
     values.push(id);
-    const result = await this.pool.query(
-      `update memories
-       set ${assignments.join(", ")}, updated_at = now()
-       where id = $${values.length}
-       returning *`,
-      values
-    );
-    const row = result.rows[0];
-    return row ? mapMemoryRow(row) : null;
+    const client = await this.pool.connect();
+    let before: Memory | null = null;
+    let updated: Memory | null = null;
+    try {
+      await client.query("begin");
+      const prior = await client.query("select * from memories where id = $1 for update", [id]);
+      if (!prior.rows[0]) {
+        await client.query("commit");
+        return null;
+      }
+      before = mapMemoryRow(prior.rows[0]);
+      const result = await client.query(
+        `update memories
+         set ${assignments.join(", ")}, updated_at = now()
+         where id = $${values.length}
+         returning *`,
+        values
+      );
+      updated = result.rows[0] ? mapMemoryRow(result.rows[0]) : null;
+      await client.query("commit");
+    } catch (error) {
+      await client.query("rollback").catch(() => undefined);
+      throw error;
+    } finally {
+      client.release();
+    }
+    if (before && updated && isProfileRelevantPatch(input)) {
+      await this.notifyProfileMutation([before, updated], profileMutationReason(before, updated));
+    }
+    return updated;
   }
 
   async deleteMemory(id: string): Promise<boolean> {
-    const result = await this.pool.query("delete from memories where id = $1", [id]);
-    return (result.rowCount ?? 0) > 0;
+    const result = await this.pool.query("delete from memories where id = $1 returning *", [id]);
+    const row = result.rows[0];
+    if (!row) return false;
+    await this.notifyProfileMutation([mapMemoryRow(row)], "MEMORY_WITHDRAWN");
+    return true;
   }
 
   async listRecentMemories(limit = 20): Promise<Memory[]> {
@@ -425,15 +477,19 @@ export class PostgresMemoryRepository implements MemoryRepository {
     const rows: ProfileLegacySourceRow[] = [];
     let rowCount = 0;
     let rawBytesExceeded = false;
-    const abort = () => { void closeCursor(cursor).catch(() => undefined); };
+    const abort = () => {
+      void closeCursor(cursor).catch(() => undefined);
+    };
     input.signal?.addEventListener("abort", abort, { once: true });
     try {
       if (input.signal?.aborted) throw new ProfileSnapshotReadAbortError();
       await client.query("begin transaction isolation level repeatable read read only");
       began = true;
       await client.query("set local statement_timeout = '30000ms'");
-      const claimKeys = Object.values(MEMORY_CLAIM_METADATA)
-        .filter((key) => key !== MEMORY_CLAIM_METADATA.supersedes && key !== MEMORY_CLAIM_METADATA.memoryStatus);
+      const claimKeys = Object.values(MEMORY_CLAIM_METADATA).filter(
+        (key) =>
+          key !== MEMORY_CLAIM_METADATA.supersedes && key !== MEMORY_CLAIM_METADATA.memoryStatus
+      );
       const claimProjection = claimKeys.map((key) => `'${key}', metadata->'${key}'`).join(", ");
       const query = `
         with scoped as (
@@ -510,7 +566,8 @@ export class PostgresMemoryRepository implements MemoryRepository {
     } catch (error) {
       await closeCursor(cursor).catch(() => undefined);
       if (began) await client.query("rollback").catch(() => undefined);
-      if (input.signal?.aborted || error instanceof ProfileSnapshotReadAbortError) throw new ProfileSnapshotReadAbortError();
+      if (input.signal?.aborted || error instanceof ProfileSnapshotReadAbortError)
+        throw new ProfileSnapshotReadAbortError();
       throw error;
     } finally {
       input.signal?.removeEventListener("abort", abort);
@@ -929,17 +986,60 @@ export class PostgresMemoryRepository implements MemoryRepository {
       await this.pool.end();
     }
   }
+
+  private async notifyProfileMutation(
+    memories: Memory[],
+    reason: "MEMORY_ADMITTED" | "MEMORY_CHANGED" | "MEMORY_WITHDRAWN"
+  ): Promise<void> {
+    const notify = this.profileMutationNotifier;
+    if (!notify) return;
+    let scopes: string[];
+    try {
+      scopes = [...new Set(memories.map(profilePartitionScope))];
+    } catch {
+      this.profileNotificationFailureCount += 1;
+      return;
+    }
+    await Promise.all(
+      scopes.map(async (scope) => {
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try {
+          const completed = await Promise.race([
+            Promise.resolve(notify({ scope, reason })).then(
+              () => true,
+              () => false
+            ),
+            new Promise<boolean>((resolve) => {
+              timer = setTimeout(() => resolve(false), 1_000);
+            })
+          ]);
+          if (!completed) this.profileNotificationFailureCount += 1;
+        } catch {
+          this.profileNotificationFailureCount += 1;
+        } finally {
+          if (timer) clearTimeout(timer);
+        }
+      })
+    );
+  }
 }
 
 export class InMemoryMemoryRepository implements MemoryRepository {
   readonly kind = "in-memory";
   private readonly memories: Memory[] = [];
-  private readonly groundedConsumers = new Map<
-    string,
-    { payloadDigest: string; memory: Memory }
-  >();
+  private readonly groundedConsumers = new Map<string, { payloadDigest: string; memory: Memory }>();
   private readonly entities: Entity[] = [];
   private readonly relations: Relation[] = [];
+  private profileMutationNotifier: ProfileMutationNotifier | undefined;
+  private profileNotificationFailureCount = 0;
+
+  setProfileMutationNotifier(notifier: ProfileMutationNotifier | undefined): void {
+    this.profileMutationNotifier = notifier;
+  }
+
+  getProfileMutationDiagnostics(): { notificationFailureCount: number } {
+    return { notificationFailureCount: this.profileNotificationFailureCount };
+  }
 
   async healthCheck(): Promise<{ status: "healthy" | "unavailable"; message?: string }> {
     return { status: "healthy", message: "Using in-memory memory repository." };
@@ -964,7 +1064,9 @@ export class InMemoryMemoryRepository implements MemoryRepository {
       !isSha256Digest(input.payloadDigest) ||
       input.memory.evidenceClassification !== undefined
     ) {
-      throw new TypeError("Grounded Memory persistence requires valid GROUNDED lineage and a digest.");
+      throw new TypeError(
+        "Grounded Memory persistence requires valid GROUNDED lineage and a digest."
+      );
     }
     const existing = this.groundedConsumers.get(lineage.consumerKey);
     if (existing) {
@@ -977,6 +1079,7 @@ export class InMemoryMemoryRepository implements MemoryRepository {
       payloadDigest: input.payloadDigest,
       memory
     });
+    await this.notifyProfileMutation([memory], "MEMORY_ADMITTED");
     return { memory, inserted: true };
   }
 
@@ -1060,6 +1163,7 @@ export class InMemoryMemoryRepository implements MemoryRepository {
     if (!memory) {
       return null;
     }
+    const before = structuredClone(memory);
 
     if (input.type !== undefined) {
       memory.type = input.type;
@@ -1161,6 +1265,9 @@ export class InMemoryMemoryRepository implements MemoryRepository {
       memory.contradicts = input.contradicts;
     }
     memory.updatedAt = new Date();
+    if (isProfileRelevantPatch(input)) {
+      await this.notifyProfileMutation([before, memory], profileMutationReason(before, memory));
+    }
     return memory;
   }
 
@@ -1169,7 +1276,9 @@ export class InMemoryMemoryRepository implements MemoryRepository {
     if (index === -1) {
       return false;
     }
+    const removed = this.memories[index]!;
     this.memories.splice(index, 1);
+    await this.notifyProfileMutation([removed], "MEMORY_WITHDRAWN");
     return true;
   }
 
@@ -1204,7 +1313,9 @@ export class InMemoryMemoryRepository implements MemoryRepository {
       rawByteLengths.push(rowBytes);
       rawBytes += rowBytes;
     }
-    const projected = selected.map((memory, index) => toProfileLegacySourceRow(memory, rawByteLengths[index]!));
+    const projected = selected.map((memory, index) =>
+      toProfileLegacySourceRow(memory, rawByteLengths[index]!)
+    );
     if (input.signal?.aborted) throw new ProfileSnapshotReadAbortError();
     return {
       records: projected,
@@ -1355,6 +1466,83 @@ export class InMemoryMemoryRepository implements MemoryRepository {
     this.relations.push(relation);
     return relation;
   }
+
+  private async notifyProfileMutation(
+    memories: Memory[],
+    reason: "MEMORY_ADMITTED" | "MEMORY_CHANGED" | "MEMORY_WITHDRAWN"
+  ): Promise<void> {
+    const notify = this.profileMutationNotifier;
+    if (!notify) return;
+    let scopes: string[];
+    try {
+      scopes = [...new Set(memories.map(profilePartitionScope))];
+    } catch {
+      this.profileNotificationFailureCount += 1;
+      return;
+    }
+    await Promise.all(
+      scopes.map(async (scope) => {
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try {
+          const completed = await Promise.race([
+            Promise.resolve(notify({ scope, reason })).then(
+              () => true,
+              () => false
+            ),
+            new Promise<boolean>((resolve) => {
+              timer = setTimeout(() => resolve(false), 1_000);
+            })
+          ]);
+          if (!completed) this.profileNotificationFailureCount += 1;
+        } catch {
+          this.profileNotificationFailureCount += 1;
+        } finally {
+          if (timer) clearTimeout(timer);
+        }
+      })
+    );
+  }
+}
+
+function profilePartitionScope(memory: Pick<Memory, "subjectUserId" | "personaId">): string {
+  return buildMemoryScope(
+    String(memory.subjectUserId ?? "default-user"),
+    String(memory.personaId ?? "default-persona")
+  );
+}
+
+function isProfileRelevantPatch(input: UpdateMemoryInput): boolean {
+  return Object.keys(input).some((key) =>
+    [
+      "type",
+      "subtype",
+      "scope",
+      "scopeId",
+      "status",
+      "content",
+      "personaId",
+      "subjectUserId",
+      "metadata",
+      "validFrom",
+      "validUntil",
+      "expiresAt",
+      "supersededAt",
+      "supersedes",
+      "supersededBy",
+      "contradicts"
+    ].includes(key)
+  );
+}
+
+function profileMutationReason(
+  before: Memory,
+  after: Memory
+): "MEMORY_CHANGED" | "MEMORY_WITHDRAWN" {
+  return ["archived", "forgotten", "expired", "superseded"].includes(after.status) ||
+    before.subjectUserId !== after.subjectUserId ||
+    before.personaId !== after.personaId
+    ? "MEMORY_WITHDRAWN"
+    : "MEMORY_CHANGED";
 }
 
 export function createMemoryRepositoryFromEnv(
@@ -1450,7 +1638,10 @@ function isSha256Digest(value: string): boolean {
 
 export class ProfileSnapshotReadAbortError extends Error {
   readonly code = "PROFILE_READ_CANCELLED";
-  constructor() { super("Profile source snapshot read was cancelled."); this.name = "ProfileSnapshotReadAbortError"; }
+  constructor() {
+    super("Profile source snapshot read was cancelled.");
+    this.name = "ProfileSnapshotReadAbortError";
+  }
 }
 
 type ProfilePgCursor = {
@@ -1460,13 +1651,17 @@ type ProfilePgCursor = {
 
 function readCursorRows(cursor: ProfilePgCursor, count: number): Promise<QueryResultRow[]> {
   return new Promise((resolve, reject) => {
-    cursor.read(count, (error, rows) => error ? reject(error) : resolve(rows as QueryResultRow[]));
+    cursor.read(count, (error, rows) =>
+      error ? reject(error) : resolve(rows as QueryResultRow[])
+    );
   });
 }
 
 function closeCursor(cursor: ProfilePgCursor | undefined): Promise<void> {
   if (!cursor) return Promise.resolve();
-  return new Promise((resolve, reject) => cursor.close((error) => error ? reject(error) : resolve()));
+  return new Promise((resolve, reject) =>
+    cursor.close((error) => (error ? reject(error) : resolve()))
+  );
 }
 
 function mapProfileLegacySourceRow(row: QueryResultRow): ProfileLegacySourceRow {
@@ -1491,8 +1686,10 @@ function mapProfileLegacySourceRow(row: QueryResultRow): ProfileLegacySourceRow 
     lineage: row["lineage"] ?? null,
     lineageConsumerKey: row["lineageConsumerKey"] ?? null,
     evidenceClassification: row["evidenceClassification"] ?? null,
-    claimMetadata: claimMetadata && typeof claimMetadata === "object" && !Array.isArray(claimMetadata)
-      ? structuredClone(claimMetadata) : {},
+    claimMetadata:
+      claimMetadata && typeof claimMetadata === "object" && !Array.isArray(claimMetadata)
+        ? structuredClone(claimMetadata)
+        : {},
     contentByteLength: Number(row["contentByteLength"]),
     lineageByteLength: Number(row["lineageByteLength"]),
     relationshipsOversized: row["relationshipsOversized"] === true,
@@ -1503,8 +1700,10 @@ function mapProfileLegacySourceRow(row: QueryResultRow): ProfileLegacySourceRow 
 function toProfileLegacySourceRow(memory: Memory, rawByteLength: number): ProfileLegacySourceRow {
   const claimMetadata: Record<string, unknown> = {};
   for (const key of Object.values(MEMORY_CLAIM_METADATA)) {
-    if (key === MEMORY_CLAIM_METADATA.supersedes || key === MEMORY_CLAIM_METADATA.memoryStatus) continue;
-    if (Object.hasOwn(memory.metadata, key)) claimMetadata[key] = structuredClone(memory.metadata[key]);
+    if (key === MEMORY_CLAIM_METADATA.supersedes || key === MEMORY_CLAIM_METADATA.memoryStatus)
+      continue;
+    if (Object.hasOwn(memory.metadata, key))
+      claimMetadata[key] = structuredClone(memory.metadata[key]);
   }
   const content = typeof memory.content === "string" ? memory.content : null;
   const lineage = memory.lineage ?? null;
@@ -1551,7 +1750,8 @@ function toProfileLegacySourceRow(memory: Memory, rawByteLength: number): Profil
 function profileLegacySourceRawByteLength(memory: Memory, limit: number): number {
   const claimMetadata: Record<string, unknown> = {};
   for (const key of Object.values(MEMORY_CLAIM_METADATA)) {
-    if (key === MEMORY_CLAIM_METADATA.supersedes || key === MEMORY_CLAIM_METADATA.memoryStatus) continue;
+    if (key === MEMORY_CLAIM_METADATA.supersedes || key === MEMORY_CLAIM_METADATA.memoryStatus)
+      continue;
     if (Object.hasOwn(memory.metadata, key)) claimMetadata[key] = memory.metadata[key];
   }
   const rawRow = {
@@ -1605,7 +1805,9 @@ function canonicalJsonByteLength(value: unknown, limit: number): number {
     return total;
   }
   const record = value as Record<string, unknown>;
-  const keys = Object.keys(record).filter((key) => record[key] !== undefined).sort();
+  const keys = Object.keys(record)
+    .filter((key) => record[key] !== undefined)
+    .sort();
   let total = 2;
   for (let index = 0; index < keys.length; index += 1) {
     if (index > 0) total += 1;
@@ -1622,11 +1824,15 @@ function jsonStringByteLength(value: string): number {
   for (let index = 0; index < value.length; index += 1) {
     const code = value.charCodeAt(index);
     if (code === 0x22 || code === 0x5c) total += 2;
-    else if (code <= 0x1f) total += code === 0x08 || code === 0x09 || code === 0x0a || code === 0x0c || code === 0x0d ? 2 : 6;
+    else if (code <= 0x1f)
+      total +=
+        code === 0x08 || code === 0x09 || code === 0x0a || code === 0x0c || code === 0x0d ? 2 : 6;
     else if (code >= 0xd800 && code <= 0xdbff) {
       const next = value.charCodeAt(index + 1);
-      if (next >= 0xdc00 && next <= 0xdfff) { total += 4; index += 1; }
-      else total += 6;
+      if (next >= 0xdc00 && next <= 0xdfff) {
+        total += 4;
+        index += 1;
+      } else total += 6;
     } else if (code >= 0xdc00 && code <= 0xdfff) total += 6;
     else if (code <= 0x7f) total += 1;
     else if (code <= 0x7ff) total += 2;
@@ -1637,7 +1843,8 @@ function jsonStringByteLength(value: string): number {
 
 function profileIsoOrRaw(value: unknown): string | null {
   if (value === null || value === undefined) return null;
-  if (value instanceof Date) return Number.isFinite(value.getTime()) ? value.toISOString() : "Invalid Date";
+  if (value instanceof Date)
+    return Number.isFinite(value.getTime()) ? value.toISOString() : "Invalid Date";
   if (typeof value === "string") {
     const parsed = new Date(value);
     return Number.isFinite(parsed.getTime()) ? parsed.toISOString() : value;
@@ -1645,7 +1852,9 @@ function profileIsoOrRaw(value: unknown): string | null {
   return String(value);
 }
 
-function ordinalCompare(a: string, b: string): number { return a < b ? -1 : a > b ? 1 : 0; }
+function ordinalCompare(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
 
 function parseJsonValue(value: unknown): unknown | null {
   if (value === null || value === undefined) return null;

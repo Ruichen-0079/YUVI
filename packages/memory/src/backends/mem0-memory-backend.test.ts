@@ -71,6 +71,30 @@ describe("Mem0MemoryBackend", () => {
     expect(result.operation).toBe("created");
   });
 
+  it("runs bounded pre/finally mutation notices without changing a successful write", async () => {
+    const scope = buildMemoryScope("user-a", "alice");
+    const notices: Array<{ scope: string; reason: string }> = [];
+    const fetchImpl = vi.fn(async () =>
+      Response.json({ ok: true, data: { memoryId: "mem-profile-notice", operation: "created" } })
+    );
+    const backend = new Mem0MemoryBackend({
+      baseUrl: "http://127.0.0.1:6130",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      onProfileMutation: async (notice) => {
+        notices.push(notice);
+        throw new Error("lifecycle store unavailable");
+      }
+    });
+    await expect(backend.add({ scope, content: "fact", infer: false })).resolves.toMatchObject({
+      memoryId: "mem-profile-notice"
+    });
+    expect(notices).toEqual([
+      { scope, reason: "DELIVERY_DISPATCHED" },
+      { scope, reason: "DELIVERY_OBSERVED" }
+    ]);
+    expect(backend.getProfileNotificationFailureCount()).toBe(2);
+  });
+
   it("submits and reconciles keyed finalized writes through exact sidecar routes", async () => {
     const scope = buildMemoryScope("user-a", "alice");
     const fetchImpl = vi.fn(async (_url: string | URL, init?: RequestInit) => {

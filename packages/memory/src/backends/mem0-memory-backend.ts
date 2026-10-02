@@ -31,6 +31,10 @@ export type Mem0MemoryBackendOptions = {
   writeTimeoutMs?: number;
   healthTimeoutMs?: number;
   fetchImpl?: typeof fetch;
+  onProfileMutation?: (input: {
+    scope: string;
+    reason: "DELIVERY_DISPATCHED" | "DELIVERY_OBSERVED" | "MEMORY_CHANGED" | "MEMORY_WITHDRAWN";
+  }) => Promise<void> | void;
 };
 
 type SidecarEnvelope<T> = {
@@ -59,6 +63,8 @@ export class Mem0MemoryBackend implements MemoryBackend {
   private readonly writeTimeoutMs: number;
   private readonly healthTimeoutMs: number;
   private readonly fetchImpl: typeof fetch;
+  private readonly onProfileMutation: Mem0MemoryBackendOptions["onProfileMutation"];
+  private profileNotificationFailureCount = 0;
 
   constructor(options: Mem0MemoryBackendOptions) {
     const base = options.baseUrl?.trim();
@@ -70,6 +76,11 @@ export class Mem0MemoryBackend implements MemoryBackend {
     this.writeTimeoutMs = Math.max(this.timeoutMs, options.writeTimeoutMs ?? 180_000);
     this.healthTimeoutMs = Math.max(100, options.healthTimeoutMs ?? 1000);
     this.fetchImpl = options.fetchImpl ?? fetch;
+    this.onProfileMutation = options.onProfileMutation;
+  }
+
+  getProfileNotificationFailureCount(): number {
+    return this.profileNotificationFailureCount;
   }
 
   async health(signal?: AbortSignal): Promise<MemoryBackendHealth> {
@@ -92,18 +103,24 @@ export class Mem0MemoryBackend implements MemoryBackend {
     assertScope(input.scope);
     const opts: RequestOptions = { timeoutMs: this.writeTimeoutMs };
     if (signal) opts.signal = signal;
-    const data = await this.request<MemoryWriteResult>(
-      "POST",
-      "/v1/memories",
-      {
-        scope: input.scope,
-        content: input.content,
-        messages: input.messages,
-        infer: input.infer ?? true,
-        metadata: input.metadata ?? {}
-      },
-      opts
-    );
+    await this.notifyProfileMutation(input.scope, "DELIVERY_DISPATCHED");
+    let data: MemoryWriteResult;
+    try {
+      data = await this.request<MemoryWriteResult>(
+        "POST",
+        "/v1/memories",
+        {
+          scope: input.scope,
+          content: input.content,
+          messages: input.messages,
+          infer: input.infer ?? true,
+          metadata: input.metadata ?? {}
+        },
+        opts
+      );
+    } finally {
+      await this.notifyProfileMutation(input.scope, "DELIVERY_OBSERVED");
+    }
     if (!data?.memoryId) {
       throw new MemoryBackendError("INTERNAL_ERROR", "Sidecar add response missing memoryId.");
     }
@@ -123,20 +140,26 @@ export class Mem0MemoryBackend implements MemoryBackend {
     }
     const opts: RequestOptions = { timeoutMs: this.writeTimeoutMs };
     if (signal) opts.signal = signal;
-    const data = await this.request<MemoryWriteResult>(
-      "POST",
-      "/v1/memories/idempotent",
-      {
-        scope: input.scope,
-        content: input.content,
-        messages: input.messages,
-        infer: false,
-        metadata: input.metadata ?? {},
-        idempotencyKey: input.idempotencyKey,
-        payloadDigest: input.payloadDigest
-      },
-      opts
-    );
+    await this.notifyProfileMutation(input.scope, "DELIVERY_DISPATCHED");
+    let data: MemoryWriteResult;
+    try {
+      data = await this.request<MemoryWriteResult>(
+        "POST",
+        "/v1/memories/idempotent",
+        {
+          scope: input.scope,
+          content: input.content,
+          messages: input.messages,
+          infer: false,
+          metadata: input.metadata ?? {},
+          idempotencyKey: input.idempotencyKey,
+          payloadDigest: input.payloadDigest
+        },
+        opts
+      );
+    } finally {
+      await this.notifyProfileMutation(input.scope, "DELIVERY_OBSERVED");
+    }
     if (!data?.memoryId) {
       throw new MemoryBackendError(
         "INTERNAL_ERROR",
@@ -215,8 +238,14 @@ export class Mem0MemoryBackend implements MemoryBackend {
 
   async list(input: ListMemoryInput, signal?: AbortSignal): Promise<ListMemoryResult> {
     assertScope(input.scope);
-    if (input.mode === "bounded_snapshot" && (input.limit !== 4096 || (input.offset !== undefined && input.offset !== 0))) {
-      throw new MemoryBackendError("VALIDATION_ERROR", "Bounded snapshot listing requires limit 4096 and offset zero.");
+    if (
+      input.mode === "bounded_snapshot" &&
+      (input.limit !== 4096 || (input.offset !== undefined && input.offset !== 0))
+    ) {
+      throw new MemoryBackendError(
+        "VALIDATION_ERROR",
+        "Bounded snapshot listing requires limit 4096 and offset zero."
+      );
     }
     const opts: RequestOptions = {
       query: {
@@ -225,7 +254,9 @@ export class Mem0MemoryBackend implements MemoryBackend {
         offset: String(input.offset ?? 0),
         ...(input.mode === "bounded_snapshot" ? { mode: "bounded_snapshot" } : {})
       },
-      ...(input.mode === "bounded_snapshot" ? { timeoutMs: 30_000, maxResponseBytes: 67_108_864 } : {})
+      ...(input.mode === "bounded_snapshot"
+        ? { timeoutMs: 30_000, maxResponseBytes: 67_108_864 }
+        : {})
     };
     if (signal) opts.signal = signal;
     const data = await this.request<ListMemoryResult>("GET", "/v1/memories", undefined, opts);
@@ -246,16 +277,17 @@ export class Mem0MemoryBackend implements MemoryBackend {
     }
     const opts: RequestOptions = { timeoutMs: this.writeTimeoutMs };
     if (signal) opts.signal = signal;
-    return this.request<MemoryRecord>(
-      "PUT",
-      `/v1/memories/${encodeURIComponent(input.memoryId)}`,
-      {
-        content: input.content,
-        scope: input.scope,
-        metadata: input.metadata
-      },
-      opts
-    );
+    if (input.scope) await this.notifyProfileMutation(input.scope, "DELIVERY_DISPATCHED");
+    try {
+      return await this.request<MemoryRecord>(
+        "PUT",
+        `/v1/memories/${encodeURIComponent(input.memoryId)}`,
+        { content: input.content, scope: input.scope, metadata: input.metadata },
+        opts
+      );
+    } finally {
+      if (input.scope) await this.notifyProfileMutation(input.scope, "MEMORY_CHANGED");
+    }
   }
 
   async delete(input: DeleteMemoryInput, signal?: AbortSignal): Promise<void> {
@@ -265,12 +297,17 @@ export class Mem0MemoryBackend implements MemoryBackend {
     const opts: RequestOptions = { timeoutMs: this.writeTimeoutMs };
     if (signal) opts.signal = signal;
     if (input.scope) opts.query = { scope: input.scope };
-    await this.request<unknown>(
-      "DELETE",
-      `/v1/memories/${encodeURIComponent(input.memoryId)}`,
-      undefined,
-      opts
-    );
+    if (input.scope) await this.notifyProfileMutation(input.scope, "DELIVERY_DISPATCHED");
+    try {
+      await this.request<unknown>(
+        "DELETE",
+        `/v1/memories/${encodeURIComponent(input.memoryId)}`,
+        undefined,
+        opts
+      );
+    } finally {
+      if (input.scope) await this.notifyProfileMutation(input.scope, "MEMORY_WITHDRAWN");
+    }
   }
 
   async history(input: MemoryHistoryInput, signal?: AbortSignal): Promise<MemoryHistoryEntry[]> {
@@ -321,9 +358,13 @@ export class Mem0MemoryBackend implements MemoryBackend {
       let envelope: SidecarEnvelope<T>;
       if (options.maxResponseBytes !== undefined) {
         const text = await readResponseWithByteLimit(response, options.maxResponseBytes);
-        try { envelope = JSON.parse(text) as SidecarEnvelope<T>; }
-        catch {
-          throw new MemoryBackendError("BACKEND_ERROR", "Sidecar snapshot response was not valid JSON.");
+        try {
+          envelope = JSON.parse(text) as SidecarEnvelope<T>;
+        } catch {
+          throw new MemoryBackendError(
+            "BACKEND_ERROR",
+            "Sidecar snapshot response was not valid JSON."
+          );
         }
       } else {
         try {
@@ -371,6 +412,30 @@ export class Mem0MemoryBackend implements MemoryBackend {
       }
     }
   }
+
+  private async notifyProfileMutation(
+    scope: string,
+    reason: "DELIVERY_DISPATCHED" | "DELIVERY_OBSERVED" | "MEMORY_CHANGED" | "MEMORY_WITHDRAWN"
+  ): Promise<void> {
+    if (!this.onProfileMutation) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const completed = await Promise.race([
+        Promise.resolve(this.onProfileMutation({ scope, reason })).then(
+          () => true,
+          () => false
+        ),
+        new Promise<boolean>((resolve) => {
+          timer = setTimeout(() => resolve(false), 1_000);
+        })
+      ]);
+      if (!completed) this.profileNotificationFailureCount += 1;
+    } catch {
+      this.profileNotificationFailureCount += 1;
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
 }
 
 async function readResponseWithByteLimit(response: Response, maxBytes: number): Promise<string> {
@@ -385,7 +450,10 @@ async function readResponseWithByteLimit(response: Response, maxBytes: number): 
       size += value.byteLength;
       if (size > maxBytes) {
         await reader.cancel();
-        throw new MemoryBackendError("PROFILE_SOURCE_BYTES_BOUND", "Sidecar snapshot response exceeded its byte bound.");
+        throw new MemoryBackendError(
+          "PROFILE_SOURCE_BYTES_BOUND",
+          "Sidecar snapshot response exceeded its byte bound."
+        );
       }
       chunks.push(value);
     }
@@ -394,7 +462,10 @@ async function readResponseWithByteLimit(response: Response, maxBytes: number): 
   }
   const joined = new Uint8Array(size);
   let offset = 0;
-  for (const chunk of chunks) { joined.set(chunk, offset); offset += chunk.byteLength; }
+  for (const chunk of chunks) {
+    joined.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
   return new TextDecoder("utf-8", { fatal: true }).decode(joined);
 }
 

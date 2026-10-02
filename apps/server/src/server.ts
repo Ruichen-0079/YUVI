@@ -172,6 +172,7 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   }
   const maintenanceScheduler = new MemoryMaintenanceScheduler(context, config, app.log);
   context.memoryMaintenanceScheduler = maintenanceScheduler;
+  context.profileLifecycle.start();
   maintenanceScheduler.start();
   if (config.memoryIngestion.enabled) {
     context.memoryIngestionCoordinator.start();
@@ -183,6 +184,7 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
     context.embodiedPresentationBridge.close();
     await context.memoryIngestionCoordinator.shutdown({ graceMs: 2_000 });
     await context.runtime.sealAndDrainMemoryWrites();
+    await context.profileLifecycle.shutdown({ graceMs: 2_000 });
     await context.finalizedIngestionRepository.close?.();
     await context.memoryRepository.close?.();
     await context.conversationRepository.close?.();
