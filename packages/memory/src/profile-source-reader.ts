@@ -1,3 +1,4 @@
+import { EvidenceAdmissionIntegrityError, matchesEvidenceEffect, type EvidenceAdmissionStore, type EvidenceAdmissionV1 } from "./evidence-admission.js";
 import { Buffer } from "node:buffer";
 import {
   MemoryBackendError,
@@ -93,7 +94,7 @@ export class LegacyProfileMemorySourceReader implements ProfileMemorySourceReade
 }
 
 export class Mem0ProfileMemorySourceReader implements ProfileMemorySourceReader {
-  constructor(private readonly backend: MemoryBackend) {
+  constructor(private readonly backend: MemoryBackend, private readonly admissions?: EvidenceAdmissionStore, private readonly ready?: Promise<unknown>) {
     if (backend.kind !== "mem0") throw new TypeError("Mem0 source reader requires a Mem0 backend.");
   }
 
@@ -122,8 +123,17 @@ export class Mem0ProfileMemorySourceReader implements ProfileMemorySourceReader 
     const initialReasons: ProfileSourceReadReason[] = [];
     if (!markerValid) initialReasons.push("EXHAUSTION_UNPROVEN");
     else if (!result.snapshot!.exhausted) initialReasons.push("ROW_BOUND");
+    let admissions: EvidenceAdmissionV1[];
     try {
-      return classifyMem0Records(result.items, subject, input.asOf, initialReasons);
+      if (!this.admissions) throw new Error("Host admission authority is not configured.");
+      await this.ready;
+      admissions = await this.admissions.listBound(subject.scope, result.items.map((record) => record.id));
+    } catch (error) {
+      if (error instanceof EvidenceAdmissionIntegrityError) return emptyOutcome("ERROR", "mem0", ["ADMISSION_INVALID"], input.asOf, false);
+      return emptyOutcome("UNAVAILABLE", "mem0", ["ADMISSION_UNAVAILABLE"], input.asOf, false);
+    }
+    try {
+      return classifyMem0Records(result.items, subject, input.asOf, initialReasons, admissions);
     } catch (error) {
       if (error instanceof ProfileReadIntegrityError) return emptyOutcome("ERROR", "mem0", [error.reason], input.asOf, false);
       if (error instanceof Error && error.name === "ZodError") return emptyOutcome("ERROR", "mem0", ["RECORD_INVALID"], input.asOf, false);
@@ -136,10 +146,11 @@ export function createProfileMemorySourceReader(input: {
   backend: "legacy" | "mem0";
   repository: MemoryRepository;
   mem0Backend?: MemoryBackend;
+  admissions?: EvidenceAdmissionStore;
 }): ProfileMemorySourceReader {
   if (input.backend === "legacy") return new LegacyProfileMemorySourceReader(input.repository);
   if (!input.mem0Backend) return new UnavailableProfileMemorySourceReader();
-  return new Mem0ProfileMemorySourceReader(input.mem0Backend);
+  return new Mem0ProfileMemorySourceReader(input.mem0Backend, input.admissions);
 }
 
 function validateReadInput(input: ProfileSourceReadInput): ProfileSubjectV1 {
@@ -363,8 +374,9 @@ function buildLegacySource(
   return ProfileEvidenceSourceV1Schema.parse({ ...source, lineageDigest: sha256Canonical(lineage) });
 }
 
-function classifyMem0Records(records: MemoryRecord[], subject: ProfileSubjectV1, asOf: string, initialReasons: ProfileSourceReadReason[]): ProfileSourceReadOutcome {
+function classifyMem0Records(records: MemoryRecord[], subject: ProfileSubjectV1, asOf: string, initialReasons: ProfileSourceReadReason[], admissions: EvidenceAdmissionV1[]): ProfileSourceReadOutcome {
   const state = emptyCounts();
+  const admissionsById = new Map(admissions.map((entry) => [entry.backendRecordId, entry]));
   const sources: ProfileEvidenceSourceV1[] = [];
   const reasons = [...initialReasons];
   let eligibleCount = 0;
@@ -387,7 +399,8 @@ function classifyMem0Records(records: MemoryRecord[], subject: ProfileSubjectV1,
       throw new ProfileReadIntegrityError("LINEAGE_INVALID");
     }
     if (!UUID.test(event.sourceRecordId) || typeof record.content !== "string" || !record.metadata || typeof record.metadata !== "object" || Array.isArray(record.metadata)) throw new ProfileReadIntegrityError("RECORD_INVALID");
-    const lineageValue = event.lineage ?? null;
+    const admission = admissionsById.get(record.id);
+    const lineageValue = admission?.lineage ?? null;
     const transportIdentity = canonicalLineageJson({ event: { ...event, metadata: undefined }, rawContent: record.content });
     const previous = seenIds.get(event.sourceRecordId);
     if (previous !== undefined && previous !== transportIdentity) throw new ProfileReadIntegrityError("SOURCE_IDENTITY_CONFLICT");
@@ -397,6 +410,8 @@ function classifyMem0Records(records: MemoryRecord[], subject: ProfileSubjectV1,
     if (contentBytes > PROFILE_MAX_CONTENT_BYTES) { reasons.push("CONTENT_BOUND"); partialBytes = true; continue; }
     if (lineageJsonBytes > PROFILE_MAX_LINEAGE_BYTES) { reasons.push("LINEAGE_BOUND"); partialBytes = true; continue; }
     if (!event.content) throw new ProfileReadIntegrityError("RECORD_INVALID");
+    if (!admission || !matchesEvidenceEffect(admission, record)) { state.NON_EVIDENCE += 1; continue; }
+    if (!event.lineage || canonicalLineageJson(event.lineage) !== canonicalLineageJson(admission.lineage)) throw new ProfileReadIntegrityError("LINEAGE_INVALID");
     if (lineageValue === null || lineageValue.state === "LEGACY_INCOMPLETE") { state.LEGACY_INCOMPLETE += 1; continue; }
     if (lineageValue.state === "PAYLOAD_UNAVAILABLE") { state.PAYLOAD_UNAVAILABLE += 1; continue; }
     if (lineageValue.state !== "GROUNDED") throw new ProfileReadIntegrityError("LINEAGE_INVALID");

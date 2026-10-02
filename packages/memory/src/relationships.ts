@@ -1,3 +1,4 @@
+import { sameLegacyMemoryPartition } from "./scope.js";
 import type { Memory, MemoryCandidate, MemoryScope } from "./types.js";
 
 export type MemoryRelationshipSuggestion = {
@@ -284,7 +285,7 @@ function isCompatibleScope(candidate: MemoryCandidate, memory: Memory): boolean 
   const candidateScope = candidate.scope ?? inferScopeFromCandidate(candidate);
   const candidateScopeId =
     candidate.scopeId ?? (candidateScope === "project" ? "yuvi-runtime" : null);
-  if (candidateScope !== memory.scope) return false;
+  if (!sameLegacyMemoryPartition(candidate, memory) || candidateScope !== memory.scope) return false;
   if (candidateScope === "user") return true;
   return candidateScopeId === memory.scopeId;
 }

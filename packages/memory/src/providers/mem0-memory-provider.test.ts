@@ -538,7 +538,7 @@ describe("Mem0MemoryProvider canonical mapping", () => {
     });
     await expect(provider.reconcileEvent!(input)).resolves.toEqual({
       status: "applied",
-      memoryId: "stable-memory",
+      eventId: "mem0:stable-memory",
       operation: "created"
     });
     expect(submitIdempotent).toHaveBeenCalledWith(

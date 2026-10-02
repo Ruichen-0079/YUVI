@@ -1,3 +1,4 @@
+import { sameLegacyMemoryPartition } from "./scope.js";
 import type { Memory, MemoryCandidate } from "./types.js";
 import {
   canonicalEventDate,
@@ -88,16 +89,7 @@ function hasCorrectionRequest(candidate: MemoryCandidate): boolean {
 }
 
 function isCompatibleCorrectionScope(candidate: MemoryCandidate, memory: Memory): boolean {
-  const candidateSubject = candidate.subjectUserId ?? "default-user";
-  const memorySubject = memory.subjectUserId ?? "default-user";
-  if (candidateSubject !== memorySubject) {
-    return false;
-  }
-  const candidatePersona = candidate.personaId ?? "default-persona";
-  const memoryPersona = memory.personaId ?? "default-persona";
-  if (candidatePersona !== memoryPersona) {
-    return false;
-  }
+  if (!sameLegacyMemoryPartition(candidate, memory)) return false;
   if ((candidate.scope ?? "user") !== memory.scope) {
     return false;
   }

@@ -1,3 +1,4 @@
+import { memoryEffectDigest } from "./evidence-admission.js";
 import { describe, expect, it, vi } from "vitest";
 import {
   encodeMemoryLineage,
@@ -154,6 +155,12 @@ describe("YUVI lineage encoding and Mem0 round-trip", () => {
       scope: input.scope,
       metadata
     };
+    if (mode.startsWith("conflicting ") && mode !== "conflicting digest") {
+      // Structural mapping makes no producer-specific authority decision.
+      expect(mapMem0RecordToMemoryEvent(record, input.scope).lineage).toEqual(input.lineage);
+      expect(memoryEffectDigest(record)).not.toBe(memoryEffectDigest({ ...record, metadata: buildWriteMetadata(input) }));
+      return; // Canonical effect-mismatch exclusion is covered in admission.test.
+    }
     expect(() => mapMem0RecordToMemoryEvent(record, input.scope)).toThrow();
     const provider = new Mem0MemoryProvider({
       kind: "mem0",

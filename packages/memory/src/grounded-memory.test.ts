@@ -94,6 +94,18 @@ function candidate(content: string): MemoryCandidate {
 }
 
 describe("A10.1c grounded legacy Memory admission", () => {
+
+  it.each(["subjectUserId", "personaId"] as const)("cannot retire another legacy %s partition through automatic or suggested correction", async (field) => {
+    const repository = new InMemoryMemoryRepository();
+    const service = createService(repository);
+    const original = await service.processCandidateForStorage({ ...candidate("I ate breakfast yesterday."), [field]: "foreign-partition", explicitRememberRequested: true }, { skipAdmissionPolicy: true }, context("Remember that I ate breakfast yesterday."));
+    const local = await service.processCandidateForStorage({ ...candidate("I ate breakfast yesterday."), explicitRememberRequested: true }, { skipAdmissionPolicy: true }, context("Remember that I ate breakfast yesterday.", "jev1_bbbbbbbbbbbbbbbb"));
+    const corrected = await service.processCandidateForStorage({ ...candidate("I ate breakfast today."), correctionRequested: true, possibleSupersedes: [original.memory!.id, local.memory!.id], reason: "user-correction" }, { skipAdmissionPolicy: true }, context("Actually, I ate breakfast today, not yesterday.", "jev1_cccccccccccccccc"));
+    expect(corrected.decision).toBe("stored");
+    expect(await repository.getMemoryById(original.memory!.id)).toMatchObject({ status: "active", supersededBy: null });
+    expect(await repository.getMemoryById(local.memory!.id)).toMatchObject({ status: "superseded", supersededBy: corrected.memory!.id });
+  });
+
   it("rejects evidence-backed writes when committed Journal ancestry is absent", async () => {
     const repository = new InMemoryMemoryRepository();
     const service = new MemoryService(repository, undefined, undefined, new RuleBasedMemoryExtractor());

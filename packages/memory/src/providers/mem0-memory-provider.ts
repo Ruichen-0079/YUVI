@@ -1,3 +1,4 @@
+import { InMemoryEvidenceAdmissionStore, prepareEvidenceAdmission, memoryEffectDigest, type EvidenceAdmissionStore, type EvidenceProducer } from "../evidence-admission.js";
 import {
   decodeMemoryLineage,
   encodeMemoryLineage,
@@ -122,35 +123,6 @@ export function mapMem0RecordToMemoryEvent(
   if (participants.length > 0) event.participants = participants;
   if (assertion !== undefined) event.assertion = assertion;
   const claim = deserializeClaimMetadata(metadata);
-  if (
-    lineage?.state === "GROUNDED" &&
-    lineage.derivation.kind === "FINALIZED_INGESTION" &&
-    "sourceTime" in lineage
-  ) {
-    const source = lineage.origin === "USER_ASSERTION" ? "user" : "unknown";
-    const occurrence = lineage.sourceTime.occurrenceTime;
-    if (
-      assertion?.verification !== "unverified" ||
-      assertion.source !== source ||
-      claim !== undefined ||
-      observedAt !== normalizeTimestamp(lineage.sourceTime.recordedAt) ||
-      occurredAt !==
-        (occurrence.state === "INSTANT" ? normalizeTimestamp(occurrence.at) : undefined)
-    ) {
-      throw new MemoryLineageEncodingError();
-    }
-  }
-  if (
-    lineage?.state === "GROUNDED" &&
-    lineage.derivation.kind === "DREAM_DERIVATION" &&
-    (assertion?.source !== "system" ||
-      assertion.verification !== "unverified" ||
-      claim !== undefined ||
-      observedAt !== undefined ||
-      occurredAt !== undefined)
-  ) {
-    throw new MemoryLineageEncodingError();
-  }
   if (claim !== undefined) event.claim = claim;
   return event;
 }
@@ -162,7 +134,8 @@ export class Mem0MemoryProvider implements MemoryProvider {
     private readonly onProfileMutation?: (input: {
       scope: string;
       reason: "DELIVERY_OBSERVED";
-    }) => Promise<void> | void
+    }) => Promise<void> | void,
+    readonly evidenceAdmissions: EvidenceAdmissionStore = new InMemoryEvidenceAdmissionStore()
   ) {
     if (backend.kind !== "mem0") {
       throw new Mem0MemoryProviderError(
@@ -332,6 +305,20 @@ export class Mem0MemoryProvider implements MemoryProvider {
     }
   }
 
+  async prepareEvidence(producer: EvidenceProducer, event: MemoryWriteEventInput): Promise<void> {
+    await this.evidenceAdmissions.prepare(prepareEvidenceAdmission(producer, event));
+  }
+
+  private async bindPreparedEffect(scope: string, key: string, digest: string, memoryId: string): Promise<void> {
+    const admission = await this.evidenceAdmissions.get(scope, key);
+    if (!admission) return; // Reliability is not admission.
+    const record = await this.backend.get({ scope, memoryId });
+    if (admission.payloadDigest !== digest || !record || record.id !== memoryId || record.scope !== scope ||
+        admission.effectDigest !== memoryEffectDigest(record)) throw new Error("EVIDENCE_EFFECT_MISMATCH");
+    await this.evidenceAdmissions.bind(scope, key, memoryId);
+    await this.notifyReconciliation(scope);
+  }
+
   async writeEventIdempotent(input: MemoryWriteEventInput): Promise<MemoryWriteEventOutcome> {
     const scope = normalizeOptionalScope(input.scope);
     const key = input.idempotencyKey?.trim();
@@ -424,6 +411,7 @@ export class Mem0MemoryProvider implements MemoryProvider {
           ? null
           : mapMem0RecordToMemoryEvent(response.record as MemoryRecord, scope);
       assertReturnedLineage(input, event);
+      await this.bindPreparedEffect(scope, key, digest, memoryId);
       return {
         status: response.operation === "unchanged" ? "unchanged" : "written",
         eventId,
@@ -451,10 +439,14 @@ export class Mem0MemoryProvider implements MemoryProvider {
       return { status: "unknown", errorCode: "MEMORY_RECONCILIATION_UNSUPPORTED" };
     }
     try {
-      return await this.backend.reconcileIdempotency(
-        { idempotencyKey: key, payloadDigest: digest },
-        undefined
+      const result = await this.backend.reconcileIdempotency(
+        { idempotencyKey: key, payloadDigest: digest }, undefined
       );
+      if (result.status === "applied" && result.memoryId && input.scope) {
+        await this.bindPreparedEffect(input.scope, key, digest, result.memoryId);
+      }
+      const { memoryId, ...semantic } = result;
+      return { ...semantic, ...(memoryId ? { eventId: canonicalMem0EventId(memoryId) } : {}) };
     } catch (error) {
       return {
         status: "unknown",

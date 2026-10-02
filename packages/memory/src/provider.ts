@@ -265,6 +265,8 @@ export type MemoryConversationTurnWriteResult = {
  * rollback, history maintenance, PromptBuilder, and vendor-specific types.
  */
 export interface MemoryProvider {
+  /** Host-only frozen producer admission; ordinary writes never call this. */
+  prepareEvidence?(producer: import("./evidence-admission.js").EvidenceProducer, event: MemoryWriteEventInput): Promise<void>;
   retrieveRelevant(input: MemoryRetrievalInput): Promise<MemoryRetrievalOutcome>;
   getEvent(input: MemoryGetEventInput): Promise<MemoryEvent | null>;
   writeEvent(input: MemoryWriteEventInput): Promise<MemoryWriteEventOutcome>;

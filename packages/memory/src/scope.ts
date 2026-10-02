@@ -80,3 +80,9 @@ function normalizeScopePart(value: string, field: string): string {
   }
   return trimmed;
 }
+
+/** Native host storage partition identity; compatibility defaults match Profile. */
+export function sameLegacyMemoryPartition(left: { subjectUserId?: string | null | undefined; personaId?: string | null | undefined }, right: { subjectUserId?: string | null | undefined; personaId?: string | null | undefined }): boolean {
+  return (left.subjectUserId ?? "default-user") === (right.subjectUserId ?? "default-user") &&
+    (left.personaId ?? "default-persona") === (right.personaId ?? "default-persona");
+}

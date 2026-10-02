@@ -61,6 +61,9 @@ import {
   createConversationRepositoryFromEnv,
   createFinalizedIngestionRepositoryFromEnv,
   createRecentEpisodeStoreFromEnv,
+  InMemoryEvidenceAdmissionStore,
+  PostgresEvidenceAdmissionStore,
+  bootstrapPostgresEvidenceAdmissions,
   InMemoryProfileSnapshotStore,
   InMemoryProfileLifecycleStore,
   LocalProfileProvider,
@@ -257,6 +260,15 @@ export async function createAppContext(
     await databasePool?.end();
     throw error;
   }
+  // One host authority survives provider/settings composition replacement.
+  const evidenceAdmissionDatabase = databasePool ?? memoryRepository.getDatabaseClient?.();
+  const evidenceAdmissions = evidenceAdmissionDatabase
+    ? new PostgresEvidenceAdmissionStore(evidenceAdmissionDatabase)
+    : new InMemoryEvidenceAdmissionStore();
+  const evidenceAdmissionReady = evidenceAdmissionDatabase
+    ? bootstrapPostgresEvidenceAdmissions(evidenceAdmissionDatabase, evidenceAdmissions)
+    : Promise.resolve();
+  void evidenceAdmissionReady.catch(() => undefined);
   const promptBuilder = new PromptBuilder();
   const recentEpisodeStore: RecentEpisodeStore = createRecentEpisodeStoreFromEnv(
     process.env,
@@ -341,6 +353,8 @@ export async function createAppContext(
       {
         kind: backendKind,
         mem0: mem0Backend,
+        evidenceAdmissions,
+        evidenceAdmissionReady,
         controllerEvidence: new LocalControllerEvidenceProvider(
           env["YUVI_RUNTIME_DATA_DIR"] || join(getRuntimeEnvDir(env), "data")
         ),

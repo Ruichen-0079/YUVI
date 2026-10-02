@@ -240,7 +240,7 @@ export class DreamConsolidationEngine {
     private readonly options: {
       budgets?: Partial<MemoryHierarchyBudgets> | undefined;
       writer?: DreamWriter | undefined;
-      provider?: Pick<MemoryProvider, "writeEventIdempotent" | "reconcileEvent"> | undefined;
+      provider?: Pick<MemoryProvider, "writeEventIdempotent" | "reconcileEvent" | "prepareEvidence"> | undefined;
       ingestion?: MemoryIngestionPolicy | undefined;
       leaseMs?: number | undefined;
       idleMs?: number | undefined;

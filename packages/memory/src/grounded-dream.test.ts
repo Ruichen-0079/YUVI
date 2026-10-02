@@ -445,7 +445,7 @@ describe("frozen Dream delivery and legacy recovery", () => {
 
 describe("generic derived lineage provider round-trip", () => {
   it.each(["UNKNOWN", "INSTANT", "INTERVAL"] as const)(
-    "preserves %s parent time through get/search and rejects conflicting metadata",
+    "preserves %s parent time through generic get/search without admitting transport claims",
     async (state) => {
       const episode = await groundedEpisode();
       const source = episode.sourceEvidence!.statements[0]!.source!;
@@ -486,12 +486,10 @@ describe("generic derived lineage provider round-trip", () => {
       expect(mapMem0RecordToMemoryEvent(record, "user").lineage).toEqual(
         MemoryLineageV1Schema.parse(event.lineage)
       );
-      expect(() =>
-        mapMem0RecordToMemoryEvent(
-          { ...record, metadata: { ...metadata, yuviAssertionSource: "user" } },
-          "user"
-        )
-      ).toThrow();
+      expect(mapMem0RecordToMemoryEvent(
+        { ...record, metadata: { ...metadata, yuviAssertionSource: "user" } }, "user"
+      ).assertion?.source).toBe("user");
+      expect(await provider.evidenceAdmissions.listBound("user", [record.id])).toEqual([]);
       const malformed = structuredClone(derived(event));
       malformed.sources[0]!.ref.eventId = "jev1_bbbbbbbbbbbbbbbb";
       expect(() => encodeMemoryLineage(malformed)).toThrow();

@@ -35,7 +35,7 @@ export function stampDreamWriteEvent(
 }
 
 export async function deliverDreamEventsIdempotent(
-  provider: Pick<MemoryProvider, "writeEventIdempotent">,
+  provider: Pick<MemoryProvider, "writeEventIdempotent" | "prepareEvidence">,
   events: MemoryWriteEventInput[]
 ): Promise<MemoryWriteEventOutcome[]> {
   if (!provider.writeEventIdempotent) {
@@ -48,6 +48,7 @@ export async function deliverDreamEventsIdempotent(
   const outcomes: MemoryWriteEventOutcome[] = [];
   for (const event of events) {
     try {
+      await provider.prepareEvidence?.("DREAM_DERIVATION", event);
       outcomes.push(await provider.writeEventIdempotent(event));
     } catch {
       outcomes.push({
@@ -61,7 +62,7 @@ export async function deliverDreamEventsIdempotent(
 }
 
 export async function reconcileDreamEvent(
-  provider: Pick<MemoryProvider, "reconcileEvent">,
+  provider: Pick<MemoryProvider, "reconcileEvent" | "prepareEvidence">,
   event: MemoryWriteEventInput
 ): Promise<MemoryReconciliationResult> {
   const idempotencyKey = event.idempotencyKey?.trim();
@@ -73,6 +74,7 @@ export async function reconcileDreamEvent(
     return { status: "unknown", errorCode: "MEMORY_RECONCILIATION_UNSUPPORTED" };
   }
   try {
+    await provider.prepareEvidence?.("DREAM_DERIVATION", event);
     return await provider.reconcileEvent({ idempotencyKey, payloadDigest, scope: event.scope });
   } catch {
     return { status: "unknown", errorCode: "MEMORY_RECONCILIATION_UNAVAILABLE" };

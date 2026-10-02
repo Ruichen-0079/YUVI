@@ -116,6 +116,8 @@ export async function executeFinalizedIngestionEvent(input: {
     return { claimed: true, dispatched: false, event: recorded, outcome };
   }
 
+  await input.provider.prepareEvidence?.("FINALIZED_INGESTION", claimed.eventPayload);
+
   const dispatching = await input.repository.markEventDispatchStarted({
     finalizedTurnId: claimed.finalizedTurnId,
     eventId: claimed.eventId,

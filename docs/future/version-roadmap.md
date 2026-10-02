@@ -76,7 +76,7 @@ A10.1 leaf authority: [`a10.1-grounded-memory-roadmap.md`](a10.1-grounded-memory
 
 ## Current state
 
-A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2f6 and aggregate A8.2 are implemented reality. A10.1a–f2 are implemented. A10.1f3, A9, A10.2/A10.3, A11 and A12 remain planned/open engineering, with A12.1 already holding a pinned source-level SnowLuma contract while its live probe remains pending. Aggregate A10.1 remains incomplete.
+A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2f6 and aggregate A8.2 are implemented reality. A10.1a–f2 are implemented. A10.1f3, A9, A10.2/A10.3, A11 and A12 remain planned/open engineering, with A12.1 already holding a pinned source-level SnowLuma contract while its live probe remains pending. Aggregate A10.1 remains incomplete. A10.1f3-r1 canonical host evidence admission is implemented; see [r1 validation](../validation/v0.1.3-a10.1f3-r1-canonical-evidence-admission.md). A10.1f3 remains PLANNED / BLOCKED pending resumed aggregate closure.
 
 ### Milestone 1 — Evidence Foundation
 
@@ -115,7 +115,9 @@ A7.1 → A7.2 → A8.1
                   ↓
                A10.1f2 People.Model bridge + dirty/regeneration — IMPLEMENTED
                   ↓
-               A10.1f3 aggregate Memory/Profile lineage closure
+               A10.1f3-r1 canonical host evidence admission — IMPLEMENTED
+                  ↓
+               A10.1f3 aggregate Memory/Profile lineage closure — PLANNED / BLOCKED
 ```
 
 The A10.1 scope correction is deliberate. Mem0 Python `2.2.0` / TypeScript `3.3.0` introduced hosted User Profiles on 2026-09-23 while YUVI is already opening the Mem0 boundary for grounded modernization. Profile materialization is therefore implemented once alongside A10.1 rather than reopening the same Memory/provider seam in v0.1.4.

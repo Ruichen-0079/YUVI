@@ -130,7 +130,7 @@ describe("shared finalized ingestion executor", () => {
         idempotencyKey: event.backendIdempotencyKey,
         payloadDigest: event.eventPayload.payloadDigest!
       })
-    ).resolves.toMatchObject({ status: "applied", memoryId: "stable-memory" });
+    ).resolves.toMatchObject({ status: "applied", eventId: "mem0:stable-memory" });
     expect(submitIdempotent).toHaveBeenCalledOnce();
   });
 

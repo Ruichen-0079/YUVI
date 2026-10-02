@@ -438,3 +438,6 @@ export * from "./profile-snapshot-store.js";
 export * from "./profile-provider.js";
 export * from "./profile-lifecycle-store.js";
 export * from "./profile-lifecycle.js";
+
+export * from "./evidence-admission.js";
+export * from "./evidence-admission-bootstrap.js";

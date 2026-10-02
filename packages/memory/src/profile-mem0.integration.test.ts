@@ -1,3 +1,6 @@
+import { InMemoryEvidenceAdmissionStore, EvidenceAdmissionV1Schema, memoryEffectDigest } from "./evidence-admission.js";
+import { canonicalLineageJson, lineageDigest } from "./lineage-encoding.js";
+import type { MemoryRecord } from "./backend.js";
 import { describe, expect, it, vi } from "vitest";
 import { Mem0MemoryBackend } from "./backends/mem0-memory-backend.js";
 import { encodeMemoryLineage } from "./lineage-encoding.js";
@@ -20,6 +23,26 @@ import {
 
 const sidecarUrl = process.env["YUVI_MEM0_PROFILE_INTEGRATION_URL"];
 const asOf = "2026-10-02T00:00:00.000Z";
+
+
+// Explicit host authority fixture for f1/f2 substrate regressions. The r1 server
+// suite separately proves admissions through actual Journal and producer flows.
+async function admitFixtureEffect(store: InMemoryEvidenceAdmissionStore, record: MemoryRecord, backend: Mem0MemoryBackend) {
+  const snapshot = await backend.list({ scope: record.scope, limit: 4096, mode: "bounded_snapshot" });
+  record = snapshot.items.find((entry) => entry.id === record.id)!;
+  if (!record) throw new Error("Fixture effect absent from bounded enumeration.");
+  const lineage = mapMem0RecordToMemoryEvent(record, record.scope).lineage!;
+  if (lineage.state !== "GROUNDED") throw new Error("Fixture source missing.");
+  const logicalEventId = `fixture:${record.id}`;
+  const admissionId = `ea1_${lineageDigest(canonicalLineageJson({ scope: record.scope, logicalEventId }))}`;
+  await store.prepare(EvidenceAdmissionV1Schema.parse({
+    version: "evidence-admission.v1", admissionId, scope: record.scope, logicalEventId,
+    producer: lineage.derivation.kind, lineage, lineageDigest: lineageDigest(canonicalLineageJson(lineage)),
+    payloadDigest: "a".repeat(64), effectDigest: memoryEffectDigest(record),
+    backend: "mem0", backendRecordId: null, state: "PREPARED"
+  }));
+  await store.bind(record.scope, logicalEventId, record.id);
+}
 
 async function runUntilSelected(
   coordinator: ProfileLifecycleCoordinator,
@@ -102,12 +125,18 @@ describe.skipIf(!sidecarUrl)("A10.1f1/f2 real local Mem0 integration", () => {
       });
       added.push({ memoryId: isolated.memoryId, scope: otherScope });
 
-      const reader = new Mem0ProfileMemorySourceReader(backend);
+      const admissions = new InMemoryEvidenceAdmissionStore();
+      for (const effect of [directWrite, dreamWrite]) {
+        const record = await backend.get({ scope, memoryId: effect.memoryId });
+        if (!record) throw new Error("Missing fixture effect.");
+        await admitFixtureEffect(admissions, record, backend);
+      }
+      const reader = new Mem0ProfileMemorySourceReader(backend, admissions);
       const firstRead = await reader.listEligibleSources({ subject, asOf });
       expect(firstRead.state, JSON.stringify(firstRead)).toBe("COMPLETE");
       expect(firstRead.diagnostics.scannedCount).toBe(101);
       expect(firstRead.sources).toHaveLength(2);
-      expect(firstRead.diagnostics.excludedCounts.LEGACY_INCOMPLETE).toBe(99);
+      expect(firstRead.diagnostics.excludedCounts.NON_EVIDENCE).toBe(99);
       expect(firstRead.sources.map((source) => source.lineage.origin).sort()).toEqual([
         "DERIVED",
         "USER_ASSERTION"
@@ -175,7 +204,8 @@ describe.skipIf(!sidecarUrl)("A10.1f1/f2 real local Mem0 integration", () => {
     let memoryId: string | null = null;
     let externalMemoryId: string | null = null;
     const now = { value: new Date(asOf) };
-    const reader = new Mem0ProfileMemorySourceReader(backend);
+    const admissions = new InMemoryEvidenceAdmissionStore();
+    const reader = new Mem0ProfileMemorySourceReader(backend, admissions);
     const provider = new LocalProfileProvider({
       resolveSourceReader: () => reader,
       store: new InMemoryProfileSnapshotStore(),
@@ -208,6 +238,9 @@ describe.skipIf(!sidecarUrl)("A10.1f1/f2 real local Mem0 integration", () => {
         }
       });
       memoryId = written.memoryId;
+      const initialRecord = await backend.get({ scope, memoryId });
+      if (!initialRecord) throw new Error("Missing fixture effect.");
+      await admitFixtureEffect(admissions, initialRecord, backend);
       const initialRead = await reader.listEligibleSources({ subject, asOf });
       if (initialRead.state !== "COMPLETE") {
         expect(initialRead.state).toBe("UNAVAILABLE");
@@ -258,7 +291,12 @@ describe.skipIf(!sidecarUrl)("A10.1f1/f2 real local Mem0 integration", () => {
       expect(addedRead.state, JSON.stringify(addedRead)).toBe("COMPLETE");
       if (addedRead.state !== "COMPLETE")
         throw new Error("External present-state addition must remain completely readable.");
-      expect(addedRead.sources).toHaveLength(2);
+      expect(addedRead.sources).toHaveLength(1);
+      expect((await coordinator.readScopeModel({ subject, readMemory: true })).state).toBe("AVAILABLE");
+      const externalRecord = await backend.get({ scope, memoryId: externalWrite.memoryId });
+      if (!externalRecord) throw new Error("Missing fixture effect.");
+      await admitFixtureEffect(admissions, externalRecord, backend);
+      expect((await reader.listEligibleSources({ subject, asOf })).sources).toHaveLength(2);
 
       const afterExternalAdd = await coordinator.readScopeModel({ subject, readMemory: true });
       expect(afterExternalAdd.state).toBe("WITHHELD");

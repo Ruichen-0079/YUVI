@@ -582,6 +582,7 @@ export class MemoryIngestionCoordinator implements MemoryIngestionCoordinatorPor
       result = { status: "unknown", errorCode: "MEMORY_RECONCILIATION_UNSUPPORTED" };
     } else {
       try {
+        await this.provider.prepareEvidence?.("FINALIZED_INGESTION", claimed.eventPayload);
         result = await this.provider.reconcileEvent({
           idempotencyKey: claimed.backendIdempotencyKey,
           payloadDigest,
@@ -747,6 +748,7 @@ export class MemoryIngestionCoordinator implements MemoryIngestionCoordinatorPor
       : undefined;
     return {
       ...this.provider,
+      ...(this.provider.prepareEvidence ? { prepareEvidence: this.provider.prepareEvidence.bind(this.provider) } : {}),
       ...(writeEventIdempotent ? { writeEventIdempotent } : {})
     };
   }

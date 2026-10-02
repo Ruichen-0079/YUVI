@@ -1,3 +1,4 @@
+import { InMemoryEvidenceAdmissionStore, EvidenceAdmissionV1Schema, memoryEffectDigest } from "./evidence-admission.js";
 import { describe, expect, it, vi } from "vitest";
 import { MemoryBackendError, type MemoryBackend, type MemoryRecord } from "./backend.js";
 import { encodeMemoryLineage, canonicalLineageJson, LINEAGE_ENCODING, lineageDigest } from "./lineage-encoding.js";
@@ -147,16 +148,37 @@ async function addGrounded(repository: InMemoryMemoryRepository, index: number, 
   });
 }
 
-function mem0Record(index: number, lineage = directLineage(index), content = `mem0 evidence ${index}`): MemoryRecord {
+function mem0Record(index: number, lineage = MemoryLineageV1Schema.parse({ ...directLineage(index), derivation: { ...directLineage(index).derivation, kind: "FINALIZED_INGESTION" } }) as GroundedMemoryLineageV1, content = `mem0 evidence ${index}`): MemoryRecord {
   return {
     id: memoryId(index),
     content,
     scope,
     metadata: {
       ...encodeMemoryLineage(lineage),
-      memoryType: "fact"
+      memoryType: "fact",
+      yuviAssertionSource: "user",
+      yuviVerification: "unverified",
+      yuviObservedAt: recordedAt
     }
   };
+}
+
+
+async function admittedFixtureRecords(records: MemoryRecord[]) {
+  const store = new InMemoryEvidenceAdmissionStore();
+  for (const record of records) {
+    const lineage = mapMem0RecordToMemoryEvent(record, scope).lineage!;
+    const logicalEventId = `fixture:${record.id}`;
+    const admissionId = `ea1_${lineageDigest(canonicalLineageJson({ scope, logicalEventId }))}`;
+    await store.prepare(EvidenceAdmissionV1Schema.parse({
+      version: "evidence-admission.v1", admissionId, scope, logicalEventId,
+      producer: "FINALIZED_INGESTION", payloadDigest: "a".repeat(64), lineage,
+      lineageDigest: lineageDigest(canonicalLineageJson(lineage)), effectDigest: memoryEffectDigest(record),
+      backend: "mem0", backendRecordId: null, state: "PREPARED"
+    }));
+    await store.bind(scope, logicalEventId, record.id);
+  }
+  return store;
 }
 
 describe("A10.1f1 local profile materializer", () => {
@@ -373,7 +395,7 @@ describe("A10.1f1 local profile materializer", () => {
       kind: "mem0",
       list: async () => ({ items: [record], snapshot: { mode: "bounded_snapshot" as const, exhausted: true, rawBytesExceeded: false } })
     } as unknown as MemoryBackend;
-    const mem0 = await new Mem0ProfileMemorySourceReader(backend).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" });
+    const mem0 = await new Mem0ProfileMemorySourceReader(backend, new InMemoryEvidenceAdmissionStore()).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" });
     expect(mem0).toMatchObject({ state: "PARTIAL", reasons: ["LINEAGE_BOUND"], sources: [] });
   });
 
@@ -410,7 +432,7 @@ describe("A10.1f1 local profile materializer", () => {
       kind: "mem0",
       list: vi.fn(async () => ({ items: records, total: records.length, snapshot: { mode: "bounded_snapshot" as const, exhausted: true, rawBytesExceeded: false } }))
     } as unknown as MemoryBackend;
-    const outcome = await new Mem0ProfileMemorySourceReader(backend).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" });
+    const outcome = await new Mem0ProfileMemorySourceReader(backend, await admittedFixtureRecords(records)).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" });
     expect(backend.list).toHaveBeenCalledWith({ scope, limit: 4096, mode: "bounded_snapshot" }, undefined);
     expect(outcome.state).toBe("COMPLETE");
     expect(outcome.sources).toHaveLength(125);
@@ -420,31 +442,31 @@ describe("A10.1f1 local profile materializer", () => {
 
   it("does not treat missing Mem0 marker as empty or unsupported enumeration as a fallback", async () => {
     const missing = { kind: "mem0", list: async () => ({ items: [], total: 0 }) } as unknown as MemoryBackend;
-    const partial = await new Mem0ProfileMemorySourceReader(missing).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" });
+    const partial = await new Mem0ProfileMemorySourceReader(missing, new InMemoryEvidenceAdmissionStore()).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" });
     expect(partial).toMatchObject({ state: "PARTIAL", reasons: ["EXHAUSTION_UNPROVEN"] });
     const unsupported = { kind: "mem0", list: async () => { throw new MemoryBackendError("ENUMERATION_UNSUPPORTED", "unsupported"); } } as unknown as MemoryBackend;
-    const unavailable = await new Mem0ProfileMemorySourceReader(unsupported).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" });
+    const unavailable = await new Mem0ProfileMemorySourceReader(unsupported, new InMemoryEvidenceAdmissionStore()).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" });
     expect(unavailable).toMatchObject({ state: "UNAVAILABLE", reasons: ["ENUMERATION_UNSUPPORTED"] });
     const olderCappedService = { kind: "mem0", list: async () => { throw new MemoryBackendError("VALIDATION_ERROR", "bounded mode rejected"); } } as unknown as MemoryBackend;
-    expect(await new Mem0ProfileMemorySourceReader(olderCappedService).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" }))
+    expect(await new Mem0ProfileMemorySourceReader(olderCappedService, new InMemoryEvidenceAdmissionStore()).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" }))
       .toMatchObject({ state: "UNAVAILABLE", reasons: ["ENUMERATION_UNSUPPORTED"] });
     const timeout = { kind: "mem0", list: async () => { throw new MemoryBackendError("OPERATION_TIMEOUT", "timed out"); } } as unknown as MemoryBackend;
-    expect(await new Mem0ProfileMemorySourceReader(timeout).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" }))
+    expect(await new Mem0ProfileMemorySourceReader(timeout, new InMemoryEvidenceAdmissionStore()).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" }))
       .toMatchObject({ state: "UNAVAILABLE", reasons: ["TIMEOUT"] });
   });
 
   it("rejects malformed Mem0 records and lineage and returns explicit byte-bound partials", async () => {
     const marker = { mode: "bounded_snapshot" as const, exhausted: true, rawBytesExceeded: false };
     const invalidRecord = { kind: "mem0", list: async () => ({ items: [{ ...mem0Record(90), id: "not-a-uuid" }], snapshot: marker }) } as unknown as MemoryBackend;
-    expect(await new Mem0ProfileMemorySourceReader(invalidRecord).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" }))
+    expect(await new Mem0ProfileMemorySourceReader(invalidRecord, new InMemoryEvidenceAdmissionStore()).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" }))
       .toMatchObject({ state: "ERROR", reasons: ["RECORD_INVALID"] });
     const badLineageRecord = mem0Record(91);
     badLineageRecord.metadata["yuviLineageJson"] = "{";
     const badLineage = { kind: "mem0", list: async () => ({ items: [badLineageRecord], snapshot: marker }) } as unknown as MemoryBackend;
-    expect(await new Mem0ProfileMemorySourceReader(badLineage).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" }))
+    expect(await new Mem0ProfileMemorySourceReader(badLineage, new InMemoryEvidenceAdmissionStore()).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" }))
       .toMatchObject({ state: "ERROR", reasons: ["LINEAGE_INVALID"] });
     const rawOverflow = { kind: "mem0", list: async () => ({ items: [], snapshot: { ...marker, exhausted: false, rawBytesExceeded: true } }) } as unknown as MemoryBackend;
-    expect(await new Mem0ProfileMemorySourceReader(rawOverflow).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" }))
+    expect(await new Mem0ProfileMemorySourceReader(rawOverflow, new InMemoryEvidenceAdmissionStore()).listEligibleSources({ subject, asOf: "2026-10-02T00:00:00.000Z" }))
       .toMatchObject({ state: "PARTIAL", reasons: ["SOURCE_BYTES_BOUND"], sources: [] });
   });
 

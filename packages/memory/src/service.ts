@@ -1,3 +1,6 @@
+import { sameLegacyMemoryPartition } from "./scope.js";
+import { InMemoryEvidenceAdmissionStore, PostgresEvidenceAdmissionStore, type EvidenceAdmissionStore } from "./evidence-admission.js";
+import { bootstrapPostgresEvidenceAdmissions } from "./evidence-admission-bootstrap.js";
 import type { MemoryRepository } from "./repository.js";
 import { RuleBasedMemoryExtractor } from "./extractor.js";
 import { MemoryRetriever } from "./retriever.js";
@@ -106,6 +109,8 @@ export type MemoryEmbeddingConfig = {
 export type MemoryServiceBackendConfig = {
   kind?: "legacy" | "mem0" | undefined;
   mem0?: MemoryBackend | undefined;
+  evidenceAdmissions?: EvidenceAdmissionStore | undefined;
+  evidenceAdmissionReady?: Promise<unknown> | undefined;
   controllerEvidence?: MemoryProvider | undefined;
   searchTimeoutMs?: number | undefined;
   writeTimeoutMs?: number | undefined;
@@ -137,6 +142,8 @@ export class MemoryService {
   private readonly mem0Logger: MemoryServiceBackendConfig["logger"];
   private readonly controllerEvidence: MemoryProvider | undefined;
   private readonly memoryProvider: MemoryProvider | undefined;
+  private readonly evidenceAdmissions: EvidenceAdmissionStore;
+  private readonly evidenceAdmissionReady: Promise<unknown>;
   private readonly memoryIngestionPolicy: Pick<MemoryIngestionPolicy, "build">;
   private readonly groundingResolver: MemoryGroundingResolver | undefined;
 
@@ -158,8 +165,16 @@ export class MemoryService {
     this.mem0SearchTimeoutMs = backend?.searchTimeoutMs ?? MEM0_CHAT_SEARCH_TIMEOUT_MS;
     this.mem0WriteTimeoutMs = backend?.writeTimeoutMs ?? MEM0_CHAT_WRITE_TIMEOUT_MS;
     this.mem0Logger = backend?.logger ?? embedding?.logger;
+    const database = repository.getDatabaseClient?.();
+    this.evidenceAdmissions = backend?.evidenceAdmissions ?? (database ? new PostgresEvidenceAdmissionStore(database) : new InMemoryEvidenceAdmissionStore());
+    this.evidenceAdmissionReady = backend?.evidenceAdmissionReady ?? (this.mem0Backend && database
+      ? bootstrapPostgresEvidenceAdmissions(database, this.evidenceAdmissions)
+      : Promise.resolve());
+    // Bootstrap errors are observed by the reader and fail closed, without making
+    // an offline Mem0 service a boot dependency.
+    void this.evidenceAdmissionReady.catch(() => undefined);
     this.memoryProvider = this.mem0Backend
-      ? new Mem0MemoryProvider(this.mem0Backend, backend?.onProfileMutation)
+      ? new Mem0MemoryProvider(this.mem0Backend, backend?.onProfileMutation, this.evidenceAdmissions)
       : undefined;
     this.controllerEvidence = backend?.controllerEvidence;
     this.memoryIngestionPolicy = backend?.ingestionPolicy ?? new MemoryIngestionPolicy();
@@ -207,7 +222,7 @@ export class MemoryService {
   /** Internal f1 reader over this service's active backend instances. */
   getProfileMemorySourceReader(): ProfileMemorySourceReader {
     if (this.backendKind === "mem0" && this.mem0Backend) {
-      return new Mem0ProfileMemorySourceReader(this.mem0Backend);
+      return new Mem0ProfileMemorySourceReader(this.mem0Backend, this.evidenceAdmissions, this.evidenceAdmissionReady);
     }
     if (this.backendKind === "legacy") return new LegacyProfileMemorySourceReader(this.repository);
     return new UnavailableProfileMemorySourceReader();
@@ -1229,7 +1244,7 @@ export class MemoryService {
       (memory) =>
         memory.scope === scope &&
         (memory.scopeId ?? "") === (scopeId ?? "") &&
-        (memory.subjectUserId ?? "default-user") === (candidate.subjectUserId ?? "default-user")
+        sameLegacyMemoryPartition(candidate, memory)
     );
     return detectEpisodicCorrectionRelationships(candidate, scoped);
   }
@@ -1352,7 +1367,7 @@ export class MemoryService {
     });
     const recent = await this.repository.listRecentMemories(30);
     const existing = [...textMatches, ...recent].filter(
-      (memory, index, memories) => memories.findIndex((entry) => entry.id === memory.id) === index
+      (memory, index, memories) => sameLegacyMemoryPartition(candidate, memory) && memories.findIndex((entry) => entry.id === memory.id) === index
     );
     return detectMemoryRelationships({ ...candidate, scope, scopeId }, existing);
   }
@@ -1360,13 +1375,14 @@ export class MemoryService {
   private async applyAutomaticSupersession(memory: Memory, supersededIds: string[]): Promise<void> {
     if (supersededIds.length === 0) return;
     await Promise.all(
-      supersededIds.map((id) =>
-        this.repository.updateMemory(id, {
-          status: "superseded",
-          supersededBy: memory.id,
-          supersededAt: new Date()
-        })
-      )
+      supersededIds.map(async (id) => {
+        const target = await this.repository.getMemoryById(id);
+        if (!target || !sameLegacyMemoryPartition(memory, target) || memory.scope !== target.scope ||
+            (memory.scopeId ?? null) !== (target.scopeId ?? null)) return;
+        await this.repository.updateMemory(id, {
+          status: "superseded", supersededBy: memory.id, supersededAt: new Date()
+        });
+      })
     );
   }
 
