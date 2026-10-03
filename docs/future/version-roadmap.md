@@ -76,7 +76,7 @@ A10.1 leaf authority: [`a10.1-grounded-memory-roadmap.md`](a10.1-grounded-memory
 
 ## Current state
 
-A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2f6 and aggregate A8.2 are implemented reality. A10.1a–f2 are implemented. A10.1f3, A9, A10.2/A10.3, A11 and A12 remain planned/open engineering, with A12.1 already holding a pinned source-level SnowLuma contract while its live probe remains pending. Aggregate A10.1 remains incomplete. A10.1f3-r1 canonical host evidence admission is implemented; see [r1 validation](../validation/v0.1.3-a10.1f3-r1-canonical-evidence-admission.md). A10.1f3 remains PLANNED / BLOCKED pending resumed aggregate closure.
+A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2f6 and aggregate A8.2 are implemented reality. A10.1a–f3 and aggregate A10.1 are IMPLEMENTED REALITY. A9, A10.2/A10.3, A11 and A12 remain planned/open engineering, with A12.1 already holding a pinned source-level SnowLuma contract while its live probe remains pending. A10.1f3-r1 canonical host evidence admission is implemented; see [r1 validation](../validation/v0.1.3-a10.1f3-r1-canonical-evidence-admission.md). A10.1f3 is IMPLEMENTED REALITY; see [aggregate validation](../validation/v0.1.3-a10.1f3-aggregate-memory-profile-closure.md).
 
 ### Milestone 1 — Evidence Foundation
 
@@ -117,7 +117,7 @@ A7.1 → A7.2 → A8.1
                   ↓
                A10.1f3-r1 canonical host evidence admission — IMPLEMENTED
                   ↓
-               A10.1f3 aggregate Memory/Profile lineage closure — PLANNED / BLOCKED
+               A10.1f3 aggregate Memory/Profile lineage closure — IMPLEMENTED REALITY
 ```
 
 The A10.1 scope correction is deliberate. Mem0 Python `2.2.0` / TypeScript `3.3.0` introduced hosted User Profiles on 2026-09-23 while YUVI is already opening the Mem0 boundary for grounded modernization. Profile materialization is therefore implemented once alongside A10.1 rather than reopening the same Memory/provider seam in v0.1.4.
@@ -308,6 +308,6 @@ Revealed disposition, constrained exploration, post-training and deeper artifici
 
 Prefer the smallest explicit mechanism that passes preregistered tests. Reuse an existing authoritative seam when the capability naturally belongs there; do not postpone adjacent work only to reopen the same provider/storage boundary in the next release.
 
-A10.1d implemented reality is recorded in [its validation record](../validation/v0.1.3-a10.1d-grounded-finalized-mem0.md): committed Journal grounding precedes durable finalized child admission, frozen lineage survives the local Mem0 2.2.1 boundary, and delivery/reconciliation retains existing identities. A10.1a–f2 are implemented; f3 remains planned. Aggregate A10.1 is incomplete.
+A10.1d implemented reality is recorded in [its validation record](../validation/v0.1.3-a10.1d-grounded-finalized-mem0.md): committed Journal grounding precedes durable finalized child admission, frozen lineage survives the local Mem0 2.2.1 boundary, and delivery/reconciliation retains existing identities. A10.1a–f3 and aggregate A10.1 are IMPLEMENTED REALITY; see [aggregate validation](../validation/v0.1.3-a10.1f3-aggregate-memory-profile-closure.md).
 
-A10.1e implemented reality is recorded in [its validation record](../validation/v0.1.3-a10.1e-grounded-dream-derivations.md): Journal source mappings are captured before compression, Dream jobs freeze exact source revisions, and DERIVED children preserve every contributing parent's selector, authority and time through existing keyed delivery. A10.1a–f2 are implemented. A10.1f3 remains planned; aggregate A10.1 remains incomplete.
+A10.1e implemented reality is recorded in [its validation record](../validation/v0.1.3-a10.1e-grounded-dream-derivations.md): Journal source mappings are captured before compression, Dream jobs freeze exact source revisions, and DERIVED children preserve every contributing parent's selector, authority and time through existing keyed delivery. A10.1a–f3 and aggregate A10.1 are IMPLEMENTED REALITY; see [aggregate validation](../validation/v0.1.3-a10.1f3-aggregate-memory-profile-closure.md).

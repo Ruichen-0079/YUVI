@@ -243,6 +243,27 @@ describe("A10.1f1 local profile materializer", () => {
     expect(snapshot.entries.every((entry) => entry.epistemicStatus === "UNVERIFIED")).toBe(true);
   });
 
+  it("direct A, Dream(A), Dream(A,B), direct B and replays preserve exactly two roots", () => {
+    const a = source({ id: memoryId(501), lineage: directLineage(501), content: "A" });
+    const b = source({ id: memoryId(502), lineage: directLineage(502), content: "B" });
+    const da = source({ id: memoryId(503), lineage: dreamLineage(501), content: "Dream A" });
+    const ab = structuredClone(dreamLineage(501));
+    const db = dreamLineage(502);
+    if (!("sources" in ab) || !("sources" in db)) throw new Error("Missing derived fixture");
+    ab.sources.push(...db.sources);
+    ab.parents.push(...db.parents);
+    ab.consumerKey = "aggregate-dream-ab";
+    const dab = source({ id: memoryId(504), lineage: ab, content: "Dream A,B" });
+    const base = materializeProfileSnapshot({ subject, backend: "legacy", sources: [a, da, dab, b], generatedAt: recordedAt });
+    const replay = materializeProfileSnapshot({ subject, backend: "legacy", sources: [b, dab, da, a, structuredClone(a), structuredClone(da)], generatedAt: "2026-10-03T00:00:00.000Z" });
+    expect(replay.profileRevision).toBe(base.profileRevision);
+    expect(replay.entries).toHaveLength(4);
+    expect(new Set(replay.entries.flatMap((entry) => entry.rootEvidenceKeys)).size).toBe(2);
+    expect(da.roots.map((root) => root.rootKey)).toEqual(a.roots.map((root) => root.rootKey));
+    expect(dab.roots.map((root) => root.rootKey).sort()).toEqual([...a.roots, ...b.roots].map((root) => root.rootKey).sort());
+    expect(replay.entries.every((entry) => entry.epistemicStatus === "UNVERIFIED")).toBe(true);
+  });
+
   it("preserves hearsay verbatim and keeps heterogeneous audience and identity constraints", () => {
     const hearsayText = "My friend says the restaurant is closed.";
     const hearsay = source({ id: memoryId(60), lineage: directLineage(60), content: hearsayText, claimClass: "EXTERNAL_CLAIM" });

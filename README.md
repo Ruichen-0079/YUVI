@@ -191,7 +191,7 @@ reliability
   -> deeper companion intelligence
 ```
 
-Future architecture documents live under [docs/future](docs/future/). They are planning authority only and do not imply implementation.
+Future architecture documents live under [docs/future](docs/future/). Their decisions do not by themselves imply implementation; [the implementation baseline](docs/future/implementation-baseline.md) records accepted reality. [A10.1 aggregate Memory/Profile closure](docs/validation/v0.1.3-a10.1f3-aggregate-memory-profile-closure.md) is implemented; A9, A10.2/A10.3, A11 and A12 remain open.
 
 ## Inspirations
 

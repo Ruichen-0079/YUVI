@@ -1,6 +1,6 @@
 # Memory, lineage and reconstruction
 
-Status: **PRODUCTION ARCHITECTURE DECISION** for future ownership; **IMPLEMENTED REALITY** for the mechanisms identified here; aggregate A10.1 remains **PLANNED / INCOMPLETE**, with A10.1a–f2 implemented and f3 planned.
+Status: **PRODUCTION ARCHITECTURE DECISION** for future ownership; **IMPLEMENTED REALITY** for the mechanisms identified here; aggregate A10.1 is **IMPLEMENTED REALITY**, with A10.1a–f3 implemented; see [aggregate validation](../validation/v0.1.3-a10.1f3-aggregate-memory-profile-closure.md).
 
 Memory is a replaceable set of evidence indexes, retrieval/ranking policies, compaction and retention views. The planned journal owns original causal evidence; Memory does not become world truth, disposition state, obligation state or identity authority. Mem0 can propose/index normalized material, but neither its extraction nor mutable search results may silently become canonical history. All provider requests and Memory writes remain behind existing contracts.
 
@@ -30,7 +30,7 @@ Runtime and recovery supply the exact committed Journal reference and persisted 
 
 The provider reserves a 65,536-byte canonical JSON lineage envelope with encoding version and SHA-256 integrity. Arbitrary caller metadata cannot override it or authority fields. Malformed/conflicting backend lineage causes a safe error/unavailable result, and a malformed applied write response remains ambiguous. Storage scope does not resolve committed principal, Person binding or audience; committed source clocks and real/mock speech distinctions remain exact. Finalized dispatch is always `infer:false`.
 
-Local Mem0 2.2.1 keeps the private 1024-dimensional embedding collection and YUVI PostgreSQL lifecycle. Existing terminal history stays history; nonterminal legacy payloads without required lineage cannot be newly dispatched. Exact post-dispatch reconciliation remains in force. [A10.1d validation](../validation/v0.1.3-a10.1d-grounded-finalized-mem0.md) records real PostgreSQL, sidecar and packaged Linux results. A10.1f1 implements bounded Mem0 source enumeration and local Profile materialization; A10.1f2 implements freshness and regeneration, while f3 remains planned and aggregate A10.1 remains incomplete.
+Local Mem0 2.2.1 keeps the private 1024-dimensional embedding collection and YUVI PostgreSQL lifecycle. Existing terminal history stays history; nonterminal legacy payloads without required lineage cannot be newly dispatched. Exact post-dispatch reconciliation remains in force. [A10.1d validation](../validation/v0.1.3-a10.1d-grounded-finalized-mem0.md) records real PostgreSQL, sidecar and packaged Linux results. A10.1f1 implements bounded Mem0 source enumeration and local Profile materialization; A10.1f2 implements freshness and regeneration, while f3 closes aggregate A10.1 as IMPLEMENTED REALITY.
 
 ## Implemented A10.1e Dream grounding boundary
 
@@ -38,7 +38,7 @@ Persisted conversation user text and its exact Journal reference resolve before 
 
 Each Dream job freezes the exact source revision at admission. Durable outputs consume only grounded statements, merge recurrence ancestry, and carry `memory-lineage.v1` DREAM_DERIVATION/DERIVED with per-source authority and clocks. There is no aggregate original occurrence time or fabricated Person claim. Child assertions are system/unverified, hearsay remains a report, and assistant context has no evidence entry. Consumer keys precede payload hashing and bind canonical source sets, policy and semantic output.
 
-Frozen result payloads are immutable. Reclaim enters reconciliation before extraction; only exact grounded not-applied children may retry. Legacy pending work fails closed; applied historical effects remain history without fabricated lineage. Generic bounded Mem0 encoding preserves exact derived lineage through real PostgreSQL/pgvector get/search/restart. [A10.1e validation](../validation/v0.1.3-a10.1e-grounded-dream-derivations.md) records acceptance. A10.1f1 and f2 are implemented; f3 remains planned and aggregate A10.1 remains incomplete.
+Frozen result payloads are immutable. Reclaim enters reconciliation before extraction; only exact grounded not-applied children may retry. Legacy pending work fails closed; applied historical effects remain history without fabricated lineage. Generic bounded Mem0 encoding preserves exact derived lineage through real PostgreSQL/pgvector get/search/restart. [A10.1e validation](../validation/v0.1.3-a10.1e-grounded-dream-derivations.md) records acceptance. A10.1f1–f3 and aggregate A10.1 are IMPLEMENTED REALITY.
 
 ## Consumer contract
 
@@ -62,4 +62,4 @@ Old rows have incomplete lineage. Import them with an explicit legacy/import pro
 
 The journal, Memory and correction owners have one-way responsibilities: journal records events and amendments; Memory updates its derived views; P8/prospective/integrator owners update their meanings. An amendment does not itself install a second state reducer inside the journal. [P8 ownership](p8-ownership.md) specifies atomic cutover rules.
 
-A10.1e implemented reality is recorded in [its validation record](../validation/v0.1.3-a10.1e-grounded-dream-derivations.md): Journal source mappings are captured before compression, Dream jobs freeze exact source revisions, and DERIVED children preserve every contributing parent's selector, authority and time through existing keyed delivery. A10.1a–f2 are implemented. A10.1f3 remains planned; aggregate A10.1 remains incomplete.
+A10.1e implemented reality is recorded in [its validation record](../validation/v0.1.3-a10.1e-grounded-dream-derivations.md): Journal source mappings are captured before compression, Dream jobs freeze exact source revisions, and DERIVED children preserve every contributing parent's selector, authority and time through existing keyed delivery. A10.1a–f3 and aggregate A10.1 are IMPLEMENTED REALITY; see [aggregate validation](../validation/v0.1.3-a10.1f3-aggregate-memory-profile-closure.md).

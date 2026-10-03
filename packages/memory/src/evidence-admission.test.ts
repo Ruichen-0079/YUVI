@@ -16,7 +16,7 @@ import { InMemoryFinalizedIngestionRepository } from "./finalized-ingestion-ledg
 import { FinalizedIngestionService } from "./finalized-test-fixture.js";
 import { executeFinalizedIngestionEvent } from "./finalized-ingestion-executor.js";
 import { freezeDerivedDreamEvent } from "./dream-source.js";
-import { stampDreamWriteEvent, deliverDreamEventsIdempotent } from "./dream-delivery.js";
+import { stampDreamWriteEvent, deliverDreamEventsIdempotent, reconcileDreamEvent } from "./dream-delivery.js";
 import { Mem0MemoryProvider, buildWriteMetadata } from "./providers/mem0-memory-provider.js";
 import { Mem0ProfileMemorySourceReader } from "./profile-source-reader.js";
 import type { MemoryBackend, MemoryRecord } from "./backend.js";
@@ -148,6 +148,36 @@ function dreamFor(input: MemoryWriteEventInput) {
 }
 
 describe("canonical host evidence admission", () => {
+  it("admission preparation failure cannot dispatch a finalized or Dream effect", async () => {
+    const f = await fixture();
+    vi.spyOn(f.store, "prepare").mockRejectedValue(new Error("host store unavailable"));
+    await expect(f.deliver()).rejects.toThrow("host store unavailable");
+    expect(f.backend.submitIdempotent).not.toHaveBeenCalled();
+    const outcomes = await deliverDreamEventsIdempotent(f.provider, [dreamFor(f.input)]);
+    expect(outcomes[0]?.failureClass).toBe("ambiguous");
+    expect(f.backend.submitIdempotent).not.toHaveBeenCalled();
+    expect((await f.read()).sources).toEqual([]);
+  });
+
+  it.each(["finalized", "dream"] as const)("%s effect success followed by bind failure stays unsupported until exact reconciliation", async (kind) => {
+    const f = await fixture();
+    const event = kind === "dream" ? dreamFor(f.input) : f.input;
+    const binding = vi.spyOn(f.store, "bind").mockRejectedValueOnce(new Error("bind acknowledgement lost"));
+    const outcome = kind === "dream" ? (await deliverDreamEventsIdempotent(f.provider, [event]))[0] : (await f.deliver()).outcome;
+    expect(outcome?.status === "ambiguous" || (outcome && "failureClass" in outcome && outcome.failureClass === "ambiguous")).toBe(true);
+    expect(f.records.size).toBe(1);
+    expect((await f.read()).sources).toEqual([]);
+    expect((await f.store.get(event.scope!, event.idempotencyKey!))?.state).toBe("PREPARED");
+    const writes = vi.mocked(f.backend.submitIdempotent!).mock.calls.length;
+    // The backend probes its frozen key, never retries the effect on applied.
+    f.backend.reconcileIdempotency = async () => ({ status: "applied", memoryId: keyedMem0RecordId(event.idempotencyKey!) });
+    const reconciled = kind === "dream" ? await reconcileDreamEvent(f.provider, event) : await f.provider.reconcileEvent({ scope: event.scope, idempotencyKey: event.idempotencyKey!, payloadDigest: event.payloadDigest! });
+    expect(reconciled.status).toBe("applied");
+    expect(binding).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(f.backend.submitIdempotent!).mock.calls.length).toBe(writes);
+    expect((await f.read()).sources).toHaveLength(1);
+  });
+
   it("concurrent process-local effect binding cannot transfer a prepared admission", async () => {
     const f = await fixture();
     await f.provider.prepareEvidence("FINALIZED_INGESTION", f.input);

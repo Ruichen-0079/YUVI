@@ -18,6 +18,8 @@ import {
   PostgresEvidenceAdmissionStore,
   bootstrapPostgresEvidenceAdmissions,
   Mem0ProfileMemorySourceReader,
+  UnavailableProfileMemorySourceReader,
+  type ProfileMemorySourceReader,
   LocalProfileProvider,
   PostgresProfileSnapshotStore,
   PostgresProfileLifecycleStore,
@@ -143,7 +145,7 @@ async function finalized(label: string) {
   };
   return { ref, identity, input, service, workflow, event, scope, subject, reader, read, deliver };
 }
-async function model(reader: Mem0ProfileMemorySourceReader, subject: ProfileSubjectV1) {
+async function model(reader: ProfileMemorySourceReader, subject: ProfileSubjectV1) {
   const profiles = new LocalProfileProvider({
     resolveSourceReader: () => reader,
     store: new PostgresProfileSnapshotStore(pool)
@@ -406,6 +408,23 @@ describe.skipIf(!databaseUrl || !sidecarUrl)(
       const copied = await provider.writeEvent(f.event.eventPayload);
       effects.push({ scope: f.scope, memoryId: copied.event!.sourceRecordId });
       expect((await f.read()).sources).toHaveLength(1);
+      const wrongScope = buildMemoryScope(`f3-wrong-scope-${randomUUID()}`, "r1-validation");
+      scopes.add(wrongScope);
+      for (const unowned of [
+        { ...f.event.eventPayload, content: "Changed unsupported content." },
+        { ...f.event.eventPayload, metadata: { ...f.event.eventPayload.metadata, sourceRole: "assistant", model: "Cognition", confidence: 1 } },
+        { ...f.event.eventPayload, scope: wrongScope }
+      ]) {
+        const copied = await provider.writeEvent(unowned);
+        expect(copied.status).toBe("written");
+        const uuid = copied.event!.sourceRecordId;
+        effects.push({ scope: unowned.scope!, memoryId: uuid });
+        expect(await admissions.listBound(unowned.scope!, [uuid])).toEqual([]);
+      }
+      const wrongRead = await f.reader.listEligibleSources({ subject: { kind: "MEMORY_SCOPE", scope: wrongScope }, asOf: new Date().toISOString() });
+      expect(wrongRead.state).toBe("COMPLETE");
+      expect(wrongRead.sources).toEqual([]);
+      expect((await f.read()).sources).toHaveLength(1);
       const m = await model(f.reader, f.subject);
       try {
         const generated = await m.profiles.generate({ subject: f.subject });
@@ -449,6 +468,29 @@ describe.skipIf(!databaseUrl || !sidecarUrl)(
       } finally {
         await m.coordinator.shutdown({ graceMs: 2_000 });
       }
+    }, 60_000);
+
+    it("real Mem0 outage and Memory-disabled composition withhold a verified candidate; recovery re-verifies live sources", async () => {
+      const f = await finalized("outage");
+      await f.deliver();
+      const m = await model(f.reader, f.subject);
+      expect((await m.read()).state).toBe("AVAILABLE");
+      const offline = new Mem0ProfileMemorySourceReader(new Mem0MemoryBackend({ baseUrl: "http://127.0.0.1:1" }), admissions);
+      expect((await offline.listEligibleSources({ subject: f.subject, asOf: new Date().toISOString() })).state).toBe("UNAVAILABLE");
+      for (const reader of [offline, new UnavailableProfileMemorySourceReader()]) {
+        const profiles = new LocalProfileProvider({ resolveSourceReader: () => reader, store: new PostgresProfileSnapshotStore(pool) });
+        await m.coordinator.replaceComposition({ reader, provider: profiles, backend: "mem0", compositionToken: {} });
+        expect((await m.read()).model).toBeNull();
+        expect(await profiles.getProfile({ subject: f.subject })).toMatchObject({ freshness: "UNCHECKED" });
+        expect((await profiles.generate({ subject: f.subject })).state).toBe("UNAVAILABLE");
+      }
+      await m.coordinator.shutdown({ graceMs: 2_000 });
+      const recovered = await model(f.reader, f.subject);
+      try {
+        const result = await recovered.read();
+        expect(result.state).toBe("AVAILABLE");
+        expect(result.model!.freshness.state).toBe("VERIFIED_AT_SOURCE_READ");
+      } finally { await recovered.coordinator.shutdown({ graceMs: 2_000 }); }
     }, 60_000);
 
     it("reopens PostgreSQL and reconstructs provable finalized and Dream effects only; unsupported effects stay unsupported", async () => {

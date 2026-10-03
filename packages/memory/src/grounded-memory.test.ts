@@ -95,15 +95,32 @@ function candidate(content: string): MemoryCandidate {
 
 describe("A10.1c grounded legacy Memory admission", () => {
 
-  it.each(["subjectUserId", "personaId"] as const)("cannot retire another legacy %s partition through automatic or suggested correction", async (field) => {
+  it.each(["subjectUserId", "personaId", "scope", "scopeId"] as const)("cannot retire another legacy %s partition through automatic or suggested correction", async (field) => {
     const repository = new InMemoryMemoryRepository();
     const service = createService(repository);
-    const original = await service.processCandidateForStorage({ ...candidate("I ate breakfast yesterday."), [field]: "foreign-partition", explicitRememberRequested: true }, { skipAdmissionPolicy: true }, context("Remember that I ate breakfast yesterday."));
+    const original = await service.processCandidateForStorage({ ...candidate("I ate breakfast yesterday."), [field]: field === "scope" ? "session" : "foreign-partition", explicitRememberRequested: true }, { skipAdmissionPolicy: true }, context("Remember that I ate breakfast yesterday."));
     const local = await service.processCandidateForStorage({ ...candidate("I ate breakfast yesterday."), explicitRememberRequested: true }, { skipAdmissionPolicy: true }, context("Remember that I ate breakfast yesterday.", "jev1_bbbbbbbbbbbbbbbb"));
-    const corrected = await service.processCandidateForStorage({ ...candidate("I ate breakfast today."), correctionRequested: true, possibleSupersedes: [original.memory!.id, local.memory!.id], reason: "user-correction" }, { skipAdmissionPolicy: true }, context("Actually, I ate breakfast today, not yesterday.", "jev1_cccccccccccccccc"));
+    const corrected = await service.processCandidateForStorage({ ...candidate("I ate breakfast today."), correctionRequested: true, possibleSupersedes: [original.memory!.id, local.memory!.id], possibleContradictions: [original.memory!.id], reason: "user-correction" }, { skipAdmissionPolicy: true }, context("Actually, I ate breakfast today, not yesterday.", "jev1_cccccccccccccccc"));
     expect(corrected.decision).toBe("stored");
+    expect(corrected.memory!.supersedes).not.toContain(original.memory!.id);
+    expect(corrected.memory!.contradicts).not.toContain(original.memory!.id);
     expect(await repository.getMemoryById(original.memory!.id)).toMatchObject({ status: "active", supersededBy: null });
+    await expect(service.updateMemory(local.memory!.id, { supersededBy: original.memory!.id })).rejects.toThrow("same subject, persona and native scope");
+
     expect(await repository.getMemoryById(local.memory!.id)).toMatchObject({ status: "superseded", supersededBy: corrected.memory!.id });
+  });
+
+  it.each(["subjectUserId", "personaId", "scope", "scopeId"] as const)("automatic relationships respect the %s partition", async (field) => {
+    const repository = new InMemoryMemoryRepository();
+    const service = createService(repository);
+    const base = { ...candidate("Chat provider is deepseek."), subtype: "provider-choice" as const, scope: "user" as const, explicitRememberRequested: true };
+    const foreign = await service.processCandidateForStorage({ ...base, [field]: field === "scope" ? "session" : "foreign-partition" }, { skipAdmissionPolicy: true }, context("Remember that chat provider is deepseek."));
+    const local = await service.processCandidateForStorage(base, { skipAdmissionPolicy: true }, context("Remember that chat provider is deepseek.", "jev1_bbbbbbbbbbbbbbbb"));
+    const changed = await service.processCandidateForStorage({ ...base, content: "Chat provider is openai.", summary: "Chat provider is openai." }, { skipAdmissionPolicy: true }, context("Remember that chat provider is openai.", "jev1_cccccccccccccccc"));
+    expect(changed.memory!.supersedes).not.toContain(foreign.memory!.id);
+    expect(changed.memory!.contradicts).not.toContain(foreign.memory!.id);
+    expect((await repository.getMemoryById(foreign.memory!.id))!.status).toBe("active");
+    expect((await repository.getMemoryById(local.memory!.id))!.status).toBe("superseded");
   });
 
   it("rejects evidence-backed writes when committed Journal ancestry is absent", async () => {

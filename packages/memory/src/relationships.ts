@@ -286,7 +286,6 @@ function isCompatibleScope(candidate: MemoryCandidate, memory: Memory): boolean 
   const candidateScopeId =
     candidate.scopeId ?? (candidateScope === "project" ? "yuvi-runtime" : null);
   if (!sameLegacyMemoryPartition(candidate, memory) || candidateScope !== memory.scope) return false;
-  if (candidateScope === "user") return true;
   return candidateScopeId === memory.scopeId;
 }
 

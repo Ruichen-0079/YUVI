@@ -13,7 +13,14 @@ import {
   MemoryService,
   PostgresMemoryRepository,
   RuleBasedMemoryExtractor,
-  getMemoryLineageState
+  getMemoryLineageState,
+  LegacyProfileMemorySourceReader,
+  LocalProfileProvider,
+  PostgresProfileSnapshotStore,
+  PostgresProfileLifecycleStore,
+  ProfileLifecycleCoordinator,
+  buildMemoryScope,
+  profileSubjectKey
 } from "@companion/memory";
 import { readSqlMigrations } from "../../../packages/memory/src/migrations.js";
 
@@ -32,7 +39,9 @@ describe.skipIf(!databaseUrl)("A10.1c grounded legacy Memory with real PostgreSQ
     await adminPool.query('create schema "' + schema + '"');
     pool = createPostgresPool(databaseUrl!, { options: "-c search_path=" + schema + ",public" });
     const migrations = await readSqlMigrations();
-    for (const migration of migrations.filter((entry) => entry.name !== "015_memory_lineage_v1.sql")) {
+    for (const migration of migrations.filter(
+      (entry) => entry.name !== "015_memory_lineage_v1.sql"
+    )) {
       await pool.query(migration.sql);
       if (migration.name === "001_init_memory.sql") {
         await pool.query(
@@ -84,7 +93,11 @@ describe.skipIf(!databaseUrl)("A10.1c grounded legacy Memory with real PostgreSQ
       sourceTraceId: "forged-trace-does-not-parent"
     };
     const context = { sourceJournalRef: parent, sourceText };
-    const first = await service.processCandidateForStorage(candidate, { source: "runtime" }, context);
+    const first = await service.processCandidateForStorage(
+      candidate,
+      { source: "runtime" },
+      context
+    );
     expect(first.decision).toBe("stored");
     expect(first.memory?.lineage).toMatchObject({
       version: "memory-lineage.v1",
@@ -104,11 +117,18 @@ describe.skipIf(!databaseUrl)("A10.1c grounded legacy Memory with real PostgreSQ
       (first.memory?.lineage as { consumerKey: string }).consumerKey
     );
 
-    const mismatch = await service.processCandidateForStorage(candidate, { source: "runtime" }, {
-      sourceJournalRef: parent,
-      sourceText: "An unrelated utterance."
+    const mismatch = await service.processCandidateForStorage(
+      candidate,
+      { source: "runtime" },
+      {
+        sourceJournalRef: parent,
+        sourceText: "An unrelated utterance."
+      }
+    );
+    expect(mismatch).toMatchObject({
+      decision: "rejected",
+      rejectedReason: "source-text-mismatch"
     });
-    expect(mismatch).toMatchObject({ decision: "rejected", rejectedReason: "source-text-mismatch" });
 
     const key = first.memory!.lineageConsumerKey!;
     const existing = await memoryRepository!.getGroundedMemoryByConsumerKey(key);
@@ -123,7 +143,7 @@ describe.skipIf(!databaseUrl)("A10.1c grounded legacy Memory with real PostgreSQ
         payloadDigest: "e".repeat(64),
         memory: {
           type: "semantic",
-          subtype: "preference",
+          subtype: "preference" as const,
           content: "conflicting payload",
           source: "runtime"
         }
@@ -158,6 +178,111 @@ describe.skipIf(!databaseUrl)("A10.1c grounded legacy Memory with real PostgreSQ
       await reopenedMemory.close?.();
     } finally {
       await reopenedPool.end();
+    }
+  });
+  it("real Journal correction converges through Profile/People.Model after unnotified retirement and PostgreSQL restart", async () => {
+    const identity = randomBytes(8).toString("hex");
+    const subjectUserId = `aggregate-correction-${identity}`;
+    const personaId = "aggregate-correction";
+    const subject = {
+      kind: "MEMORY_SCOPE" as const,
+      scope: buildMemoryScope(subjectUserId, personaId)
+    };
+    const aText = "Remember that I drank tea.";
+    const bText = "Actually, I drank coffee, not tea.";
+    const aRef = await appendReceipt(aText, "aggregate-correction-a");
+    const bRef = await appendReceipt(bText, "aggregate-correction-b");
+    const service = createService(memoryRepository!, journal!);
+    const make = (content: string) => ({
+      type: "semantic" as const,
+      subtype: "preference" as const,
+      content,
+      summary: content,
+      tags: [],
+      importance: 0.9,
+      reason: "explicit-remember",
+      originRole: "user" as const,
+      subjectUserId,
+      personaId,
+      explicitRememberRequested: true,
+      validUntil: "2027-01-01T00:00:00.000Z",
+      expiresAt: "2027-01-01T00:00:00.000Z"
+    });
+    const a = await service.processCandidateForStorage(
+      make("I drank tea."),
+      {},
+      { sourceJournalRef: aRef, sourceText: aText }
+    );
+    expect(a.decision).toBe("stored");
+    const snapshots = new PostgresProfileSnapshotStore(pool!);
+    let lifecycle = new PostgresProfileLifecycleStore(pool!);
+    let sourceReader = new LegacyProfileMemorySourceReader(memoryRepository!);
+    let provider = new LocalProfileProvider({
+      resolveSourceReader: () => sourceReader,
+      store: snapshots
+    });
+    const composition = () => ({
+      reader: sourceReader,
+      provider,
+      backend: "legacy" as const,
+      compositionToken: {}
+    });
+    let coordinator = new ProfileLifecycleCoordinator(lifecycle, undefined, composition());
+    const generate = async () => {
+      await coordinator.requestGeneration({ subject });
+      for (let i = 0; i < 3; i++) {
+        await pool!.query(
+          "update profile_lifecycle set next_attempt_at=clock_timestamp()-interval '1 second' where subject_key=$1 and regeneration_needed",
+          [profileSubjectKey(subject)]
+        );
+        await (coordinator as unknown as { runTick(): Promise<void> }).runTick();
+      }
+      return coordinator.readScopeModel({ subject, readMemory: true });
+    };
+    const pa = await generate();
+    expect(pa.state, JSON.stringify(await sourceReader.listEligibleSources({ subject, asOf: new Date().toISOString() }))).toBe("AVAILABLE");
+    expect(pa.model!.freshness.state).toBe("VERIFIED_AT_SOURCE_READ");
+    // No mutation notifier is installed: live reads are the safety boundary.
+    const b = await service.processCandidateForStorage(
+      {
+        ...make("I drank coffee."),
+        explicitRememberRequested: false,
+        correctionRequested: true,
+        reason: "user-correction",
+        possibleSupersedes: [a.memory!.id]
+      },
+      { skipAdmissionPolicy: true },
+      { sourceJournalRef: bRef, sourceText: bText }
+    );
+    expect(b.memory!.lineage).toMatchObject({
+      derivation: { kind: "CORRECTION" },
+      parents: [{ ref: bRef }]
+    });
+    expect((await memoryRepository!.getMemoryById(a.memory!.id))!.status).toBe("superseded");
+    expect((await coordinator.readScopeModel({ subject, readMemory: true })).model).toBeNull();
+    const reopened = createPostgresPool(databaseUrl!, {
+      options: "-c search_path=" + schema + ",public"
+    });
+    try {
+      const repository = new PostgresMemoryRepository(reopened);
+      sourceReader = new LegacyProfileMemorySourceReader(repository);
+      provider = new LocalProfileProvider({
+        resolveSourceReader: () => sourceReader,
+        store: new PostgresProfileSnapshotStore(reopened)
+      });
+      lifecycle = new PostgresProfileLifecycleStore(reopened);
+      coordinator = new ProfileLifecycleCoordinator(lifecycle, undefined, composition());
+      await (coordinator as unknown as { recheckStartup(): Promise<void> }).recheckStartup();
+      expect((await coordinator.readScopeModel({ subject, readMemory: true })).model).toBeNull();
+      const pb = await generate();
+      expect(pb.state).toBe("AVAILABLE");
+      expect(pb.model!.profileRevision).not.toBe(pa.model!.profileRevision);
+      expect(pb.model!.snapshot.entries.map((entry) => entry.content)).toEqual(["I drank coffee."]);
+      expect(
+        await provider.getProfile({ subject, profileRevision: pa.model!.profileRevision })
+      ).toMatchObject({ freshness: "UNCHECKED" });
+    } finally {
+      await reopened.end();
     }
   });
 });

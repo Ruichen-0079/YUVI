@@ -243,13 +243,17 @@ export class MemoryService {
     const lifecycleOnly = Object.keys(input).every((key) =>
       ["status", "supersededAt", "supersededBy"].includes(key)
     );
-    if (lifecycleOnly) {
-      return this.repository.updateMemory(id, input);
-    }
     const current = await this.repository.getMemoryById(id);
-    if (!current) {
-      return null;
+    if (!current) return null;
+    const relationshipIds = [...(input.supersedes ?? []), ...(input.contradicts ?? []), ...(input.supersededBy ? [input.supersededBy] : [])];
+    for (const targetId of new Set(relationshipIds)) {
+      const target = await this.repository.getMemoryById(targetId);
+      if (!target || !sameLegacyMemoryPartition(current, target) || current.scope !== target.scope ||
+          (current.scopeId ?? null) !== (target.scopeId ?? null)) {
+        throw new Error("Memory relationships must stay within the same subject, persona and native scope partition.");
+      }
     }
+    if (lifecycleOnly) return this.repository.updateMemory(id, input);
     if (current.lineage?.state === "GROUNDED") {
       throw new Error(
         "Grounded Memory lineage is immutable; record a new grounded correction instead."
@@ -447,8 +451,9 @@ export class MemoryService {
     }
     candidate = claimGate.candidate;
 
+    const confinedCandidate = await this.confineSuggestedRelationships(candidate);
     const normalized = this.normalizeCandidateForStorage({
-      ...candidate,
+      ...confinedCandidate,
       // Receipt recordedAt is the host observation anchor. Candidate clocks remain proposals.
       observedAt: groundedSource.recordedAt
     });
@@ -1349,6 +1354,21 @@ export class MemoryService {
         computedExpiresAt: expiresAt instanceof Date ? expiresAt.toISOString() : String(expiresAt)
       },
       tags: Array.from(new Set([...(input.tags ?? []), "test"]))
+    };
+  }
+
+  private async confineSuggestedRelationships(candidate: MemoryCandidate): Promise<MemoryCandidate> {
+    const scope = candidate.scope ?? inferMemoryScope(candidate);
+    const scopeId = candidate.scopeId ?? inferMemoryScopeId({ ...candidate, scope });
+    const ids = [...new Set([...(candidate.possibleSupersedes ?? []), ...(candidate.possibleContradictions ?? [])])];
+    const targets = await Promise.all(ids.map((id) => this.repository.getMemoryById(id)));
+    const allowed = new Set(targets.filter((target) => target &&
+      sameLegacyMemoryPartition(candidate, target) && scope === target.scope &&
+      (scopeId ?? null) === (target.scopeId ?? null)).map((target) => target!.id));
+    return {
+      ...candidate,
+      possibleSupersedes: (candidate.possibleSupersedes ?? []).filter((id) => allowed.has(id)),
+      possibleContradictions: (candidate.possibleContradictions ?? []).filter((id) => allowed.has(id))
     };
   }
 
