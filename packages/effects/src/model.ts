@@ -102,7 +102,7 @@ export const EffectIntentSchema = z
     decision: z.enum(["ADMITTED", "DENIED"]),
     reasonCode: token.nullable(),
     state: z.enum(["ADMITTED", "DENIED", "CANCELED", "EXPIRED"]),
-    /** Reserved fence only; A9.1 has no claim API or ATTEMPT. */
+    /** A9.2 claims this projection atomically with an attempt; admission JSON stays immutable. */
     workState: z.enum(["PENDING", "CLAIMED", "WITHHELD"]).nullable(),
     createdAt: z.string().datetime()
   })
@@ -119,7 +119,7 @@ export const EffectIntentSchema = z
         : v.reasonCode === null &&
           Object.hasOwn(v.request, "payload") &&
           (v.state === "ADMITTED"
-            ? v.workState === "PENDING" || v.workState === "CLAIMED"
+            ? v.workState === "PENDING" || v.workState === "CLAIMED" || v.workState === "WITHHELD"
             : (v.state === "CANCELED" || v.state === "EXPIRED") && v.workState === "WITHHELD"))
   );
 export type EffectIntent = z.infer<typeof EffectIntentSchema>;

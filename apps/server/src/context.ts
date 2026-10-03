@@ -1,5 +1,6 @@
+import { HostReadTextEffects } from "./read-text-effect.js";
 import { projectFinalizedEffectIntent, projectDreamEffectIntents } from "@companion/memory";
-import { HostEffectIntentAdmission, PostgresEffectIntentStore, type EffectIntentAdmissionPort } from "@companion/effects";
+import { HostEffectIntentAdmission, PostgresEffectIntentStore, PostgresEffectDispatchStore, type EffectIntentAdmissionPort } from "@companion/effects";
 import { JournalMemoryGroundingResolver } from "@companion/memory";
 import { productEnvironment, readProductSettings } from "./services/product-store.js";
 import { join } from "node:path";
@@ -122,6 +123,7 @@ import type { ServerPluginRuntimeCapabilitySurface } from "./plugin-lifecycle.js
 
 export type AppContext = {
   effectIntents: EffectIntentAdmissionPort;
+  readTextEffects: HostReadTextEffects;
   existingMemoryEffectIntents: {
     finalized(finalizedTurnId: string): Promise<import("@companion/effects").ExistingEffectIntent[]>;
     dream(jobId: string): Promise<import("@companion/effects").ExistingEffectIntent[]>;
@@ -241,6 +243,11 @@ export async function createAppContext(
   // Production never substitutes process-local decisions for durable A9 authority.
   const effectIntents = new HostEffectIntentAdmission(
     databasePool ? new PostgresEffectIntentStore(databasePool) : null, journalRepository
+  );
+  const readTextEffects = new HostReadTextEffects(
+    effectIntents,
+    databasePool ? new PostgresEffectDispatchStore(databasePool) : null,
+    journalRepository
   );
   const conversationalReceiptAdmission = new HostConversationalReceiptAdmission(journalRepository);
   const speechReceiptAdmission = new HostSpeechReceiptAdmission(journalRepository);
@@ -445,6 +452,8 @@ export async function createAppContext(
                 canonicalContext: options.canonicalContext,
                 limits: config.cognitionInteraction,
                 runtimeAuthorizedPath: options?.runtimeAuthorizedPath,
+                readTextEffects,
+                effectContext: options.effectContext,
                 ...(pluginCapabilities === undefined ? {} : { pluginCapabilities }),
                 ...(options?.signal ? { signal: options.signal } : {})
               })
@@ -545,6 +554,7 @@ export async function createAppContext(
 
   const context: AppContext = {
     effectIntents,
+    readTextEffects,
     existingMemoryEffectIntents: {
       async finalized(id) {
         return (await finalizedIngestionRepository!.listEvents(id)).map(projectFinalizedEffectIntent);
@@ -569,6 +579,7 @@ export async function createAppContext(
     ttsReceiptAdmission,
     voiceControlReceiptAdmission,
     async closeDatabasePool() {
+      await readTextEffects.shutdown();
       await profileLifecycleCoordinator.shutdown({ graceMs: 2_000 });
       await databasePool?.end();
     },

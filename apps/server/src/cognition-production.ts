@@ -1,5 +1,4 @@
-import { constants } from "node:fs";
-import { open } from "node:fs/promises";
+import type { ReadTextEffectInput, HostReadTextEffects } from "./read-text-effect.js";
 import { COGNITION_6A_VERSION } from "@companion/cognition";
 import type { CharacterHarnessCognitionRequest } from "@companion/character-harness/cognition-request";
 import type { ProviderResolver } from "@companion/providers";
@@ -21,12 +20,16 @@ export function executeProductionCognition(input: {
   problem: string;
   canonicalContext?: CanonicalContext | undefined;
   runtimeAuthorizedPath?: string | undefined;
+  readTextEffects?: HostReadTextEffects | undefined;
+  effectContext?: Pick<ReadTextEffectInput, "scope" | "cause"> | undefined;
   pluginCapabilities?: ServerPluginRuntimeCapabilitySurface | undefined;
   signal?: AbortSignal | undefined;
   execution: RuntimeCognitionExecution;
   limits: RuntimeCognitionLimits;
 }) {
   const path = input.runtimeAuthorizedPath;
+  const expiresAt = new Date(Date.now() + input.limits.timeBudgetMs).toISOString();
+  let readOrdinal = 0;
   const staticRegistry = createServerMcpCapabilityBindings({
     version: SERVER_EXECUTABLE_CAPABILITY_REGISTRY_A71_VERSION,
     capabilities: path
@@ -68,27 +71,19 @@ export function executeProductionCognition(input: {
         if (!path || call.name !== "read_text_file" || call.arguments?.["path"] !== path)
           throw new Error("Read-text admission mismatch");
         options?.signal?.throwIfAborted();
-        const file = await open(path, constants.O_RDONLY | constants.O_NONBLOCK);
-        try {
-          const stat = await file.stat();
-          if (!stat.isFile() || stat.size > 64_000)
-            throw new Error("Authorized text must be a regular file of at most 64000 bytes");
-          const bytes = Buffer.alloc(64_001);
-          const { bytesRead } = await file.read(bytes, 0, bytes.length, 0);
-          options?.signal?.throwIfAborted();
-          if (bytesRead > 64_000) throw new Error("Authorized text exceeds limit");
-          return {
-            isError: false,
-            content: [
-              {
-                type: "text",
-                text: new TextDecoder("utf-8", { fatal: true }).decode(bytes.subarray(0, bytesRead))
-              }
-            ]
-          };
-        } finally {
-          await file.close();
-        }
+        if (!input.readTextEffects || !input.effectContext)
+          throw new Error("Durable read-text authority unavailable");
+        const { scope, cause } = input.effectContext;
+        return input.readTextEffects.execute({
+          path,
+          scope,
+          cause,
+          executionId: input.execution.executionId,
+          logicalKey: `read-text:${cause.namespace}:${cause.eventId}:round:${readOrdinal++}`,
+          expiresAt,
+          isCurrent: () => input.execution.isCurrent(),
+          signal: options?.signal
+        });
       }
     }
   });

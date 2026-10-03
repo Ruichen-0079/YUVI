@@ -3835,7 +3835,10 @@ export class RuntimeOrchestrator {
       execution: { executionId: cognitionOwner!.executionId, isCurrent: cognitionIsCurrent },
       canonicalContext,
       signal: cognitionSignal,
-      runtimeAuthorizedPath
+      runtimeAuthorizedPath,
+      ...(event.payload.sourceJournalRef
+        ? { effectContext: { scope: `session:${event.payload.sessionId}`, cause: event.payload.sourceJournalRef } }
+        : {})
     });
     assertCurrent();
     const final = await character.generateAfterCognition({

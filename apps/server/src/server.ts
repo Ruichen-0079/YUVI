@@ -178,7 +178,18 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
     context.memoryIngestionCoordinator.start();
   }
 
+  context.readTextEffects.start();
+
+  // Seal/drain generic work before Fastify waits for active HTTP handlers to close.
+  // The dispatch-start marker preserves UNKNOWN even if a caller cannot finish the drain.
+  let effectDrain: Promise<{ drained: boolean }> | undefined;
+  const drainEffects = () => (effectDrain ??= context.readTextEffects.shutdown());
+  app.addHook("preClose", async () => {
+    await drainEffects();
+  });
   app.addHook("onClose", async () => {
+    // Await the same drain independently of earlier third-party preClose callbacks.
+    await drainEffects();
     await pluginLifecycle.shutdown();
     maintenanceScheduler.close();
     context.embodiedPresentationBridge.close();

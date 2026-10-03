@@ -1,3 +1,5 @@
+import { HostReadTextEffects } from "./read-text-effect.js";
+import { ServerPluginLifecycle } from "./plugin-lifecycle.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryIngestionCoordinator, MemoryMaintenanceService } from "@companion/memory";
 import { loadServerConfig } from "./config.js";
@@ -22,6 +24,19 @@ afterEach(async () => {
   for (const dir of createdRuntimeEnvDirs.splice(0)) {
     await rm(dir, { recursive: true, force: true });
   }
+});
+
+it("drains A9 workers before plugin teardown",async()=>{
+ const dir=await mkdtemp(path.join(tmpdir(),"yuvi-a92-shutdown-"));createdRuntimeEnvDirs.push(dir);
+ process.env={NODE_ENV:"test",RUNTIME_MODE:"test",LOG_LEVEL:"silent",PROVIDER_ALLOW_MOCKS:"true",YUVI_RUNTIME_ENV_DIR:dir,MEMORY_REPOSITORY:"in-memory",CONVERSATION_REPOSITORY:"in-memory",EVENT_BUS:"in-memory",MEMORY_MAINTENANCE_ENABLED:"false"};
+ const order:string[]=[];let release:()=>void=()=>{};
+ const gate=new Promise<void>(r=>release=r);
+ vi.spyOn(HostReadTextEffects.prototype,"shutdown").mockImplementation(async()=>{order.push("effect-drain");await gate;return {drained:true};});
+ const original=ServerPluginLifecycle.prototype.shutdown;
+ vi.spyOn(ServerPluginLifecycle.prototype,"shutdown").mockImplementation(async function(this:ServerPluginLifecycle){order.push("plugin-shutdown");return original.call(this);});
+ const app=await buildServer(loadServerConfig(process.env));await app.ready();
+ const closing=app.close();await expect.poll(()=>order[0]).toBe("effect-drain");expect(order).toEqual(["effect-drain"]);
+ release();await closing;expect(order[1]).toBe("plugin-shutdown");
 });
 
 describe("server", () => {

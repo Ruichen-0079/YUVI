@@ -76,7 +76,7 @@ A10.1 leaf authority: [`a10.1-grounded-memory-roadmap.md`](a10.1-grounded-memory
 
 ## Current state
 
-A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2f6 and aggregate A8.2 are implemented reality. A10.1a–f3 and aggregate A10.1 are IMPLEMENTED REALITY. A9, A10.2/A10.3, A11 and A12 remain planned/open engineering, with A12.1 already holding a pinned source-level SnowLuma contract while its live probe remains pending. A10.1f3-r1 canonical host evidence admission is implemented; see [r1 validation](../validation/v0.1.3-a10.1f3-r1-canonical-evidence-admission.md). A10.1f3 is IMPLEMENTED REALITY; see [aggregate validation](../validation/v0.1.3-a10.1f3-aggregate-memory-profile-closure.md).
+A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2f6 and aggregate A8.2 are implemented reality. A10.1a–f3 and aggregate A10.1 are IMPLEMENTED REALITY. A9.1 and A9.2 are IMPLEMENTED REALITY for atomic intent admission and bounded dispatch accounting with active local read-text; see [A9.2 validation](../validation/v0.1.3-a9.2-dispatch-reconciliation-crash-ambiguity.md). A9.3 is PLANNED and aggregate A9 remains INCOMPLETE. A10.2/A10.3, A11 and A12 remain planned/open engineering, with A12.1 already holding a pinned source-level SnowLuma contract while its live probe remains pending. A10.1f3-r1 canonical host evidence admission is implemented; see [r1 validation](../validation/v0.1.3-a10.1f3-r1-canonical-evidence-admission.md). A10.1f3 is IMPLEMENTED REALITY; see [aggregate validation](../validation/v0.1.3-a10.1f3-aggregate-memory-profile-closure.md).
 
 ### Milestone 1 — Evidence Foundation
 
@@ -134,6 +134,8 @@ People
 The local/private profile materializer is the required baseline. A hosted Mem0 User Profiles adapter is optional and cannot become a mandatory cloud dependency.
 
 ### Milestone 2 — Action and attribution foundation
+
+A9.1/A9.2 are implemented within their validated boundaries. A9.3 remains planned; aggregate A9 is incomplete. A10.2 and A11.1 have not been started by A9.2 closure.
 
 Default dependency order:
 

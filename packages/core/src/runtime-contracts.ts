@@ -59,7 +59,7 @@ export type RuntimeLogger = {
 };
 
 export type RuntimeOrchestratorOptions = {
-  /** A9.1 admission only; existing live dispatch owners are not cut over. */
+  /** Host admission port only. Concrete read-text dispatch stays in server composition. */
   effectIntents?: EffectIntentAdmissionPort | undefined;
   eventBus: EventBus;
   memory: RuntimeMemoryPort;
@@ -124,6 +124,7 @@ export type RuntimeCharacterCognitionExecutor = (
     canonicalContext?: CanonicalContext | undefined;
     signal?: AbortSignal | undefined;
     runtimeAuthorizedPath?: string | undefined;
+    effectContext?: { scope:string; cause: import("@companion/protocol").JournalEventRef } | undefined;
   }>
 ) => Promise<unknown>;
 

@@ -1,3 +1,5 @@
+import { createPostgresPool } from "@companion/database";
+import { readSqlMigrations } from "../../../packages/memory/src/migrations.js";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -416,7 +418,7 @@ it("persists a controller P8 relationship correction through restart and project
   }
 });
 
-it.each([false, true])("reaches Runtime-admitted reads, bounded Cognition and Character re-entry (multiple=%s)", async multiple => {
+it.skipIf(!originalEnv["YUVI_EFFECT_TEST_DATABASE_URL"]).each([false, true])("reaches Runtime-admitted reads, bounded Cognition and Character re-entry (multiple=%s)", async multiple => {
   const { writeFile } = await import("node:fs/promises");
   const directory = await mkdtemp(path.join(tmpdir(), "yuvi-read-text-"));
   createdDirs.push(directory);
@@ -439,9 +441,17 @@ it.each([false, true])("reaches Runtime-admitted reads, bounded Cognition and Ch
       return characterResponse(body, replies.shift()!);
     })
   );
-  const env = productionTestEnv();
+  // A9.2 real dispatch requires real committed ancestry and the durable host facility.
+  const databaseUrl=originalEnv["YUVI_EFFECT_TEST_DATABASE_URL"]!;
+  const schema=`a92_character_${crypto.randomUUID().replaceAll("-","")}`;
+  const admin=createPostgresPool(databaseUrl);
+  await admin.query(`create schema "${schema}"`);
+  const pool=createPostgresPool(databaseUrl,{options:`-c search_path=${schema},public`});
+  for(const migration of await readSqlMigrations())await pool.query(migration.sql);
+  const scoped=new URL(databaseUrl);scoped.searchParams.set("options",`-c search_path=${schema},public`);
+  const env = {...productionTestEnv(),DATABASE_URL:scoped.toString(),YUVI_JOURNAL_NAMESPACE:schema};
   process.env = { ...env };
-  const app = await buildServerWithAdmission(env);
+  const app = await buildServer(loadServerConfig(env));
   try {
     const authorization = await app.inject({
       method: "POST",
@@ -460,6 +470,10 @@ it.each([false, true])("reaches Runtime-admitted reads, bounded Cognition and Ch
     });
     expect(reply.statusCode, reply.body).toBe(200);
     expect(reply.json().reply).toBe("The count is forty-two.");
+    const attempts=await pool.query("select a.attempt_id,a.dispatch_started_at,o.evidence from effect_attempts a join effect_observations o using(attempt_id)");
+    expect(attempts.rows).toHaveLength(multiple ? 2 : 1);
+    for(const row of attempts.rows){expect(row["dispatch_started_at"]).not.toBeNull();expect(row["evidence"]["certainty"]).toBe("APPLIED");}
+    expect(JSON.stringify(attempts.rows)).not.toContain("EXECUTION_EVIDENCE_ONLY_7f2a");
     expect(requests).toHaveLength(multiple ? 7 : 5);
     expect(JSON.stringify(requests[2])).toContain("The verified count is forty-two.");
     expect(JSON.stringify(requests[multiple ? 5 : 3])).toContain("COGNITION_RESULT");
@@ -524,6 +538,9 @@ it.each([false, true])("reaches Runtime-admitted reads, bounded Cognition and Ch
     );
   } finally {
     await app.close();
+    await pool.end();
+    await admin.query(`drop schema "${schema}" cascade`);
+    await admin.end();
   }
 });
 

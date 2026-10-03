@@ -37,7 +37,7 @@ function boundLimit(limit: number): number {
     throw new EffectIntentError("INVALID_REQUEST", "Pending work limit must be from 1 to 1000.");
   return limit;
 }
-function decode(row: Record<string, unknown>): EffectIntent {
+export function decodeEffectIntent(row: Record<string, unknown>): EffectIntent {
   const parsed = EffectIntentSchema.safeParse(row["intent"]);
   if (!parsed.success)
     throw new EffectIntentError("INTEGRITY_FAILURE", "Invalid durable effect intent.");
@@ -63,7 +63,7 @@ function decode(row: Record<string, unknown>): EffectIntent {
   return copy(projected.data);
 }
 
-/** Intent + work is one atomic row. No dispatcher, timers, target or pool ownership. */
+/** Admission + initial work is one atomic row. Dispatch accounting is in dispatch-store; the host owns the pool. */
 export class PostgresEffectIntentStore implements EffectIntentStore {
   constructor(private readonly pool: Pool) {}
   async decide(value: EffectIntent, beforeCommit?: () => void): Promise<EffectIntent> {
@@ -74,7 +74,7 @@ export class PostgresEffectIntentStore implements EffectIntentStore {
           `insert into effect_intents (intent_id, logical_key, contract_ref, payload_digest, intent,
           state, work_state, expires_at, created_at)
          values ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9)
-         on conflict (intent_id) do nothing returning *`,
+         on conflict do nothing returning *`,
           [
             value.intentId,
             value.logicalKey,
@@ -89,15 +89,17 @@ export class PostgresEffectIntentStore implements EffectIntentStore {
         );
         if (result.rows.length) {
           inserted = true;
-          return decode(result.rows[0]!);
+          return decodeEffectIntent(result.rows[0]!);
         }
+        // Both uniqueness arbiters describe the same logical identity. Naming only the PK can
+        // raise a secondary-index unique violation during concurrent exact replay.
         // INSERT waits for concurrent decisions to commit; this READ COMMITTED query sees the winner.
         const existing = await client.query(`select * from effect_intents where intent_id=$1`, [
           value.intentId
         ]);
         if (!existing.rows[0])
           throw new EffectIntentError("INTEGRITY_FAILURE", "Conflicting intent disappeared.");
-        return checkReplay(decode(existing.rows[0]), value);
+        return checkReplay(decodeEffectIntent(existing.rows[0]), value);
       },
       () => {
         if (inserted) beforeCommit?.();
@@ -107,24 +109,24 @@ export class PostgresEffectIntentStore implements EffectIntentStore {
   async get(id: string): Promise<EffectIntent | null> {
     return this.transaction(async (c) => {
       const result = await c.query(`select * from effect_intents where intent_id=$1`, [id]);
-      return result.rows[0] ? decode(result.rows[0]) : null;
+      return result.rows[0] ? decodeEffectIntent(result.rows[0]) : null;
     });
   }
   async cancel(id: string): Promise<EffectIntent | null> {
     return this.transaction(async (c) => {
-      // Future first claim MUST lock/update this same row and require PENDING, ADMITTED and unexpired.
+      // First claim locks this same row. Post-claim cancellation uses EffectDispatchStore.cancel.
       const result = await c.query(`select * from effect_intents where intent_id=$1 for update`, [
         id
       ]);
       if (!result.rows[0]) return null;
-      const current = decode(result.rows[0]);
+      const current = decodeEffectIntent(result.rows[0]);
       if (current.state === "ADMITTED" && current.workState === "PENDING") {
         const changed = await c.query(
           `update effect_intents set state='CANCELED', work_state='WITHHELD'
           where intent_id=$1 returning *`,
           [id]
         );
-        return decode(changed.rows[0]!);
+        return decodeEffectIntent(changed.rows[0]!);
       }
       return current;
     });
@@ -138,7 +140,7 @@ export class PostgresEffectIntentStore implements EffectIntentStore {
         order by created_at, intent_id limit $1`,
         [limit]
       );
-      return result.rows.map(decode);
+      return result.rows.map(decodeEffectIntent);
     });
   }
   async expire(): Promise<number> {
