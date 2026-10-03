@@ -12,6 +12,7 @@
     { "path": "../memory" },
     { "path": "../p8" },
     { "path": "../prompt-builder" },
-    { "path": "../providers" }
+    { "path": "../providers" },
+    { "path": "../effects" }
   ]
 }

@@ -22,7 +22,8 @@
     "@companion/p8": "workspace:*",
     "@companion/prompt-builder": "workspace:*",
     "@companion/protocol": "workspace:*",
-    "@companion/providers": "workspace:*"
+    "@companion/providers": "workspace:*",
+    "@companion/effects": "workspace:*"
   },
   "devDependencies": {
     "@types/pg": "^8.20.0",

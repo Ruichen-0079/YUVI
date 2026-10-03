@@ -1,3 +1,4 @@
+import { EffectIntentError, type EffectIntentRequest, type EffectAuthorization, type EffectIntent } from "@companion/effects";
 import { admitVoiceProfilePersonBinding, voiceProfileBindingWriteFields } from "@companion/memory";
 import { projectP8ReconstructionToCharacterAbi } from "@companion/character-abi/p8-projection";
 import { projectMemoryVNextToCharacterAbi } from "@companion/character-abi/memory-vnext-projection";
@@ -1239,6 +1240,25 @@ export class RuntimeOrchestrator {
         this.armProactiveWake();
       }
     }
+  }
+
+  /** Host-only staged admission. It commits pending work and never executes a target.
+   * No current provider/presentation path is half-migrated to this seam.
+   */
+  async admitPendingEffectIntent(
+    request: EffectIntentRequest,
+    snapshot: EffectAuthorization,
+    expectedActivityRevision: number
+  ): Promise<EffectIntent> {
+    if (!this.options.effectIntents) throw new EffectIntentError("UNAVAILABLE", "Effect admission is not configured.");
+    this.enterLifecycleOperation();
+    try {
+      return await this.options.effectIntents.admit(request, {
+        snapshot,
+        isCurrent: () => this.lifecycleState === "active" &&
+          this.proactiveState.activityRevision === expectedActivityRevision
+      });
+    } finally { this.exitLifecycleOperation(); }
   }
 
   getLatestPromptPreview(): RuntimePromptPreview | null {

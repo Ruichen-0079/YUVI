@@ -497,7 +497,8 @@ describe("Chat core production capability activation", () => {
           return completion('{"disposition":"RESPOND","text":"I will keep that in mind."}', init);
         })
       );
-      let app = await buildServerWithAdmission(env);
+      // This real-store gate needs committed receipt ancestry, not the unit-only facade.
+      let app = await buildServer(loadServerConfig(env));
       const sessionId = `chat-only-${crypto.randomUUID()}`;
       async function message(text: string) {
         const reply = await app.inject({
@@ -512,7 +513,7 @@ describe("Chat core production capability activation", () => {
         await message("The project codename is Orchid and the launch is on Friday.");
         await message("I am planning the invitation.");
         await app.close();
-        app = await buildServerWithAdmission(env);
+        app = await buildServer(loadServerConfig(env));
         await message("What drink and project were we discussing?");
         expect(requests.at(-1)).toContain("jasmine");
         expect(requests.at(-1)).toContain("Orchid");

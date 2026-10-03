@@ -60,6 +60,9 @@ importers:
       '@companion/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@companion/effects':
+        specifier: workspace:*
+        version: link:../../packages/effects
       '@companion/event-bus':
         specifier: workspace:*
         version: link:../../packages/event-bus
@@ -206,6 +209,9 @@ importers:
       '@companion/character-abi':
         specifier: workspace:*
         version: link:../character-abi
+      '@companion/effects':
+        specifier: workspace:*
+        version: link:../effects
       '@companion/event-bus':
         specifier: workspace:*
         version: link:../event-bus
@@ -270,6 +276,31 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.19.18)
 
+  packages/effects:
+    dependencies:
+      '@companion/database':
+        specifier: workspace:*
+        version: link:../database
+      '@companion/protocol':
+        specifier: workspace:*
+        version: link:../protocol
+      zod:
+        specifier: ^3.24.1
+        version: 3.25.76
+    devDependencies:
+      '@companion/journal':
+        specifier: workspace:*
+        version: link:../journal
+      '@types/pg':
+        specifier: ^8.20.0
+        version: 8.20.0
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.19.18)
+
   packages/event-bus:
     dependencies:
       '@companion/protocol':
@@ -319,6 +350,9 @@ importers:
       '@companion/database':
         specifier: workspace:*
         version: link:../database
+      '@companion/effects':
+        specifier: workspace:*
+        version: link:../effects
       '@companion/protocol':
         specifier: workspace:*
         version: link:../protocol

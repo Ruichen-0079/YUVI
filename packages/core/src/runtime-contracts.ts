@@ -1,3 +1,4 @@
+import type { EffectIntentAdmissionPort } from "@companion/effects";
 import type { MemoryGroundingResolver } from "@companion/memory";
 import type { VoiceBindingReferences } from "./voice-binding-references.js";
 import type { CharacterAbiSemanticSection } from "@companion/character-abi";
@@ -58,6 +59,8 @@ export type RuntimeLogger = {
 };
 
 export type RuntimeOrchestratorOptions = {
+  /** A9.1 admission only; existing live dispatch owners are not cut over. */
+  effectIntents?: EffectIntentAdmissionPort | undefined;
   eventBus: EventBus;
   memory: RuntimeMemoryPort;
   promptBuilder: RuntimePromptBuilderPort;

@@ -48,6 +48,9 @@
     },
     {
       "path": "../../packages/p8"
+    },
+    {
+      "path": "../../packages/effects"
     }
   ]
 }

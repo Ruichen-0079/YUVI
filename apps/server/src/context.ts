@@ -1,3 +1,5 @@
+import { projectFinalizedEffectIntent, projectDreamEffectIntents } from "@companion/memory";
+import { HostEffectIntentAdmission, PostgresEffectIntentStore, type EffectIntentAdmissionPort } from "@companion/effects";
 import { JournalMemoryGroundingResolver } from "@companion/memory";
 import { productEnvironment, readProductSettings } from "./services/product-store.js";
 import { join } from "node:path";
@@ -119,6 +121,11 @@ import { executeProductionCognition } from "./cognition-production.js";
 import type { ServerPluginRuntimeCapabilitySurface } from "./plugin-lifecycle.js";
 
 export type AppContext = {
+  effectIntents: EffectIntentAdmissionPort;
+  existingMemoryEffectIntents: {
+    finalized(finalizedTurnId: string): Promise<import("@companion/effects").ExistingEffectIntent[]>;
+    dream(jobId: string): Promise<import("@companion/effects").ExistingEffectIntent[]>;
+  };
   eventBus: InMemoryEventBus;
   dashboard: DashboardStateService;
   memoryRepository: MemoryRepository;
@@ -231,6 +238,10 @@ export async function createAppContext(
         }
       })
     : null;
+  // Production never substitutes process-local decisions for durable A9 authority.
+  const effectIntents = new HostEffectIntentAdmission(
+    databasePool ? new PostgresEffectIntentStore(databasePool) : null, journalRepository
+  );
   const conversationalReceiptAdmission = new HostConversationalReceiptAdmission(journalRepository);
   const speechReceiptAdmission = new HostSpeechReceiptAdmission(journalRepository);
   const visionReceiptAdmission = new HostVisionReceiptAdmission(journalRepository);
@@ -387,6 +398,7 @@ export async function createAppContext(
     const nextRuntime = new RuntimeOrchestrator({
       ...(screenCaptureAvailable() ? { captureScreen: captureKdeScreen } : {}),
       eventBus,
+      effectIntents,
       voiceBindingReferences: createFileVoiceBindingReferences(
         join(getRuntimeEnvDir(bootEnv), "voice-binding-references.json")
       ),
@@ -532,6 +544,16 @@ export async function createAppContext(
   }
 
   const context: AppContext = {
+    effectIntents,
+    existingMemoryEffectIntents: {
+      async finalized(id) {
+        return (await finalizedIngestionRepository!.listEvents(id)).map(projectFinalizedEffectIntent);
+      },
+      async dream(id) {
+        const job = await dreamJobStore.getById(id);
+        return job ? projectDreamEffectIntents(job) : [];
+      }
+    },
     eventBus,
     dashboard,
     memoryRepository,

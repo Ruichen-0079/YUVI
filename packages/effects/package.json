@@ -1,5 +1,5 @@
 {
-  "name": "@companion/memory",
+  "name": "@companion/effects",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,17 +15,15 @@
     "check": "tsc -b tsconfig.json --pretty false",
     "test": "vitest run --passWithNoTests"
   },
-  "devDependencies": {
-    "@types/pg": "^8.20.0",
-    "typescript": "^5.7.3",
-    "vitest": "^2.1.8"
-  },
   "dependencies": {
     "@companion/database": "workspace:*",
     "@companion/protocol": "workspace:*",
-    "pg": "^8.20.0",
-    "pg-cursor": "^2.11.0",
-    "zod": "^3.25.76",
-    "@companion/effects": "workspace:*"
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@companion/journal": "workspace:*",
+    "@types/pg": "^8.20.0",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
   }
 }

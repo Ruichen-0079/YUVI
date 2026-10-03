@@ -441,3 +441,5 @@ export * from "./profile-lifecycle.js";
 
 export * from "./evidence-admission.js";
 export * from "./evidence-admission-bootstrap.js";
+
+export { projectFinalizedEffectIntent, projectDreamEffectIntents } from "./effect-intent-compatibility.js";

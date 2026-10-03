@@ -4,6 +4,7 @@
     { "path": "packages/database" },
     { "path": "packages/protocol" },
     { "path": "packages/journal" },
+    { "path": "packages/effects" },
     { "path": "packages/p8" },
     { "path": "packages/character-abi" },
     { "path": "packages/character-harness" },
