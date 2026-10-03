@@ -137,6 +137,8 @@ The local/private profile materializer is the required baseline. A hosted Mem0 U
 
 A9.1/A9.2 are implemented within their validated boundaries. A9.3 remains planned; aggregate A9 is incomplete. A10.2 and A11.1 have not been started by A9.2 closure.
 
+The [remaining-core architecture freeze](v0.1.3-authority-effect-context-architecture-freeze.md) fixes the implementation decisions for these remaining atoms. A9.3 includes full outbound source audit and closes aggregate A9 if its gates pass; no A9.4 follows.
+
 Default dependency order:
 
 ```text
@@ -152,7 +154,7 @@ Result:
 - a logical external action has one durable INTENT identity;
 - ATTEMPTs and OUTCOMEs are accounted for without fabricated certainty;
 - crash ambiguity remains explicit as UNKNOWN where necessary;
-- controller→Person, voice binding, authored/controller Person fields and P8 correction issuer/binding have causal lineage;
+- authored Person targets, voice binding and P8 correction commands have causal lineage while controller principal identity can remain unresolved; no cross-surface principal→Person product binding is introduced;
 - A10.2 does **not** reimplement derived profile synthesis; that belongs to A10.1f;
 - A10.3 can explain which retained evidence and projection revisions an execution actually consumed.
 
@@ -168,7 +170,8 @@ Result:
 - deterministic fault injection proves the v0.1.3 invariants under restart/concurrency;
 - one real QQ/Snowluma private/group surface passes the same contract;
 - unsupported remote guarantees remain UNKNOWN/unsupported rather than being papered over;
-- QQ remains a thin surface rather than a second conversation/Memory/People runtime.
+- QQ remains a thin surface rather than a second conversation/Memory/People runtime;
+- after final QQ production changes, A12.2 reruns current-HEAD existing-Linux packaged startup/migration/restart/shutdown/no-replay regressions and relevant A11 conformance; pre-QQ A11.2 packaged results are not the final release gate.
 
 ### v0.1.3 closure
 
