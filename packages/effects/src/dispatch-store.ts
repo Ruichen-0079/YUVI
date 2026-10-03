@@ -11,7 +11,8 @@ import {
   EffectAttemptV1Schema,
   EffectEvidenceSchema,
   EffectObservationV1Schema,
-  type EffectObservationV1,
+  EffectObservationV2Schema,
+  type EffectObservation,
   effectAttemptId,
   protocolEvidence,
   retryPermitted,
@@ -41,7 +42,7 @@ export interface EffectDispatchStore {
   ): Promise<"RECORDED" | "REPLAY" | "STALE" | "CONFLICT">;
   cancel(id: string): Promise<boolean>;
   diagnostic(id: string): Promise<EffectDiagnostic | null>;
-  observations(id: string): Promise<EffectObservationV1[]>;
+  observations(id: string): Promise<EffectObservation[]>;
 }
 function attempt(row: Record<string, unknown>): EffectAttemptV1 {
   const a = EffectAttemptV1Schema.parse({
@@ -101,26 +102,49 @@ export class PostgresEffectDispatchStore implements EffectDispatchStore {
   }
   private async evidence(c: PoolClient, id: string): Promise<EffectEvidence | null> {
     const r = await c.query(
-      "select evidence,evidence_digest from effect_observations where attempt_id=$1 order by observation_id desc limit 1",
+      `select o.*,a.contract_ref,a.adapter from effect_observations o
+       join effect_attempts a using(attempt_id) where o.attempt_id=$1 order by o.observation_id desc limit 1`,
       [id]
     );
     if (!r.rows[0]) return null;
-    const e = EffectEvidenceSchema.parse(r.rows[0]["evidence"]);
-    if (effectDigest(e) !== r.rows[0]["evidence_digest"])
+    const row = r.rows[0];
+    const version = row["observation_version"] ?? "effect-observation.v1";
+    const base = {
+      version,
+      observationId: String(row["observation_id"]),
+      attemptId: row["attempt_id"],
+      fence: String(row["fence"]),
+      contractRef: row["contract_ref"],
+      adapter: row["adapter"],
+      observedAt: (row["observed_at"] as Date).toISOString(),
+      evidence: row["evidence"],
+      evidenceDigest: row["evidence_digest"]
+    };
+    const observation = version === "effect-observation.v2"
+      ? EffectObservationV2Schema.parse(base)
+      : EffectObservationV1Schema.parse(base);
+    if (effectDigest(observation.evidence) !== row["evidence_digest"])
       throw new EffectIntentError("INTEGRITY_FAILURE", "Invalid outcome digest.");
-    return e;
+    return observation.evidence;
   }
   private async observe(c: PoolClient, a: EffectAttemptV1, e: EffectEvidence) {
     await c.query(
-      "insert into effect_observations(attempt_id,fence,evidence,evidence_digest) values($1,$2,$3::jsonb,$4) on conflict do nothing",
-      [a.attemptId, a.fence, canonicalEffectJson(e), effectDigest(e)]
+      "insert into effect_observations(attempt_id,fence,evidence,evidence_digest,observation_version) values($1,$2,$3::jsonb,$4,$5) on conflict do nothing",
+      [
+        a.attemptId,
+        a.fence,
+        canonicalEffectJson(e),
+        effectDigest(e),
+        a.contractRef === "yuvi.native-control.v1" ? "effect-observation.v2" : "effect-observation.v1"
+      ]
     );
   }
   async discover(
     limit = 64,
     contracts: EffectIntent["contractRef"][] = [
       "yuvi.read-text.v1",
-      "yuvi.embodied-presentation.v1"
+      "yuvi.embodied-presentation.v1",
+      "yuvi.native-control.v1"
     ]
   ) {
     if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1000)
@@ -283,10 +307,19 @@ export class PostgresEffectDispatchStore implements EffectDispatchStore {
       ![
         "LOCAL_PROTOCOL",
         "ADAPTER_RECONCILIATION",
-        EFFECT_DELIVERY_CONTRACTS[a.contractRef].evidenceLayer
+        ...EFFECT_DELIVERY_CONTRACTS[a.contractRef].evidenceLayers
       ].includes(e.layer)
     )
       throw new EffectIntentError("INTEGRITY_FAILURE", "Outcome layer does not belong to adapter.");
+    if (
+      a.contractRef === "yuvi.native-control.v1" &&
+      e.certainty === "APPLIED" &&
+      e.layer.startsWith("NATIVE_OWNER_") &&
+      !e.nativeOwnerCommit
+    )
+      throw new EffectIntentError("INTEGRITY_FAILURE", "Native-owner APPLIED evidence requires its exact owner revision.");
+    if (e.nativeOwnerCommit && a.contractRef !== "yuvi.native-control.v1")
+      throw new EffectIntentError("INTEGRITY_FAILURE", "Native-owner evidence belongs only to native-control.");
     return this.tx(async (c) => {
       await c.query("select intent_id from effect_intents where intent_id=$1 for update", [
         a.intentId
@@ -341,15 +374,16 @@ export class PostgresEffectDispatchStore implements EffectDispatchStore {
       return true;
     });
   }
-  async observations(id: string): Promise<EffectObservationV1[]> {
+  async observations(id: string): Promise<EffectObservation[]> {
     const r = await this.pool.query(
       `select o.*,a.contract_ref,a.adapter from effect_observations o
       join effect_attempts a using(attempt_id) where a.intent_id=$1 order by o.observation_id limit 1000`,
       [id]
     );
     return r.rows.map((row) => {
-      const v = EffectObservationV1Schema.parse({
-        version: "effect-observation.v1",
+      const version = row["observation_version"] ?? "effect-observation.v1";
+      const value = {
+        version,
         observationId: String(row["observation_id"]),
         attemptId: row["attempt_id"],
         fence: String(row["fence"]),
@@ -358,7 +392,10 @@ export class PostgresEffectDispatchStore implements EffectDispatchStore {
         observedAt: row["observed_at"].toISOString(),
         evidence: row["evidence"],
         evidenceDigest: row["evidence_digest"]
-      });
+      };
+      const v = version === "effect-observation.v2"
+        ? EffectObservationV2Schema.parse(value)
+        : EffectObservationV1Schema.parse(value);
       if (v.evidenceDigest !== effectDigest(v.evidence))
         throw new EffectIntentError("INTEGRITY_FAILURE", "Invalid observation digest.");
       return v;

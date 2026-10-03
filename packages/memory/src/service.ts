@@ -28,6 +28,7 @@ import {
 import type { ProfileMemorySourceReader } from "./profile-types.js";
 import type { MemoryConversationTurnWriteResult, MemoryProvider } from "./provider.js";
 import { Mem0MemoryProvider } from "./providers/mem0-memory-provider.js";
+import type { NativeControllerBindingOwner } from "./providers/local-controller-evidence.js";
 import { MemoryIngestionPolicy } from "./ingestion.js";
 import {
   buildChatMemoryScope,
@@ -213,6 +214,17 @@ export class MemoryService {
   /** Runtime-facing semantic retrieval provider; legacy mode remains facade-only. */
   getVoiceBindingProvider(): MemoryProvider | undefined {
     return this.controllerEvidence;
+  }
+
+  /** The native binding owner is separate from whichever semantic Memory backend is active. */
+  getNativeVoiceBindingOwner(): NativeControllerBindingOwner | undefined {
+    const candidate = this.controllerEvidence as Partial<NativeControllerBindingOwner> | undefined;
+    return candidate && typeof candidate.getBindingState === "function" &&
+      typeof candidate.applyBindingCommand === "function" &&
+      typeof candidate.reconcileBindingCommand === "function" &&
+      typeof candidate.fenceBindingCommand === "function"
+      ? candidate as NativeControllerBindingOwner
+      : undefined;
   }
 
   getMemoryProvider(): MemoryProvider | undefined {

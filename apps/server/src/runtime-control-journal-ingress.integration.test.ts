@@ -140,6 +140,8 @@ async function setup(
   usingPool = pool!
 ) {
   const dir = await mkdtemp(join(tmpdir(), "yuvi-a8-2e2-runtime-control-"));
+  const scopedUrl = new URL(databaseUrl!);
+  scopedUrl.searchParams.set("options", `-c search_path=${schema}`);
   process.env = {
     ...oldEnv,
     NODE_ENV: "test",
@@ -153,9 +155,9 @@ async function setup(
     MEMORY_INGESTION_COORDINATOR_ENABLED: "false",
     MEMORY_MAINTENANCE_ENABLED: "false",
     YUVI_RUNTIME_ENV_DIR: dir,
-    YUVI_JOURNAL_NAMESPACE: namespace
+    YUVI_JOURNAL_NAMESPACE: namespace,
+    DATABASE_URL: scopedUrl.toString()
   };
-  delete process.env["DATABASE_URL"];
   const config = loadServerConfig(process.env);
   const app = Fastify({ logger: false });
   const context = await createAppContext(app.log, config);
@@ -186,13 +188,18 @@ describe.skipIf(!databaseUrl)("A8.2e2 Runtime control receipts with real Postgre
   beforeAll(async () => {
     adminPool = createPostgresPool(databaseUrl!);
     await adminPool.query(`create schema ${schemaSql}`);
-    const migration = (await readSqlMigrations()).find(
-      (entry) => entry.name === "013_life_event_journal_v1.sql"
-    );
-    expect(migration).toBeDefined();
+    const migrations = await readSqlMigrations();
+    const requiredNames = [
+      "013_life_event_journal_v1.sql",
+      "020_effect_intents_v1.sql",
+      "021_effect_attempts_v1.sql",
+      "022_native_control_effects_v1.sql"
+    ];
+    const selected = requiredNames.map((name) => migrations.find((entry) => entry.name === name));
+    expect(selected.every(Boolean)).toBe(true);
     await runPostgresMigrations({
       databaseUrl: databaseUrl!,
-      migrations: [migration!],
+      migrations: selected as typeof migrations,
       settings: { search_path: schema }
     });
     pool = createPostgresPool(databaseUrl!, { options: `-c search_path=${schema}` });
@@ -287,7 +294,7 @@ describe.skipIf(!databaseUrl)("A8.2e2 Runtime control receipts with real Postgre
     expect(readTextGrants(run.context).size).toBe(0);
   });
 
-  it("admits canonical P8 retries as distinct private CONTROL receipts", async () => {
+  it("replays one canonical P8 command through one private CONTROL receipt and exact owner observation", async () => {
     const namespace = nextNamespace("p8-retry");
     const run = await setup(namespace);
     const body = correction();
@@ -306,11 +313,12 @@ describe.skipIf(!databaseUrl)("A8.2e2 Runtime control receipts with real Postgre
     expect(first.statusCode).toBe(200);
     expect(first.json().status).toBe("STORED");
     expect(second.statusCode).toBe(200);
-    expect(second.json().status).toBe("ALREADY_STORED");
+    expect(second.json().status).toBe("STORED");
+    expect(second.json().intentId).toBe(first.json().intentId);
+    expect(second.json().controlReceiptRef).toEqual(first.json().controlReceiptRef);
 
     const rows = await events(namespace);
-    expect(rows).toHaveLength(2);
-    expect(rows[0]!.event_id).not.toBe(rows[1]!.event_id);
+    expect(rows).toHaveLength(1);
     for (const row of rows) {
       expect(row.envelope.command.kind).toBe("RECEIPT");
       if (row.envelope.command.kind !== "RECEIPT") throw new Error("Expected CONTROL receipt.");
@@ -324,13 +332,15 @@ describe.skipIf(!databaseUrl)("A8.2e2 Runtime control receipts with real Postgre
       const payload = row.envelope.authority.payloads[0];
       if (payload?.modality !== "TEXT") throw new Error("Expected bounded control summary.");
       expect(payload.retention).toBe("RETAINED");
-      expect((await createRepository(namespace).resolveRetainedText(payload.ref))?.text).toBe(
-        JSON.stringify({
-          operation: "p8.correction",
-          action: "REVISE",
-          targetKind: "INTERPRETATION"
-        })
-      );
+      const summary = JSON.parse(
+        (await createRepository(namespace).resolveRetainedText(payload.ref))!.text
+      ) as Record<string, unknown>;
+      expect(summary).toMatchObject({
+        operation: "p8.correction.revise",
+        commandHandleDigest: expect.stringMatching(/^[a-f0-9]{64}$/),
+        targetKind: "INTERPRETATION",
+        payloadDigest: expect.stringMatching(/^[a-f0-9]{64}$/)
+      });
     }
     const serialized = JSON.stringify({ rows, payloads: await payloadRows(namespace) });
     for (const marker of [
@@ -348,67 +358,138 @@ describe.skipIf(!databaseUrl)("A8.2e2 Runtime control receipts with real Postgre
       [namespace]
     );
     expect(dedup.rows[0]?.["count"]).toBe(0);
+
+    const durable = await pool!.query(
+      `select i.intent_id, i.work_state, count(distinct a.attempt_id)::int as attempts,
+              o.observation_version, o.evidence
+       from effect_intents i
+       join effect_attempts a using(intent_id)
+       join effect_observations o using(attempt_id)
+       where i.contract_ref='yuvi.native-control.v1'
+         and i.intent_id=$1
+       group by i.intent_id, i.work_state, o.observation_version, o.evidence`,
+      [first.json().intentId]
+    );
+    expect(durable.rows).toHaveLength(1);
+    expect(durable.rows[0]).toMatchObject({
+      intent_id: first.json().intentId,
+      work_state: "CLAIMED",
+      attempts: 1,
+      observation_version: "effect-observation.v2"
+    });
+    expect(durable.rows[0]?.evidence).toMatchObject({
+      certainty: "APPLIED",
+      layer: "NATIVE_OWNER_COMMIT",
+      nativeOwnerCommit: {
+        version: "native-owner-commit.v1",
+        ownerFamily: "P8_CORRECTION",
+        targetReference: "CORRECTION_REFERENCE_PRIVATE_MARKER",
+        revisions: [
+          {
+            ownerReference: "CORRECTION_REFERENCE_PRIVATE_MARKER",
+            revision: expect.any(String)
+          }
+        ],
+        eventIds: ["CORRECTION_REFERENCE_PRIVATE_MARKER"]
+      }
+    });
   });
 
-  it("holds P8 mutation behind the real PostgreSQL append and revalidates a reference race", async () => {
+  it("revalidates a P8 reference race at the native owner without overwriting the winner", async () => {
     const namespace = nextNamespace("p8-race");
-    await pool!.query(
-      "insert into journal_namespaces (journal_namespace, current_seq) values ($1, 0) on conflict do nothing",
-      [namespace]
+    const run = await setup(namespace);
+    const store = createFileP8CorrectionStore(join(run.dir, "p8-corrections.json"));
+    const originalAppend = run.context.runtime.appendP8CorrectionCommand.bind(run.context.runtime);
+    let appendOutcome: string | undefined;
+    run.context.runtime.appendP8CorrectionCommand = async (candidate, command) => {
+      const result = await originalAppend(candidate, command);
+      appendOutcome = result.status;
+      return result;
+    };
+    const originalExecute = run.context.productPersonCommands.execute.bind(
+      run.context.productPersonCommands
     );
-    const lockAttempted = deferred<void>();
-    const lockedPool = observeNamespaceStateLock(pool!, () => lockAttempted.resolve());
-    const run = await setup(namespace, undefined, lockedPool);
-    const blocker = await pool!.connect();
-    await blocker.query("begin");
-    await blocker.query(
-      "select current_seq from journal_namespaces where journal_namespace = $1 for update",
-      [namespace]
-    );
+    let raced = false;
+    run.context.productPersonCommands.execute = async (input, current, workflowChild) => {
+      if (
+        !raced &&
+        "family" in input &&
+        input.family === "P8_CORRECTION" &&
+        input.correctionReference === "CORRECTION_REFERENCE_PRIVATE_MARKER"
+      ) {
+        raced = true;
+        const concurrent = await run.app.inject({
+          method: "POST",
+          url: "/p8/corrections",
+          headers: localHeaders,
+          payload: correction({
+            correctionReference: "CONCURRENT_WINNER_REFERENCE",
+            replacementMeaning: "CONCURRENT_WINNER"
+          })
+        });
+        expect(concurrent.statusCode).toBe(200);
+      }
+      return originalExecute(input, current, workflowChild);
+    };
 
-    const request = run.app.inject({
+    const response = await run.app.inject({
       method: "POST",
       url: "/p8/corrections",
       headers: localHeaders,
       payload: correction()
     });
-    try {
-      await lockAttempted.promise;
-      expect(await events(namespace)).toHaveLength(0);
-      expect(
-        await createFileP8CorrectionStore(
-          join(run.dir, "p8-corrections.json")
-        ).loadCorrectionByReference("CORRECTION_REFERENCE_PRIVATE_MARKER")
-      ).toEqual({
-        status: "SUCCESS_WITH_NO_CORRECTION"
-      });
+    expect(raced, `${response.statusCode}: ${response.body}`).toBe(true);
+    expect(appendOutcome, response.body).toBe("CONFLICT");
+    expect(response.statusCode, response.body).toBe(409);
+    expect(response.json().status).toBe("CONFLICT");
 
-      const concurrent = correction({ replacementMeaning: "CONCURRENT_WINNER" });
-      expect(
-        (
-          await createFileP8CorrectionStore(join(run.dir, "p8-corrections.json")).appendCorrection(
-            concurrent as never
-          )
-        ).status
-      ).toBe("STORED");
-      await blocker.query("commit");
-
-      const response = await request;
-      expect(response.statusCode).toBe(409);
-      expect(response.json().status).toBe("CONFLICT");
-      expect(await events(namespace)).toHaveLength(1);
-      const stored = await createFileP8CorrectionStore(
-        join(run.dir, "p8-corrections.json")
-      ).loadCorrectionByReference("CORRECTION_REFERENCE_PRIVATE_MARKER");
-      expect(stored.status).toBe("SUCCESS_WITH_CORRECTION");
-      if (stored.status === "SUCCESS_WITH_CORRECTION") {
-        expect(stored.correction.replacementMeaning).toBe("CONCURRENT_WINNER");
-      }
-    } finally {
-      await blocker.query("rollback").catch(() => undefined);
-      blocker.release();
+    const intent = await pool!.query(
+      `select intent_id from effect_intents
+       where contract_ref='yuvi.native-control.v1' and logical_key like $1`,
+      [`%${namespace}%CORRECTION_REFERENCE_PRIVATE_MARKER%`]
+    );
+    expect(intent.rows).toHaveLength(1);
+    let evidence: Record<string, unknown> | undefined;
+    for (let index = 0; index < 80 && !evidence; index += 1) {
+      const result = await pool!.query(
+        `select o.evidence from effect_observations o join effect_attempts a using(attempt_id)
+         where a.intent_id=$1 order by o.observation_id desc limit 1`,
+        [intent.rows[0]?.["intent_id"]]
+      );
+      evidence = result.rows[0]?.["evidence"] as Record<string, unknown> | undefined;
+      if (!evidence) await new Promise((resolve) => setTimeout(resolve, 25));
     }
-  }, 10_000);
+    const attemptState = await pool!.query(
+      `select a.*, i.pre_dispatch_reason from effect_attempts a join effect_intents i using(intent_id)
+       where a.intent_id=$1`,
+      [intent.rows[0]?.["intent_id"]]
+    );
+    expect(evidence, JSON.stringify(attemptState.rows)).toMatchObject({
+      certainty: "DEFINITIVE_REJECTION",
+      reason: "OWNER_REJECTED"
+    });
+
+    const retry = await run.app.inject({
+      method: "POST",
+      url: "/p8/corrections",
+      headers: localHeaders,
+      payload: correction()
+    });
+    expect(retry.statusCode).toBe(409);
+    expect(retry.json().status).toBe("CONFLICT");
+    expect(await events(namespace)).toHaveLength(2);
+    const attemptCount = await pool!.query(
+      "select count(*)::int as count from effect_attempts where intent_id=$1",
+      [intent.rows[0]?.["intent_id"]]
+    );
+    expect(attemptCount.rows[0]?.["count"]).toBe(1);
+    const stored = await store.loadCorrectionByReference("CORRECTION_REFERENCE_PRIVATE_MARKER");
+    expect(stored.status).toBe("SUCCESS_WITH_NO_CORRECTION");
+    const winner = await store.loadCorrectionByReference("CONCURRENT_WINNER_REFERENCE");
+    expect(winner.status).toBe("SUCCESS_WITH_CORRECTION");
+    if (winner.status === "SUCCESS_WITH_CORRECTION")
+      expect(winner.correction.replacementMeaning).toBe("CONCURRENT_WINNER");
+  });
 
   it("commits read-text receipt before the exact process-local grant and keeps path private", async () => {
     const namespace = nextNamespace("read-text-order");
@@ -533,6 +614,10 @@ describe.skipIf(!databaseUrl)("A8.2e2 Runtime control receipts with real Postgre
   it("does not create P8 or read-text state when Journal admission is unavailable", async () => {
     const namespace = nextNamespace("journal-unavailable");
     const run = await setup(namespace, new HostRuntimeControlReceiptAdmission(null));
+    run.context.productPersonCommands.execute = async () => ({
+      status: "UNAVAILABLE",
+      reason: "DURABLE_NATIVE_CONTROL_UNAVAILABLE"
+    });
     const p8Response = await run.app.inject({
       method: "POST",
       url: "/p8/corrections",

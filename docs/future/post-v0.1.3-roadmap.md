@@ -6,7 +6,7 @@ Experiment definitions (E1–E6) and risks (R1–R8) live in [research methodolo
 
 ## Entry condition
 
-v0.1.3 closure requires the gates in [its roadmap](09-v0.1.3-platform-completion.md): durable journal, outbox, lineage-bound consumers, context manifests, synthetic conformance and the real QQ probe. Aggregate A10.1 and admission-only A9.1 are implemented; A9.2/A9.3 remain planned, aggregate A9 remains incomplete, and A10.2/A10.3, A11 and A12 remain open, so release closure is not claimed. No atom below may bypass those invariants, and none may add a writer that the [authority map](authority.md) does not name.
+v0.1.3 closure requires the gates in [its roadmap](09-v0.1.3-platform-completion.md): durable journal, outbox, lineage-bound consumers, context manifests, synthetic conformance and the real QQ probe. Aggregate A10.1, A9.1/A9.2 and A10.2 are implemented; A9.3 remains planned, aggregate A9 remains incomplete, and A10.3, A11 and A12 remain open, so release closure is not claimed. No atom below may bypass those invariants, and none may add a writer that the [authority map](authority.md) does not name.
 
 ## Dependency order
 

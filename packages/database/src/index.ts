@@ -1,6 +1,7 @@
 import { Pool, type PoolConfig } from "pg";
 
 export type PostgresPool = Pool;
+export type { PoolClient as PostgresPoolClient } from "pg";
 
 /** Create a PostgreSQL pool while leaving its lifetime with the caller. */
 export function createPostgresPool(

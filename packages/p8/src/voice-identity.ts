@@ -11,9 +11,11 @@ import type { P8IdentityAddress } from "./index.js";
 /**
  * Voice profile → person resolution (Atom 13B).
  *
- * Acoustic match identifies a voice profile. P8 interprets eligible Memory
- * binding evidence to a person. Similarity scores, sidecar labels, cluster
- * ids, and transcript self-identification cannot resolve a person.
+ * Acoustic match identifies a voice profile. Runtime supplies an exact,
+ * host-validated projection of LocalControllerEvidenceProvider authority, and
+ * P8 checks the referenced owner events before resolving a person. Generic
+ * Memory records are not binding authority. Similarity scores, sidecar labels,
+ * cluster ids, and transcript self-identification cannot resolve a person.
  *
  * RESOLVED_SUPPORTED is part of the published status vocabulary for contract
  * compatibility, but current evidence architecture has no legal "supported
@@ -39,6 +41,28 @@ export type P8VoiceProfileMatchStatus = (typeof P8_VOICE_PROFILE_MATCH_STATUSES)
 export type P8VoiceProfileMatch = Readonly<{
   status: P8VoiceProfileMatchStatus;
   voiceProfileId?: string;
+}>;
+
+export type P8AcousticObservationReference = Readonly<{
+  kind: "JOURNAL_EVENT";
+  namespace: string;
+  eventId: string;
+  observationId: string;
+}>;
+
+/** Host-validated current binding facts consumed by the pure P8 resolver. */
+export type P8VoiceBindingProjection = Readonly<{
+  projectionVersion: "p8-host-voice-binding.v1";
+  status: "CURRENT" | "UNBOUND" | "CONFLICT" | "UNAVAILABLE";
+  voiceProfileId: string;
+  personaId: string;
+  scopeReference: string;
+  nativeOwnerRevision: string | null;
+  bindingRevision: string | null;
+  issuerPolicy: "LOCAL_EXPLICIT_CONTROLLER";
+  eligibility: "CURRENT" | "INELIGIBLE";
+  evidenceReferences: readonly string[];
+  acousticObservationReference: P8AcousticObservationReference;
 }>;
 
 export type P8VoicePersonUnresolvedReason =
@@ -74,6 +98,9 @@ export type P8VoicePersonResolutionInput = Readonly<{
   voiceProfileMatch?: P8VoiceProfileMatch;
   longTermEvents?: readonly MemoryEvent[];
   trustedAssertorEntityIds?: readonly string[];
+  /** Presence selects the host-projection path; absent profiles fail closed. */
+  bindingProjections?: readonly P8VoiceBindingProjection[];
+  acousticObservationReference?: P8AcousticObservationReference;
   /**
    * Forbidden bootstrap inputs. Presence never creates a person binding.
    */
@@ -104,14 +131,49 @@ export function resolveP8VoicePerson(input: P8VoicePersonResolutionInput): P8Voi
     });
   }
 
-  const eligible = currentEligibleMemoryEvents(input.longTermEvents ?? []);
+  const projectionMode = input.bindingProjections !== undefined;
+  const projection = projectionMode
+    ? input.bindingProjections?.find((candidate) => candidate.voiceProfileId === voiceProfileId)
+    : undefined;
+  if (projectionMode) {
+    if (!projection || projection.projectionVersion !== "p8-host-voice-binding.v1" ||
+        projection.voiceProfileId !== voiceProfileId ||
+        !sameAcousticReference(projection.acousticObservationReference, input.acousticObservationReference)) {
+      return Object.freeze({ ...base, status: "UNRESOLVED" as const, unresolvedReason: "no-person-binding" as const });
+    }
+    if (projection.status === "CONFLICT") {
+      return Object.freeze({
+        ...base,
+        status: "CONFLICTING" as const,
+        evidenceReferences: Object.freeze([...projection.evidenceReferences].sort((a, b) => a.localeCompare(b)))
+      });
+    }
+    if (projection.status !== "CURRENT" || projection.eligibility !== "CURRENT" ||
+        projection.issuerPolicy !== "LOCAL_EXPLICIT_CONTROLLER" ||
+        !projection.nativeOwnerRevision || !projection.bindingRevision ||
+        !projection.scopeReference.trim()) {
+      return Object.freeze({ ...base, status: "UNRESOLVED" as const, unresolvedReason: "no-person-binding" as const });
+    }
+  }
+  const scopeReference = projectionMode ? projection?.scopeReference ?? input.scopeReference : input.scopeReference;
+  const candidateEvents = projectionMode && projection
+    ? (input.longTermEvents ?? []).filter((event) => projection.evidenceReferences.includes(event.id))
+    : input.longTermEvents ?? [];
+  const eligible = currentEligibleMemoryEvents(candidateEvents);
   const trustedAssertors = new Set(input.trustedAssertorEntityIds ?? []);
   const bindings = eligible.filter(
     (event) =>
       isVoiceProfileBindingEvent(event) &&
       readVoiceProfileId(event.metadata) === voiceProfileId &&
-      event.scope === input.scopeReference
+      event.scope === scopeReference
   );
+
+  if (projectionMode && projection && (
+    eligible.length !== projection.evidenceReferences.length ||
+    new Set(eligible.map((event) => event.id)).size !== projection.evidenceReferences.length
+  )) {
+    return Object.freeze({ ...base, status: "UNRESOLVED" as const, unresolvedReason: "no-person-binding" as const });
+  }
 
   const trustedPersons = new Map<string, string[]>();
   let assistantOnly = false;
@@ -163,6 +225,14 @@ export function resolveP8VoicePerson(input: P8VoicePersonResolutionInput): P8Voi
       bindings.map((event) => event.id).sort((left, right) => left.localeCompare(right))
     )
   });
+}
+
+function sameAcousticReference(
+  left: P8AcousticObservationReference,
+  right: P8AcousticObservationReference | undefined
+): boolean {
+  return Boolean(right && left.kind === right.kind && left.namespace === right.namespace &&
+    left.eventId === right.eventId && left.observationId === right.observationId);
 }
 
 export function projectVoicePersonForCharacter(

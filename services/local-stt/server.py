@@ -21,7 +21,6 @@ import tempfile
 import threading
 import time
 import wave
-from urllib.parse import unquote
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -372,20 +371,46 @@ class SttEngine:
         }
 
     def handle_enroll(self, body: dict[str, Any]) -> dict[str, Any]:
-        # Acoustic enrollment only. Semantic person assignment is owned by Memory/P8.
-        speaker_id = str(body.get("speakerId") or body.get("voiceProfileId") or "").strip()
-        label = str(body.get("label") or speaker_id).strip()
-        if not speaker_id:
-            raise ValueError("speakerId is required")
-        sample_rate, samples = _decode_audio(str(body.get("audioBase64") or ""), str(body.get("mimeType") or "audio/wav"))
-        with self._lock:
-            if samples.size < sample_rate or float(np.max(np.abs(samples), initial=0)) < 0.005:
-                raise ValueError("enrollment requires at least one second of clear speech")
-            if is_mixed_capture(self.diarize(sample_rate, samples)):
-                raise ValueError("enrollment requires exactly one speaker")
-            embedding = self.embed(sample_rate, samples)
-            record = self.store.enroll(speaker_id, label, embedding)
-        return {**record, "voiceProfileId": record["speakerId"]}
+        raise ValueError("governed acoustic command required")
+
+    def handle_native_speaker_command(self, body: dict[str, Any]) -> dict[str, Any]:
+        command = body.get("command")
+        if not isinstance(command, dict):
+            raise ValueError("native speaker command required")
+        required = ("commandHandle", "intentId", "attemptId", "fence", "payloadDigest", "operation", "voiceProfileId", "expectedRevision", "causalRefs")
+        if any(not isinstance(command.get(key), str) or not command[key] for key in required[:7]) or not isinstance(command.get("causalRefs"), list):
+            raise ValueError("invalid native speaker command")
+        begun = self.store.begin_native_invocation(command)
+        if begun["status"] == "ALREADY_APPLIED":
+            return self.store.reconcile_native_command(command)
+        if begun["status"] != "STARTED":
+            return {"status": begun["status"]}
+        invocation_key = begun["invocationKey"]
+        try:
+            embedding = None
+            if command["operation"] == "ENROLL":
+                sample_rate, samples = _decode_audio(str(body.get("audioBase64") or ""), str(body.get("mimeType") or "audio/wav"))
+                if samples.size < sample_rate or float(np.max(np.abs(samples), initial=0)) < 0.005:
+                    return {"status": "PROVEN_NOT_APPLIED", "reason": "INVALID_ACOUSTIC_SAMPLE", "revision": self.store.revision}
+                with self._lock:
+                    if is_mixed_capture(self.diarize(sample_rate, samples)):
+                        return {"status": "PROVEN_NOT_APPLIED", "reason": "MIXED_ACOUSTIC_SAMPLE", "revision": self.store.revision}
+                    embedding = self.embed(sample_rate, samples)
+            return self.store.apply_native_command(command, embedding)
+        finally:
+            self.store.finish_native_invocation(invocation_key)
+
+    def fence_native_speaker_command(self, body: dict[str, Any]) -> dict[str, str]:
+        command = body.get("command")
+        if not isinstance(command, dict):
+            raise ValueError("native speaker command required")
+        return self.store.fence_native_command(command)
+
+    def reconcile_native_speaker_command(self, body: dict[str, Any]) -> dict[str, Any]:
+        command = body.get("command")
+        if not isinstance(command, dict):
+            raise ValueError("native speaker command required")
+        return self.store.reconcile_native_command(command)
 
     def handle_identify(self, body: dict[str, Any]) -> dict[str, Any]:
         sample_rate, samples = _decode_audio(str(body.get("audioBase64") or ""), str(body.get("mimeType") or "audio/wav"))
@@ -450,7 +475,11 @@ class Handler(BaseHTTPRequestHandler):
             self._json(200, engine.health())
             return
         if self.path == "/speakers":
-            self._json(200, {"speakers": engine.store.list_public()})
+            snapshot = engine.store.authority_snapshot()
+            self._json(200, {
+                "speakers": snapshot["profiles"], "revision": snapshot["revision"],
+                "complete": snapshot["complete"], "cleanupPending": snapshot["cleanupPending"]
+            })
             return
         self._json(404, {"error": "not_found"})
 
@@ -471,7 +500,16 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(200, engine.handle_identify(body))
                 return
             if self.path == "/speakers":
-                self._json(200, engine.handle_enroll(body))
+                self._json(409, {"error": "governed_acoustic_command_required"})
+                return
+            if self.path == "/speakers/commands/fence":
+                self._json(200, engine.fence_native_speaker_command(body))
+                return
+            if self.path == "/speakers/commands":
+                self._json(200, engine.handle_native_speaker_command(body))
+                return
+            if self.path == "/speakers/commands/reconcile":
+                self._json(200, engine.reconcile_native_speaker_command(body))
                 return
             self._json(404, {"error": "not_found"})
         except VadUnavailable as exc:
@@ -484,13 +522,7 @@ class Handler(BaseHTTPRequestHandler):
         if engine is None:
             self._json(503, {"ok": False, "error": "not_ready"})
             return
-        prefix = "/speakers/"
-        if not self.path.startswith(prefix):
-            self._json(404, {"error": "not_found"})
-            return
-        speaker_id = unquote(self.path[len(prefix) :])
-        existed = engine.store.delete(speaker_id)
-        self._json(200 if existed else 404, {"ok": existed, "speakerId": speaker_id})
+        self._json(409, {"error": "governed_acoustic_command_required"})
 
 
 def main() -> None:

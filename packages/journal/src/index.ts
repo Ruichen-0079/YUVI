@@ -87,6 +87,12 @@ export interface JournalRepository {
     input: JournalHostAppendInput,
     authority: JournalAuthorityDraft
   ): Promise<JournalAppendResult>;
+  /** Host composition may stage a receipt in an already-open shared-owner transaction. */
+  appendWithHostAuthorityInTransaction?(
+    client: PoolClient,
+    input: JournalHostAppendInput,
+    authority: JournalAuthorityDraft
+  ): Promise<JournalAppendResult>;
   get(ref: JournalEventRef): Promise<DeepReadonly<JournalCommittedEnvelope> | null>;
   resolveRetainedText(ref: JournalPayloadDescriptor["ref"]): Promise<{
     descriptor: DeepReadonly<JournalPayloadDescriptor>;
@@ -153,22 +159,50 @@ export class PostgresJournalRepository implements JournalRepository {
     return this.appendInternal(input, authority);
   }
 
-  private async appendInternal(
-    input: JournalAppendInput,
-    hostAuthorityDraft?: JournalAuthorityDraft
+  async appendWithHostAuthorityInTransaction(
+    client: PoolClient,
+    input: JournalHostAppendInput,
+    authority: JournalAuthorityDraft
   ): Promise<JournalAppendResult> {
     rejectAppendAuthorityOverrides(input);
-    let client: PgClient;
-    try {
-      client = (await this.pool.connect()) as PgClient;
-    } catch (error) {
-      throw new JournalStoreError("DATABASE_UNAVAILABLE", "Journal PostgreSQL is unavailable.", error);
+    const keys = Object.keys(input as object);
+    if (keys.some((key) => key !== "command" && key !== "retainedText")) {
+      throw new JournalStoreError(
+        "INVALID_PROPOSAL",
+        "Host-authorized Journal append accepts only a command and retained payload content."
+      );
+    }
+    if (Object.hasOwn(authority, "journalNamespace")) {
+      throw new JournalStoreError(
+        "INVALID_PROPOSAL",
+        "Journal namespace is assigned by the repository, not the host authority draft."
+      );
+    }
+    return this.appendInternal(input, authority, client);
+  }
+
+  private async appendInternal(
+    input: JournalAppendInput,
+    hostAuthorityDraft?: JournalAuthorityDraft,
+    transactionClient?: PgClient
+  ): Promise<JournalAppendResult> {
+    rejectAppendAuthorityOverrides(input);
+    const ownsClient = transactionClient === undefined;
+    let client = transactionClient;
+    if (!client) {
+      try {
+        client = (await this.pool.connect()) as PgClient;
+      } catch (error) {
+        throw new JournalStoreError("DATABASE_UNAVAILABLE", "Journal PostgreSQL is unavailable.", error);
+      }
     }
 
     let inTransaction = false;
     try {
-      await client.query("begin");
-      inTransaction = true;
+      if (ownsClient) {
+        await client.query("begin");
+        inTransaction = true;
+      }
       await client.query(
         `insert into journal_namespaces (journal_namespace, current_seq)
          values ($1, 0)
@@ -249,8 +283,10 @@ export class PostgresJournalRepository implements JournalRepository {
           }
           const envelope = await this.readEnvelope(client, String(row["event_id"]));
           if (!envelope) throw new Error("Source dedup row referenced a missing journal event.");
-          await client.query("commit");
-          inTransaction = false;
+          if (ownsClient) {
+            await client.query("commit");
+            inTransaction = false;
+          }
           return { status: "DEDUPLICATED", envelope };
         }
       }
@@ -313,8 +349,10 @@ export class PostgresJournalRepository implements JournalRepository {
          where journal_namespace = $1`,
         [this.namespace, nextSeq]
       );
-      await client.query("commit");
-      inTransaction = false;
+      if (ownsClient) {
+        await client.query("commit");
+        inTransaction = false;
+      }
       return { status: "APPENDED", envelope };
     } catch (error) {
       if (inTransaction) {
@@ -326,7 +364,7 @@ export class PostgresJournalRepository implements JournalRepository {
       }
       throw normalizeStoreError(error);
     } finally {
-      client.release();
+      if (ownsClient) client.release();
     }
   }
 

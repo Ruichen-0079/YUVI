@@ -40,12 +40,18 @@ To select the sidecar for Runtime STT, also set
 
 Speaker profiles (`YUVI_STT_SPEAKER_DIR`, default `<model-dir>/speakers`):
 
-- `speakers.json` — metadata only, file mode `0600`
-- `speakers.npz` — raw embeddings, file mode `0600`
+- `speaker-manifest.json` — active revision, file digests and command fences/receipts, file mode `0600`
+- `generation-<revision>/speakers.json` — metadata only, file mode `0600`
+- `generation-<revision>/speakers.npz` — acoustic embeddings, file mode `0600`
+
+Enrollment and deletion use the host's governed command, fence and reconciliation
+protocol. Metadata and vectors are written and fsynced as one generation before
+the manifest activates them. Legacy root-level files migrate into the first
+generation on startup; incomplete generations are never current.
 
 Persisted `speakerId` is the acoustic template identity (`voiceProfileId`), not
-a person id. HTTP JSON never includes embedding vectors; delete removes the
-metadata row and the vector. Identify is fail-closed: cosine score below
+a person id. HTTP JSON never includes embedding vectors; delete retires the
+active generation's metadata row and vector together. Identify is fail-closed: cosine score below
 threshold returns `NO_MATCH` / `UNKNOWN`. Mixed diarized captures are matched
 per cluster; a whole-audio template match is never applied to every speaker.
 

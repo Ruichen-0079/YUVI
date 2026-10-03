@@ -425,7 +425,15 @@ export {
 
 export { modelContextBudget } from "./context-compression.js";
 
-export { LocalControllerEvidenceProvider } from "./providers/local-controller-evidence.js";
+export {
+  LocalControllerEvidenceProvider,
+  type ControllerBindingCommand,
+  type ControllerBindingCommandReceipt,
+  type ControllerBindingCommandFence,
+  type ControllerBindingCommandResult,
+  type ControllerBindingState,
+  type NativeControllerBindingOwner
+} from "./providers/local-controller-evidence.js";
 
 export * from "./episode-source-evidence.js";
 

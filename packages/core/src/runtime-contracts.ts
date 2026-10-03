@@ -23,6 +23,7 @@ import type {
   MemoryExtractorStatus,
   MemoryIngestionCoordinatorPort,
   MemoryProvider,
+  NativeControllerBindingOwner,
   MemoryRetrievalMode,
   MemoryRetrievalResult,
   MemoryRetrievalStatus,
@@ -260,6 +261,7 @@ export type RuntimeMemoryPort = {
   }): Promise<Memory[]>;
   /** Optional semantic provider used by the Runtime read path during migration. */
   getVoiceBindingProvider?(): MemoryProvider | undefined;
+  getNativeVoiceBindingOwner?(): NativeControllerBindingOwner | undefined;
   getMemoryProvider?(): MemoryProvider | undefined;
   retrieveRelevantMemoriesWithMetadata?(input: {
     text: string;

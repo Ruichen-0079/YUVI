@@ -3,9 +3,12 @@ import {
   effectAttemptId,
   EffectAttemptV1Schema,
   EffectEvidenceSchema,
+  EffectObservationV1Schema,
+  EffectObservationV2Schema,
   protocolEvidence,
   retryPermitted
 } from "./dispatch-model.js";
+import { effectDigest } from "./model.js";
 const id = `ei1_${"a".repeat(64)}`;
 const a = EffectAttemptV1Schema.parse({
   version: "effect-attempt.v1",
@@ -63,6 +66,35 @@ describe("A9.2 concrete identity/evidence rules", () => {
         }
       )
     ).toBe(true));
+  it("uses exact native-owner reconciliation as the only post-start retry proof", () => {
+    const nativeAttempt = EffectAttemptV1Schema.parse({
+      ...a,
+      contractRef: "yuvi.native-control.v1",
+      adapter: "yuvi.native-control-owner.v1",
+      dispatchStartedAt: a.createdAt
+    });
+    const applied = EffectEvidenceSchema.parse({
+      certainty: "APPLIED",
+      layer: "NATIVE_OWNER_COMMIT",
+      reason: "OWNER_COMMITTED",
+      remoteEffectId: null,
+      nativeOwnerCommit: {
+        version: "native-owner-commit.v1",
+        ownerFamily: "PRODUCT_PERSON",
+        targetReference: "person-a",
+        revisions: [{ ownerReference: "person:person-a", revision: "person-revision-1" }],
+        eventIds: []
+      }
+    });
+    expect(retryPermitted(nativeAttempt, applied)).toBe(false);
+    const provenAbsent = EffectEvidenceSchema.parse({
+      certainty: "PROVEN_NOT_APPLIED",
+      layer: "NATIVE_OWNER_RECONCILIATION",
+      reason: "OWNER_RECONCILED_NOT_APPLIED",
+      remoteEffectId: null
+    });
+    expect(retryPermitted(nativeAttempt, provenAbsent)).toBe(true);
+  });
   it("integrity conflict blocks retry", () =>
     expect(
       retryPermitted(
@@ -77,4 +109,65 @@ describe("A9.2 concrete identity/evidence rules", () => {
         fileContents: "private"
       })
     ).toThrow());
+  it("decodes historical v1 observations and requires exact revisions in native-owner v2", () => {
+    const historical = EffectObservationV1Schema.parse({
+      version: "effect-observation.v1",
+      observationId: "1",
+      attemptId: a.attemptId,
+      fence: "1",
+      contractRef: a.contractRef,
+      adapter: a.adapter,
+      observedAt: "2026-01-01T00:00:00.000Z",
+      evidence: { certainty: "APPLIED", layer: "LOCAL_READ_RETURNED", reason: "RETURNED", remoteEffectId: null },
+      evidenceDigest: "a".repeat(64)
+    });
+    expect(historical.version).toBe("effect-observation.v1");
+
+    const nativeAttempt = EffectAttemptV1Schema.parse({
+      ...a,
+      contractRef: "yuvi.native-control.v1",
+      adapter: "yuvi.native-control-owner.v1"
+    });
+    const nativeCommit = {
+      certainty: "APPLIED" as const,
+      layer: "NATIVE_OWNER_COMMIT" as const,
+      reason: "OWNER_COMMITTED" as const,
+      remoteEffectId: null,
+      nativeOwnerCommit: {
+        version: "native-owner-commit.v1" as const,
+        ownerFamily: "PRODUCT_PERSON" as const,
+        targetReference: "person-a",
+        revisions: [{ ownerReference: "person:person-a", revision: "person-revision-1" }],
+        eventIds: []
+      }
+    };
+    const nativeWithoutCommit = {
+      certainty: "APPLIED" as const,
+      layer: "NATIVE_OWNER_COMMIT" as const,
+      reason: "OWNER_COMMITTED" as const,
+      remoteEffectId: null
+    };
+    expect(() => EffectObservationV2Schema.parse({
+      version: "effect-observation.v2",
+      observationId: "2",
+      attemptId: nativeAttempt.attemptId,
+      fence: "1",
+      contractRef: nativeAttempt.contractRef,
+      adapter: nativeAttempt.adapter,
+      observedAt: "2026-01-01T00:00:00.000Z",
+      evidence: nativeWithoutCommit,
+      evidenceDigest: effectDigest(nativeWithoutCommit)
+    })).toThrow();
+    expect(EffectObservationV2Schema.parse({
+      version: "effect-observation.v2",
+      observationId: "3",
+      attemptId: nativeAttempt.attemptId,
+      fence: "1",
+      contractRef: nativeAttempt.contractRef,
+      adapter: nativeAttempt.adapter,
+      observedAt: "2026-01-01T00:00:00.000Z",
+      evidence: nativeCommit,
+      evidenceDigest: effectDigest(nativeCommit)
+    }).evidence.nativeOwnerCommit).toEqual(nativeCommit.nativeOwnerCommit);
+  });
 });

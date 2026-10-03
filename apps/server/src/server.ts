@@ -38,6 +38,7 @@ import type { ProactiveConsentReceiptAdmission } from "./proactive-consent-recei
 import type { ProactiveTurnReceiptAdmission } from "./proactive-turn-receipt-admission.js";
 import type { TtsReceiptAdmission } from "./tts-receipt-admission.js";
 import type { VoiceControlReceiptAdmission } from "./voice-control-receipt-admission.js";
+import type { ProductPersonCommandPort } from "./product-person-command-effects.js";
 
 export type BuildServerOptions = Readonly<{
   /** Composition-time source registration; discovery does not call source loaders. */
@@ -60,6 +61,8 @@ export type BuildServerOptions = Readonly<{
   ttsReceiptAdmission?: TtsReceiptAdmission | undefined;
   /** Host-only dependency override for voice-control admission. */
   voiceControlReceiptAdmission?: VoiceControlReceiptAdmission | undefined;
+  /** Host-only command-port override for in-process tests; never request-controlled. */
+  productPersonCommands?: ProductPersonCommandPort | undefined;
 }>;
 
 export async function buildServer(config: ServerConfig, options: BuildServerOptions = {}) {
@@ -130,6 +133,7 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   }
 
   const context = await createAppContext(app.log, config, pluginLifecycle.runtimeCapabilities);
+  if (options.productPersonCommands) context.productPersonCommands = options.productPersonCommands;
   if (options.conversationReceiptAdmission) {
     context.conversationalReceiptAdmission = options.conversationReceiptAdmission;
   }

@@ -107,4 +107,45 @@ export interface VoiceProfileProvider {
   ): Promise<{ voiceProfileId: string; label: string }>;
   identify(input: STTInput): Promise<VoiceProfileMatch>;
   delete(voiceProfileId: string): Promise<void>;
+  /** Native acoustic-owner snapshot used for exact CAS, never a Person binding. */
+  readAuthorityState?(): Promise<VoiceProfileAuthoritySnapshot>;
+  fenceNativeCommand?(command: VoiceProfileNativeCommand): Promise<"READY" | "APPLIED" | "UNKNOWN" | "CONFLICT">;
+  applyNativeCommand?(command: VoiceProfileNativeCommand & { audioBase64?: string }): Promise<VoiceProfileNativeCommandResult>;
+  reconcileNativeCommand?(command: VoiceProfileNativeCommand): Promise<VoiceProfileNativeCommandResult>;
 }
+
+export type VoiceProfileAuthoritySnapshot = Readonly<{
+  complete: boolean;
+  revision: string | null;
+  profiles: readonly { voiceProfileId: string; label: string }[];
+  cleanupPending?: boolean;
+}>;
+export type VoiceProfileNativeCommand = Readonly<{
+  operation: "ENROLL" | "DELETE";
+  commandHandle: string;
+  intentId: string;
+  attemptId: string;
+  fence: string;
+  payloadDigest: string;
+  expectedRevision: string | null;
+  voiceProfileId: string;
+  label?: string;
+  causalRefs: readonly { kind: "JOURNAL_EVENT"; namespace: string; eventId: string }[];
+}>;
+export type VoiceProfileNativeCommandReceipt = Readonly<{
+  commandHandle: string;
+  intentId: string;
+  attemptId: string;
+  fence: string;
+  payloadDigest: string;
+  operation: "ENROLL" | "DELETE";
+  voiceProfileId: string;
+  priorRevision: string | null;
+  resultingRevision: string;
+  causalRefs: VoiceProfileNativeCommand["causalRefs"];
+}>;
+export type VoiceProfileNativeCommandResult = Readonly<
+  | { status: "APPLIED" | "ALREADY_APPLIED"; receipt: VoiceProfileNativeCommandReceipt; cleanupPending?: boolean }
+  | { status: "PROVEN_NOT_APPLIED"; reason: "REVISION_MISMATCH" | "PROFILE_EXISTS" | "PROFILE_ABSENT" | "EXACT_PREDECESSOR_REMAINS" | "INVALID_ACOUSTIC_SAMPLE" | "MIXED_ACOUSTIC_SAMPLE"; revision?: string | null }
+  | { status: "UNKNOWN" | "CONFLICT" }
+>;

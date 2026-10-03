@@ -76,6 +76,8 @@ type Snapshot = {
   primaryPersonId: string | null;
   proactive: { threshold: number; intervalMs: number };
   revision: number;
+  personRevisionById?: Record<string, string>;
+  primaryPersonRevision?: string | null;
   routes: Record<Capability, { state: string; modelIds: string[] }>;
   conversationalReady: boolean;
   applyState: string;
@@ -88,10 +90,17 @@ type Voices = {
   unknown: { id: string; leftUnknown?: boolean }[];
 };
 type PersonDraft = { id: string; displayName: string; notes: string };
-type ProfileEvidenceState = "STORED" | "UNAVAILABLE" | "APPLY_FAILED";
+type ProfileEvidenceProjection = {
+  classification: "NON_EVIDENCE";
+  projectionVersion: "product-person-profile.v1";
+  owner: "PRODUCT_PERSON_STORE";
+  personId: string;
+  personRevision: string | null;
+  lineageStatus: "VERSIONED" | "LEGACY_UNLINEAGED";
+};
 type PersonSaveResponse = Snapshot & {
   personId: string;
-  profileEvidence: ProfileEvidenceState;
+  profileEvidence: ProfileEvidenceProjection;
   message: string;
 };
 const emptyPersonDraft = (): PersonDraft => ({ id: "", displayName: "", notes: "" });
@@ -163,6 +172,8 @@ export function ProductConfigurationPanel(
   const [voiceLoadNotice, setVoiceLoadNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const writing = useRef(false);
+  const pendingPersonCommand = useRef<{ request: string; handle: string } | null>(null);
+  const pendingVoiceEnrollmentCommand = useRef<{ request: string; handle: string } | null>(null);
   const [testNotices, setTestNotices] = useState<Record<string, string>>({});
   const [testing, setTesting] = useState<Set<string>>(new Set());
   const testsInFlight = useRef(new Set<string>());
@@ -175,10 +186,7 @@ export function ProductConfigurationPanel(
   const [selfProfile, setSelfProfile] = useState<PersonDraft>(emptyPersonDraft);
   const [otherPerson, setOtherPerson] = useState<PersonDraft>(emptyPersonDraft);
   const [editingOther, setEditingOther] = useState(false);
-  const [profileEvidence, setProfileEvidence] = useState<{
-    personId: string;
-    state: ProfileEvidenceState;
-  } | null>(null);
+  const [profileEvidence, setProfileEvidence] = useState<ProfileEvidenceProjection | null>(null);
   const [voices, setVoices] = useState<Voices>({ available: false, voices: [], unknown: [] });
   const [enrollPerson, setEnrollPerson] = useState("");
   const [replaceVoiceId, setReplaceVoiceId] = useState<string | undefined>();
@@ -343,17 +351,29 @@ export function ProductConfigurationPanel(
   }
   async function savePersonProfile(draft: PersonDraft, primary: boolean) {
     let savedResult: PersonSaveResponse | undefined;
+    const requestBody = {
+      displayName: draft.displayName,
+      notes: draft.notes,
+      primary,
+      ...(draft.id ? { id: draft.id } : {}),
+      expectedPersonRevision: draft.id ? (state?.personRevisionById?.[draft.id] ?? null) : null,
+      expectedPrimaryRevision: state?.primaryPersonRevision ?? null
+    };
+    const requestKey = JSON.stringify(requestBody);
+    const commandHandle = pendingPersonCommand.current?.request === requestKey
+      ? pendingPersonCommand.current.handle
+      : crypto.randomUUID();
+    pendingPersonCommand.current = { request: requestKey, handle: commandHandle };
     const ok = await act(async () => {
       savedResult = await send<PersonSaveResponse>("/product/people", {
-        displayName: draft.displayName,
-        notes: draft.notes,
-        primary,
-        ...(draft.id ? { id: draft.id } : {})
+        ...requestBody,
+        commandHandle
       });
       return savedResult;
     });
     if (ok && savedResult) {
-      setProfileEvidence({ personId: savedResult.personId, state: savedResult.profileEvidence });
+      pendingPersonCommand.current = null;
+      setProfileEvidence(savedResult.profileEvidence);
       if (!primary) {
         setEditingOther(false);
         setOtherPerson(emptyPersonDraft());
@@ -361,17 +381,25 @@ export function ProductConfigurationPanel(
     }
   }
   function startEnrollment(personId: string, replaceVoiceId?: string) {
+    pendingVoiceEnrollmentCommand.current = null;
     setEnrollPerson(personId);
     setReplaceVoiceId(replaceVoiceId);
     setRecordings([]);
   }
   async function finishEnrollment() {
     if (!enrollPerson) return;
+    const requestBody = { personId: enrollPerson, recordings, ...(replaceVoiceId ? { replaceVoiceId } : {}) };
+    const requestKey = JSON.stringify(requestBody);
+    const commandHandle = pendingVoiceEnrollmentCommand.current?.request === requestKey
+      ? pendingVoiceEnrollmentCommand.current.handle
+      : crypto.randomUUID();
+    pendingVoiceEnrollmentCommand.current = { request: requestKey, handle: commandHandle };
     const ok = await act(
-      () => send("/product/voices/enroll", { personId: enrollPerson, recordings, replaceVoiceId }),
+      () => send("/product/voices/enroll", { ...requestBody, commandHandle }),
       t("Voice enrolled and linked to this person.")
     );
     if (ok) {
+      pendingVoiceEnrollmentCommand.current = null;
       setEnrollPerson("");
       setReplaceVoiceId(undefined);
       setRecordings([]);
@@ -384,10 +412,8 @@ export function ProductConfigurationPanel(
     voices.voices.filter((v) => v.personId === personId);
   const evidenceLabel = (personId: string) => {
     if (profileEvidence?.personId !== personId) return null;
-    if (profileEvidence.state === "STORED") return t("Memory: profile saved");
-    if (profileEvidence.state === "UNAVAILABLE")
-      return t("Memory: unavailable; profile is still saved locally");
-    return t("Memory: profile evidence write failed");
+    if (profileEvidence.classification !== "NON_EVIDENCE") return null;
+    return t("Person profile saved in Product settings; no Memory evidence was created.");
   };
   return (
     <section className="yuvi-configuration grid gap-5" aria-label={t("Product configuration")}>
@@ -924,7 +950,7 @@ export function ProductConfigurationPanel(
                 <h2>{t("My profile")}</h2>
                 <p>
                   {t(
-                    "This is the person YUVI treats as you. Your name and notes become explicit long-term identity evidence when Memory is available."
+                    "This is the person YUVI treats as you. Your name and notes are authored in Product settings; they are not Memory evidence."
                   )}
                 </p>
               </div>
@@ -1195,6 +1221,7 @@ export function ProductConfigurationPanel(
                         setEnrollPerson("");
                         setReplaceVoiceId(undefined);
                         setRecordings([]);
+                        pendingVoiceEnrollmentCommand.current = null;
                       }}
                     >
                       {t("Cancel")}
@@ -1229,14 +1256,14 @@ export function ProductConfigurationPanel(
                       <select
                         value=""
                         onChange={(e) => {
-                          if (e.target.value)
+                          if (e.target.value) {
+                            const personId = e.target.value;
+                            const commandHandle = `voice-review:${v.id}:${personId}`.slice(0, 256);
                             void act(
-                              () =>
-                                send(`/product/voice-samples/${v.id}/review`, {
-                                  personId: e.target.value
-                                }),
+                              () => send(`/product/voice-samples/${v.id}/review`, { personId, commandHandle }),
                               t("Voice assigned.")
                             );
+                          }
                         }}
                       >
                         <option value="">{t("Select person")}</option>

@@ -1,10 +1,20 @@
 import { existsSync, readFileSync, unlinkSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 import { getRuntimeEnvDir } from "../env.js";
 import { writePrivateJson } from "./product-store.js";
 import type { STTOutput } from "@companion/providers";
-export type VoiceReview = { id: string; voiceProfileId?: string; createdAt: string; sample: string; leftUnknown?: boolean };
+export type VoiceReview = {
+  id: string;
+  voiceProfileId?: string;
+  createdAt: string;
+  sample: string;
+  leftUnknown?: boolean;
+  purpose?: "REVIEW" | "ENROLLMENT";
+  commandHandle?: string;
+  slot?: number;
+};
 const path = () => {
   const target = join(resolve(process.env["YUVI_RUNTIME_DATA_DIR"] || getRuntimeEnvDir()), "voice-review.json");
   const legacy = join(getRuntimeEnvDir(), "voice-review.json");
@@ -22,6 +32,9 @@ const path = () => {
 };
 export function voiceReviews(): VoiceReview[] {
   try { return JSON.parse(readFileSync(path(), "utf8")) as VoiceReview[]; } catch (e) { if ((e as NodeJS.ErrnoException).code === "ENOENT") return []; throw new Error("Voice review samples unavailable."); }
+}
+export function productVoiceReviews(): VoiceReview[] {
+  return voiceReviews().filter(row => row.purpose !== "ENROLLMENT");
 }
 /** Only PCM WAV excerpts, eight seconds each, thirty entries total. No recording loop or network I/O. */
 export function boundedWav(base64: string): Buffer {
@@ -48,6 +61,56 @@ export function retainVoiceSample(base64: string, voiceProfileId?: string): Voic
   if (existing) return existing;
   const row = { id: randomUUID(), ...(voiceProfileId ? { voiceProfileId } : {}), createdAt: new Date().toISOString(), sample };
   writePrivateJson(path(), [...rows, row].slice(-30)); return row;
+}
+/** Keep enrollment bytes in the bounded private DATA store; A9 receives only stable refs and digests. */
+export function retainEnrollmentSamples(base64Samples: readonly string[], commandHandle: string): { sampleReferences: string[]; sampleDigests: string[] } {
+  if (base64Samples.length < 1 || base64Samples.length > 5 || !commandHandle.trim()) throw new Error("Invalid enrollment command.");
+  const rows = voiceReviews();
+  const next: VoiceReview[] = [...rows];
+  const sampleReferences: string[] = [];
+  const sampleDigests: string[] = [];
+  for (const [slot, encoded] of base64Samples.entries()) {
+    const bytes = boundedWav(encoded);
+    const sample = bytes.toString("base64");
+    const sampleDigest = createHash("sha256").update(bytes).digest("hex");
+    const id = `enroll_${createHash("sha256").update(`${commandHandle}:${slot}`).digest("hex").slice(0, 32)}`;
+    const existing = next.find(row => row.id === id);
+    if (existing) {
+      if (existing.purpose !== "ENROLLMENT" || existing.commandHandle !== commandHandle || existing.slot !== slot ||
+          createHash("sha256").update(Buffer.from(existing.sample, "base64")).digest("hex") !== sampleDigest)
+        throw new Error("Enrollment command handle is already attached to different private samples.");
+    } else {
+      next.push({ id, createdAt: new Date().toISOString(), sample, purpose: "ENROLLMENT", commandHandle, slot });
+    }
+    sampleReferences.push(id);
+    sampleDigests.push(sampleDigest);
+  }
+  if (next.length !== rows.length) writePrivateJson(path(), next.slice(-30));
+  return { sampleReferences, sampleDigests };
+}
+export function readVoiceCommandSamples(references: readonly string[], digests: readonly string[]): string[] {
+  if (references.length === 0 || references.length !== digests.length) throw new Error("Private voice command samples are unavailable.");
+  const rows = voiceReviews();
+  return references.map((reference, index) => {
+    const row = rows.find(item => item.id === reference && item.purpose === "ENROLLMENT");
+    if (!row) throw new Error("Private voice command sample was not retained.");
+    const bytes = boundedWav(row.sample);
+    if (createHash("sha256").update(bytes).digest("hex") !== digests[index])
+      throw new Error("Private voice command sample digest changed.");
+    return bytes.toString("base64");
+  });
+}
+export function combineVoiceCommandSamples(samples: readonly string[]): string {
+  if (samples.length < 1 || samples.length > 5) throw new Error("Invalid private acoustic enrollment material.");
+  const clips = samples.map(boundedWav);
+  const format = clips[0]!.subarray(20, 36);
+  if (clips.some(clip => !clip.subarray(20, 36).equals(format)))
+    throw new Error("Private acoustic enrollment samples use different PCM formats.");
+  const data = Buffer.concat(clips.map(clip => clip.subarray(44)));
+  const combined = Buffer.concat([clips[0]!.subarray(0, 44), data]);
+  combined.writeUInt32LE(combined.length - 8, 4);
+  combined.writeUInt32LE(data.length, 40);
+  return combined.toString("base64");
 }
 export function updateVoiceReview(id: string, update: Partial<Pick<VoiceReview, "voiceProfileId" | "leftUnknown">> | null): boolean {
   const rows = voiceReviews();

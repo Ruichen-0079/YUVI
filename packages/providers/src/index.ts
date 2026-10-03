@@ -61,7 +61,11 @@ export type {
   VoiceActivityOutput,
   VoiceProfileMatch,
   VoiceProfileMatchStatus,
-  VoiceProfileProvider
+  VoiceProfileProvider,
+  VoiceProfileAuthoritySnapshot,
+  VoiceProfileNativeCommand,
+  VoiceProfileNativeCommandReceipt,
+  VoiceProfileNativeCommandResult
 } from "./types/stt.js";
 export { VOICE_PROFILE_MATCH_STATUSES } from "./types/stt.js";
 export type {

@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { isAbsolute, join } from "node:path";
+import { isAbsolute } from "node:path";
 import { LocalSTTProvider, type VoiceProfileProvider } from "@companion/providers";
 import type { AppContext } from "../context.js";
 
@@ -26,14 +26,26 @@ export function productVoiceProfiles(context: AppContext): VoiceProfileProvider 
     } finally { await control("/v1/voice/release", { leaseId: lease["leaseId"] }); }
   }
   return {
-    list: () => {
-      const directory = process.env["YUVI_STT_SPEAKER_DIR"];
-      if (!directory || !isAbsolute(directory)) throw new Error("Speaker metadata directory unavailable.");
-      return new LocalSTTProvider({ baseUrl: process.env["LOCAL_STT_BASE_URL"] ?? "http://127.0.0.1:9876", model: "sensevoice", speakerMetadataPath: join(directory, "speakers.json") }).voiceProfiles.list();
-    },
+    list: () => use(p => p.list()),
+    readAuthorityState: () => use(async p => {
+      if (!p.readAuthorityState) throw new Error("Acoustic owner revision lookup is unavailable.");
+      return p.readAuthorityState();
+    }),
     enroll: input => use(p => p.enroll(input)),
     identify: input => use(p => p.identify(input)),
-    delete: id => use(p => p.delete(id))
+    delete: id => use(p => p.delete(id)),
+    fenceNativeCommand: command => use(async p => {
+      if (!p.fenceNativeCommand) throw new Error("Acoustic command fencing is unavailable.");
+      return p.fenceNativeCommand(command);
+    }),
+    applyNativeCommand: command => use(async p => {
+      if (!p.applyNativeCommand) throw new Error("Governed acoustic commands are unavailable.");
+      return p.applyNativeCommand(command);
+    }),
+    reconcileNativeCommand: command => use(async p => {
+      if (!p.reconcileNativeCommand) throw new Error("Acoustic command reconciliation is unavailable.");
+      return p.reconcileNativeCommand(command);
+    })
   };
 }
 

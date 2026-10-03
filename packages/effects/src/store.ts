@@ -12,6 +12,7 @@ import {
 /** Repository write access belongs to the host admission facade, never Runtime callers. */
 export interface EffectIntentStore {
   decide(value: EffectIntent, beforeCommit?: () => void): Promise<EffectIntent>;
+  decideInTransaction?(client: PoolClient, value: EffectIntent, beforeCommit?: () => void): Promise<EffectIntent>;
   get(intentId: string): Promise<EffectIntent | null>;
   cancel(intentId: string): Promise<EffectIntent | null>;
   listPending(limit: number): Promise<EffectIntent[]>;
@@ -70,41 +71,47 @@ export class PostgresEffectIntentStore implements EffectIntentStore {
     let inserted = false;
     return this.transaction(
       async (client) => {
-        const result = await client.query(
-          `insert into effect_intents (intent_id, logical_key, contract_ref, payload_digest, intent,
-          state, work_state, expires_at, created_at)
-         values ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9)
-         on conflict do nothing returning *`,
-          [
-            value.intentId,
-            value.logicalKey,
-            value.contractRef,
-            value.payloadDigest,
-            canonicalEffectJson(value),
-            value.state,
-            value.workState,
-            value.request.expiresAt,
-            value.createdAt
-          ]
-        );
-        if (result.rows.length) {
-          inserted = true;
-          return decodeEffectIntent(result.rows[0]!);
-        }
-        // Both uniqueness arbiters describe the same logical identity. Naming only the PK can
-        // raise a secondary-index unique violation during concurrent exact replay.
-        // INSERT waits for concurrent decisions to commit; this READ COMMITTED query sees the winner.
-        const existing = await client.query(`select * from effect_intents where intent_id=$1`, [
-          value.intentId
-        ]);
-        if (!existing.rows[0])
-          throw new EffectIntentError("INTEGRITY_FAILURE", "Conflicting intent disappeared.");
-        return checkReplay(decodeEffectIntent(existing.rows[0]), value);
+        const result = await this.decideInClient(client, value);
+        inserted = result.inserted;
+        return result.intent;
       },
       () => {
         if (inserted) beforeCommit?.();
       }
     );
+  }
+  async decideInTransaction(client: PoolClient, value: EffectIntent, beforeCommit?: () => void) {
+    const result = await this.decideInClient(client, value);
+    if (result.inserted) beforeCommit?.();
+    return result.intent;
+  }
+  private async decideInClient(client: PoolClient, value: EffectIntent) {
+    const result = await client.query(
+      `insert into effect_intents (intent_id, logical_key, contract_ref, payload_digest, intent,
+      state, work_state, expires_at, created_at)
+     values ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9)
+     on conflict do nothing returning *`,
+      [
+        value.intentId,
+        value.logicalKey,
+        value.contractRef,
+        value.payloadDigest,
+        canonicalEffectJson(value),
+        value.state,
+        value.workState,
+        value.request.expiresAt,
+        value.createdAt
+      ]
+    );
+    if (result.rows.length) return { intent: decodeEffectIntent(result.rows[0]!), inserted: true };
+    // Both uniqueness arbiters describe the same logical identity. Naming only the PK can
+    // raise a secondary-index unique violation during concurrent exact replay.
+    const existing = await client.query(`select * from effect_intents where intent_id=$1`, [
+      value.intentId
+    ]);
+    if (!existing.rows[0])
+      throw new EffectIntentError("INTEGRITY_FAILURE", "Conflicting intent disappeared.");
+    return { intent: checkReplay(decodeEffectIntent(existing.rows[0]), value), inserted: false };
   }
   async get(id: string): Promise<EffectIntent | null> {
     return this.transaction(async (c) => {

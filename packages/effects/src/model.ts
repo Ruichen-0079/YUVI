@@ -28,6 +28,16 @@ export const EFFECT_CONTRACTS = Object.freeze({
     logicalKeyPolicy: "OWNER_STABLE_KEY",
     semanticPayloadPolicy: "AUTHORIZED_READ_PATH_V1"
   }),
+  "yuvi.native-control.v1": Object.freeze({
+    owner: "NATIVE_CONTROL",
+    version: "v1",
+    permission: "NATIVE_CONTROL_COMMAND",
+    workOwner: "A9_OUTBOX",
+    cancelBeforeClaim: true,
+    expiry: "OWNER_REQUIRED",
+    logicalKeyPolicy: "OWNER_STABLE_KEY",
+    semanticPayloadPolicy: "NATIVE_CONTROL_COMMAND_V1"
+  }),
   "yuvi.finalized-memory.v1": Object.freeze({
     owner: "FINALIZED_MEMORY",
     version: "v1",
@@ -66,7 +76,11 @@ export type EffectIdentitySnapshot = z.infer<typeof EffectIdentitySnapshotSchema
 const audience = JournalAuthoritySnapshotSchema.shape.audience;
 export const EffectIntentRequestSchema = z
   .object({
-    contractRef: z.enum(["yuvi.embodied-presentation.v1", "yuvi.read-text.v1"]),
+    contractRef: z.enum([
+      "yuvi.embodied-presentation.v1",
+      "yuvi.read-text.v1",
+      "yuvi.native-control.v1"
+    ]),
     logicalKey: token,
     scope: token,
     audience,
@@ -199,9 +213,22 @@ export function freezeEffectRequest(raw: unknown): EffectIntentRequest {
     );
   if (!Object.hasOwn(parsed.data, "payload"))
     throw new EffectIntentError("INVALID_REQUEST", "Effect payload is required.");
-  const payload =
+const payload =
     parsed.data.contractRef === "yuvi.embodied-presentation.v1"
       ? CorrelatedEmbodiedBehaviorSchema.safeParse(parsed.data.payload)
+      : parsed.data.contractRef === "yuvi.native-control.v1"
+        ? z
+            .object({
+              version: z.literal("native-control-command.v1"),
+              family: z.enum(["PRODUCT_PERSON", "VOICE_BINDING", "ACOUSTIC_PROFILE", "P8_CORRECTION"]),
+              commandHandle: token,
+              payloadRef: token,
+              payloadDigest: z.string().regex(/^[a-f0-9]{64}$/),
+              semanticDigest: z.string().regex(/^[a-f0-9]{64}$/),
+              targetReference: token
+            })
+            .strict()
+            .safeParse(parsed.data.payload)
       : z
           .object({ path: z.string().min(1).max(4096) })
           .strict()

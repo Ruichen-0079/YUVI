@@ -12,6 +12,7 @@ import {
 } from "./model.js";
 import type { EffectIntentStore } from "./store.js";
 import type { JournalEventRef, JournalCommittedEnvelope, DeepReadonly } from "@companion/protocol";
+import type { PoolClient } from "pg";
 
 export type EffectAuthority = {
   snapshot: EffectAuthorization;
@@ -118,6 +119,78 @@ export class HostEffectIntentAdmission implements EffectIntentAdmissionPort {
               );
             if (Date.parse(request.expiresAt) <= this.now().getTime())
               throw new EffectIntentError("AUTHORITY_CHANGED", "Intent expired before commit.");
+          }
+    );
+  }
+  /** Admit a command whose exact CONTROL receipt is staged on the same owner transaction. */
+  async admitWithExactReceiptInTransaction(
+    raw: EffectIntentRequest,
+    authority: EffectAuthority,
+    receipt: DeepReadonly<JournalCommittedEnvelope>,
+    client: PoolClient
+  ): Promise<EffectIntent> {
+    const request = freezeEffectRequest(raw);
+    const parsed = EffectAuthorizationSchema.safeParse(
+      JSON.parse(canonicalEffectJson(authority.snapshot))
+    );
+    if (!parsed.success || typeof authority.isCurrent !== "function")
+      throw new EffectIntentError("INVALID_REQUEST", "Invalid host authorization snapshot.");
+    if (!this.store?.decideInTransaction)
+      throw new EffectIntentError("UNAVAILABLE", "Transactional effect admission is unavailable.");
+    if (
+      request.causalRefs.length !== 1 ||
+      request.causalRefs[0]!.eventId !== receipt.eventId ||
+      request.causalRefs[0]!.namespace !== receipt.journalNamespace ||
+      request.causalRefs[0]!.kind !== "JOURNAL_EVENT" ||
+      receipt.command.kind !== "RECEIPT"
+    )
+      throw new EffectIntentError("UNKNOWN_CAUSE", "The staged CONTROL receipt does not match the effect cause.");
+    const { principal, subjects, binding, audience, disclosurePolicy } = receipt.authority;
+    const identityMatches = canonicalEffectJson(parsed.data.identity) === canonicalEffectJson({
+      principal,
+      subjects,
+      binding,
+      audience,
+      disclosurePolicy
+    });
+    const reason = !identityMatches
+      ? "CAUSAL_IDENTITY_MISMATCH"
+      : parsed.data.scope !== request.scope
+        ? "SCOPE_DENIED"
+        : canonicalEffectJson(parsed.data.identity.audience) !== canonicalEffectJson(request.audience)
+          ? "AUDIENCE_DENIED"
+          : !parsed.data.allowed || !parsed.data.permissions.includes(EFFECT_CONTRACTS[request.contractRef].permission)
+            ? "PERMISSION_DENIED"
+            : authority.isCurrent() !== true
+              ? "STALE_AUTHORITY"
+              : Date.parse(request.expiresAt) <= this.now().getTime()
+                ? "EXPIRED_AT_ADMISSION"
+                : null;
+    const { payload, ...safeRequest } = request;
+    const value: EffectIntent = {
+      version: "effect-intent.v1",
+      intentId: effectIntentId(request.contractRef, request.logicalKey),
+      logicalKey: request.logicalKey,
+      contractRef: request.contractRef,
+      payloadDigest: requestEffectDigest(request),
+      request: reason ? safeRequest : { ...safeRequest, payload },
+      authorization: parsed.data,
+      decision: reason ? "DENIED" : "ADMITTED",
+      reasonCode: reason,
+      state: reason ? "DENIED" : "ADMITTED",
+      workState: reason ? null : "PENDING",
+      createdAt: this.now().toISOString()
+    };
+    return this.store.decideInTransaction(
+      client,
+      value,
+      reason
+        ? undefined
+        : () => {
+            if (authority.isCurrent() !== true)
+              throw new EffectIntentError("AUTHORITY_CHANGED", "Runtime authority changed before COMMIT.");
+            if (Date.parse(request.expiresAt) <= this.now().getTime())
+              throw new EffectIntentError("AUTHORITY_CHANGED", "Intent expired before COMMIT.");
           }
     );
   }

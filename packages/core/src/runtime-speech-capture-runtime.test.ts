@@ -1,5 +1,8 @@
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { InMemoryEventBus } from "@companion/event-bus";
-import { InMemoryConversationRepository } from "@companion/memory";
+import { InMemoryConversationRepository, LocalControllerEvidenceProvider, buildMemoryScope } from "@companion/memory";
 import { PromptBuilder } from "@companion/prompt-builder";
 import { createEvent } from "@companion/protocol";
 import type { JournalCommittedEnvelope, RuntimeEvent } from "@companion/protocol";
@@ -18,6 +21,7 @@ import {
   ProactiveAdmissionError,
   RuntimeOrchestrator,
   SpeechCaptureFenceError,
+  createFileVoiceBindingReferences,
   type RuntimeCharacterPort,
   type RuntimeCharacterTurnResult,
   type RuntimeMemoryPort
@@ -587,5 +591,68 @@ describe("Runtime finalized capture lifecycle", () => {
     const event = runtime.commitSpeechTurn(observation.observationId!, "s", observation.text);
     expect(event.payload.voiceProfileId).toBeUndefined();
     expect(event.payload.segments?.every((segment) => !segment.voiceProfileMatch)).toBe(true);
+  });
+
+  it("resolves Runtime speech through a current indexed P8 projection tied to the acoustic receipt", async () => {
+    const root = mkdtempSync(join(tmpdir(), "yuvi-p8-runtime-binding-"));
+    try {
+      const owner = new LocalControllerEvidenceProvider(root);
+      const command = {
+        commandHandle: "runtime-p8-bind",
+        intentId: "runtime-p8-intent",
+        attemptId: "runtime-p8-attempt",
+        fence: "1",
+        payloadDigest: "a".repeat(64),
+        causalRefs: [{ kind: "JOURNAL_EVENT" as const, namespace: "test:control", eventId: "control-1" }],
+        operation: "ASSIGN" as const,
+        voiceProfileId: "profile-runtime-p8",
+        personaId: "persona-runtime-p8",
+        personId: "person-runtime-p8",
+        expectedBindingRevision: null
+      };
+      expect(await owner.fenceBindingCommand(command)).toBe("READY");
+      const applied = await owner.applyBindingCommand(command);
+      expect(applied.status).toBe("APPLIED");
+      if (applied.status !== "APPLIED") return;
+
+      const references = createFileVoiceBindingReferences(join(root, "voice-binding-references.json"));
+      const eventBus = new InMemoryEventBus({ development: false });
+      const published: RuntimeEvent[] = [];
+      eventBus.subscribe("*", (event) => { published.push(event); });
+      const memory = Object.assign(memoryStub(), { getNativeVoiceBindingOwner: () => owner });
+      const runtime = new RuntimeOrchestrator({
+        eventBus,
+        memory,
+        promptBuilder: new PromptBuilder(),
+        conversation: new InMemoryConversationRepository(),
+        providers: providers(),
+        character: characterPort(),
+        voicePersonaId: "persona-runtime-p8",
+        voiceBindingReferences: references
+      });
+      const observation = admitSpeechForTest(runtime, {
+        text: "recognized words",
+        observationId: "observation-runtime-p8",
+        voiceProfileMatch: { status: "MATCHED", voiceProfileId: "profile-runtime-p8" },
+        segments: [{ text: "recognized words", speakerClusterId: "speaker-0" }]
+      }, { sessionId: "runtime-p8-session" });
+      const turn = runtime.commitSpeechTurn(observation.observationId!, "runtime-p8-session", observation.text);
+      await runtime.handleUserMessage(turn, { readMemory: false, writeMemory: false });
+
+      const publishedTurn = published.find((event) => event.type === "user.voice.transcript");
+      expect(publishedTurn).toMatchObject({
+        payload: {
+          subjectUserId: "person-runtime-p8",
+          speakerId: "person-runtime-p8",
+          sourceJournalRef: { namespace: "test:speech" }
+        }
+      });
+      const enumeration = await owner.listBindingStates();
+      expect(references.isCurrent?.(enumeration.ownerRevision)).toBe(true);
+      expect(references.load(buildMemoryScope("voice-profile:profile-runtime-p8", "persona-runtime-p8")))
+        .toEqual(applied.state.eventIds);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

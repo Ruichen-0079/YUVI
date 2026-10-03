@@ -76,7 +76,7 @@ packaged build.
 
 ## Not redistributed
 
-- User speaker stores (`speakers.json`, `speakers.npz`) — writable app data only
+- User speaker manifests and generation files — writable app data only
 - Enrollment / review audio
 - Private dots.tts / Rei reference audio, transcripts, weights, or venv
 - Hugging Face cache snapshots unrelated to the generic Local STT stack

@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import {
   JOURNAL_COMMAND_VERSION,
   JOURNAL_SELECTOR_VERSION,
+  type JournalEventRef,
   type JournalPayloadDescriptor
 } from "@companion/protocol";
 import {
@@ -14,12 +15,10 @@ import { z } from "zod";
 
 export type ProductControlReceiptInput =
   | { operation: "CONFIGURATION_SAVE"; expectedRevision: number }
-  | { operation: "PERSON_CREATE"; personId: string; requestedPrimary: boolean }
-  | { operation: "PERSON_UPDATE"; personId: string; requestedPrimary: boolean }
   | { operation: "PROACTIVE_RESUME" };
 
 export interface ProductControlReceiptAdmission {
-  admit(input: ProductControlReceiptInput): Promise<void>;
+  admit(input: ProductControlReceiptInput): Promise<JournalEventRef>;
 }
 
 const ProductControlReceiptInputSchema = z.discriminatedUnion("operation", [
@@ -29,27 +28,11 @@ const ProductControlReceiptInputSchema = z.discriminatedUnion("operation", [
       expectedRevision: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER)
     })
     .strict(),
-  z
-    .object({
-      operation: z.literal("PERSON_CREATE"),
-      personId: z.string().min(1).max(512),
-      requestedPrimary: z.boolean()
-    })
-    .strict(),
-  z
-    .object({
-      operation: z.literal("PERSON_UPDATE"),
-      personId: z.string().min(1).max(512),
-      requestedPrimary: z.boolean()
-    })
-    .strict(),
   z.object({ operation: z.literal("PROACTIVE_RESUME") }).strict()
 ]);
 
 const SURFACE_REFERENCE: Record<ProductControlReceiptInput["operation"], string> = {
   CONFIGURATION_SAVE: "yuvi:http:/product/configuration",
-  PERSON_CREATE: "yuvi:http:/product/people",
-  PERSON_UPDATE: "yuvi:http:/product/people",
   PROACTIVE_RESUME: "yuvi:http:/product/proactive/resume"
 };
 
@@ -60,7 +43,7 @@ export class HostProductControlReceiptAdmission implements ProductControlReceipt
     private readonly createPayloadId: () => string = createOpaqueProductControlPayloadId
   ) {}
 
-  async admit(rawInput: ProductControlReceiptInput): Promise<void> {
+  async admit(rawInput: ProductControlReceiptInput): Promise<JournalEventRef> {
     const parsed = ProductControlReceiptInputSchema.safeParse(rawInput);
     if (!parsed.success) {
       throw new JournalStoreError(
@@ -140,13 +123,18 @@ export class HostProductControlReceiptAdmission implements ProductControlReceipt
       sourceReferences: [
         {
           kind: "UNRESOLVED_SOURCE",
-          reason: "local dashboard requests provide no stable command identity"
+          reason: "the local command handle is an idempotency key, not a source assertion"
         }
       ],
       payloads
     };
 
-    await this.journal.appendWithHostAuthority(appendInput, authority);
+    const appended = await this.journal.appendWithHostAuthority(appendInput, authority);
+    return {
+      kind: "JOURNAL_EVENT",
+      namespace: appended.envelope.journalNamespace,
+      eventId: appended.envelope.eventId
+    };
   }
 }
 
@@ -156,14 +144,6 @@ function summarizeControl(input: ProductControlReceiptInput): string {
       return JSON.stringify({
         operation: "product.configuration.save",
         expectedRevision: input.expectedRevision
-      });
-    case "PERSON_CREATE":
-    case "PERSON_UPDATE":
-      return JSON.stringify({
-        operation:
-          input.operation === "PERSON_CREATE" ? "product.person.create" : "product.person.update",
-        personId: input.personId,
-        requestedPrimary: input.requestedPrimary
       });
     case "PROACTIVE_RESUME":
       return JSON.stringify({ operation: "product.proactive.resume" });

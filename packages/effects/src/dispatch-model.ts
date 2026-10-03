@@ -7,26 +7,47 @@ export const EFFECT_DELIVERY_CONTRACTS = Object.freeze({
     adapter: "yuvi.local-read-text.v1",
     reconciliation: "OPTIONAL_HOST_LOOKUP",
     retryAfterProvenNotApplied: true,
-    evidenceLayer: "LOCAL_READ_RETURNED"
+    evidenceLayers: ["LOCAL_READ_RETURNED"]
   }),
   "yuvi.embodied-presentation.v1": Object.freeze({
     adapter: "yuvi.presentation-bridge.v1",
     reconciliation: "UNSUPPORTED",
     retryAfterProvenNotApplied: false,
-    evidenceLayer: "BRIDGE_ACCEPTANCE"
+    evidenceLayers: ["BRIDGE_ACCEPTANCE"]
+  }),
+  "yuvi.native-control.v1": Object.freeze({
+    adapter: "yuvi.native-control-owner.v1",
+    reconciliation: "OPTIONAL_HOST_LOOKUP",
+    retryAfterProvenNotApplied: true,
+    evidenceLayers: ["NATIVE_OWNER_COMMIT", "NATIVE_OWNER_RECONCILIATION"]
   })
 } as const);
 const integer = z
   .string()
   .regex(/^[1-9][0-9]*$/)
   .refine((v) => BigInt(v) <= 9223372036854775807n);
+export const NativeOwnerCommitV1Schema = z.object({
+  version: z.literal("native-owner-commit.v1"),
+  ownerFamily: z.enum(["PRODUCT_PERSON", "VOICE_BINDING", "ACOUSTIC_PROFILE", "P8_CORRECTION"]),
+  targetReference: z.string().min(1).max(512),
+  revisions: z.array(z.object({
+    ownerReference: z.string().min(1).max(512),
+    revision: z.string().min(1).max(512)
+  }).strict()).min(1).max(8),
+  eventIds: z.array(z.string().min(1).max(512)).max(16)
+}).strict();
+export type NativeOwnerCommitV1 = z.infer<typeof NativeOwnerCommitV1Schema>;
 export const EffectAttemptV1Schema = z
   .object({
     version: z.literal("effect-attempt.v1"),
     attemptId: z.string().regex(/^ea1_[a-f0-9]{64}$/),
     intentId: z.string().regex(/^ei1_[a-f0-9]{64}$/),
     attemptOrdinal: integer,
-    contractRef: z.enum(["yuvi.read-text.v1", "yuvi.embodied-presentation.v1"]),
+    contractRef: z.enum([
+      "yuvi.read-text.v1",
+      "yuvi.embodied-presentation.v1",
+      "yuvi.native-control.v1"
+    ]),
     adapter: z.string().min(1).max(128),
     fence: integer,
     leaseOwner: z.string().min(1).max(128),
@@ -44,7 +65,9 @@ export const EffectEvidenceSchema = z
       "LOCAL_PROTOCOL",
       "LOCAL_READ_RETURNED",
       "BRIDGE_ACCEPTANCE",
-      "ADAPTER_RECONCILIATION"
+      "ADAPTER_RECONCILIATION",
+      "NATIVE_OWNER_COMMIT",
+      "NATIVE_OWNER_RECONCILIATION"
     ]),
     reason: z.enum([
       "RETURNED",
@@ -58,9 +81,16 @@ export const EffectEvidenceSchema = z
       "SHUTDOWN",
       "RECONCILED_APPLIED",
       "RECONCILED_NOT_APPLIED",
-      "RECONCILIATION_UNSUPPORTED"
+      "RECONCILIATION_UNSUPPORTED",
+      "OWNER_COMMITTED",
+      "OWNER_COMMITTED_CLEANUP_PENDING",
+      "OWNER_REJECTED",
+      "OWNER_RECONCILED_APPLIED",
+      "OWNER_RECONCILED_APPLIED_CLEANUP_PENDING",
+      "OWNER_RECONCILED_NOT_APPLIED"
     ]),
-    remoteEffectId: z.string().min(1).max(256).nullable()
+    remoteEffectId: z.string().min(1).max(256).nullable(),
+    nativeOwnerCommit: NativeOwnerCommitV1Schema.optional()
   })
   .strict()
   .refine((e) => {
@@ -74,12 +104,18 @@ export const EffectEvidenceSchema = z
     if (e.certainty === "APPLIED")
       return e.layer === "ADAPTER_RECONCILIATION"
         ? e.reason === "RECONCILED_APPLIED"
-        : ["LOCAL_READ_RETURNED", "BRIDGE_ACCEPTANCE"].includes(e.layer) && e.reason === "RETURNED";
+        : e.layer === "NATIVE_OWNER_COMMIT"
+          ? e.reason === "OWNER_COMMITTED" || e.reason === "OWNER_COMMITTED_CLEANUP_PENDING"
+          : e.layer === "NATIVE_OWNER_RECONCILIATION"
+            ? e.reason === "OWNER_RECONCILED_APPLIED" || e.reason === "OWNER_RECONCILED_APPLIED_CLEANUP_PENDING"
+            : ["LOCAL_READ_RETURNED", "BRIDGE_ACCEPTANCE"].includes(e.layer) && e.reason === "RETURNED";
     if (e.certainty === "DEFINITIVE_REJECTION")
-      return e.reason === "REJECTED" && e.layer !== "LOCAL_PROTOCOL";
+      return ["REJECTED", "OWNER_REJECTED"].includes(e.reason) && e.layer !== "LOCAL_PROTOCOL";
     return e.layer === "ADAPTER_RECONCILIATION"
       ? e.reason === "RECONCILED_NOT_APPLIED"
-      : e.layer === "LOCAL_PROTOCOL" &&
+      : e.layer === "NATIVE_OWNER_RECONCILIATION"
+        ? e.reason === "OWNER_RECONCILED_NOT_APPLIED"
+        : e.layer === "LOCAL_PROTOCOL" &&
           [
             "UNSTARTED_RECOVERY",
             "CANCELED_BEFORE_START",
@@ -103,6 +139,31 @@ export const EffectObservationV1Schema = z
   })
   .strict();
 export type EffectObservationV1 = z.infer<typeof EffectObservationV1Schema>;
+export const EffectObservationV2Schema = z
+  .object({
+    version: z.literal("effect-observation.v2"),
+    observationId: integer,
+    attemptId: EffectAttemptV1Schema.shape.attemptId,
+    fence: integer,
+    contractRef: EffectAttemptV1Schema.shape.contractRef,
+    adapter: EffectAttemptV1Schema.shape.adapter,
+    observedAt: z.string().datetime(),
+    evidence: EffectEvidenceSchema,
+    evidenceDigest: z.string().regex(/^[a-f0-9]{64}$/)
+  })
+  .strict()
+  .superRefine((observation, context) => {
+    if (observation.contractRef !== "yuvi.native-control.v1")
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ["contractRef"], message: "Version 2 terminal observations are reserved for native-owner evidence." });
+    if (observation.evidence.certainty === "APPLIED" &&
+        observation.evidence.layer.startsWith("NATIVE_OWNER_") &&
+        !observation.evidence.nativeOwnerCommit)
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ["evidence", "nativeOwnerCommit"], message: "Applied native-owner evidence requires its exact owner revision." });
+    if (observation.evidenceDigest !== effectDigest(observation.evidence))
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ["evidenceDigest"], message: "Invalid native-owner evidence digest." });
+  });
+export type EffectObservationV2 = z.infer<typeof EffectObservationV2Schema>;
+export type EffectObservation = EffectObservationV1 | EffectObservationV2;
 export type EffectDiagnostic = {
   intentId: string;
   admission: EffectIntent["decision"];

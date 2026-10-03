@@ -6,17 +6,7 @@ export function requireDashboardDevToken(
   request: FastifyRequest,
   reply: FastifyReply
 ): boolean {
-  if (config.runtimeMode !== "development" || !config.dashboardDevToken) {
-    return true;
-  }
-
-  const provided = request.headers["x-yuvi-dev-token"];
-  const legacyToken = Array.isArray(provided) ? provided[0] : provided;
-  const authorization = request.headers.authorization;
-  const authorizationValue = Array.isArray(authorization) ? authorization[0] : authorization;
-  const bearerToken = authorizationValue?.match(/^Bearer\s+(.+)$/iu)?.[1]?.trim();
-  const token = bearerToken ?? legacyToken;
-  if (token === config.dashboardDevToken) {
+  if (hasDashboardDevTokenAccess(config, request)) {
     return true;
   }
 
@@ -41,6 +31,21 @@ export function requireLocalDashboardAccess(
   }
 
   return requireDashboardDevToken(config, request, reply);
+}
+
+/** Re-evaluate local dashboard permission at a durable command's dispatch boundary. */
+export function hasLocalDashboardAccess(config: ServerConfig, request: FastifyRequest): boolean {
+  return isLocalAddress(request.ip) && hasDashboardDevTokenAccess(config, request);
+}
+
+function hasDashboardDevTokenAccess(config: ServerConfig, request: FastifyRequest): boolean {
+  if (config.runtimeMode !== "development" || !config.dashboardDevToken) return true;
+  const provided = request.headers["x-yuvi-dev-token"];
+  const legacyToken = Array.isArray(provided) ? provided[0] : provided;
+  const authorization = request.headers.authorization;
+  const authorizationValue = Array.isArray(authorization) ? authorization[0] : authorization;
+  const bearerToken = authorizationValue?.match(/^Bearer\s+(.+)$/iu)?.[1]?.trim();
+  return (bearerToken ?? legacyToken) === config.dashboardDevToken;
 }
 
 export function isLocalAddress(value: string | undefined): boolean {

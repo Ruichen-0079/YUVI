@@ -41,23 +41,20 @@ it("preflights valid P8 commands without mutation and revalidates domain duplica
     expect(await instance.preflightP8Correction(correction())).toBe("READY");
     await expect(access(file)).rejects.toMatchObject({ code: "ENOENT" });
 
-    await expect(instance.appendP8Correction(correction())).resolves.toMatchObject({
-      status: "STORED"
+    await expect(instance.appendP8Correction(correction())).resolves.toEqual({
+      status: "GOVERNED_COMMAND_REQUIRED"
     });
+    await expect(access(file)).rejects.toMatchObject({ code: "ENOENT" });
     expect(await instance.preflightP8Correction(correction())).toBe("READY");
-    await expect(instance.appendP8Correction(correction())).resolves.toMatchObject({
-      status: "ALREADY_STORED"
+    await expect(instance.appendP8Correction(correction())).resolves.toEqual({
+      status: "GOVERNED_COMMAND_REQUIRED"
     });
     await expect(
       instance.preflightP8Correction(
         correction({ replacementMeaning: "Changed private meaning marker." })
       )
-    ).resolves.toBe("CONFLICT");
-    await expect(
-      instance.appendP8Correction(
-        correction({ replacementMeaning: "Changed private meaning marker." })
-      )
-    ).resolves.toEqual({ status: "CONFLICT" });
+    ).resolves.toBe("READY");
+    await expect(instance.appendP8Correction(correction())).resolves.toEqual({ status: "GOVERNED_COMMAND_REQUIRED" });
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

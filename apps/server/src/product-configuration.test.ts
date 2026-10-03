@@ -11,11 +11,13 @@ import { registerPeopleVoiceRoutes } from "./routes/people-voices.js";
 import { registerProviderRoutes } from "./routes/providers.js";
 import { registerMessageRoutes } from "./routes/message.js";
 import { createTestProductControlReceiptAdmission } from "./test-support/product-control-receipt.js";
+import { createTestProductPersonCommandPort } from "./test-support/product-person-command.js";
 import { createTestVoiceControlReceiptAdmission } from "./test-support/voice-control-receipt.js";
 import { boundedWav, retainVoiceSample, retainSpeechReview, voiceReviews } from "./services/voice-review.js";
 import { readProductSettings, writePrivateJson } from "./services/product-store.js";
 import type { MemoryEvent } from "@companion/memory";
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 const oldEnv = { ...process.env };
 const cleanups: (() => Promise<unknown>)[] = [];
 afterEach(async () => { for (const close of cleanups.splice(0).reverse()) await close(); process.env = { ...oldEnv }; vi.unstubAllGlobals(); });
@@ -26,6 +28,7 @@ async function setup(existing?: string) {
   const config = loadServerConfig(process.env); const app = Fastify({ logger: false }); const context = await createAppContext(app.log, config);
   context.conversationalReceiptAdmission = { admit: async () => ({ status: "APPENDED", envelope: { eventId: "jev1_productconfigurationreceipt01", journalNamespace: "test:product-configuration" } as never }) };
   context.productControlReceiptAdmission = createTestProductControlReceiptAdmission();
+  context.productPersonCommands = createTestProductPersonCommandPort();
   context.voiceControlReceiptAdmission = createTestVoiceControlReceiptAdmission();
   await registerProductRoutes(app, context, config); await registerPeopleVoiceRoutes(app, context, config); await registerProviderRoutes(app, context, config); await registerMessageRoutes(app, context);
   const close = async () => { context.runtime.stopProactiveScheduler(); await context.runtime.sealAndDrainMemoryWrites(); context.embodiedPresentationBridge.close(); await context.memoryIngestionCoordinator.shutdown({ graceMs: 100 }); await context.conversationRepository.close?.(); await context.finalizedIngestionRepository.close?.(); await context.memoryRepository.close?.(); await app.close(); };
@@ -41,6 +44,53 @@ function catalog(): ProductConfiguration {
   return c;
 }
 function wav(seconds = 1): string { const out = Buffer.alloc(44 + 32000 * seconds); out.write("RIFF"); out.writeUInt32LE(out.length - 8, 4); out.write("WAVEfmt ", 8); out.writeUInt32LE(16, 16); out.writeUInt16LE(1, 20); out.writeUInt16LE(1, 22); out.writeUInt32LE(16000, 24); out.writeUInt32LE(32000, 28); out.writeUInt16LE(2, 32); out.writeUInt16LE(16, 34); out.write("data", 36); out.writeUInt32LE(out.length - 44, 40); return out.toString("base64"); }
+function installNativeVoiceFixture(context: AppContext, profiles: Array<{ speakerId: string; label: string }>) {
+  let acousticRevision = 0;
+  const owner = context.memory.getNativeVoiceBindingOwner();
+  if (!owner) throw new Error("Test controller owner is unavailable.");
+  vi.stubGlobal("fetch", vi.fn(async (url, init) => {
+    if (String(url).endsWith("/speakers"))
+      return new Response(JSON.stringify({ speakers: profiles, revision: `acoustic-${acousticRevision}`, complete: true }));
+    return new Response("not found", { status: 404 });
+  }));
+  context.productPersonCommands = createTestProductPersonCommandPort(async input => {
+    if (input.family === "ACOUSTIC_PROFILE") {
+      if (input.operation === "ENROLL") profiles.push({ speakerId: input.voiceProfileId, label: input.label ?? "" });
+      else {
+        const index = profiles.findIndex(profile => profile.speakerId === input.voiceProfileId);
+        if (index >= 0) profiles.splice(index, 1);
+      }
+      acousticRevision += 1;
+      return { status: "APPLIED", targetReference: input.voiceProfileId };
+    }
+    if (input.family === "VOICE_BINDING") {
+      const command = {
+        commandHandle: input.commandHandle,
+        intentId: `test-intent-${input.commandHandle}`,
+        attemptId: `test-attempt-${input.commandHandle}`,
+        fence: "1",
+        payloadDigest: createHash("sha256").update(JSON.stringify(input)).digest("hex"),
+        causalRefs: [{ kind: "JOURNAL_EVENT" as const, namespace: "test:voice", eventId: `event-${input.commandHandle}` }],
+        operation: input.operation,
+        voiceProfileId: input.voiceProfileId,
+        personaId: input.personaId,
+        ...(input.personId ? { personId: input.personId } : {}),
+        ...(input.previousVoiceProfileId ? { previousVoiceProfileId: input.previousVoiceProfileId } : {}),
+        expectedBindingRevision: input.expectedBindingRevision,
+        ...(input.expectedPreviousBindingRevision !== undefined ? { expectedPreviousBindingRevision: input.expectedPreviousBindingRevision } : {})
+      };
+      const fence = await owner.fenceBindingCommand(command);
+      if (fence === "CONFLICT") return { status: "CONFLICT", reason: "TEST_BINDING_FENCE_CONFLICT" };
+      if (fence === "READY") {
+        const applied = await owner.applyBindingCommand(command);
+        if (applied.status !== "APPLIED" && applied.status !== "ALREADY_APPLIED")
+          return { status: "CONFLICT", reason: "TEST_BINDING_REJECTED" };
+      }
+      return { status: "APPLIED", targetReference: input.voiceProfileId };
+    }
+    return { status: "UNAVAILABLE", reason: "TEST_NATIVE_COMMAND_NOT_CONFIGURED" };
+  });
+}
 it("first run, discovery/manual ID, Chat admission, independent routes, fallback ordering and effective state", async () => {
   const { app, context, save, get } = await setup();
   expect((await get()).conversationalReady).toBe(false);
@@ -122,16 +172,33 @@ function memoryOnDisk(context: AppContext, dir: string) {
 it("product people reuse the current persona without exposing a second persona writer", async () => {
   const run = await setup();
   run.context.activeRuntimeEnv["MEMORY_PERSONA_ID"] = "alice";
+  const memoryWrite = vi.fn();
+  run.context.memory.getMemoryProvider = () => ({ writeEvent: memoryWrite }) as never;
   const response = await run.app.inject({
     method: "POST",
     url: "/product/people",
-    payload: { displayName: "Rui", notes: "My profile", primary: true }
+    payload: {
+      displayName: "Rui",
+      notes: "My profile",
+      primary: true,
+      commandHandle: "person-create-non-evidence",
+      expectedPersonRevision: null,
+      expectedPrimaryRevision: null
+    }
   });
   expect(response.statusCode).toBe(200);
   const body = response.json();
-  expect(["STORED", "UNAVAILABLE", "APPLY_FAILED"]).toContain(body.profileEvidence);
+  expect(body.profileEvidence).toMatchObject({
+    classification: "NON_EVIDENCE",
+    projectionVersion: "product-person-profile.v1",
+    owner: "PRODUCT_PERSON_STORE"
+  });
+  expect(memoryWrite).not.toHaveBeenCalled();
   expect(body.personId).toMatch(/^[a-f0-9-]{36}$/);
   const saved = readProductSettings();
+  expect(body.profileEvidence.personRevision).toBe(saved?.personRevisionById?.[body.personId]);
+  expect(saved?.personRevisionById?.[body.personId]).toMatch(/^[a-f0-9-]{36}$/);
+  expect(saved?.primaryPersonRevision).toMatch(/^[a-f0-9-]{36}$/);
   expect(saved?.primaryPersonId).toBe(body.personId);
   expect(saved?.people[0]).toMatchObject({
     id: body.personId,
@@ -147,29 +214,94 @@ it("product people never invent a persona when no current scope exists", async (
   const response = await run.app.inject({
     method: "POST",
     url: "/product/people",
-    payload: { displayName: "Rui", notes: "", primary: true }
+    payload: {
+      displayName: "Rui",
+      notes: "",
+      primary: true,
+      commandHandle: "person-create-no-persona",
+      expectedPersonRevision: null,
+      expectedPrimaryRevision: null
+    }
   });
   expect(response.statusCode).toBe(409);
   expect(response.json().error).toContain("Current YUVI persona is not configured");
   expect(readProductSettings()?.people ?? []).toEqual([]);
 });
+
+it("compares authored Person and primary revisions independently of global settings", async () => {
+  const run = await setup();
+  run.context.activeRuntimeEnv["MEMORY_PERSONA_ID"] = "alice";
+  const create = await run.app.inject({
+    method: "POST",
+    url: "/product/people",
+    payload: {
+      displayName: "Rui",
+      notes: "first",
+      primary: true,
+      commandHandle: "person-create-revision-check",
+      expectedPersonRevision: null,
+      expectedPrimaryRevision: null
+    }
+  });
+  const personId = create.json().personId as string;
+  const before = readProductSettings()!;
+  const personRevision = before.personRevisionById?.[personId];
+  const primaryRevision = before.primaryPersonRevision;
+  expect(personRevision).toBeTruthy();
+  expect(primaryRevision).toBeTruthy();
+
+  const update = await run.app.inject({
+    method: "POST",
+    url: "/product/people",
+    payload: {
+      id: personId,
+      displayName: "Rui",
+      notes: "second",
+      primary: true,
+      commandHandle: "person-update-revision-check",
+      expectedPersonRevision: personRevision,
+      expectedPrimaryRevision: primaryRevision
+    }
+  });
+  expect(update.statusCode).toBe(200);
+  const after = readProductSettings()!;
+  expect(after.personRevisionById?.[personId]).not.toBe(personRevision);
+  expect(after.primaryPersonRevision).toBe(primaryRevision);
+
+  const stale = await run.app.inject({
+    method: "POST",
+    url: "/product/people",
+    payload: {
+      id: personId,
+      displayName: "Stale",
+      notes: "must not commit",
+      primary: false,
+      commandHandle: "person-update-stale-revision",
+      expectedPersonRevision: personRevision,
+      expectedPrimaryRevision: primaryRevision
+    }
+  });
+  expect(stale.statusCode).toBe(409);
+  expect(readProductSettings()).toEqual(after);
+});
 it("explicit three-utterance enrollment, Person binding restart, unknown sample review and unbinding use Runtime/Memory seams", async () => {
   let run = await setup(); const c = catalog(); c.providers.push({ id: "local-stt", displayName: "Local speech", baseUrl: "http://127.0.0.1:9876", adapter: "local-stt" }); c.models.push({ id: "speech", displayName: "Speech", modelId: "sensevoice", providerId: "local-stt", capabilities: ["stt"], contextWindow: null, temperature: 0, enabled: true }); c.routes.stt = ["speech"]; await run.save(c);
-  const personResponse = await run.app.inject({ method: "POST", url: "/product/people", payload: { displayName: "Rui", personaId: "alice", notes: "My profile", primary: true } }); expect(personResponse.statusCode).toBe(200);
+  const personResponse = await run.app.inject({ method: "POST", url: "/product/people", payload: { displayName: "Rui", personaId: "alice", notes: "My profile", primary: true, commandHandle: "person-create-voice-flow", expectedPersonRevision: null, expectedPrimaryRevision: null } }); expect(personResponse.statusCode).toBe(200);
   const personId = (await run.get()).primaryPersonId; expect(personId).toMatch(/^[a-f0-9-]{36}$/); memoryOnDisk(run.context, run.dir);
   const profiles: any[] = [];
-  vi.stubGlobal("fetch", vi.fn(async (url, init) => { if (init?.method === "POST") { const body = JSON.parse(init.body); profiles.push({ speakerId: body.voiceProfileId, label: body.label }); return new Response(JSON.stringify({ voiceProfileId: body.voiceProfileId, label: body.label })); } return new Response(JSON.stringify({ speakers: profiles })); }));
-  const enrolled = await run.app.inject({ method: "POST", url: "/product/voices/enroll", payload: { personId, recordings: [wav(), wav(), wav()] } }); expect(enrolled.statusCode).toBe(200);
+  installNativeVoiceFixture(run.context, profiles);
+  const enrolled = await run.app.inject({ method: "POST", url: "/product/voices/enroll", payload: { personId, commandHandle: "product-voice-enroll-flow", recordings: [wav(), wav(), wav()] } }); expect(enrolled.statusCode).toBe(200);
   const id = profiles[0].speakerId; expect(await run.context.runtime.getVoiceProfilePerson(id)).toBe(personId);
   run = await setup(run.dir); memoryOnDisk(run.context, run.dir);
+  installNativeVoiceFixture(run.context, profiles);
   expect((await run.get()).primaryPersonId).toBe(personId); expect(await run.context.runtime.getVoiceProfilePerson(id)).toBe(personId);
   expect(await run.context.runtime.getVoiceProfilePerson("unknown")).toBeNull();
   const sample = retainVoiceSample(wav());
   const play = await run.app.inject({ method: "GET", url: `/product/voice-samples/${sample.id}` }); expect(play.headers["content-type"]).toContain("audio/wav"); expect(play.rawPayload.length).toBeGreaterThan(44);
   expect((await run.app.inject({ method: "POST", url: `/product/voice-samples/${sample.id}/review`, payload: { leaveUnknown: true } })).statusCode).toBe(200); expect(profiles).toHaveLength(1);
-  expect((await run.app.inject({ method: "POST", url: `/product/voice-samples/${sample.id}/review`, payload: { personId } })).statusCode).toBe(200); expect(profiles).toHaveLength(2);
+  expect((await run.app.inject({ method: "POST", url: `/product/voice-samples/${sample.id}/review`, payload: { personId, commandHandle: "review-sample-voice-command" } })).statusCode).toBe(200); expect(profiles).toHaveLength(2);
   expect(await run.context.runtime.getVoiceProfilePerson(profiles[1].speakerId)).toBe(personId);
-  expect((await run.app.inject({ method: "DELETE", url: `/product/voices/${id}/binding` })).statusCode).toBe(200); expect(await run.context.runtime.getVoiceProfilePerson(id)).toBeNull();
+  expect((await run.app.inject({ method: "DELETE", url: `/product/voices/${id}/binding?commandHandle=remove-integration-binding` })).statusCode).toBe(200); expect(await run.context.runtime.getVoiceProfilePerson(id)).toBeNull();
   expect(await run.context.runtime.getVoiceProfilePerson(profiles[1].speakerId)).toBe(personId);
   await run.app.inject({ method: "DELETE", url: `/product/voice-samples/${sample.id}` }); expect((await run.app.inject({ method: "GET", url: `/product/voice-samples/${sample.id}` })).statusCode).toBe(404);
   expect(readProductSettings()?.people[0]?.notes).toBe("My profile");
@@ -204,34 +336,20 @@ it("re-enrollment replaces the old acoustic profile instead of leaving an unboun
   c.models.push({ id: "speech", displayName: "Speech", modelId: "sensevoice", providerId: "local-stt", capabilities: ["stt"], contextWindow: null, temperature: 0, enabled: true });
   c.routes.stt = ["speech"];
   await run.save(c);
-  const person = await run.app.inject({ method: "POST", url: "/product/people", payload: { displayName: "Rui", personaId: "alice", notes: "", primary: true } });
+  const person = await run.app.inject({ method: "POST", url: "/product/people", payload: { displayName: "Rui", personaId: "alice", notes: "", primary: true, commandHandle: "person-create-reenroll-flow", expectedPersonRevision: null, expectedPrimaryRevision: null } });
   expect(person.statusCode).toBe(200);
   const personId = (await run.get()).primaryPersonId;
   memoryOnDisk(run.context, run.dir);
 
   const profiles: Array<{ speakerId: string; label: string }> = [];
-  vi.stubGlobal("fetch", vi.fn(async (url, init) => {
-    const target = String(url);
-    if (init?.method === "POST") {
-      const body = JSON.parse(String(init.body));
-      profiles.push({ speakerId: body.voiceProfileId, label: body.label });
-      return new Response(JSON.stringify({ voiceProfileId: body.voiceProfileId, label: body.label }));
-    }
-    if (init?.method === "DELETE") {
-      const id = decodeURIComponent(target.split("/").pop()!);
-      const index = profiles.findIndex(p => p.speakerId === id);
-      if (index >= 0) profiles.splice(index, 1);
-      return new Response(JSON.stringify({ ok: true }));
-    }
-    return new Response(JSON.stringify({ speakers: profiles }));
-  }));
+  installNativeVoiceFixture(run.context, profiles);
 
-  const first = await run.app.inject({ method: "POST", url: "/product/voices/enroll", payload: { personId, recordings: [wav(), wav(), wav()] } });
+  const first = await run.app.inject({ method: "POST", url: "/product/voices/enroll", payload: { personId, commandHandle: "initial-voice-reenroll", recordings: [wav(), wav(), wav()] } });
   expect(first.statusCode).toBe(200);
   const originalId = profiles[0]!.speakerId;
   expect(voiceReviews().some(r => r.voiceProfileId === originalId)).toBe(true);
 
-  const replacement = await run.app.inject({ method: "POST", url: "/product/voices/enroll", payload: { personId, recordings: [wav(), wav(), wav()], replaceVoiceId: originalId } });
+  const replacement = await run.app.inject({ method: "POST", url: "/product/voices/enroll", payload: { personId, commandHandle: "replacement-voice-reenroll", recordings: [wav(), wav(), wav()], replaceVoiceId: originalId } });
   expect(replacement.statusCode).toBe(200);
   expect(profiles).toHaveLength(1);
   expect(profiles[0]!.speakerId).not.toBe(originalId);

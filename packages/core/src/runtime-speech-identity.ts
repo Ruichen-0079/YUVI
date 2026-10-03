@@ -5,6 +5,8 @@ import {
   voicePersonClaimAssertor,
   type P8CharacterSpeakerView,
   type P8IdentityAddress,
+  type P8AcousticObservationReference,
+  type P8VoiceBindingProjection,
   type P8VoicePersonResolution,
   type P8VoicePersonUnresolvedReason,
   type P8VoiceProfileMatch
@@ -35,6 +37,9 @@ export type InterpretSpeechObservationIdentityInput = Readonly<{
   scopeReference: string;
   longTermEvents?: readonly MemoryEvent[];
   trustedAssertorEntityIds?: readonly string[];
+  /** Production Runtime supplies this property even when it has no usable projection. */
+  bindingProjections?: readonly P8VoiceBindingProjection[];
+  acousticObservationReference?: P8AcousticObservationReference;
 }>;
 
 export function interpretSpeechObservationIdentity(
@@ -50,6 +55,12 @@ export function interpretSpeechObservationIdentity(
     ...(input.trustedAssertorEntityIds === undefined
       ? {}
       : { trustedAssertorEntityIds: input.trustedAssertorEntityIds }),
+    ...(input.bindingProjections === undefined
+      ? {}
+      : { bindingProjections: input.bindingProjections }),
+    ...(input.acousticObservationReference === undefined
+      ? {}
+      : { acousticObservationReference: input.acousticObservationReference }),
     transcriptClaim: observation.text
   };
   const resolutions =

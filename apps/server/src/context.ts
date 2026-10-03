@@ -1,6 +1,14 @@
 import { HostReadTextEffects } from "./read-text-effect.js";
-import { projectFinalizedEffectIntent, projectDreamEffectIntents } from "@companion/memory";
-import { HostEffectIntentAdmission, PostgresEffectIntentStore, PostgresEffectDispatchStore, type EffectIntentAdmissionPort } from "@companion/effects";
+import {
+  HostProductPersonCommandEffects,
+  type NativeControlOwnerHandler,
+  type P8CorrectionProtectedCommand,
+  type ProductPersonCommandPort,
+  type VoiceBindingProtectedCommand,
+  type AcousticProfileProtectedCommand
+} from "./product-person-command-effects.js";
+import { buildMemoryScope, projectFinalizedEffectIntent, projectDreamEffectIntents } from "@companion/memory";
+import { HostEffectIntentAdmission, PostgresEffectIntentStore, PostgresEffectDispatchStore, type EffectAttemptV1, type EffectEvidence, type EffectIntent, type EffectIntentAdmissionPort, type NativeOwnerCommitV1 } from "@companion/effects";
 import { JournalMemoryGroundingResolver } from "@companion/memory";
 import { productEnvironment, readProductSettings } from "./services/product-store.js";
 import { join } from "node:path";
@@ -52,6 +60,11 @@ import type {
   RuntimeCharacterCognitionExecutor
 } from "@companion/core";
 import { RuntimeOrchestrator, type RuntimeProactiveStateStore } from "@companion/core";
+import { productVoiceProfiles } from "./services/packaged-voice.js";
+import { combineVoiceCommandSamples, readVoiceCommandSamples } from "./services/voice-review.js";
+import type { P8ExplicitCorrection, P8NativeCorrectionReceipt } from "@companion/p8";
+import type { ControllerBindingCommand, ControllerBindingCommandReceipt } from "@companion/memory";
+import type { VoiceProfileNativeCommand, VoiceProfileNativeCommandReceipt } from "@companion/providers";
 import { createFileProactiveStateStore } from "./proactive-policy-store.js";
 import { InMemoryEventBus } from "@companion/event-bus";
 import {
@@ -137,6 +150,7 @@ export type AppContext = {
   speechReceiptAdmission: SpeechReceiptAdmission;
   visionReceiptAdmission: VisionReceiptAdmission;
   productControlReceiptAdmission: ProductControlReceiptAdmission;
+  productPersonCommands: ProductPersonCommandPort;
   runtimeControlReceiptAdmission: RuntimeControlReceiptAdmission;
   proactiveConsentReceiptAdmission: ProactiveConsentReceiptAdmission;
   proactiveTurnReceiptAdmission: ProactiveTurnReceiptAdmission;
@@ -227,9 +241,10 @@ export async function createAppContext(
   const profileLifecycleStore: ProfileLifecycleStore = databasePool
     ? new PostgresProfileLifecycleStore(databasePool)
     : new InMemoryProfileLifecycleStore();
+  const journalNamespace = process.env["YUVI_JOURNAL_NAMESPACE"] ?? "yuvi:default";
   const journalRepository = databasePool
     ? new PostgresJournalRepository(databasePool, {
-        namespace: process.env["YUVI_JOURNAL_NAMESPACE"] ?? "yuvi:default",
+        namespace: journalNamespace,
         // Per-request conversational authority is supplied only through the host-owned
         // A8.2b admission facade; generic producer appends remain fail-closed.
         authorityBuilder() {
@@ -244,15 +259,20 @@ export async function createAppContext(
   const effectIntents = new HostEffectIntentAdmission(
     databasePool ? new PostgresEffectIntentStore(databasePool) : null, journalRepository
   );
-  const readTextEffects = new HostReadTextEffects(
-    effectIntents,
-    databasePool ? new PostgresEffectDispatchStore(databasePool) : null,
-    journalRepository
-  );
+  const effectDispatchStore = databasePool ? new PostgresEffectDispatchStore(databasePool) : null;
+  const readTextEffects = new HostReadTextEffects(effectIntents, effectDispatchStore, journalRepository);
   const conversationalReceiptAdmission = new HostConversationalReceiptAdmission(journalRepository);
   const speechReceiptAdmission = new HostSpeechReceiptAdmission(journalRepository);
   const visionReceiptAdmission = new HostVisionReceiptAdmission(journalRepository);
   const productControlReceiptAdmission = new HostProductControlReceiptAdmission(journalRepository);
+  const productPersonCommands = new HostProductPersonCommandEffects(
+    databasePool ?? null,
+    journalRepository,
+    effectIntents,
+    effectDispatchStore,
+    readTextEffects.dispatcher,
+    journalNamespace
+  );
   const runtimeControlReceiptAdmission = new HostRuntimeControlReceiptAdmission(journalRepository);
   const proactiveConsentReceiptAdmission = new HostProactiveConsentReceiptAdmission(
     journalRepository
@@ -573,12 +593,14 @@ export async function createAppContext(
     speechReceiptAdmission,
     visionReceiptAdmission,
     productControlReceiptAdmission,
+    productPersonCommands,
     runtimeControlReceiptAdmission,
     proactiveConsentReceiptAdmission,
     proactiveTurnReceiptAdmission,
     ttsReceiptAdmission,
     voiceControlReceiptAdmission,
     async closeDatabasePool() {
+      productPersonCommands.shutdown();
       await readTextEffects.shutdown();
       await profileLifecycleCoordinator.shutdown({ graceMs: 2_000 });
       await databasePool?.end();
@@ -680,7 +702,325 @@ export async function createAppContext(
     }
   };
 
+  productPersonCommands.registerOwnerHandler("VOICE_BINDING", {
+    async invoke(raw, intent, attempt, signal) {
+      if (raw.family !== "VOICE_BINDING") throw new Error("Native voice handler received another family.");
+      signal.throwIfAborted();
+      const owner = context.memory.getNativeVoiceBindingOwner();
+      if (!owner) throw new Error("Native voice binding owner is unavailable.");
+      const command = controllerBindingCommand(raw, intent, attempt);
+      if (raw.operation !== "REMOVE") {
+        const settings = readProductSettings();
+        if (!settings) throw new Error("Product Person owner is unavailable.");
+        if (!settings.people.some(person => person.id === raw.personId))
+          return nativeOwnerEvidence("DEFINITIVE_REJECTION", "OWNER_REJECTED");
+        const profiles = productVoiceProfiles(context);
+        if (!profiles?.readAuthorityState)
+          throw new Error("Acoustic profile owner is unavailable.");
+        const snapshot = await profiles.readAuthorityState();
+        if (!snapshot.complete)
+          throw new Error("Acoustic profile owner enumeration is incomplete.");
+        if (!snapshot.profiles.some(profile => profile.voiceProfileId === raw.voiceProfileId) ||
+            (raw.previousVoiceProfileId !== undefined &&
+              !snapshot.profiles.some(profile => profile.voiceProfileId === raw.previousVoiceProfileId)))
+          return nativeOwnerEvidence("DEFINITIVE_REJECTION", "OWNER_REJECTED");
+      }
+      const fenced = await owner.fenceBindingCommand(command);
+      if (fenced === "APPLIED") {
+        const reconciled = await owner.reconcileBindingCommand(command);
+        if (reconciled.status === "ALREADY_APPLIED" && controllerReceiptMatches(reconciled.receipt, command, false))
+          return nativeOwnerEvidence("APPLIED", "OWNER_RECONCILED_APPLIED", controllerOwnerCommit(reconciled.receipt));
+        throw new Error("Native voice command receipt is not exact.");
+      }
+      if (fenced === "CONFLICT") return nativeOwnerEvidence("DEFINITIVE_REJECTION", "OWNER_REJECTED");
+      if (fenced !== "READY") throw new Error("Native voice command fence is uncertain.");
+      signal.throwIfAborted();
+      const result = await owner.applyBindingCommand(command);
+      if ((result.status === "APPLIED" || result.status === "ALREADY_APPLIED") &&
+          controllerReceiptMatches(result.receipt, command, true))
+        return nativeOwnerEvidence("APPLIED", result.status === "APPLIED" ? "OWNER_COMMITTED" : "OWNER_RECONCILED_APPLIED", controllerOwnerCommit(result.receipt));
+      if (result.status === "PROVEN_NOT_APPLIED")
+        return nativeOwnerEvidence("DEFINITIVE_REJECTION", "OWNER_REJECTED");
+      throw new Error("Native voice owner could not establish an exact result.");
+    },
+    async reconcile(raw, intent, attempt, signal) {
+      if (raw.family !== "VOICE_BINDING") throw new Error("Native voice handler received another family.");
+      signal.throwIfAborted();
+      const owner = context.memory.getNativeVoiceBindingOwner();
+      if (!owner) throw new Error("Native voice owner is unavailable.");
+      const command = controllerBindingCommand(raw, intent, attempt);
+      const result = await owner.reconcileBindingCommand(command);
+      if (result.status === "ALREADY_APPLIED" && controllerReceiptMatches(result.receipt, command, false))
+        return nativeOwnerEvidence("APPLIED", "OWNER_RECONCILED_APPLIED", controllerOwnerCommit(result.receipt));
+      if (result.status === "PROVEN_NOT_APPLIED")
+        return nativeOwnerEvidence("PROVEN_NOT_APPLIED", "OWNER_RECONCILED_NOT_APPLIED");
+      throw new Error("Native voice command reconciliation is inconclusive.");
+    }
+  } satisfies NativeControlOwnerHandler);
+
+  productPersonCommands.registerOwnerHandler("P8_CORRECTION", {
+    async invoke(raw, intent, attempt, signal) {
+      if (raw.family !== "P8_CORRECTION") throw new Error("Native P8 handler received another family.");
+      signal.throwIfAborted();
+      const correction = raw.correction as unknown as P8ExplicitCorrection;
+      if (correction.correctionReference !== raw.correctionReference || correction.action !== raw.operation)
+        return nativeOwnerEvidence("DEFINITIVE_REJECTION", "OWNER_REJECTED");
+      const command = p8NativeCommand(raw, intent, attempt);
+      const fenced = await context.runtime.fenceP8CorrectionCommand(command);
+      if (fenced === "APPLIED") {
+        const reconciled = await context.runtime.reconcileP8CorrectionCommand(correction, command);
+        if (reconciled.status === "ALREADY_STORED" && p8ReceiptMatches(reconciled.receipt, command))
+          return nativeOwnerEvidence("APPLIED", "OWNER_RECONCILED_APPLIED", p8OwnerCommit(reconciled.receipt));
+        throw new Error("Native P8 command receipt is not exact.");
+      }
+      if (fenced === "CONFLICT") return nativeOwnerEvidence("DEFINITIVE_REJECTION", "OWNER_REJECTED");
+      if (fenced !== "READY") throw new Error("Native P8 command fence is uncertain.");
+      signal.throwIfAborted();
+      const result = await context.runtime.appendP8CorrectionCommand(correction, command);
+      if ((result.status === "STORED" || result.status === "ALREADY_STORED") && p8ReceiptMatches(result.receipt, command))
+        return nativeOwnerEvidence("APPLIED", result.status === "STORED" ? "OWNER_COMMITTED" : "OWNER_RECONCILED_APPLIED", p8OwnerCommit(result.receipt));
+      if (result.status === "PROVEN_NOT_APPLIED" || result.status === "CONFLICT")
+        return nativeOwnerEvidence("DEFINITIVE_REJECTION", "OWNER_REJECTED");
+      throw new Error("Native P8 owner could not establish an exact result.");
+    },
+    async reconcile(raw, intent, attempt, signal) {
+      if (raw.family !== "P8_CORRECTION") throw new Error("Native P8 handler received another family.");
+      signal.throwIfAborted();
+      const correction = raw.correction as unknown as P8ExplicitCorrection;
+      const command = p8NativeCommand(raw, intent, attempt);
+      const result = await context.runtime.reconcileP8CorrectionCommand(correction, command);
+      if ((result.status === "ALREADY_STORED" || result.status === "STORED") && p8ReceiptMatches(result.receipt, command))
+        return nativeOwnerEvidence("APPLIED", "OWNER_RECONCILED_APPLIED", p8OwnerCommit(result.receipt));
+      if (result.status === "PROVEN_NOT_APPLIED")
+        return nativeOwnerEvidence("PROVEN_NOT_APPLIED", "OWNER_RECONCILED_NOT_APPLIED");
+      throw new Error("Native P8 command reconciliation is inconclusive.");
+    }
+  } satisfies NativeControlOwnerHandler);
+
+  productPersonCommands.registerOwnerHandler("ACOUSTIC_PROFILE", {
+    async invoke(raw, intent, attempt, signal) {
+      if (raw.family !== "ACOUSTIC_PROFILE") throw new Error("Native acoustic handler received another family.");
+      signal.throwIfAborted();
+      const profiles = productVoiceProfiles(context);
+      if (!profiles?.readAuthorityState || !profiles.fenceNativeCommand || !profiles.applyNativeCommand || !profiles.reconcileNativeCommand)
+        throw new Error("Governed acoustic profile owner is unavailable.");
+      const snapshot = await profiles.readAuthorityState();
+      if (!snapshot.complete) throw new Error("Acoustic profile enumeration is incomplete.");
+      if (raw.operation === "DELETE") {
+        const bindings = await context.runtime.getVoiceProfileBindingAuthorityState();
+        if (bindings.status !== "AVAILABLE") throw new Error("Voice binding owner is unavailable.");
+        if (bindings.bindings.some(binding => binding.voiceProfileId === raw.voiceProfileId && binding.status !== "UNBOUND"))
+          return nativeOwnerEvidence("DEFINITIVE_REJECTION", "OWNER_REJECTED");
+      }
+      const command = acousticProfileNativeCommand(raw, intent, attempt);
+      const fenced = await profiles.fenceNativeCommand(command);
+      if (fenced === "APPLIED") {
+        const reconciled = await profiles.reconcileNativeCommand(command);
+        if (reconciled.status === "ALREADY_APPLIED" && acousticProfileReceiptMatches(reconciled.receipt, command, false))
+          return nativeOwnerEvidence("APPLIED", "OWNER_RECONCILED_APPLIED", acousticOwnerCommit(reconciled.receipt));
+        throw new Error("Native acoustic command receipt is not exact.");
+      }
+      if (fenced === "CONFLICT") return nativeOwnerEvidence("DEFINITIVE_REJECTION", "OWNER_REJECTED");
+      if (fenced !== "READY") throw new Error("Native acoustic command fence is uncertain.");
+      const audioBase64 = raw.operation === "ENROLL"
+        ? combineVoiceCommandSamples(readVoiceCommandSamples(raw.sampleReferences ?? [], raw.sampleDigests ?? []))
+        : undefined;
+      signal.throwIfAborted();
+      const result = await profiles.applyNativeCommand({
+        ...command,
+        ...(raw.label ? { label: raw.label } : {}),
+        ...(audioBase64 ? { audioBase64 } : {})
+      });
+      if ((result.status === "APPLIED" || result.status === "ALREADY_APPLIED") &&
+          acousticProfileReceiptMatches(result.receipt, command, true))
+        return nativeOwnerEvidence("APPLIED", result.status === "APPLIED"
+          ? (result.cleanupPending ? "OWNER_COMMITTED_CLEANUP_PENDING" : "OWNER_COMMITTED")
+          : "OWNER_RECONCILED_APPLIED", acousticOwnerCommit(result.receipt));
+      if (result.status === "PROVEN_NOT_APPLIED")
+        return nativeOwnerEvidence("DEFINITIVE_REJECTION", "OWNER_REJECTED");
+      throw new Error("Native acoustic owner could not establish an exact result.");
+    },
+    async reconcile(raw, intent, attempt, signal) {
+      if (raw.family !== "ACOUSTIC_PROFILE") throw new Error("Native acoustic handler received another family.");
+      signal.throwIfAborted();
+      const profiles = productVoiceProfiles(context);
+      if (!profiles?.reconcileNativeCommand) throw new Error("Native acoustic owner is unavailable.");
+      const command = acousticProfileNativeCommand(raw, intent, attempt);
+      const result = await profiles.reconcileNativeCommand(command);
+      if (result.status === "ALREADY_APPLIED" && acousticProfileReceiptMatches(result.receipt, command, false))
+        return nativeOwnerEvidence("APPLIED", result.cleanupPending
+          ? "OWNER_RECONCILED_APPLIED_CLEANUP_PENDING"
+          : "OWNER_RECONCILED_APPLIED", acousticOwnerCommit(result.receipt));
+      if (result.status === "PROVEN_NOT_APPLIED" &&
+          result.reason === "EXACT_PREDECESSOR_REMAINS" &&
+          result.revision === command.expectedRevision)
+        return nativeOwnerEvidence("PROVEN_NOT_APPLIED", "OWNER_RECONCILED_NOT_APPLIED");
+      throw new Error("Native acoustic command reconciliation is inconclusive.");
+    }
+  } satisfies NativeControlOwnerHandler);
+
   return context;
+}
+
+function nativeOwnerEvidence(
+  certainty: EffectEvidence["certainty"],
+  reason: "OWNER_COMMITTED" | "OWNER_COMMITTED_CLEANUP_PENDING" | "OWNER_REJECTED" | "OWNER_RECONCILED_APPLIED" | "OWNER_RECONCILED_APPLIED_CLEANUP_PENDING" | "OWNER_RECONCILED_NOT_APPLIED",
+  nativeOwnerCommit?: NativeOwnerCommitV1
+): EffectEvidence {
+  return {
+    certainty,
+    layer: certainty === "DEFINITIVE_REJECTION" ? "NATIVE_OWNER_RECONCILIATION" :
+      reason === "OWNER_COMMITTED" || reason === "OWNER_COMMITTED_CLEANUP_PENDING" ? "NATIVE_OWNER_COMMIT" : "NATIVE_OWNER_RECONCILIATION",
+    reason,
+    remoteEffectId: null,
+    ...(nativeOwnerCommit ? { nativeOwnerCommit } : {})
+  };
+}
+
+function controllerOwnerCommit(receipt: ControllerBindingCommandReceipt): NativeOwnerCommitV1 {
+  return {
+    version: "native-owner-commit.v1",
+    ownerFamily: "VOICE_BINDING",
+    targetReference: receipt.voiceProfileId,
+    revisions: Object.entries(receipt.resultingRevisionByScope).map(([scope, revision]) => ({
+      ownerReference: scope,
+      revision
+    })),
+    eventIds: receipt.eventIds
+  };
+}
+
+function p8OwnerCommit(receipt: P8NativeCorrectionReceipt): NativeOwnerCommitV1 {
+  return {
+    version: "native-owner-commit.v1",
+    ownerFamily: "P8_CORRECTION",
+    targetReference: receipt.correctionReference,
+    revisions: [{ ownerReference: receipt.correctionReference, revision: receipt.resultingRevision }],
+    eventIds: [receipt.correctionReference]
+  };
+}
+
+function acousticOwnerCommit(receipt: VoiceProfileNativeCommandReceipt): NativeOwnerCommitV1 {
+  return {
+    version: "native-owner-commit.v1",
+    ownerFamily: "ACOUSTIC_PROFILE",
+    targetReference: receipt.voiceProfileId,
+    revisions: [{ ownerReference: "speaker-store-generation", revision: receipt.resultingRevision }],
+    eventIds: []
+  };
+}
+
+function controllerBindingCommand(
+  raw: VoiceBindingProtectedCommand,
+  intent: EffectIntent,
+  attempt: EffectAttemptV1
+): ControllerBindingCommand {
+  const payload = intent.request.payload as { payloadDigest: string };
+  const causal = intent.request.causalRefs[0];
+  if (!causal || causal.kind !== "JOURNAL_EVENT") throw new Error("Native voice command has no committed CONTROL receipt.");
+  return {
+    commandHandle: raw.commandHandle,
+    intentId: intent.intentId,
+    attemptId: attempt.attemptId,
+    fence: attempt.fence,
+    payloadDigest: payload.payloadDigest,
+    causalRefs: [causal],
+    operation: raw.operation,
+    voiceProfileId: raw.voiceProfileId,
+    personaId: raw.personaId,
+    ...(raw.personId ? { personId: raw.personId } : {}),
+    ...(raw.previousVoiceProfileId ? { previousVoiceProfileId: raw.previousVoiceProfileId } : {}),
+    ...(raw.previousPersonaId ? { previousPersonaId: raw.previousPersonaId } : {}),
+    expectedBindingRevision: raw.expectedBindingRevision,
+    ...(raw.expectedPreviousBindingRevision !== undefined ? { expectedPreviousBindingRevision: raw.expectedPreviousBindingRevision } : {})
+  };
+}
+
+function controllerReceiptMatches(
+  receipt: ControllerBindingCommandReceipt,
+  command: ControllerBindingCommand,
+  exactFence: boolean
+) {
+  return receipt.commandHandle === command.commandHandle && receipt.intentId === command.intentId &&
+    receipt.attemptId === command.attemptId && BigInt(receipt.fence) <= BigInt(command.fence) &&
+    (!exactFence || receipt.fence === command.fence) &&
+    receipt.payloadDigest === command.payloadDigest && receipt.operation === command.operation &&
+    receipt.voiceProfileId === command.voiceProfileId &&
+    receipt.previousVoiceProfileId === (command.previousVoiceProfileId ?? null) &&
+    (receipt.previousPersonaId ?? null) === (command.previousVoiceProfileId ? command.previousPersonaId ?? command.personaId : null) &&
+    receipt.personId === (command.operation === "REMOVE" ? null : command.personId) &&
+    receipt.eventIds.length === (command.previousVoiceProfileId ? 2 : 1) &&
+    receipt.priorRevisionByScope[buildMemoryScope(`voice-profile:${command.voiceProfileId}`, command.personaId)] === command.expectedBindingRevision &&
+    (!command.previousVoiceProfileId || receipt.priorRevisionByScope[buildMemoryScope(`voice-profile:${command.previousVoiceProfileId}`, command.previousPersonaId ?? command.personaId)] === (command.expectedPreviousBindingRevision ?? null)) &&
+    receipt.causalRefs.length === command.causalRefs.length &&
+    receipt.causalRefs.every((ref, index) => ref.namespace === command.causalRefs[index]?.namespace && ref.eventId === command.causalRefs[index]?.eventId);
+}
+
+function p8NativeCommand(raw: P8CorrectionProtectedCommand, intent: EffectIntent, attempt: EffectAttemptV1) {
+  const payload = intent.request.payload as { payloadDigest: string };
+  const causal = intent.request.causalRefs[0];
+  if (!causal || causal.kind !== "JOURNAL_EVENT") throw new Error("Native P8 command has no committed CONTROL receipt.");
+  return {
+    commandHandle: raw.commandHandle,
+    intentId: intent.intentId,
+    attemptId: attempt.attemptId,
+    fence: attempt.fence,
+    payloadDigest: payload.payloadDigest,
+    expectedRevision: raw.expectedRevision,
+    causalRefs: [causal]
+  };
+}
+
+function p8ReceiptMatches(
+  receipt: import("@companion/p8").P8NativeCorrectionReceipt | undefined,
+  command: ReturnType<typeof p8NativeCommand>
+) {
+  return Boolean(receipt && receipt.commandHandle === command.commandHandle && receipt.intentId === command.intentId &&
+    receipt.attemptId === command.attemptId && BigInt(receipt.fence) <= BigInt(command.fence) &&
+    receipt.payloadDigest === command.payloadDigest &&
+    receipt.correctionReference === command.commandHandle && receipt.priorRevision === command.expectedRevision &&
+    receipt.causalRefs.length === command.causalRefs.length && receipt.causalRefs.every((ref, index) =>
+      ref.kind === command.causalRefs[index]?.kind && ref.namespace === command.causalRefs[index]?.namespace &&
+      ref.eventId === command.causalRefs[index]?.eventId));
+}
+
+function acousticProfileNativeCommand(
+  raw: AcousticProfileProtectedCommand,
+  intent: EffectIntent,
+  attempt: EffectAttemptV1
+): VoiceProfileNativeCommand {
+  const payload = intent.request.payload as { payloadDigest: string };
+  const causal = intent.request.causalRefs[0];
+  if (!causal || causal.kind !== "JOURNAL_EVENT") throw new Error("Native acoustic command has no committed CONTROL receipt.");
+  return {
+    operation: raw.operation,
+    commandHandle: raw.commandHandle,
+    intentId: intent.intentId,
+    attemptId: attempt.attemptId,
+    fence: attempt.fence,
+    payloadDigest: payload.payloadDigest,
+    expectedRevision: raw.expectedAcousticRevision,
+    voiceProfileId: raw.voiceProfileId,
+    ...(raw.label ? { label: raw.label } : {}),
+    causalRefs: [causal]
+  };
+}
+
+function acousticProfileReceiptMatches(
+  receipt: VoiceProfileNativeCommandReceipt | undefined,
+  command: VoiceProfileNativeCommand,
+  exactFence: boolean
+) {
+  return Boolean(receipt && receipt.commandHandle === command.commandHandle && receipt.intentId === command.intentId &&
+    receipt.attemptId === command.attemptId && BigInt(receipt.fence) <= BigInt(command.fence) &&
+    (!exactFence || receipt.fence === command.fence) &&
+    receipt.payloadDigest === command.payloadDigest && receipt.operation === command.operation &&
+    receipt.voiceProfileId === command.voiceProfileId && receipt.priorRevision === command.expectedRevision &&
+    typeof receipt.resultingRevision === "string" && receipt.resultingRevision.length > 0 &&
+    receipt.resultingRevision !== receipt.priorRevision &&
+    receipt.causalRefs.length === command.causalRefs.length && receipt.causalRefs.every((ref, index) =>
+      ref.kind === command.causalRefs[index]?.kind && ref.namespace === command.causalRefs[index]?.namespace &&
+      ref.eventId === command.causalRefs[index]?.eventId));
 }
 
 function captureProfileComposition(

@@ -180,8 +180,12 @@ export async function runLinuxLocalSttSmoke(options = {}) {
       second.kill("SIGTERM");
       await new Promise((resolve) => second.once("exit", resolve));
     }
-    if (!fs.existsSync(path.join(speakerDir, "speakers.json")))
-      throw new Error("speaker store was not written under the data root");
+    const manifestPath = path.join(speakerDir, "speaker-manifest.json");
+    if (!fs.existsSync(manifestPath)) throw new Error("speaker generation manifest was not written under the data root");
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    const generation = path.join(speakerDir, manifest.generation);
+    if (!fs.existsSync(path.join(generation, "speakers.json")) || !fs.existsSync(path.join(generation, "speakers.npz")))
+      throw new Error("active speaker generation is incomplete");
     return { health, text: transcribed.json.text, speakerDir };
   } finally {
     if (first.exitCode === null) first.kill("SIGTERM");

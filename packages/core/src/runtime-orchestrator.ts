@@ -1,5 +1,4 @@
 import { EffectIntentError, type EffectIntentRequest, type EffectAuthorization, type EffectIntent } from "@companion/effects";
-import { admitVoiceProfilePersonBinding, voiceProfileBindingWriteFields } from "@companion/memory";
 import { projectP8ReconstructionToCharacterAbi } from "@companion/character-abi/p8-projection";
 import { projectMemoryVNextToCharacterAbi } from "@companion/character-abi/memory-vnext-projection";
 import type { CharacterAbiSemanticSection } from "@companion/character-abi";
@@ -10,8 +9,11 @@ import {
   reconstructP8MainProfile,
   productionAuthoredInvariants,
   serializeP8CorrectionRecord,
+  type P8NativeCorrectionCommand,
   type P8ExplicitCorrection,
-  type P8CharacterSpeakerView
+  type P8CharacterSpeakerView,
+  type P8AcousticObservationReference,
+  type P8VoiceBindingProjection
 } from "@companion/p8";
 import { buildMemoryScope, type MemoryRetrievalOutcome } from "@companion/memory";
 import type { EventBus } from "@companion/event-bus";
@@ -25,6 +27,7 @@ import type {
   MemoryGroundingContext,
   CurrentAffect,
   MemoryEvent,
+  NativeControllerBindingOwner,
   MemoryExtractorStatus,
   MemoryProvider,
   MemoryRetrievalMode,
@@ -190,6 +193,7 @@ import {
   type CharacterOutputLanguage,
   type CharacterProactiveProposal
 } from "@companion/character-abi";
+import type { VoiceBindingReferences } from "./voice-binding-references.js";
 import {
   advanceActivityRevision,
   applyAuthorizedEngagement,
@@ -674,88 +678,56 @@ export class RuntimeOrchestrator {
   /** Read-only readiness check for the existing host-owned voice binding path. */
   canManageVoiceProfileBindings(): boolean {
     try {
-      const provider = this.options.memory.getVoiceBindingProvider
-        ? this.options.memory.getVoiceBindingProvider()
-        : this.options.memory.getMemoryProvider?.();
-      return Boolean(provider && this.options.voiceBindingReferences && this.options.voicePersonaId);
+      return Boolean(this.options.memory.getNativeVoiceBindingOwner?.() && this.options.voicePersonaId);
     } catch {
       return false;
     }
   }
 
   async getVoiceProfilePerson(voiceProfileId: string): Promise<string | null> {
-    const provider = this.options.memory.getVoiceBindingProvider
-      ? this.options.memory.getVoiceBindingProvider()
-      : this.options.memory.getMemoryProvider?.();
-    const references = this.options.voiceBindingReferences;
+    const owner = this.options.memory.getNativeVoiceBindingOwner?.();
     const persona = this.options.voicePersonaId;
-    if (!provider || !references || !persona) return null;
-    const scope = buildMemoryScope(`voice-profile:${voiceProfileId}`, persona);
-    const events = await Promise.all(
-      references.load(scope).map((id) => provider.getEvent({ id, scope }))
-    );
-    if (events.some((e) => !e)) return null;
-    const interpretation = interpretSpeechObservationIdentity({
-      observation: { text: "", voiceProfileMatch: { status: "MATCHED", voiceProfileId } },
-      address: createDefaultP8IdentityAddress(),
-      scopeReference: scope,
-      longTermEvents: events.filter((e): e is NonNullable<typeof e> => e !== null),
-      trustedAssertorEntityIds: ["local-explicit-controller"]
-    });
-    return interpretation.claimAssertor.resolution === "resolved"
-      ? (interpretation.claimAssertor.entityId ?? null)
-      : null;
+    if (!owner || !persona) return null;
+    const state = await owner.getBindingState(voiceProfileId, persona);
+    return state.status === "ACTIVE" && state.lineageStatus !== "CONFLICT" ? state.personId : null;
   }
 
-  async removeVoiceProfileBinding(voiceProfileId: string) {
-    const provider = this.options.memory.getVoiceBindingProvider
-      ? this.options.memory.getVoiceBindingProvider()
-      : this.options.memory.getMemoryProvider?.();
-    const references = this.options.voiceBindingReferences;
+  async getVoiceProfileBindingState(voiceProfileId: string) {
+    const owner = this.options.memory.getNativeVoiceBindingOwner?.();
     const persona = this.options.voicePersonaId;
-    if (!provider || !references || !persona) return { status: "UNAVAILABLE" as const };
-    const scope = buildMemoryScope(`voice-profile:${voiceProfileId}`, persona);
-    const ids = references.load(scope);
-    if (!ids.length) return { status: "STORED" as const };
-    const result = await provider.writeEvent({
-      kind: "correction",
-      content: "Local controller removed this voice binding.",
-      scope,
-      metadata: { yuviClaimSupersedes: [...ids] }
-    });
-    const id = result.eventId ?? result.event?.id;
-    if (result.status === "rejected" || !id) return { status: "ERROR" as const };
-    references.append(scope, id);
-    return { status: "STORED" as const };
+    if (!owner || !persona) return { status: "UNAVAILABLE" as const };
+    try {
+      return { status: "AVAILABLE" as const, state: await owner.getBindingState(voiceProfileId, persona) };
+    } catch {
+      return { status: "UNAVAILABLE" as const };
+    }
   }
 
-  async bindVoiceProfileToPerson(voiceProfileId: string, personId: string) {
-    const provider = this.options.memory.getVoiceBindingProvider
-      ? this.options.memory.getVoiceBindingProvider()
-      : this.options.memory.getMemoryProvider?.();
-    const references = this.options.voiceBindingReferences;
-    const persona = this.options.voicePersonaId;
-    if (!provider || !references || !persona) return { status: "UNAVAILABLE" as const };
-    const scope = buildMemoryScope(`voice-profile:${voiceProfileId}`, persona);
-    // Check the index before dispatch: a corrupt index cannot discard earlier conflicting evidence.
-    references.load(scope);
-    const admission = admitVoiceProfilePersonBinding({
-      voiceProfileId,
-      personId,
-      content: `voice profile ${voiceProfileId} assigned to person ${personId}`,
-      assertor: { entityId: "local-explicit-controller", resolution: "resolved" },
-      provenanceClass: "EXTERNAL_CLAIM",
-      trustedController: true
-    });
-    if (admission.decision !== "admit") return admission;
-    const result = await provider.writeEvent({
-      ...voiceProfileBindingWriteFields(admission),
-      scope
-    });
-    const eventId = result.eventId ?? result.event?.id;
-    if (result.status === "rejected" || !eventId) return { status: "ERROR" as const };
-    references.append(scope, eventId);
-    return { status: "STORED" as const, eventId };
+  async getVoiceProfileBindingAuthorityState() {
+    const owner = this.options.memory.getNativeVoiceBindingOwner?.();
+    if (!owner) return { status: "UNAVAILABLE" as const };
+    try {
+      const snapshot = await owner.listBindingStates();
+      if (!snapshot.complete) return { status: "UNAVAILABLE" as const };
+      return {
+        status: "AVAILABLE" as const,
+        ownerRevision: snapshot.ownerRevision,
+        bindings: snapshot.bindings
+      };
+    } catch {
+      return { status: "UNAVAILABLE" as const };
+    }
+  }
+
+  async removeVoiceProfileBinding(voiceProfileId: string): Promise<{ status: "GOVERNED_COMMAND_REQUIRED" | "UNAVAILABLE" }> {
+    void voiceProfileId;
+    return { status: "GOVERNED_COMMAND_REQUIRED" as const };
+  }
+
+  async bindVoiceProfileToPerson(voiceProfileId: string, personId: string): Promise<{ status: "GOVERNED_COMMAND_REQUIRED" | "UNAVAILABLE" }> {
+    void voiceProfileId;
+    void personId;
+    return { status: "GOVERNED_COMMAND_REQUIRED" as const };
   }
 
   private async scopeVoiceTurn(event: RuntimeUserTurnEvent): Promise<RuntimeUserTurnEvent> {
@@ -766,44 +738,36 @@ export class RuntimeOrchestrator {
     let personId: string | undefined;
     let speaker: P8CharacterSpeakerView = { speaker: "unknown" };
     try {
-      const provider = this.options.memory.getVoiceBindingProvider
-        ? this.options.memory.getVoiceBindingProvider()
-        : this.options.memory.getMemoryProvider?.();
-      const references = this.options.voiceBindingReferences;
-      if (observation && personaId && provider && references) {
-        const segments = observation.segments ?? [];
-        const clusters = new Set(segments.map((segment) => segment.speakerClusterId));
-        const matches = segments.length
-          ? segments.map(
-              (segment) =>
-                segment.voiceProfileMatch ??
-                (segments.length === 1 ? observation.voiceProfileMatch : undefined)
+      const owner = this.options.memory.getNativeVoiceBindingOwner?.();
+      if (observation && personaId && owner) {
+        const acousticObservationReference = toP8AcousticObservationReference(event, observation.observationId);
+        const profiles = observedVoiceProfileIds(observation);
+        const projectionRead = acousticObservationReference
+          ? await readCurrentP8VoiceBindingProjections(
+              owner,
+              this.options.voiceBindingReferences,
+              profiles,
+              personaId,
+              acousticObservationReference
             )
-          : [observation.voiceProfileMatch];
-        const profiles = new Set(
-          matches.map((match) => (match?.status === "MATCHED" ? match.voiceProfileId : undefined))
-        );
-        // Whole-capture identity is permitted only when every span agrees and at most one speaker exists.
-        if (clusters.size <= 1 && profiles.size === 1 && !profiles.has(undefined)) {
-          const voiceProfileId = [...profiles][0]!;
-          const scope = buildMemoryScope(`voice-profile:${voiceProfileId}`, personaId);
-          const ids = references.load(scope);
-          const events = await Promise.all(ids.map((id) => provider.getEvent({ id, scope })));
-          if (events.every((item) => item !== null)) {
-            const interpretation = interpretSpeechObservationIdentity({
-              observation: {
-                ...observation,
-                voiceProfileMatch: { status: "MATCHED", voiceProfileId }
-              },
-              address: createDefaultP8IdentityAddress(),
-              scopeReference: scope,
-              longTermEvents: events,
-              trustedAssertorEntityIds: ["local-explicit-controller"]
-            });
+          : null;
+        const interpretation = interpretSpeechObservationIdentity({
+          observation,
+          address: createDefaultP8IdentityAddress(),
+          scopeReference: buildMemoryScope("voice-observation", personaId),
+          longTermEvents: projectionRead?.events ?? [],
+          trustedAssertorEntityIds: ["local-explicit-controller"],
+          // Supplying this property disables the legacy raw-event resolver path.
+          bindingProjections: projectionRead?.projections ?? [],
+          ...(acousticObservationReference ? { acousticObservationReference } : {})
+        });
+        if (interpretation.claimAssertor.resolution === "resolved" && interpretation.claimAssertor.entityId) {
+          personId = interpretation.claimAssertor.entityId;
+          if (interpretation.resolutions.length === 1) {
             speaker = interpretation.characterSpeakers[0] ?? { speaker: "unknown" };
-            if (interpretation.claimAssertor.resolution === "resolved")
-              personId = interpretation.claimAssertor.entityId ?? undefined;
           }
+        } else if (interpretation.characterSpeakers.some((item) => item.speaker === "conflicting")) {
+          speaker = { speaker: "conflicting" };
         }
       }
     } catch {
@@ -837,23 +801,62 @@ export class RuntimeOrchestrator {
   }
 
   async appendP8Correction(correction: P8ExplicitCorrection) {
+    void correction;
+    return { status: "GOVERNED_COMMAND_REQUIRED" as const };
+  }
+
+  async getP8CorrectionOwnerRevision(correction: P8ExplicitCorrection): Promise<{ status: "AVAILABLE"; revision: string | null } | { status: "UNAVAILABLE" }> {
     const store = this.options.p8CorrectionStore;
-    if (!store) return { status: "UNAVAILABLE" as const };
+    if (!store?.getNativeRevision) return { status: "UNAVAILABLE" };
+    try {
+      const candidate = createP8CorrectionRecord(correction);
+      const revision = await store.getNativeRevision({ address: candidate.address, scopeReference: candidate.scopeReference });
+      return { status: "AVAILABLE", revision };
+    } catch { return { status: "UNAVAILABLE" }; }
+  }
+
+  async fenceP8CorrectionCommand(command: Pick<P8NativeCorrectionCommand, "commandHandle" | "intentId" | "attemptId" | "fence" | "payloadDigest">) {
+    const store = this.options.p8CorrectionStore;
+    return store?.fenceCorrectionCommand ? store.fenceCorrectionCommand(command) : "UNKNOWN" as const;
+  }
+
+  async appendP8CorrectionCommand(correction: P8ExplicitCorrection, command: P8NativeCorrectionCommand) {
+    const store = this.options.p8CorrectionStore;
+    if (!store?.appendCorrectionCommand || !store.getNativeRevision)
+      return { status: "ERROR" as const };
+    let candidateRecord;
+    try {
+      candidateRecord = createP8CorrectionRecord(correction);
+    } catch (error) {
+      throw error;
+    }
+    const lookup = { address: candidateRecord.address, scopeReference: candidateRecord.scopeReference };
+    const currentRevision = await store.getNativeRevision(lookup);
+    if (currentRevision !== command.expectedRevision)
+      return store.appendCorrectionCommand(correction, command);
     const inspection = await this.inspectP8Correction(correction);
     switch (inspection.status) {
-      case "CONFLICT":
-        return { status: "CONFLICT" as const };
+      case "CONFLICT": return { status: "CONFLICT" as const };
       case "UNAVAILABLE":
-        return { status: "UNAVAILABLE" as const };
-      case "ERROR":
-        return { status: "ERROR" as const };
-      case "INVALID":
+      case "ERROR": return { status: "ERROR" as const };
+      case "INVALID": {
+        // Validation is authoritative when the exact admitted predecessor is
+        // still current. If the owner advanced during the inspection, let its
+        // fenced writer classify that newer state as a conflict instead.
+        const latestRevision = await store.getNativeRevision(lookup);
+        if (latestRevision !== command.expectedRevision)
+          return store.appendCorrectionCommand(correction, command);
         throw inspection.error;
-      case "READY":
-        // Always perform the domain append after the fresh validation read. The
-        // P8 store remains the final authority for concurrent reference/lineage races.
-        return store.appendCorrection(correction);
+      }
+      case "READY": return store.appendCorrectionCommand(correction, command);
     }
+  }
+
+  async reconcileP8CorrectionCommand(correction: P8ExplicitCorrection, command: P8NativeCorrectionCommand) {
+    const store = this.options.p8CorrectionStore;
+    return store?.reconcileCorrectionCommand
+      ? store.reconcileCorrectionCommand(correction, command)
+      : { status: "UNKNOWN" as const };
   }
 
   private async inspectP8Correction(
@@ -6845,4 +6848,155 @@ async function* streamCharacterBody(
     signal?.removeEventListener("abort", abort);
     await iterator?.return?.();
   }
+}
+
+function toP8AcousticObservationReference(
+  event: RuntimeUserTurnEvent,
+  observationId: string | undefined
+): P8AcousticObservationReference | undefined {
+  const reference = event.type === "user.voice.transcript" ? event.payload.sourceJournalRef : undefined;
+  if (!reference || reference.kind !== "JOURNAL_EVENT" || !reference.namespace || !reference.eventId || !observationId)
+    return undefined;
+  return {
+    kind: "JOURNAL_EVENT",
+    namespace: reference.namespace,
+    eventId: reference.eventId,
+    observationId
+  };
+}
+
+function observedVoiceProfileIds(observation: STTOutput): string[] {
+  const segments = observation.segments ?? [];
+  const matches = segments.length
+    ? segments.map((segment) => segment.voiceProfileMatch ?? (segments.length === 1 ? observation.voiceProfileMatch : undefined))
+    : [observation.voiceProfileMatch];
+  return [...new Set(matches.flatMap((match) =>
+    match?.status === "MATCHED" && match.voiceProfileId ? [match.voiceProfileId] : []
+  ))];
+}
+
+async function readCurrentP8VoiceBindingProjections(
+  owner: NativeControllerBindingOwner,
+  references: VoiceBindingReferences | undefined,
+  voiceProfileIds: readonly string[],
+  personaId: string,
+  acousticObservationReference: P8AcousticObservationReference
+): Promise<{ projections: readonly P8VoiceBindingProjection[]; events: readonly MemoryEvent[] } | null> {
+  const unavailable = (): { projections: readonly P8VoiceBindingProjection[]; events: readonly MemoryEvent[] } => ({
+    projections: voiceProfileIds.map((voiceProfileId) => ({
+      projectionVersion: "p8-host-voice-binding.v1",
+      status: "UNAVAILABLE",
+      voiceProfileId,
+      personaId,
+      scopeReference: buildMemoryScope(`voice-profile:${voiceProfileId}`, personaId),
+      nativeOwnerRevision: null,
+      bindingRevision: null,
+      issuerPolicy: "LOCAL_EXPLICIT_CONTROLLER",
+      eligibility: "INELIGIBLE",
+      evidenceReferences: [],
+      acousticObservationReference
+    })),
+    events: []
+  });
+  if (!voiceProfileIds.length) return { projections: [], events: [] };
+  if (!references?.isCurrent || !references.rebuild) return unavailable();
+
+  try {
+    const first = await owner.listBindingStates();
+    if (!first.complete) return unavailable();
+    const byScope: Record<string, readonly string[]> = {};
+    for (const binding of first.bindings) {
+      if (binding.eventIds.length) {
+        byScope[buildMemoryScope(`voice-profile:${binding.voiceProfileId}`, binding.personaId)] = binding.eventIds;
+      }
+    }
+    if (!references.isCurrent(first.ownerRevision)) {
+      references.rebuild({ complete: true, ownerRevision: first.ownerRevision, byScope });
+    }
+    if (!references.isCurrent(first.ownerRevision)) return unavailable();
+
+    const projections: P8VoiceBindingProjection[] = [];
+    const events: MemoryEvent[] = [];
+    for (const voiceProfileId of voiceProfileIds) {
+      const scopeReference = buildMemoryScope(`voice-profile:${voiceProfileId}`, personaId);
+      const state = first.bindings.find((item) => item.voiceProfileId === voiceProfileId && item.personaId === personaId);
+      const indexedIds = [...references.load(scopeReference)].sort((a, b) => a.localeCompare(b));
+      if (!state) {
+        if (indexedIds.length) return unavailable();
+        projections.push({
+          projectionVersion: "p8-host-voice-binding.v1", status: "UNBOUND", voiceProfileId, personaId,
+          scopeReference, nativeOwnerRevision: first.ownerRevision, bindingRevision: null,
+          issuerPolicy: "LOCAL_EXPLICIT_CONTROLLER", eligibility: "INELIGIBLE", evidenceReferences: [],
+          acousticObservationReference
+        });
+        continue;
+      }
+      const stateIds = [...state.eventIds].sort((a, b) => a.localeCompare(b));
+      if (JSON.stringify(indexedIds) !== JSON.stringify(stateIds)) return unavailable();
+      if (state.status === "CONFLICT") {
+        projections.push({
+          projectionVersion: "p8-host-voice-binding.v1", status: "CONFLICT", voiceProfileId, personaId,
+          scopeReference, nativeOwnerRevision: first.ownerRevision, bindingRevision: state.revision,
+          issuerPolicy: "LOCAL_EXPLICIT_CONTROLLER", eligibility: "INELIGIBLE", evidenceReferences: stateIds,
+          acousticObservationReference
+        });
+        continue;
+      }
+      if (state.status === "UNBOUND") {
+        if (stateIds.length) return unavailable();
+        projections.push({
+          projectionVersion: "p8-host-voice-binding.v1", status: "UNBOUND", voiceProfileId, personaId,
+          scopeReference, nativeOwnerRevision: first.ownerRevision, bindingRevision: state.revision,
+          issuerPolicy: "LOCAL_EXPLICIT_CONTROLLER", eligibility: "INELIGIBLE", evidenceReferences: [],
+          acousticObservationReference
+        });
+        continue;
+      }
+      // An old unlineaged binding can remain readable, but it cannot prove a current P8 resolution.
+      if (!first.ownerRevision || !state.revision || state.lineageStatus !== "VERSIONED" || !state.personId || !stateIds.length) {
+        projections.push({
+          projectionVersion: "p8-host-voice-binding.v1", status: "UNAVAILABLE", voiceProfileId, personaId,
+          scopeReference, nativeOwnerRevision: first.ownerRevision, bindingRevision: state.revision,
+          issuerPolicy: "LOCAL_EXPLICIT_CONTROLLER", eligibility: "INELIGIBLE", evidenceReferences: stateIds,
+          acousticObservationReference
+        });
+        continue;
+      }
+      const loaded = await Promise.all(stateIds.map((id) => owner.getEvent({ id, scope: scopeReference })));
+      if (loaded.some((event) => !event || event.scope !== scopeReference || event.source !== "local-controller-evidence" ||
+          event.claim?.subject.entityId !== state.personId)) return unavailable();
+      events.push(...loaded as MemoryEvent[]);
+      projections.push({
+        projectionVersion: "p8-host-voice-binding.v1", status: "CURRENT", voiceProfileId, personaId,
+        scopeReference, nativeOwnerRevision: first.ownerRevision, bindingRevision: state.revision,
+        issuerPolicy: "LOCAL_EXPLICIT_CONTROLLER", eligibility: "CURRENT", evidenceReferences: stateIds,
+        acousticObservationReference
+      });
+    }
+
+    const second = await owner.listBindingStates();
+    if (!second.complete || second.ownerRevision !== first.ownerRevision || !references.isCurrent(second.ownerRevision))
+      return unavailable();
+    for (const voiceProfileId of voiceProfileIds) {
+      const before = first.bindings.find((item) => item.voiceProfileId === voiceProfileId && item.personaId === personaId);
+      const after = second.bindings.find((item) => item.voiceProfileId === voiceProfileId && item.personaId === personaId);
+      if (bindingStateFingerprint(before) !== bindingStateFingerprint(after)) return unavailable();
+    }
+    return { projections, events };
+  } catch {
+    return unavailable();
+  }
+}
+
+function bindingStateFingerprint(
+  state: Awaited<ReturnType<NativeControllerBindingOwner["listBindingStates"]>>["bindings"][number] | undefined
+): string {
+  if (!state) return "ABSENT";
+  return JSON.stringify({
+    status: state.status,
+    personId: state.personId,
+    revision: state.revision,
+    lineageStatus: state.lineageStatus,
+    eventIds: [...state.eventIds].sort((a, b) => a.localeCompare(b))
+  });
 }

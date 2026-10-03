@@ -45,17 +45,20 @@ export class EffectDispatcher {
   ) {
     if (!Number.isSafeInteger(concurrency) || concurrency < 1 || concurrency > 32)
       throw Error("Invalid effect concurrency bound.");
-    for (const a of adapters) {
-      const c = EFFECT_DELIVERY_CONTRACTS[a.contractRef];
-      if (
-        !c ||
-        a.adapter !== c.adapter ||
-        this.adapters.has(a.contractRef) ||
-        (a.reconcile && c.reconciliation !== "OPTIONAL_HOST_LOOKUP")
-      )
-        throw Error("Invalid host effect adapter contract.");
-      this.adapters.set(a.contractRef, a);
-    }
+    for (const adapter of adapters) this.registerAdapter(adapter);
+  }
+  /** Composition-only registration before the shared worker starts polling. */
+  registerAdapter(adapter: EffectAdapter) {
+    const contract = EFFECT_DELIVERY_CONTRACTS[adapter.contractRef];
+    if (
+      this.timer ||
+      !contract ||
+      adapter.adapter !== contract.adapter ||
+      this.adapters.has(adapter.contractRef) ||
+      (adapter.reconcile && contract.reconciliation !== "OPTIONAL_HOST_LOOKUP")
+    )
+      throw Error("Invalid host effect adapter contract.");
+    this.adapters.set(adapter.contractRef, adapter);
   }
   start(intervalMs = 500) {
     if (this.timer || !this.accepting) return;

@@ -268,6 +268,29 @@ describe("A9.1 host admission, process-local parity", () => {
       port.admit({ ...request, payload: { path: "/different.txt" } }, authority)
     ).rejects.toMatchObject({ code: "CONFLICT" });
   });
+  it("admits only the fixed native-control payload descriptor", async () => {
+    const { port } = setup();
+    const authority = effectAuthority();
+    authority.snapshot.permissions = ["NATIVE_CONTROL_COMMAND"];
+    const request = {
+      ...effectRequest("native-control.v1|test|person|command-a"),
+      contractRef: "yuvi.native-control.v1" as const,
+      payload: {
+        version: "native-control-command.v1" as const,
+        family: "PRODUCT_PERSON" as const,
+        commandHandle: "command-a",
+        payloadRef: "payload-a",
+        payloadDigest: "a".repeat(64),
+        semanticDigest: "b".repeat(64),
+        targetReference: "person-a"
+      }
+    };
+    const admitted = await port.admit(request, authority);
+    expect(admitted.request.payload).toEqual(request.payload);
+    await expect(
+      port.admit({ ...request, payload: { ...request.payload, family: "OTHER" } as never }, authority)
+    ).rejects.toMatchObject({ code: "INVALID_REQUEST" });
+  });
   it("malformed authority/requests, duplicate causes, cyclic and deep values are input failures without decisions", async () => {
     const { port } = setup();
     const request = effectRequest();

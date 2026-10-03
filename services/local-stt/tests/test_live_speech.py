@@ -32,6 +32,18 @@ class LiveSpeechTest(unittest.TestCase):
             wav.writeframes((np.clip(samples, -1, 1) * 32767).astype(np.int16).tobytes())
         return {"audioBase64": base64.b64encode(raw.getvalue()).decode(), "mimeType": "audio/wav"}
 
+    def command(self, operation, voice_profile_id, *, audio=None, label="Test profile", handle=None):
+        key = handle or f"real:{operation}:{voice_profile_id}"
+        command = {
+            "commandHandle": key, "intentId": f"intent:{key}", "attemptId": f"attempt:{key}",
+            "fence": "1", "payloadDigest": "e" * 64, "operation": operation,
+            "voiceProfileId": voice_profile_id, "expectedRevision": self.engine.store.revision,
+            "causalRefs": [{"kind": "JOURNAL_EVENT", "namespace": "real-test", "eventId": "control"}],
+        }
+        if operation == "ENROLL": command["label"] = label
+        self.engine.fence_native_speaker_command({"command": command})
+        return self.engine.handle_native_speaker_command({"command": command, **(audio or {})})
+
     def test_real_transcript_enrollment_later_match_restart_and_no_match(self):
         import numpy as np
         from speaker_store import SpeakerStore
@@ -43,15 +55,18 @@ class LiveSpeechTest(unittest.TestCase):
         for segment in result["segments"] or []:
             self.assertIn("text", segment)
         split = len(samples) // 2
-        self.engine.handle_enroll({**self.body(samples[:split], rate), "voiceProfileId": "gate-speaker", "label": "Test acoustic profile"})
+        self.assertEqual(self.command("ENROLL", "gate-speaker", audio=self.body(samples[:split], rate))["status"], "APPLIED")
         later = self.engine.handle_identify(self.body(samples[split:], rate))
         self.assertEqual(later["voiceProfileMatch"], {"status": "MATCHED", "voiceProfileId": "gate-speaker"})
         self.engine.store = SpeakerStore(Path(self.temp.name), self.engine.extractor.dim, 0.55)
         self.assertEqual(self.engine.handle_identify(self.body(samples[split:], rate))["voiceProfileMatch"], later["voiceProfileMatch"])
         self.assertEqual(self.engine.handle_identify(self.body(np.zeros(32000)))["voiceProfileMatch"], {"status": "NO_MATCH"})
-        for name in ("speakers.json", "speakers.npz"):
-            self.assertEqual((Path(self.temp.name) / name).stat().st_mode & 0o777, 0o600)
-        self.engine.store.delete("gate-speaker")
+        manifest_path = Path(self.temp.name) / "speaker-manifest.json"
+        manifest = __import__("json").loads(manifest_path.read_text())
+        generation = Path(self.temp.name) / manifest["generation"]
+        for path in (manifest_path, generation / "speakers.json", generation / "speakers.npz"):
+            self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+        self.assertEqual(self.command("DELETE", "gate-speaker")["status"], "APPLIED")
 
     def test_mixed_capture_has_cluster_local_profiles_and_words(self):
         from speaker_store import collect_cluster_audio
@@ -60,7 +75,20 @@ class LiveSpeechTest(unittest.TestCase):
         clips = collect_cluster_audio(samples, rate, segments)
         self.assertGreaterEqual(len(clips), 2)
         for cluster, clip in clips.items():
-            self.engine.store.enroll(f"gate-cluster-{cluster}", "Test cluster", self.engine.embed(rate, clip))
+            with self.subTest(cluster=cluster):
+                profile_id = f"gate-cluster-{cluster}"
+                vector = self.engine.embed(rate, clip)
+                store = self.engine.store
+                command = {
+                    "commandHandle": f"real:ENROLL:{profile_id}", "intentId": f"intent:{profile_id}",
+                    "attemptId": f"attempt:{profile_id}", "fence": "1", "payloadDigest": "f" * 64,
+                    "operation": "ENROLL", "voiceProfileId": profile_id, "expectedRevision": store.revision,
+                    "label": "Test cluster", "causalRefs": [{"kind": "JOURNAL_EVENT", "namespace": "real-test", "eventId": "control"}],
+                }
+                store.fence_native_command(command)
+                begun = store.begin_native_invocation(command)
+                store.apply_native_command(command, vector)
+                store.finish_native_invocation(begun["invocationKey"])
         result = self.engine.handle_transcribe({**self.body(samples, rate), "diarize": True, "identify": True})
         self.assertIsNone(result["voiceProfileMatch"])
         self.assertIsNone(result["identity"])
@@ -73,10 +101,11 @@ class LiveSpeechTest(unittest.TestCase):
         self.assertTrue(all(len(ids) == 1 for ids in matched.values()))
         self.assertEqual(len({next(iter(ids)) for ids in matched.values()}), len(matched))
         self.assertEqual(self.engine.handle_identify(self.body(samples, rate))["voiceProfileMatch"], {"status": "NO_MATCH"})
-        with self.assertRaisesRegex(ValueError, "one speaker"):
-            self.engine.handle_enroll({**self.body(samples, rate), "voiceProfileId": "mixed", "label": "Invalid mixed enrollment"})
+        rejected = self.command("ENROLL", "mixed", audio=self.body(samples, rate), label="Invalid mixed enrollment")
+        self.assertEqual(rejected["status"], "PROVEN_NOT_APPLIED")
+        self.assertEqual(rejected["reason"], "MIXED_ACOUSTIC_SAMPLE")
         for cluster in clips:
-            self.engine.store.delete(f"gate-cluster-{cluster}")
+            self.command("DELETE", f"gate-cluster-{cluster}")
 
 
 if __name__ == "__main__":

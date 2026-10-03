@@ -1,11 +1,14 @@
 import { FinalizedIngestionService } from "../../memory/src/finalized-test-fixture.js";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { InMemoryEventBus } from "@companion/event-bus";
 import {
+  LocalControllerEvidenceProvider,
   InMemoryConversationRepository,
   InMemoryFinalizedIngestionRepository,
   type ConversationMessageInput,
   type MemoryConversationTurnWriteResult,
-  type MemoryEvent,
   type MemoryWriteEventInput
 } from "@companion/memory";
 import { PromptBuilder } from "@companion/prompt-builder";
@@ -34,12 +37,16 @@ import {
   type JournalEventRef,
   type RuntimeEvent
 } from "@companion/protocol";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   RuntimeOrchestrator,
+  createFileVoiceBindingReferences,
   type RuntimeMemoryPort,
   type RuntimeReplyStreamEvent
 } from "./index.js";
+
+const temporaryRoots: string[] = [];
+afterEach(() => temporaryRoots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true })));
 
 let testSpeechReceiptSequence = 0;
 function admitSpeechForTest(
@@ -272,38 +279,30 @@ describe("RuntimeOrchestrator", () => {
     const ledger = new InMemoryFinalizedIngestionRepository();
     const admissions: string[] = [];
     const memory = createMem0RecordingMemory(async () => completeMemoryWrite());
-    const bindingEvents = new Map<string, MemoryEvent>();
-    const bindingReferences = new Map<string, string[]>();
-    memory.getMemoryProvider = () => ({
-      async retrieveRelevant() {
-        return { status: "empty", events: [], source: "test", limited: false };
-      },
-      async getEvent({ id }) {
-        return bindingEvents.get(id) ?? null;
-      },
-      async writeEvent(input) {
-        const id = `binding:${bindingEvents.size}`;
-        const event: MemoryEvent = {
-          ...input,
-          id,
-          source: "test",
-          sourceRecordId: id,
-          metadata: input.metadata ?? {}
-        };
-        bindingEvents.set(id, event);
-        return { status: "written", eventId: id, event };
-      }
-    });
+    const ownerRoot = mkdtempSync(join(tmpdir(), "yuvi-runtime-persistence-binding-"));
+    temporaryRoots.push(ownerRoot);
+    const bindingOwner = new LocalControllerEvidenceProvider(ownerRoot);
+    memory.getNativeVoiceBindingOwner = () => bindingOwner;
+    const nativeBindingCommand = {
+      commandHandle: "runtime-persistence-binding",
+      intentId: "runtime-persistence-binding-intent",
+      attemptId: "runtime-persistence-binding-attempt",
+      fence: "1",
+      payloadDigest: "b".repeat(64),
+      causalRefs: [{ kind: "JOURNAL_EVENT" as const, namespace: "test:control", eventId: "control-binding" }],
+      operation: "ASSIGN" as const,
+      voiceProfileId: "voice-a",
+      personaId: "alice",
+      personId: "user-a",
+      expectedBindingRevision: null
+    };
+    expect(await bindingOwner.fenceBindingCommand(nativeBindingCommand)).toBe("READY");
+    expect((await bindingOwner.applyBindingCommand(nativeBindingCommand)).status).toBe("APPLIED");
     const runtime = createDeliveryRuntime({
       eventBus,
       memory,
       voicePersonaId: "alice",
-      voiceBindingReferences: {
-        load: (scope) => bindingReferences.get(scope) ?? [],
-        append: (scope, id) => {
-          bindingReferences.set(scope, [...(bindingReferences.get(scope) ?? []), id]);
-        }
-      },
+      voiceBindingReferences: createFileVoiceBindingReferences(join(ownerRoot, "voice-binding-references.json")),
       conversation,
       finalizedIngestion: new FinalizedIngestionService(ledger),
       memoryIngestionCoordinator: {
@@ -316,9 +315,9 @@ describe("RuntimeOrchestrator", () => {
       providers: createMockProviders()
     });
 
-    // Production voice scope requires a trusted binding and committed server observation.
+    // Runtime consumes the current native binding and the committed acoustic receipt through P8.
     expect(await runtime.bindVoiceProfileToPerson("voice-a", "user-a")).toMatchObject({
-      status: "STORED"
+      status: "GOVERNED_COMMAND_REQUIRED"
     });
     const { observation, journalRef } = admitSpeechForTestWithJournalRef(
       runtime,

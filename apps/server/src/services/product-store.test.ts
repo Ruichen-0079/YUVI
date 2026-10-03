@@ -1,6 +1,22 @@
 import { describe, expect, it } from "vitest";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { parseProductConfiguration } from "@companion/providers";
-import { productEnvironment, type ProductSettings } from "./product-store.js";
+import {
+  applyProductPersonCommand,
+  commitProductSettings,
+  defaultProductSettings,
+  fenceProductPersonCommand,
+  productEnvironment,
+  productPath,
+  readProductSettings,
+  reconcileProductPersonCommand,
+  type ProductPersonCommandPayload,
+  type ProductSettings,
+  writePrivateJson,
+  writeProductSettings
+} from "./product-store.js";
 
 const MANAGED_ENV = {
   YUVI_PORTABLE_VERSION: "0.1.2",
@@ -105,5 +121,168 @@ describe("portable provider routing (routing is not ownership)", () => {
 
   it("returns env untouched when no settings are saved", () => {
     expect(productEnvironment({ ...MANAGED_ENV }, null)).toEqual({ ...MANAGED_ENV });
+  });
+});
+
+describe("Product owner generation integrity", () => {
+  it("detects edits after a checksummed generation without inventing legacy revisions", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "yuvi-product-generation-"));
+    const previousDir = process.env["YUVI_RUNTIME_ENV_DIR"];
+    process.env["YUVI_RUNTIME_ENV_DIR"] = dir;
+    try {
+      const original = {
+        ...defaultProductSettings(),
+        people: [{ id: "person-integrity", displayName: "Rui", personaId: "alice", notes: "" }]
+      };
+      const legacy = original;
+      writePrivateJson(productPath(), legacy);
+      expect(readProductSettings()?.personRevisionById?.["person-integrity"]).toBeUndefined();
+
+      const written = writeProductSettings(legacy);
+      expect(written.productOwnerEnvelope?.version).toBe(1);
+      expect(readProductSettings()?.productOwnerEnvelope?.generation).toBe(written.productOwnerEnvelope?.generation);
+
+      const path = productPath();
+      const persisted = JSON.parse(await readFile(path, "utf8")) as ProductSettings;
+      persisted.people[0]!.displayName = "External edit";
+      await writeFile(path, JSON.stringify(persisted));
+      expect(() => readProductSettings()).toThrow("Product settings could not be read.");
+    } finally {
+      if (previousDir === undefined) delete process.env["YUVI_RUNTIME_ENV_DIR"];
+      else process.env["YUVI_RUNTIME_ENV_DIR"] = previousDir;
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("Product native revisions", () => {
+  const person = { id: "person-a", displayName: "A", personaId: "alice", notes: "first" };
+
+  it("versions authored Person fields and primary selection independently from global settings", () => {
+    const initial: ProductSettings = {
+      configuration: { version: 1, providers: [], models: [], routes: { chat: [], reasoning: [], proactive: [], embedding: [], vision: [], stt: [], tts: [] } },
+      people: [person],
+      primaryPersonId: "person-a",
+      proactive: { threshold: 0.7, intervalMs: 60000 },
+      revision: 0
+    };
+    const created = commitProductSettings(initial, null);
+    const personRevision = created.personRevisionById?.[person.id];
+    const primaryRevision = created.primaryPersonRevision;
+    expect(personRevision).toMatch(/^[a-f0-9-]{36}$/);
+    expect(primaryRevision).toMatch(/^[a-f0-9-]{36}$/);
+
+    const configurationChanged = commitProductSettings(
+      { ...created, proactive: { threshold: 0.8, intervalMs: 60000 } },
+      created
+    );
+    expect(configurationChanged.revision).toBe(created.revision + 1);
+    expect(configurationChanged.personRevisionById?.[person.id]).toBe(personRevision);
+    expect(configurationChanged.primaryPersonRevision).toBe(primaryRevision);
+
+    const personChanged = commitProductSettings(
+      { ...configurationChanged, people: [{ ...person, notes: "second" }] },
+      configurationChanged
+    );
+    expect(personChanged.personRevisionById?.[person.id]).not.toBe(personRevision);
+    expect(personChanged.primaryPersonRevision).toBe(primaryRevision);
+  });
+
+  it("does not invent revision lineage for an unchanged legacy Person", () => {
+    const legacy: ProductSettings = {
+      configuration: { version: 1, providers: [], models: [], routes: { chat: [], reasoning: [], proactive: [], embedding: [], vision: [], stt: [], tts: [] } },
+      people: [person],
+      primaryPersonId: "person-a",
+      proactive: { threshold: 0.7, intervalMs: 60000 },
+      revision: 4
+    };
+    const next = commitProductSettings(legacy, legacy);
+    expect(next.personRevisionById).toEqual({});
+    expect(next.primaryPersonRevision).toBeNull();
+  });
+
+  it("commits a command once and reconciles the owner receipt under a later recovery fence", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "yuvi-product-owner-"));
+    const previousDir = process.env["YUVI_RUNTIME_ENV_DIR"];
+    process.env["YUVI_RUNTIME_ENV_DIR"] = dir;
+    try {
+      const payload: ProductPersonCommandPayload = {
+        commandHandle: "create-once",
+        operation: "CREATE",
+        personId: "person-command-once",
+        displayName: "Rui",
+        personaId: "alice",
+        notes: "private notes",
+        requestedPrimary: true,
+        expectedPersonRevision: null,
+        expectedPrimaryRevision: null,
+        payloadDigest: "a".repeat(64),
+        intentId: "intent-command-once",
+        attemptId: "attempt-first",
+        fence: "1",
+        causalRefs: [{ kind: "JOURNAL_EVENT", namespace: "journal:test", eventId: `jev1_${"a".repeat(16)}` }]
+      };
+      expect(await fenceProductPersonCommand(payload)).toBe("READY");
+      const applied = await applyProductPersonCommand(payload);
+      expect(applied.status).toBe("APPLIED");
+      if (applied.status !== "APPLIED") throw new Error("Expected native owner commit.");
+      expect(readProductSettings()?.people).toHaveLength(1);
+
+      const retry = await reconcileProductPersonCommand({ payload, attemptId: "attempt-first", fence: "2" });
+      expect(retry.status).toBe("ALREADY_APPLIED");
+      const repeated = await applyProductPersonCommand({ ...payload, fence: "2" });
+      expect(repeated.status).toBe("ALREADY_APPLIED");
+      expect(readProductSettings()?.people).toHaveLength(1);
+      expect(readProductSettings()?.personRevisionById?.[payload.personId]).toBe(applied.receipt.resultingPersonRevision);
+    } finally {
+      if (previousDir === undefined) delete process.env["YUVI_RUNTIME_ENV_DIR"];
+      else process.env["YUVI_RUNTIME_ENV_DIR"] = previousDir;
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("proves absence only at the exact predecessor and leaves incompatible newer owner state untouched", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "yuvi-product-owner-"));
+    const previousDir = process.env["YUVI_RUNTIME_ENV_DIR"];
+    process.env["YUVI_RUNTIME_ENV_DIR"] = dir;
+    try {
+      const first = commitProductSettings({
+        ...defaultProductSettings(),
+        people: [person],
+        primaryPersonId: person.id
+      }, null);
+      writePrivateJson(productPath(), first);
+      const payload: ProductPersonCommandPayload = {
+        commandHandle: "update-after-newer-state",
+        operation: "UPDATE",
+        personId: person.id,
+        displayName: "Rui requested",
+        personaId: "alice",
+        notes: "requested",
+        requestedPrimary: true,
+        expectedPersonRevision: first.personRevisionById?.[person.id] ?? null,
+        expectedPrimaryRevision: first.primaryPersonRevision ?? null,
+        payloadDigest: "b".repeat(64),
+        intentId: "intent-update-newer",
+        attemptId: "attempt-first",
+        fence: "1",
+        causalRefs: [{ kind: "JOURNAL_EVENT", namespace: "journal:test", eventId: `jev1_${"b".repeat(16)}` }]
+      };
+      expect(await fenceProductPersonCommand(payload)).toBe("READY");
+      expect((await reconcileProductPersonCommand({ payload, attemptId: "attempt-first", fence: "1" })).status)
+        .toBe("PROVEN_NOT_APPLIED");
+
+      const newer = commitProductSettings({ ...first, people: [{ ...person, notes: "newer state" }] }, first);
+      writePrivateJson(productPath(), newer);
+      const recovered = await reconcileProductPersonCommand({ payload, attemptId: "attempt-first", fence: "2" });
+      expect(recovered.status).toBe("UNKNOWN");
+      const staleApply = await applyProductPersonCommand({ ...payload, fence: "2" });
+      expect(staleApply).toMatchObject({ status: "CONFLICT" });
+      expect(readProductSettings()?.people[0]?.notes).toBe("newer state");
+    } finally {
+      if (previousDir === undefined) delete process.env["YUVI_RUNTIME_ENV_DIR"];
+      else process.env["YUVI_RUNTIME_ENV_DIR"] = previousDir;
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 });

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { createPostgresPool } from "@companion/database";
 import { readSqlMigrations } from "../../../packages/memory/src/migrations.js";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -11,9 +12,14 @@ import { loadServerConfig } from "./config.js";
 import { createTestSpeechReceiptAdmission } from "./test-support/speech-receipt.js";
 import { createTestVoiceControlReceiptAdmission } from "./test-support/voice-control-receipt.js";
 import { importLegacyConfiguration, productPath, writePrivateJson } from "./services/product-store.js";
+import { createFileP8CorrectionStore } from "@companion/core";
+import { LocalControllerEvidenceProvider } from "@companion/memory";
+import { createTestProductPersonCommandPort } from "./test-support/product-person-command.js";
+import type { NativeControlOwnerCommand, ProductPersonCommandPort, ProductPersonCommandResult } from "./product-person-command-effects.js";
 
 const originalEnv = { ...process.env };
 const createdDirs: string[] = [];
+const commandPorts = new WeakMap<NodeJS.ProcessEnv, ProductPersonCommandPort>();
 
 afterEach(async () => {
   vi.unstubAllGlobals();
@@ -55,6 +61,11 @@ function productionTestEnv(): NodeJS.ProcessEnv {
 }
 
 function buildServerWithAdmission(env: NodeJS.ProcessEnv) {
+  let productPersonCommands = commandPorts.get(env);
+  if (!productPersonCommands) {
+    productPersonCommands = createCharacterTestCommandPort(env);
+    commandPorts.set(env, productPersonCommands);
+  }
   return buildServer(loadServerConfig(env), {
     conversationReceiptAdmission: {
       async admit() {
@@ -74,7 +85,79 @@ function buildServerWithAdmission(env: NodeJS.ProcessEnv) {
         // Runtime/P8 and one-shot grant behavior is tested here; durable
         // ordering and privacy are covered by the real PostgreSQL A8.2e2 suite.
       }
+    },
+    productPersonCommands
+  });
+}
+
+function createCharacterTestCommandPort(env: NodeJS.ProcessEnv): ProductPersonCommandPort {
+  const runtimeEnvDir = env["YUVI_RUNTIME_ENV_DIR"]!;
+  const receiptRef = (commandHandle: string) => {
+    const key = createHash("sha256").update(commandHandle).digest("hex");
+    return {
+      kind: "JOURNAL_EVENT" as const,
+      namespace: "test:character-path",
+      eventId: `jev1_${key.slice(0, 16)}`
+    };
+  };
+  const ids = (command: NativeControlOwnerCommand) => {
+    const key = createHash("sha256").update(command.commandHandle).digest("hex");
+    const commandReceipt = receiptRef(command.commandHandle);
+    return {
+      commandIds: {
+        intentId: `test_intent_${key.slice(0, 24)}`,
+        attemptId: `test_attempt_${key.slice(0, 24)}`,
+        payloadDigest: createHash("sha256").update(JSON.stringify(command)).digest("hex"),
+        causalRefs: [commandReceipt]
+      },
+      receiptRef: commandReceipt
+    };
+  };
+  return createTestProductPersonCommandPort(async (command): Promise<ProductPersonCommandResult> => {
+    const { commandIds, receiptRef: commandReceipt } = ids(command);
+    if (command.family === "P8_CORRECTION") {
+      const store = createFileP8CorrectionStore(path.join(runtimeEnvDir, "p8-corrections.json"));
+      const nativeCommand = {
+        commandHandle: command.commandHandle,
+        ...commandIds,
+        fence: "1",
+        expectedRevision: command.expectedRevision
+      };
+      const fenced = await store.fenceCorrectionCommand?.(nativeCommand);
+      if (fenced !== "READY") return { status: fenced === "CONFLICT" ? "CONFLICT" : "UNAVAILABLE", reason: fenced ?? "OWNER_UNAVAILABLE" };
+      if (!store.appendCorrectionCommand) return { status: "UNAVAILABLE", reason: "OWNER_COMMAND_UNSUPPORTED" };
+      const result = await store.appendCorrectionCommand(command.correction as never, nativeCommand);
+      if (result.status === "STORED" || result.status === "ALREADY_STORED")
+        return { status: "APPLIED", targetReference: command.correctionReference, receiptRef: commandReceipt, intentId: commandIds.intentId };
+      return { status: result.status === "CONFLICT" ? "CONFLICT" : "UNAVAILABLE", reason: result.status };
     }
+    if (command.family === "VOICE_BINDING") {
+      const owner = new LocalControllerEvidenceProvider(
+        env["YUVI_RUNTIME_DATA_DIR"] || path.join(runtimeEnvDir, "data")
+      );
+      const nativeCommand = {
+        commandHandle: command.commandHandle,
+        ...commandIds,
+        fence: "1",
+        operation: command.operation,
+        voiceProfileId: command.voiceProfileId,
+        personaId: command.personaId,
+        ...(command.personId ? { personId: command.personId } : {}),
+        ...(command.previousVoiceProfileId ? { previousVoiceProfileId: command.previousVoiceProfileId } : {}),
+        ...(command.previousPersonaId ? { previousPersonaId: command.previousPersonaId } : {}),
+        expectedBindingRevision: command.expectedBindingRevision,
+        ...(command.expectedPreviousBindingRevision !== undefined
+          ? { expectedPreviousBindingRevision: command.expectedPreviousBindingRevision }
+          : {})
+      };
+      const fenced = await owner.fenceBindingCommand(nativeCommand);
+      if (fenced !== "READY") return { status: fenced === "CONFLICT" ? "CONFLICT" : "UNAVAILABLE", reason: fenced };
+      const result = await owner.applyBindingCommand(nativeCommand);
+      if (result.status === "APPLIED" || result.status === "ALREADY_APPLIED")
+        return { status: "APPLIED", targetReference: command.voiceProfileId, receiptRef: commandReceipt, intentId: commandIds.intentId };
+      return { status: result.status === "PROVEN_NOT_APPLIED" || result.status === "CONFLICT" ? "CONFLICT" : "UNAVAILABLE", reason: "reason" in result ? result.reason : result.status };
+    }
+    return { status: "UNAVAILABLE", reason: "TEST_NATIVE_COMMAND_NOT_CONFIGURED" };
   });
 }
 
@@ -631,7 +714,7 @@ it("binds a voice through the controller, restores it, and isolates resolved, mi
   writePrivateJson(productPath(), settings);
   let app = await buildServerWithAdmission(env);
   const bind = (personId: string) =>
-    app.inject({ method: "POST", url: "/voice-profiles/profile-a/person", payload: { personId } });
+    app.inject({ method: "POST", url: "/voice-profiles/profile-a/person", payload: { personId, commandHandle: `bind-${personId}` } });
   const speak = (sessionId: string) =>
     app.inject({
       method: "POST",
@@ -687,7 +770,8 @@ it("binds a voice through the controller, restores it, and isolates resolved, mi
     expect(mixedReply.statusCode, mixedReply.body).toBe(200);
     expect(searchScopes).toEqual([]);
     mixed = false;
-    expect((await bind("person-b")).statusCode).toBe(200);
+    const replacedBinding = await bind("person-b");
+    expect(replacedBinding.statusCode, replacedBinding.body).toBe(200);
     const conflicting = await speak("conflicting");
     expect(conflicting.statusCode, conflicting.body).toBe(200);
     expect(searchScopes).toEqual([]);

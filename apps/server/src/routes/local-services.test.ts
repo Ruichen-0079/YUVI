@@ -1,4 +1,7 @@
 import Fastify from "fastify";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { afterEach, expect, it, vi } from "vitest";
 import type { AppContext } from "../context.js";
 import type { ServerConfig } from "../config.js";
@@ -8,6 +11,13 @@ import { restartDailyUseServices } from "../services/daily-use.js";
 import { createTestVoiceControlReceiptAdmission } from "../test-support/voice-control-receipt.js";
 import { JournalStoreError } from "@companion/journal";
 vi.mock("../services/daily-use.js", () => ({ restartDailyUseServices: vi.fn() }));
+function pcmWav(dataSize = 900_000) {
+  const bytes = Buffer.alloc(44 + dataSize);
+  bytes.write("RIFF"); bytes.writeUInt32LE(bytes.length - 8, 4); bytes.write("WAVEfmt ", 8); bytes.writeUInt32LE(16, 16);
+  bytes.writeUInt16LE(1, 20); bytes.writeUInt16LE(1, 22); bytes.writeUInt32LE(16_000, 24); bytes.writeUInt32LE(32_000, 28);
+  bytes.writeUInt16LE(2, 32); bytes.writeUInt16LE(16, 34); bytes.write("data", 36); bytes.writeUInt32LE(dataSize, 40);
+  return bytes.toString("base64");
+}
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllEnvs();
@@ -17,15 +27,20 @@ afterEach(() => {
 it("fails closed before enrollment when durable voice admission is unavailable", async () => {
   const profiles = {
     enroll: vi.fn(async (input: { voiceProfileId: string; label: string }) => input),
-    list: vi.fn(async () => [])
+    list: vi.fn(async () => []),
+    readAuthorityState: vi.fn(async () => ({ complete: true, revision: "acoustic-before", profiles: [] }))
   };
   const admission = { admit: vi.fn(async () => { throw new JournalStoreError("DATABASE_UNAVAILABLE", "unavailable"); }) };
+  const dataDir = await mkdtemp(join(tmpdir(), "yuvi-local-voice-test-"));
+  vi.stubEnv("YUVI_RUNTIME_DATA_DIR", dataDir);
+  const execute = vi.fn(async () => ({ status: "UNAVAILABLE" as const, reason: "DURABLE_NATIVE_CONTROL_UNAVAILABLE" }));
   const app = Fastify();
   await registerLocalServiceRoutes(
     app,
     {
       providers: { getSTTProvider: () => ({ voiceProfiles: profiles }) },
-      voiceControlReceiptAdmission: admission
+      voiceControlReceiptAdmission: admission,
+      productPersonCommands: { execute, resolveExisting: vi.fn(async () => null) }
     } as unknown as AppContext,
     { runtimeMode: "development" } as ServerConfig
   );
@@ -33,43 +48,54 @@ it("fails closed before enrollment when durable voice admission is unavailable",
     const response = await app.inject({
       method: "POST",
       url: "/voice-profiles",
-      payload: { audioBase64: "RAW_AUDIO_MARKER", mimeType: "audio/wav", label: "private label" }
+      payload: { audioBase64: pcmWav(32_000), mimeType: "audio/wav", label: "private label", commandHandle: "local-enroll-unavailable" }
     });
     expect(response.statusCode).toBe(503);
     expect(profiles.list).toHaveBeenCalledOnce();
-    expect(admission.admit).toHaveBeenCalledOnce();
+    expect(admission.admit).not.toHaveBeenCalled();
     expect(profiles.enroll).not.toHaveBeenCalled();
+    expect(execute).toHaveBeenCalledOnce();
   } finally {
     await app.close();
+    await rm(dataDir, { recursive: true, force: true });
   }
 });
 
 it("protects acoustic profile operations and accepts a bounded recording larger than Fastify's default", async () => {
   const profiles = {
     enroll: vi.fn(async (input) => ({ voiceProfileId: input.voiceProfileId, label: input.label })),
-    list: vi.fn(async () => [])
+    list: vi.fn(async () => []),
+    readAuthorityState: vi.fn(async () => ({ complete: true, revision: "acoustic-before", profiles: [] }))
   };
   const order: string[] = [];
   profiles.enroll.mockImplementation(async (input) => {
     order.push("enroll");
     return { voiceProfileId: input.voiceProfileId, label: input.label };
   });
+  const dataDir = await mkdtemp(join(tmpdir(), "yuvi-local-voice-test-"));
+  vi.stubEnv("YUVI_RUNTIME_DATA_DIR", dataDir);
+  const execute = vi.fn(async input => {
+    order.push("a9");
+    expect(input).toMatchObject({ family: "ACOUSTIC_PROFILE", operation: "ENROLL", commandHandle: "local-enroll-command:acoustic-enroll" });
+    expect(input).not.toHaveProperty("audioBase64");
+    return { status: "APPLIED" as const, targetReference: input.voiceProfileId };
+  });
   const app = Fastify();
   await registerLocalServiceRoutes(
     app,
     {
       providers: { getSTTProvider: () => ({ voiceProfiles: profiles }) },
-      voiceControlReceiptAdmission: createTestVoiceControlReceiptAdmission(() => {
-        order.push("receipt");
-      })
+      voiceControlReceiptAdmission: createTestVoiceControlReceiptAdmission(() => { order.push("obsolete"); }),
+      productPersonCommands: { execute, resolveExisting: vi.fn(async () => null) }
     } as unknown as AppContext,
     { runtimeMode: "development", dashboardDevToken: "test-token" } as ServerConfig
   );
   try {
     const payload = {
-      audioBase64: "A".repeat(1_100_000),
+      audioBase64: pcmWav(),
       mimeType: "audio/wav",
-      label: "Acoustic label"
+      label: "Acoustic label",
+      commandHandle: "local-enroll-command"
     };
     expect((await app.inject({ method: "POST", url: "/voice-profiles", payload })).statusCode).toBe(
       401
@@ -92,10 +118,10 @@ it("protects acoustic profile operations and accepts a bounded recording larger 
       headers: { authorization: "Bearer test-token" },
       payload
     });
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode, response.body).toBe(200);
     expect(response.json()).toEqual({ label: "Acoustic label", voiceProfileId: expect.any(String) });
-    expect(order).toEqual(["receipt", "enroll"]);
-    expect(profiles.enroll.mock.calls[0]?.[0].voiceProfileId).toBe(response.json().voiceProfileId);
+    expect(order).toEqual(["a9"]);
+    expect(profiles.enroll).not.toHaveBeenCalled();
     expect(
       (
         await app.inject({
@@ -108,6 +134,7 @@ it("protects acoustic profile operations and accepts a bounded recording larger 
     ).toBe(400);
   } finally {
     await app.close();
+    await rm(dataDir, { recursive: true, force: true });
   }
 });
 

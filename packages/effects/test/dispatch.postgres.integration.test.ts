@@ -99,7 +99,8 @@ describe.skipIf(!url)("A9.2 real PostgreSQL dispatch and crash certainty", () =>
     for (const file of [
       "013_life_event_journal_v1.sql",
       "020_effect_intents_v1.sql",
-      "021_effect_attempts_v1.sql"
+      "021_effect_attempts_v1.sql",
+      "022_native_control_effects_v1.sql"
     ])
       await pool.query(
         await readFile(new URL(`../../memory/migrations/${file}`, import.meta.url), "utf8")

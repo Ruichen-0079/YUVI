@@ -68,7 +68,19 @@ it("people surface hides raw identity fields and saves the primary profile witho
       };
     }
     if (url === "/product/people" && init?.method === "POST") {
-      return { ...saved, personId: "me", profileEvidence: "STORED", message: "saved" };
+      return {
+        ...saved,
+        personId: "me",
+        profileEvidence: {
+          classification: "NON_EVIDENCE",
+          projectionVersion: "product-person-profile.v1",
+          owner: "PRODUCT_PERSON_STORE",
+          personId: "me",
+          personRevision: null,
+          lineageStatus: "LEGACY_UNLINEAGED"
+        },
+        message: "saved"
+      };
     }
     return structuredClone(saved);
   });
@@ -85,9 +97,19 @@ it("people surface hides raw identity fields and saves the primary profile witho
   });
   const call = mock.request.mock.calls.find(c => c[0] === "/product/people" && c[1]?.method === "POST");
   const body = JSON.parse(call![1].body);
-  expect(body).toMatchObject({ id: "me", displayName: "Rui", notes: "My profile", primary: true });
+  expect(body).toMatchObject({
+    id: "me",
+    displayName: "Rui",
+    notes: "My profile",
+    primary: true,
+    expectedPersonRevision: null,
+    expectedPrimaryRevision: null
+  });
+  expect(body.commandHandle).toMatch(/^[a-f0-9-]{36}$/);
   expect(body).not.toHaveProperty("personaId");
-  expect(readText(node)).toContain("Memory: profile saved");
+  expect(readText(node)).toContain(
+    "Person profile saved in Product settings; no Memory evidence was created."
+  );
 });
 
 it("unrecognized voice review stays explicit and local without exposing acoustic internals", async () => {

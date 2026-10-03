@@ -200,4 +200,66 @@ describe("LocalSTTProvider", () => {
     expect(output.segments).toBeUndefined();
     expect(output.observationId).toEqual(expect.any(String));
   });
+
+  it("uses the sidecar generation owner protocol and keeps audio out of command metadata", async () => {
+    const causalRefs = [{ kind: "JOURNAL_EVENT" as const, namespace: "test", eventId: "control" }];
+    const command = {
+      operation: "ENROLL" as const,
+      commandHandle: "acoustic-command-1",
+      intentId: "intent-1",
+      attemptId: "attempt-1",
+      fence: "1",
+      payloadDigest: "a".repeat(64),
+      expectedRevision: "revision-before",
+      voiceProfileId: "profile-a",
+      label: "Acoustic label",
+      causalRefs
+    };
+    const receipt = {
+      commandHandle: command.commandHandle,
+      intentId: command.intentId,
+      attemptId: command.attemptId,
+      fence: command.fence,
+      payloadDigest: command.payloadDigest,
+      operation: command.operation,
+      voiceProfileId: command.voiceProfileId,
+      priorRevision: command.expectedRevision,
+      resultingRevision: "revision-after",
+      causalRefs
+    };
+    const fetchMock = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      const target = String(url);
+      if (target.endsWith("/speakers")) return sidecarResponse({ speakers: [], revision: "revision-before", complete: true });
+      if (target.endsWith("/commands/fence")) return sidecarResponse({ status: "READY" });
+      if (target.endsWith("/commands")) return sidecarResponse({ status: "APPLIED", receipt });
+      if (target.endsWith("/commands/reconcile")) return sidecarResponse({ status: "ALREADY_APPLIED", receipt });
+      return new Response("not found", { status: 404 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const provider = new LocalSTTProvider({ baseUrl: BASE_URL, model: "sense-voice" });
+    const profiles = provider.voiceProfiles;
+    await expect(profiles.readAuthorityState?.()).resolves.toEqual({ complete: true, revision: "revision-before", profiles: [] });
+    await expect(profiles.fenceNativeCommand?.(command)).resolves.toBe("READY");
+    await expect(profiles.applyNativeCommand?.({ ...command, audioBase64: "PRIVATE_WAV" })).resolves.toEqual({ status: "APPLIED", receipt });
+    await expect(profiles.reconcileNativeCommand?.(command)).resolves.toEqual({ status: "ALREADY_APPLIED", receipt });
+    const fenceBody = JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body));
+    const applyBody = JSON.parse(String(fetchMock.mock.calls[2]?.[1]?.body));
+    const reconcileBody = JSON.parse(String(fetchMock.mock.calls[3]?.[1]?.body));
+    expect(fenceBody.command).not.toHaveProperty("audioBase64");
+    expect(applyBody.command).not.toHaveProperty("audioBase64");
+    expect(applyBody.audioBase64).toBe("PRIVATE_WAV");
+    expect(reconcileBody.command).not.toHaveProperty("audioBase64");
+  });
+
+  it("rejects legacy direct acoustic mutations when the sidecar requires A9 commands", async () => {
+    const fetchMock = vi.fn(async (_url: string | URL | Request, _init?: RequestInit) => new Response(JSON.stringify({ error: "governed_acoustic_command_required" }), { status: 409 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const profiles = new LocalSTTProvider({ baseUrl: BASE_URL, model: "sense-voice" }).voiceProfiles;
+    await expect(profiles.enroll({ voiceProfileId: "profile", label: "label", audioBase64: "audio" })).rejects.toThrow();
+    await expect(profiles.delete("profile")).rejects.toThrow();
+    expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
+      "http://127.0.0.1:9876/speakers",
+      "http://127.0.0.1:9876/speakers/profile"
+    ]);
+  });
 });

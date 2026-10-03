@@ -1046,6 +1046,7 @@ export const apiClient = {
     audioBase64: string;
     mimeType: string;
     label: string;
+    commandHandle: string;
   }): Promise<{ voiceProfileId: string; label: string }> {
     return request("/voice-profiles", { method: "POST", body: JSON.stringify(input) });
   },
@@ -1055,14 +1056,14 @@ export const apiClient = {
   }): Promise<{ status: string; voiceProfileId?: string }> {
     return request("/voice-profiles/identify", { method: "POST", body: JSON.stringify(input) });
   },
-  bindVoiceProfilePerson(id: string, personId: string): Promise<{ status: string }> {
+  bindVoiceProfilePerson(id: string, personId: string, commandHandle: string): Promise<{ status: string }> {
     return request(`/voice-profiles/${encodeURIComponent(id)}/person`, {
       method: "POST",
-      body: JSON.stringify({ personId })
+      body: JSON.stringify({ personId, commandHandle })
     });
   },
-  deleteVoiceProfile(id: string): Promise<{ ok: boolean }> {
-    return request(`/voice-profiles/${encodeURIComponent(id)}`, { method: "DELETE" });
+  deleteVoiceProfile(id: string, commandHandle: string): Promise<{ ok: boolean }> {
+    return request(`/voice-profiles/${encodeURIComponent(id)}?commandHandle=${encodeURIComponent(commandHandle)}`, { method: "DELETE" });
   },
 
   sendMessage(input: SendMessageRequest): Promise<MessageResponse> {

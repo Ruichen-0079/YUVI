@@ -76,7 +76,7 @@ A10.1 leaf authority: [`a10.1-grounded-memory-roadmap.md`](a10.1-grounded-memory
 
 ## Current state
 
-A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2f6 and aggregate A8.2 are implemented reality. A10.1a–f3 and aggregate A10.1 are IMPLEMENTED REALITY. A9.1 and A9.2 are IMPLEMENTED REALITY for atomic intent admission and bounded dispatch accounting with active local read-text; see [A9.2 validation](../validation/v0.1.3-a9.2-dispatch-reconciliation-crash-ambiguity.md). A9.3 is PLANNED and aggregate A9 remains INCOMPLETE. A10.2/A10.3, A11 and A12 remain planned/open engineering, with A12.1 already holding a pinned source-level SnowLuma contract while its live probe remains pending. A10.1f3-r1 canonical host evidence admission is implemented; see [r1 validation](../validation/v0.1.3-a10.1f3-r1-canonical-evidence-admission.md). A10.1f3 is IMPLEMENTED REALITY; see [aggregate validation](../validation/v0.1.3-a10.1f3-aggregate-memory-profile-closure.md).
+A0–A6, A7.1, A7.2, A8.1, A8.2a–A8.2f6 and aggregate A8.2 are implemented reality. A10.1a–f3 and aggregate A10.1 are IMPLEMENTED REALITY. A9.1 and A9.2 are IMPLEMENTED REALITY for atomic intent admission and bounded dispatch accounting with active local read-text; see [A9.2 validation](../validation/v0.1.3-a9.2-dispatch-reconciliation-crash-ambiguity.md). A10.2 is CLOSED / IMPLEMENTED REALITY; see [A10.2 validation](../validation/v0.1.3-a10.2-controller-person-voice-p8-lineage.md). A9.3 is PLANNED and aggregate A9 remains INCOMPLETE. A10.3, A11 and A12 remain planned/open engineering, with A12.1 already holding a pinned source-level SnowLuma contract while its live probe remains pending. A10.1f3-r1 canonical host evidence admission is implemented; see [r1 validation](../validation/v0.1.3-a10.1f3-r1-canonical-evidence-admission.md). A10.1f3 is IMPLEMENTED REALITY; see [aggregate validation](../validation/v0.1.3-a10.1f3-aggregate-memory-profile-closure.md).
 
 ### Milestone 1 — Evidence Foundation
 
@@ -135,7 +135,7 @@ The local/private profile materializer is the required baseline. A hosted Mem0 U
 
 ### Milestone 2 — Action and attribution foundation
 
-A9.1/A9.2 are implemented within their validated boundaries. A9.3 remains planned; aggregate A9 is incomplete. A10.2 and A11.1 have not been started by A9.2 closure.
+A9.1/A9.2 and A10.2 are implemented within their validated boundaries. A9.3 remains planned; aggregate A9 is incomplete. A11.1 and A10.3 remain open.
 
 The [remaining-core architecture freeze](v0.1.3-authority-effect-context-architecture-freeze.md) fixes the implementation decisions for these remaining atoms. A9.3 includes full outbound source audit and closes aggregate A9 if its gates pass; no A9.4 follows.
 
@@ -143,7 +143,7 @@ Default dependency order:
 
 ```text
 A9.1 → A9.2
-          ├→ A10.2
+          ├→ A10.2 — IMPLEMENTED
           └→ A11.1 (may begin here)
 
 A9.3 + A10.1 + A10.2 → A10.3
