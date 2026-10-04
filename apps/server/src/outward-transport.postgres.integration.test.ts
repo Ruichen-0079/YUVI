@@ -1,3 +1,4 @@
+import { SyntheticSurface, FaultPlan } from "../../../scripts/conformance/fault-surface.mjs";
 import type { ControllerBindingCommand } from "@companion/memory";
 import { createFileP8CorrectionStore } from "@companion/core";
 import { createDefaultP8IdentityAddress } from "@companion/p8";
@@ -202,6 +203,30 @@ describe.skipIf(!databaseUrl)(
       );
       return new PostgresContextUseRepository(pool).get(row.rows[0]?.manifest_id);
     }
+    it.each(["PRIVATE", "GROUP"])("A11.1 %s hints never become authenticated disclosure or binding authority", async kind => {
+      const { app } = await composition(true);
+      const faults = new FaultPlan();
+      const surface = new SyntheticSurface(async input => app.inject({
+        method: "POST", url: "/message", payload: {
+          sessionId: `synthetic-${kind}`, text: input.text,
+          principal: input.principalHint, audience: input.audienceHint,
+          members: input.members, options: { readMemory: false, writeMemory: false }
+        }
+      }), faults);
+      const gate = faults.arm("receipt.before", "PAUSE");
+      const response = surface.receive({ kind, upstreamId: "untrusted-id", principalHint: "person",
+        audienceHint: "private", members: ["old-member"], text: "bounded surface request" });
+      await gate.ready; gate.release();
+      expect((await response).statusCode).toBe(200);
+      const receipt = await pool.query("select envelope from journal_events order by recorded_at desc limit 1");
+      expect(receipt.rows[0]?.envelope.authority).toMatchObject({
+        principal: { state: "UNRESOLVED" }, binding: { state: "UNRESOLVED" },
+        audience: { kind: "UNKNOWN" }, disclosurePolicy: { state: "UNRESOLVED" }
+      });
+      const history = await latestHistory(`synthetic-${kind}`);
+      expect(JSON.stringify(history)).not.toContain("private fixture notes");
+      expect(JSON.stringify(history)).not.toContain("old-member");
+    });
     it("A10.3 persists historical Person scope revision and withholds stale boot composition", async () => {
       const { app, context } = await composition(true);
       expect((await send(app, "person-history")).statusCode).toBe(200);

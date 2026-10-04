@@ -3,6 +3,7 @@ import { readFile, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
+import { waitForCheckpoint } from "../../../scripts/conformance/fault-surface.mjs";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Pool } from "pg";
 import { createPostgresPool } from "@companion/database";
@@ -800,7 +801,9 @@ describe.skipIf(!url)("A9.2 real PostgreSQL dispatch and crash certainty", () =>
           `
     import {appendFile} from 'node:fs/promises';import pg from 'pg';import {PostgresEffectDispatchStore} from ${JSON.stringify(new URL("../dist/dispatch-store.js", import.meta.url).href)};
     const pool=new pg.Pool({connectionString:process.env.YUVI_EFFECT_TEST_DATABASE_URL,options:'-c search_path=${schema},public'});
-    async function stop(){process.send('ready');await new Promise(()=>{});}
+    import {FaultPlan} from ${JSON.stringify(new URL("../../../scripts/conformance/fault-surface.mjs", import.meta.url).href)};
+    const faults=new FaultPlan();faults.arm('kill-boundary','IPC');
+    async function stop(){await faults.hit('kill-boundary');}
     const wrapped={async connect(){const c=await pool.connect();return {async query(sql,values){const r=await c.query(sql,values);if(${JSON.stringify(boundary)}==='during-claim' && sql.startsWith('insert into effect_attempts') || ${JSON.stringify(boundary)}==='during-start' && sql.startsWith('update effect_attempts set dispatch_started_at'))await stop();return r;},release(){c.release();}};}};
     const s=new PostgresEffectDispatchStore(wrapped);
     if(${JSON.stringify(boundary)}==='before-claim')await stop();
@@ -815,22 +818,7 @@ describe.skipIf(!url)("A9.2 real PostgreSQL dispatch and crash certainty", () =>
         ],
         { env: process.env, stdio: ["ignore", "pipe", "pipe", "ipc"] }
       );
-      let stderr = "";
-      child.stderr!.on("data", (b) => (stderr += b));
-      await new Promise<void>((resolve, reject) => {
-        const t = setTimeout(() => {
-          child.kill("SIGKILL");
-          reject(Error(stderr || "child ready timeout"));
-        }, 5000);
-        child.once("message", () => {
-          clearTimeout(t);
-          resolve();
-        });
-        child.once("exit", () => {
-          clearTimeout(t);
-          reject(Error(stderr));
-        });
-      });
+      await waitForCheckpoint(child, "kill-boundary");
       const dead = new Promise((r) => child.once("exit", r));
       child.kill("SIGKILL");
       await dead;
