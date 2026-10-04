@@ -24,7 +24,7 @@ import {
   type ProfileSnapshotV1,
   type ProfileSubjectV1
 } from "./profile-types.js";
-import { z } from "zod";
+import type { z } from "zod";
 
 type OccurrenceTime = z.infer<typeof OccurrenceTimeSchema>;
 

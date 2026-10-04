@@ -201,32 +201,83 @@ describe.skipIf(!databaseUrl)(
         "select manifest_id from context_use_manifests where body->>'scope'=$1 and body->>'assemblyVersion' like 'canonical-context%' order by created_at desc limit 1",
         [`session:${sessionId}`]
       );
-      return new PostgresContextUseRepository(pool).get(row.rows[0]?.manifest_id);
-    }
-    it.each(["PRIVATE", "GROUP"])("A11.1 %s hints never become authenticated disclosure or binding authority", async kind => {
-      const { app } = await composition(true);
-      const faults = new FaultPlan();
-      const surface = new SyntheticSurface(async input => app.inject({
-        method: "POST", url: "/message", payload: {
-          sessionId: `synthetic-${kind}`, text: input.text,
-          principal: input.principalHint, audience: input.audienceHint,
-          members: input.members, options: { readMemory: false, writeMemory: false }
+      const historical = await new PostgresContextUseRepository(pool).get(row.rows[0]?.manifest_id);
+      if (historical) {
+        // A11.2: prove these owner replacement histories belong to actual downstream use,
+        // including the committed receipt, concrete attempt and bounded outcome.
+        const chain = await pool.query(
+          `select i.intent,a.attempt_id,a.dispatch_started_at,o.evidence
+          from effect_intents i join effect_attempts a using(intent_id)
+          join effect_observations o on o.attempt_id=a.attempt_id and o.category='TERMINAL'
+          where i.intent->'request'->'payload'->'inputSnapshot'->'manifest'->>'manifestId'=$1`,
+          [row.rows[0]?.manifest_id]
+        );
+        expect(chain.rows.length).toBeGreaterThan(0);
+        for (const use of chain.rows) {
+          expect(use.dispatch_started_at).toBeTruthy();
+          expect(["APPLIED", "PROVEN_NOT_APPLIED"]).toContain(use.evidence.certainty);
+          if (use.evidence.certainty === "PROVEN_NOT_APPLIED")
+            expect(use.evidence.reason).toBe("AUTHORITY_REVOKED");
+          for (const cause of use.intent.request.causalRefs) {
+            const receipt = await pool.query(
+              "select envelope from journal_events where journal_namespace=$1 and event_id=$2",
+              [cause.namespace, cause.eventId]
+            );
+            expect(receipt.rows[0]?.envelope.command.kind).toBe("RECEIPT");
+          }
         }
-      }), faults);
-      const gate = faults.arm("receipt.before", "PAUSE");
-      const response = surface.receive({ kind, upstreamId: "untrusted-id", principalHint: "person",
-        audienceHint: "private", members: ["old-member"], text: "bounded surface request" });
-      await gate.ready; gate.release();
-      expect((await response).statusCode).toBe(200);
-      const receipt = await pool.query("select envelope from journal_events order by recorded_at desc limit 1");
-      expect(receipt.rows[0]?.envelope.authority).toMatchObject({
-        principal: { state: "UNRESOLVED" }, binding: { state: "UNRESOLVED" },
-        audience: { kind: "UNKNOWN" }, disclosurePolicy: { state: "UNRESOLVED" }
-      });
-      const history = await latestHistory(`synthetic-${kind}`);
-      expect(JSON.stringify(history)).not.toContain("private fixture notes");
-      expect(JSON.stringify(history)).not.toContain("old-member");
-    });
+      }
+      return historical;
+    }
+    it.each(["PRIVATE", "GROUP"])(
+      "A11.1 %s hints never become authenticated disclosure or binding authority",
+      async (kind) => {
+        const { app } = await composition(true);
+        const faults = new FaultPlan();
+        const surface = new SyntheticSurface(
+          async (input) =>
+            app.inject({
+              method: "POST",
+              url: "/message",
+              payload: {
+                sessionId: `synthetic-${kind}`,
+                text: input.text,
+                principal: input.principalHint,
+                audience: input.audienceHint,
+                members: input.members,
+                options: { readMemory: false, writeMemory: false }
+              }
+            }),
+          faults
+        );
+        const gate = faults.arm("receipt.before", "PAUSE");
+        const response = surface.receive({
+          kind,
+          upstreamId: "untrusted-id",
+          principalHint: "person",
+          audienceHint: "private",
+          members: ["old-member"],
+          text: "bounded surface request"
+        });
+        await gate.ready;
+        gate.release();
+        const received = await response;
+        expect(received.statusCode).toBe(200);
+        expect(received.body).not.toContain("private fixture notes");
+        const receipt = await pool.query(
+          "select envelope from journal_events order by recorded_at desc limit 1"
+        );
+        expect(receipt.rows[0]?.envelope.authority).toMatchObject({
+          principal: { state: "UNRESOLVED" },
+          binding: { state: "UNRESOLVED" },
+          audience: { kind: "UNKNOWN" },
+          disclosurePolicy: { state: "UNRESOLVED" }
+        });
+        const history = await latestHistory(`synthetic-${kind}`);
+        expect(JSON.stringify(history)).not.toContain("private fixture notes");
+        expect(JSON.stringify(history)).not.toContain("old-member");
+      }
+    );
     it("A10.3 persists historical Person scope revision and withholds stale boot composition", async () => {
       const { app, context } = await composition(true);
       expect((await send(app, "person-history")).statusCode).toBe(200);

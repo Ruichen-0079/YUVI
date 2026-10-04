@@ -1,9 +1,19 @@
 -- A10.2 adds one static native-owner command contract to the existing A9 ledger.
 -- The command body stays in this private payload table; effect intent JSON carries
 -- only the immutable reference and digest required to bind the native invocation.
-alter table effect_intents drop constraint if exists effect_intents_contract_ref_check;
-alter table effect_intents add constraint effect_intents_contract_ref_check
-  check(contract_ref in ('yuvi.embodied-presentation.v1','yuvi.read-text.v1','yuvi.native-control.v1'));
+-- Packaged startup replays all migrations. A previously installed 023 schema
+-- already owns the wider canonical contract check; never narrow it on replay.
+do $$ begin
+  if not exists (
+    select 1 from pg_class c join pg_class i on i.relnamespace=c.relnamespace
+    where c.oid=to_regclass('conversation_reply_components')
+      and i.oid='effect_intents'::regclass
+  ) then
+    alter table effect_intents drop constraint if exists effect_intents_contract_ref_check;
+    alter table effect_intents add constraint effect_intents_contract_ref_check
+      check(contract_ref in ('yuvi.embodied-presentation.v1','yuvi.read-text.v1','yuvi.native-control.v1'));
+  end if;
+end $$;
 
 create table if not exists effect_command_payloads (
   payload_ref text primary key check(length(payload_ref) between 1 and 512),

@@ -40,7 +40,8 @@
     "desktop:close-tray:linux": "node scripts/desktop-close-tray-lifecycle-linux.mjs",
     "daily:linux": "tsx scripts/install-daily-use-linux.mts",
     "accept:linux": "tsx scripts/test-daily-use-linux.mts --run",
-    "desktop:package:linux-daily": "node scripts/desktop-package/prepare-linux-daily.mjs"
+    "desktop:package:linux-daily": "node scripts/desktop-package/prepare-linux-daily.mjs",
+    "test:conformance": "node scripts/conformance/durable-gate.mjs"
   },
   "packageManager": "pnpm@9.15.4",
   "dependencies": {

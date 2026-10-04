@@ -1,0 +1,63 @@
+name: v0.1.3 Durable Conformance
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  durable-conformance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: yuvi
+          POSTGRES_PASSWORD: isolated_ci_only
+          POSTGRES_DB: yuvi_conformance
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U yuvi -d yuvi_conformance"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      DATABASE_URL: postgres://yuvi:isolated_ci_only@127.0.0.1:5432/yuvi_conformance
+      YUVI_EFFECT_TEST_DATABASE_URL: postgres://yuvi:isolated_ci_only@127.0.0.1:5432/yuvi_conformance
+      YUVI_JOURNAL_TEST_DATABASE_URL: postgres://yuvi:isolated_ci_only@127.0.0.1:5432/yuvi_conformance
+      YUVI_PROFILE_TEST_DATABASE_URL: postgres://yuvi:isolated_ci_only@127.0.0.1:5432/yuvi_conformance
+      YUVI_REQUIRE_DURABLE_CONFORMANCE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.20.0
+          cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pnpm install --frozen-lockfile
+      - name: Provision isolated packaged prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libssl-dev bison flex
+          echo "YUVI_LINUX_POSTGRES_HOME=$RUNNER_TEMP/yuvi-postgresql-16" >> "$GITHUB_ENV"
+          echo "YUVI_POSTGRES_HOME=$RUNNER_TEMP/yuvi-postgresql-16" >> "$GITHUB_ENV"
+          echo "YUVI_LINUX_MEM0_PYTHON=$RUNNER_TEMP/yuvi-python/bin/python" >> "$GITHUB_ENV"
+          echo "YUVI_CONFORMANCE_ARCHIVE_ROOT=$RUNNER_TEMP/yuvi-conformance" >> "$GITHUB_ENV"
+          python -m venv "$RUNNER_TEMP/yuvi-python"
+          "$RUNNER_TEMP/yuvi-python/bin/pip" install -r services/memory-mem0/requirements.txt
+          YUVI_LINUX_POSTGRES_HOME="$RUNNER_TEMP/yuvi-postgresql-16" bash scripts/conformance/prepare-postgres.sh
+      - name: Mandatory durable + packaged conformance
+        run: pnpm test:conformance
+      - name: Archive exact build, environment and test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v013-conformance-${{ github.sha }}
+          path: ${{ runner.temp }}/yuvi-conformance
+          # Includes isolated PG credentials used only for this disposable CI job.
+          # No user config, personal data, vendor credential or SecretStore is imported.
+          retention-days: 7
