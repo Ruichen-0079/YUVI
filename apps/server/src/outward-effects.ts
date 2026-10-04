@@ -1,3 +1,6 @@
+import { HostContextUse } from "./context-use.js";
+import { describeExposure, providerInputDigest } from "@companion/providers";
+import type { PostgresContextUseRepository } from "@companion/memory";
 import type { ReplyPublicationTarget, ReplyPublicationAdmission } from "@companion/memory";
 import { createHash, randomUUID } from "node:crypto";
 import {
@@ -36,6 +39,7 @@ type Work = {
   request: EffectIntent["request"] & { payload: unknown };
   identity: EffectIntent["authorization"]["identity"];
   isCurrent(): boolean;
+  verifyContext?: (() => Promise<boolean>) | undefined;
 };
 type Grant = {
   work: Work;
@@ -269,6 +273,11 @@ export class HostOutwardEffects implements ProviderAccountingPort {
     if (accepted !== true) throw Error("Target write is ambiguous.");
   }
 
+  private readonly contextUse: HostContextUse;
+  setContextUseRepository(repository: PostgresContextUseRepository | null) {
+    this.contextUse.setRepository(repository);
+  }
+
   constructor(
     private readonly admission: EffectIntentAdmissionPort,
     readonly store: EffectDispatchStore | null,
@@ -276,6 +285,7 @@ export class HostOutwardEffects implements ProviderAccountingPort {
     private readonly journal: JournalRepository | null,
     private readonly namespace: string
   ) {
+    this.contextUse = new HostContextUse(journal, namespace);
     for (const contractRef of [
       "yuvi.provider.v1",
       "yuvi.publication.v1",
@@ -286,10 +296,12 @@ export class HostOutwardEffects implements ProviderAccountingPort {
         contractRef,
         adapter: EFFECT_DELIVERY_CONTRACTS[contractRef].adapter,
         isCurrent: (i) => this.accepting && this.grants.get(i.intentId)?.work.isCurrent() === true,
-        invoke: (i, a, signal) => {
+        invoke: async (i, a, signal) => {
           const grant = this.grants.get(i.intentId);
           if (!grant || !this.accepting || !grant.work.isCurrent())
             return Promise.resolve({ evidence: protocolEvidence("AUTHORITY_REVOKED", false) });
+          if (grant.work.verifyContext && !(await grant.work.verifyContext()))
+            return { evidence: protocolEvidence("AUTHORITY_REVOKED", false) };
           return grant.invoke(a, signal);
         },
         ...(contractRef === "yuvi.playback.v1"
@@ -346,6 +358,7 @@ export class HostOutwardEffects implements ProviderAccountingPort {
     };
   }
   async work(input: {
+    contextManifest?: { manifestId: string; exposureId: string } | undefined;
     contractRef:
       | "yuvi.provider.v1"
       | "yuvi.publication.v1"
@@ -401,7 +414,7 @@ export class HostOutwardEffects implements ProviderAccountingPort {
             digest: input.digest,
             availability: input.snapshotReference ? "RETAINED_REFERENCE" : "TRANSIENT",
             reference: input.snapshotReference ?? null,
-            manifest: "A10_3_NOT_IMPLEMENTED"
+            manifest: input.contextManifest ?? "A10_3_NOT_IMPLEMENTED"
           },
           configurationRef: input.configurationRef,
           relatedReply: input.replyId ?? null,
@@ -454,6 +467,7 @@ export class HostOutwardEffects implements ProviderAccountingPort {
     }
   }
   private async providerWork(task: ProviderTaskDescriptor, signal?: AbortSignal): Promise<Work> {
+    const contextManifest = await this.contextUse.capture(task);
     let work = this.tasks.get(task.operationId);
     if (
       work &&
@@ -463,10 +477,18 @@ export class HostOutwardEffects implements ProviderAccountingPort {
           task.configurationRef)
     )
       throw Error("Frozen provider task input conflict.");
+    if (
+      work &&
+      JSON.stringify(
+        (work.request.payload as { inputSnapshot: { manifest: unknown } }).inputSnapshot.manifest
+      ) !== JSON.stringify(contextManifest)
+    )
+      throw Error("Provider operation changed historical context identity.");
     if (!work) {
       if (this.tasks.size >= 128) this.tasks.delete(this.tasks.keys().next().value!);
       const context = task.context;
       work = await this.work({
+        contextManifest,
         contractRef: "yuvi.provider.v1",
         logicalKey: `yuvi.provider.v1:${this.namespace}:${task.operationId}`,
         operation: task.operation,
@@ -479,10 +501,26 @@ export class HostOutwardEffects implements ProviderAccountingPort {
         replyId: context?.replyId,
         isCurrent: () => !signal?.aborted && (context?.isCurrent?.() ?? true)
       });
+      work.verifyContext = task.contextUse?.verifyCurrent;
       this.tasks.set(task.operationId, work);
     }
     return work;
   }
+  async captureOperationContext(operationId: string, operation: string, input: unknown) {
+    const context = currentProviderWorkContext();
+    return this.contextUse.capture({
+      operationId,
+      operation,
+      inputDigest: providerInputDigest(input),
+      configurationRef: "host-capability.v1",
+      routingPlan: [],
+      context,
+      contextUse: context?.contextUse,
+      assemblyOrdinal: String(context?.assemblyOrdinal ?? 1),
+      exposure: describeExposure(input, context?.contextUse)
+    });
+  }
+
   private uncertain(leaf: ProviderLeafDescriptor): ProviderError {
     return new ProviderError({
       provider: leaf.provider,

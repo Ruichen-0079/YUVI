@@ -1,3 +1,5 @@
+import { PostgresContextUseRepository, contextUseDigest } from "@companion/memory";
+import type { ContextSourceUse } from "@companion/protocol";
 import { HostPresentationEffects } from "./presentation-effects.js";
 import { HostMediaEffects } from "./media-effects.js";
 import { HostOutwardEffects } from "./outward-effects.js";
@@ -26,7 +28,11 @@ import {
   type NativeOwnerCommitV1
 } from "@companion/effects";
 import { JournalMemoryGroundingResolver } from "@companion/memory";
-import { productEnvironment, readProductSettings } from "./services/product-store.js";
+import {
+  productEnvironment,
+  readProductSettings,
+  type ProductSettings
+} from "./services/product-store.js";
 import { join } from "node:path";
 import { createPostgresPool } from "@companion/database";
 import { PostgresJournalRepository, JournalStoreError } from "@companion/journal";
@@ -195,7 +201,10 @@ export type AppContext = {
   activeRuntimeEnv: Record<string, string | undefined>;
   memoryMaintenanceScheduler?: MemoryMaintenanceScheduler | undefined;
   subscribeProactiveStream(listener: (event: RuntimeReplyStreamEvent) => unknown): () => void;
-  reloadRuntimeConfig(env: Record<string, string | undefined>): Promise<RuntimeConfigReloadResult>;
+  reloadRuntimeConfig(
+    env: Record<string, string | undefined>,
+    productSnapshot?: ProductSettings | null
+  ): Promise<RuntimeConfigReloadResult>;
 };
 
 export type RuntimeConfigReloadResult = {
@@ -216,7 +225,8 @@ export async function createAppContext(
     throw new Error("EVENT_BUS=nats is reserved for future NATS support and is not implemented.");
   }
 
-  const bootEnv = productEnvironment((await readRuntimeEnvFiles()).env, readProductSettings());
+  const bootProductSettings = readProductSettings();
+  const bootEnv = productEnvironment((await readRuntimeEnvFiles()).env, bootProductSettings);
   for (const key of [
     "YUVI_PRODUCT_CONFIGURATION",
     "MEMORY_SUBJECT_USER_ID",
@@ -344,6 +354,11 @@ export async function createAppContext(
     ? bootstrapPostgresEvidenceAdmissions(evidenceAdmissionDatabase, evidenceAdmissions)
     : Promise.resolve();
   void evidenceAdmissionReady.catch(() => undefined);
+  outwardEffects.setContextUseRepository(
+    databasePool ? new PostgresContextUseRepository(databasePool) : null
+  );
+  readTextEffects.captureContext = (key, input) =>
+    outwardEffects.captureOperationContext(key, "read_text_file", input);
   const promptBuilder = new PromptBuilder();
   const recentEpisodeStore: RecentEpisodeStore = createRecentEpisodeStoreFromEnv(
     process.env,
@@ -447,7 +462,8 @@ export async function createAppContext(
     providers: ProviderRegistry,
     memory: MemoryService,
     directContext = config.directContext,
-    runtimeEnv: Record<string, string | undefined> = bootEnv
+    runtimeEnv: Record<string, string | undefined> = bootEnv,
+    capturedProduct: ProductSettings | null = bootProductSettings
   ): RuntimeOrchestrator {
     const provider = memory.getMemoryProvider?.();
     const outputLanguage = parseRuntimeConfig(runtimeEnv).outputLanguage;
@@ -459,7 +475,52 @@ export async function createAppContext(
       process.env["NODE_ENV"] === "test" || process.env["PROVIDER_ALLOW_MOCKS"] === "true"
         ? undefined
         : createServerCharacterPort();
+    const personId = parseRuntimeConfig(runtimeEnv).memory.subjectUserId;
+    const consumedPerson = capturedProduct?.people.find((p) => p.id === personId);
+    const productDependency = consumedPerson
+      ? {
+          person: consumedPerson,
+          revision: capturedProduct?.personRevisionById?.[consumedPerson.id] ?? null,
+          primary: capturedProduct?.primaryPersonId ?? null,
+          primaryRevision: capturedProduct?.primaryPersonRevision ?? null
+        }
+      : null;
+    const contextOwnerSources: ContextSourceUse[] = [
+      {
+        owner: "PERSON",
+        reference: personId ? `person:${personId}` : "person:NOT_USED",
+        revision: productDependency?.revision ?? null,
+        digest: productDependency ? contextUseDigest(productDependency) : null,
+        availability: productDependency
+          ? productDependency.revision
+            ? "AVAILABLE"
+            : "LEGACY_UNLINEAGED"
+          : "NOT_USED",
+        revisionKind: productDependency?.revision
+          ? "NATIVE"
+          : productDependency
+            ? "OBSERVED_SNAPSHOT"
+            : "NOT_USED",
+        selection: productDependency ? "SELECTED" : "OMITTED",
+        reason: "Product snapshot consumed for Runtime scope selection",
+        roots: productDependency?.primaryRevision ? [productDependency.primaryRevision] : []
+      }
+    ];
     const nextRuntime = new RuntimeOrchestrator({
+      contextOwnerSources,
+      verifyContextOwners: async () => {
+        if (!productDependency) return true;
+        const current = readProductSettings();
+        const person = current?.people.find((p) => p.id === personId);
+        return (
+          contextUseDigest({
+            person,
+            revision: current?.personRevisionById?.[personId!] ?? null,
+            primary: current?.primaryPersonId ?? null,
+            primaryRevision: current?.primaryPersonRevision ?? null
+          }) === contextUseDigest(productDependency)
+        );
+      },
       ...(screenCaptureAvailable() ? { captureScreen: captureKdeScreen } : {}),
       eventBus,
       effectIntents,
@@ -696,7 +757,7 @@ export async function createAppContext(
         proactiveListeners.delete(listener);
       };
     },
-    async reloadRuntimeConfig(env) {
+    async reloadRuntimeConfig(env, productSnapshot = null) {
       const previousActiveRuntimeEnv = { ...context.activeRuntimeEnv };
       const notHotReloaded = getPendingRestartKeys(env, previousActiveRuntimeEnv);
       const reloadEnv = { ...env };
@@ -727,7 +788,8 @@ export async function createAppContext(
             config.directContext.maxChars
           )
         },
-        reloadEnv
+        reloadEnv,
+        productSnapshot
       );
 
       // Stage all replacements before sealing or mutating the current

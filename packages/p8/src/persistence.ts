@@ -48,10 +48,12 @@ export type P8CorrectionStoreLoadResult = Readonly<
   | {
       status: "SUCCESS_WITH_CORRECTIONS";
       corrections: readonly P8ExplicitCorrection[];
+      nativeRevision?: string | null;
     }
   | {
       status: "SUCCESS_WITH_NO_CORRECTIONS";
       corrections: readonly P8ExplicitCorrection[];
+      nativeRevision?: string | null;
     }
   | { status: "UNAVAILABLE" }
   | { status: "ERROR" }
@@ -94,7 +96,11 @@ export type P8NativeCorrectionReceipt = Readonly<{
   resultingRevision: string;
 }>;
 export type P8CorrectionCommandResult = Readonly<
-  | { status: "STORED" | "ALREADY_STORED"; record: P8CorrectionRecord; receipt: P8NativeCorrectionReceipt }
+  | {
+      status: "STORED" | "ALREADY_STORED";
+      record: P8CorrectionRecord;
+      receipt: P8NativeCorrectionReceipt;
+    }
   | { status: "PROVEN_NOT_APPLIED"; reason: "EXACT_PREDECESSOR_REMAINS" }
   | { status: "CONFLICT" | "UNKNOWN" | "ERROR" }
 >;
@@ -107,9 +113,20 @@ export interface P8CorrectionStore {
   loadCorrectionByReference(correctionReference: string): Promise<P8CorrectionReferenceLoadResult>;
   /** Governed A9 mutation surface; production adapters commit receipt and record together. */
   getNativeRevision?(lookup: P8CorrectionLookup): Promise<string | null>;
-  fenceCorrectionCommand?(command: Pick<P8NativeCorrectionCommand, "commandHandle" | "intentId" | "attemptId" | "fence" | "payloadDigest">): Promise<"READY" | "APPLIED" | "UNKNOWN" | "CONFLICT">;
-  appendCorrectionCommand?(correction: P8ExplicitCorrection, command: P8NativeCorrectionCommand): Promise<P8CorrectionCommandResult>;
-  reconcileCorrectionCommand?(correction: P8ExplicitCorrection, command: P8NativeCorrectionCommand): Promise<P8CorrectionCommandResult>;
+  fenceCorrectionCommand?(
+    command: Pick<
+      P8NativeCorrectionCommand,
+      "commandHandle" | "intentId" | "attemptId" | "fence" | "payloadDigest"
+    >
+  ): Promise<"READY" | "APPLIED" | "UNKNOWN" | "CONFLICT">;
+  appendCorrectionCommand?(
+    correction: P8ExplicitCorrection,
+    command: P8NativeCorrectionCommand
+  ): Promise<P8CorrectionCommandResult>;
+  reconcileCorrectionCommand?(
+    correction: P8ExplicitCorrection,
+    command: P8NativeCorrectionCommand
+  ): Promise<P8CorrectionCommandResult>;
 }
 
 export function createP8CorrectionRecord(correction: P8ExplicitCorrection): P8CorrectionRecord {

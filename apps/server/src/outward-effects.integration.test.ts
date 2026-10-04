@@ -1,3 +1,4 @@
+import { PostgresContextUseRepository } from "@companion/memory";
 import { createServer, type Server } from "node:http";
 import { createEvent, type AccountedPresentationRequest } from "@companion/protocol";
 import { createProviderRegistryFromEnv } from "@companion/providers";
@@ -51,6 +52,14 @@ function task(): ProviderTaskDescriptor {
     inputDigest: effectDigest({ input: "not retained" }),
     configurationRef: "fixture-config-v1",
     routingPlan: [{ provider: leaf.provider, model: leaf.model }],
+    contextUse: undefined,
+    assemblyOrdinal: "1",
+    exposure: {
+      projectionVersion: "fixture-input.v1",
+      inputDigest: effectDigest({ input: "not retained" }),
+      fields: [],
+      blocks: []
+    },
     context: undefined
   };
 }
@@ -59,10 +68,9 @@ function taskId(t: ProviderTaskDescriptor) {
 }
 function makeHost(override: EffectDispatchStore = store) {
   const d = new EffectDispatcher(override, [], 30000, 4, true);
-  return {
-    dispatcher: d,
-    host: new HostOutwardEffects(admission, override, d, journal, "test:a93")
-  };
+  const host = new HostOutwardEffects(admission, override, d, journal, "test:a93");
+  host.setContextUseRepository(new PostgresContextUseRepository(pool));
+  return { dispatcher: d, host };
 }
 describe.skipIf(!url)("A9.3 canonical provider/publication PostgreSQL boundaries", () => {
   beforeAll(async () => {
@@ -78,7 +86,8 @@ describe.skipIf(!url)("A9.3 canonical provider/publication PostgreSQL boundaries
       "020_effect_intents_v1.sql",
       "021_effect_attempts_v1.sql",
       "022_native_control_effects_v1.sql",
-      "023_reply_components_v1.sql"
+      "023_reply_components_v1.sql",
+      "024_context_use_manifests_v1.sql"
     ])
       await pool.query(
         await readFile(
@@ -1056,6 +1065,7 @@ describe.skipIf(!url)("A9.3 canonical provider/publication PostgreSQL boundaries
     const worker = new EffectDispatcher(override, [], 30, 4, true),
       owner = new HostOutwardEffects(admission, override, worker, journal, "test:a93"),
       t = task();
+    owner.setContextUseRepository(new PostgresContextUseRepository(pool));
     let calls = 0;
     await expect(
       owner.invoke(t, leaf, async (signal) => {

@@ -496,6 +496,11 @@ function createCharacterChatInput(
     ]
   };
   return {
+    contextProjectionVersions: [
+      request.version,
+      request.context.abiVersion,
+      "character-transport-context.v1"
+    ],
     messages: [
       {
         role: "system",

@@ -458,3 +458,5 @@ export {
   projectFinalizedEffectIntent,
   projectDreamEffectIntents
 } from "./effect-intent-compatibility.js";
+
+export * from "./context-use-repository.js";

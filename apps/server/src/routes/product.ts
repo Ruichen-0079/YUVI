@@ -134,7 +134,7 @@ export async function registerProductRoutes(
       return snapshot();
     try {
       const env = productEnvironment(context.activeRuntimeEnv, committed);
-      await context.reloadRuntimeConfig(env);
+      await context.reloadRuntimeConfig(env, committed);
       await applyPackagedSpeechRoute(context);
       for (const key of [
         "YUVI_PRODUCT_CONFIGURATION",

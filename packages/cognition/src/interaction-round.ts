@@ -155,7 +155,14 @@ export function createCognitionInteractionReasoningInput(
       projected.messages[1]!
     );
   }
-  return Object.freeze({ messages: Object.freeze(messages) as ReasoningInput["messages"] });
+  return Object.freeze({
+    messages: Object.freeze(messages) as ReasoningInput["messages"],
+    contextProjectionVersions: Object.freeze([
+      COGNITION_INTERACTION_ROUND_VERSION,
+      task.capabilities.version,
+      ...(exchanges.length ? [COGNITION_6P_VERSION] : [])
+    ])
+  });
 }
 
 export function interpretCognitionInteractionOutput(

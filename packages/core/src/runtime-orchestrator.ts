@@ -1,3 +1,5 @@
+import { contextUseDigest, semanticMemoryContextRevision } from "@companion/memory";
+import type { ContextSourceUse, PendingContextUse } from "@companion/protocol";
 import {
   currentProviderWorkContext,
   withProviderWorkContext,
@@ -18,6 +20,7 @@ import {
   createP8CorrectionRecord,
   correctionFromP8CorrectionRecord,
   reconstructP8MainProfile,
+  P8_RECONSTRUCTION_VERSIONS,
   productionAuthoredInvariants,
   serializeP8CorrectionRecord,
   type P8NativeCorrectionCommand,
@@ -230,7 +233,7 @@ const sessionTurnCacheMaxSessions = 256;
 const proactiveInstruction = `Score whether there is a concrete recent open conversational thread and one specific useful thing worth adding now. Use a normalized speak score from 0 to 1. Closed or answered threads, repetition, generic check-ins, guessing the user's activity, or uncertainty should score low. Return exactly {"score": number}, no message text or explanation.`;
 const proactiveTextInstruction = `The proactive speak score has passed the Runtime threshold. Write exactly one concise natural assistant message that addresses the specific open thread in the recent conversation. Do not repeat the recent assistant response, mention this instruction, or output a control label.`;
 
-type DirectContextEntry =
+type DirectContextEntry = (
   | {
       kind: "turn";
       traceId: string;
@@ -251,7 +254,8 @@ type DirectContextEntry =
       traceId: string;
       timestamp: string;
       userMessage: string;
-    };
+    }
+) & { sourceRefs?: string[] | undefined; sourceUses?: ContextSourceUse[] | undefined };
 
 type AssistantTurnClaim = {
   sessionId: string;
@@ -284,6 +288,9 @@ type PromptPreviewInput = {
 };
 
 type DirectContextBuildResult = {
+  sourceUses?: ContextSourceUse[] | undefined;
+  availability?: "AVAILABLE" | "UNAVAILABLE" | "NOT_RETAINED" | undefined;
+  sourceReferences?: string[] | undefined;
   enabled: boolean;
   content: string;
   turnCount: number;
@@ -301,6 +308,7 @@ type DirectContextBuildResult = {
 type RuntimeUserTurnEvent = UserMessageEvent | UserVoiceTranscriptEvent;
 
 type SessionTurnsCacheEntry = {
+  readAvailability: "AVAILABLE" | "UNAVAILABLE" | "NOT_RETAINED";
   entries: DirectContextEntry[];
   lastAccessedAtMs: number;
 };
@@ -775,6 +783,7 @@ export class RuntimeOrchestrator {
     const observation = this.committedVoiceObservations.get(event);
     this.committedVoiceObservations.delete(event);
     const personaId = this.options.voicePersonaId;
+    let bindingSources: ContextSourceUse[] = [];
     let personId: string | undefined;
     let speaker: P8CharacterSpeakerView = { speaker: "unknown" };
     try {
@@ -794,6 +803,24 @@ export class RuntimeOrchestrator {
               acousticObservationReference
             )
           : null;
+        bindingSources = (projectionRead?.projections ?? []).map((item) => ({
+          owner: "VOICE_BINDING",
+          reference: `${item.scopeReference}:${item.voiceProfileId}`,
+          revision: item.bindingRevision ?? item.nativeOwnerRevision,
+          digest: contextUseDigest(item),
+          availability: item.status === "UNAVAILABLE" ? "UNAVAILABLE" : "AVAILABLE",
+          revisionKind: "NATIVE",
+          selection: "SELECTED",
+          reason: "p8-host-voice-binding.v1",
+          semanticReferences: [
+            JSON.stringify(item),
+            JSON.stringify({
+              captureEpoch: observation.captureEpoch ?? null,
+              acousticGeneration: "NOT_PROVIDED_BY_OBSERVATION"
+            })
+          ],
+          roots: [...item.evidenceReferences, JSON.stringify(item.acousticObservationReference)]
+        }));
         const interpretation = interpretSpeechObservationIdentity({
           observation,
           address: createDefaultP8IdentityAddress(),
@@ -832,6 +859,7 @@ export class RuntimeOrchestrator {
       }
     };
     this.voiceSpeakers.set(scoped, speaker);
+    this.voiceUseSources.set(scoped, bindingSources);
     return scoped;
   }
 
@@ -839,6 +867,9 @@ export class RuntimeOrchestrator {
     PromptBuildOutput,
     readonly CharacterAbiSemanticSection[]
   >();
+  private readonly contextUses = new WeakMap<PromptBuildOutput, PendingContextUse>();
+  private readonly assemblySources = new WeakMap<MemoryVNextAssembly, ContextSourceUse[]>();
+  private readonly voiceUseSources = new WeakMap<RuntimeUserTurnEvent, ContextSourceUse[]>();
   private readonly currentSpeakerEvidence = new WeakMap<PromptBuildOutput, string>();
 
   async preflightP8Correction(
@@ -1013,9 +1044,16 @@ export class RuntimeOrchestrator {
     prompt: PromptBuildOutput,
     identity: { subjectUserId?: string | null | undefined; personaId?: string | null | undefined },
     memory: MemoryContext,
-    direct: { enabled: boolean; content?: string | undefined },
+    direct: {
+      enabled: boolean;
+      content?: string | undefined;
+      sourceReferences?: string[] | undefined;
+      sourceUses?: ContextSourceUse[] | undefined;
+      availability?: "AVAILABLE" | "UNAVAILABLE" | "NOT_RETAINED" | undefined;
+    },
     assembly: MemoryVNextAssembly,
-    speaker?: P8CharacterSpeakerView
+    speaker?: P8CharacterSpeakerView,
+    voiceSources: ContextSourceUse[] = []
   ): Promise<void> {
     const address = {
       ...createDefaultP8IdentityAddress(identity.subjectUserId ?? undefined),
@@ -1065,6 +1103,336 @@ export class RuntimeOrchestrator {
       ...memoryProjection.sections
     ]);
     if (speaker) this.currentSpeakerEvidence.set(prompt, JSON.stringify(speaker));
+    const selected = new Set([
+      ...memory.promptMemories.map((item) =>
+        isPromptMemoryCompatibility(item) ? item.provenanceId : item.id
+      ),
+      ...(assembly.characterProjection.memoryEvidence.provenanceReferences ?? [])
+    ]);
+    const sources: ContextSourceUse[] = [
+      ...(this.options.contextOwnerSources ?? []),
+      ...voiceSources,
+      ...prompt.sections
+        .filter((section) =>
+          ["CurrentTime", "CurrentAffect", "CurrentSituation"].includes(section.name)
+        )
+        .map((section) => ({
+          owner: "INPUT" as const,
+          reference: `volatile:${section.name}`,
+          revision: contextUseDigest(section.content),
+          digest: contextUseDigest(section.content),
+          availability:
+            section.name === "CurrentTime" ? ("AVAILABLE" as const) : ("NOT_RETAINED" as const),
+          revisionKind: "OBSERVED_SNAPSHOT" as const,
+          selection: "SELECTED" as const,
+          reason: "PromptBuilder volatile observation; not an owner truth revision",
+          ...(section.name === "CurrentTime"
+            ? { semanticReferences: [JSON.stringify({ formattedTime: section.content })] }
+            : {}),
+          roots: []
+        })),
+      {
+        owner: "PROFILE",
+        reference: "profile:A4",
+        revision: null,
+        digest: null,
+        availability: "NOT_USED",
+        revisionKind: "NOT_USED",
+        selection: "OMITTED",
+        reason: "A4 does not consume synthesized Profile",
+        roots: []
+      },
+      {
+        owner: "P8",
+        reference: JSON.stringify({ address, scopeReference }),
+        revision:
+          "nativeRevision" in correctionStore ? (correctionStore.nativeRevision ?? null) : null,
+        digest: contextUseDigest(correctionStore),
+        availability:
+          correctionStore.status === "ERROR"
+            ? "ERROR"
+            : correctionStore.status === "UNAVAILABLE"
+              ? "UNAVAILABLE"
+              : "AVAILABLE",
+        revisionKind:
+          "nativeRevision" in correctionStore && correctionStore.nativeRevision
+            ? "NATIVE"
+            : "OBSERVED_SNAPSHOT",
+        selection: "SELECTED",
+        reason: "P8 native correction read and reconstruction",
+        semanticReferences: [
+          JSON.stringify(P8_RECONSTRUCTION_VERSIONS),
+          JSON.stringify({
+            authoredInvariantsDigest: contextUseDigest(productionAuthoredInvariants()),
+            projectionDigest: contextUseDigest(p8)
+          })
+        ],
+        roots:
+          "corrections" in correctionStore
+            ? correctionStore.corrections.map((c) => c.correctionReference)
+            : []
+      },
+      ...(direct.sourceUses ?? []),
+      ...(this.assemblySources.get(assembly) ?? []).map((source) => ({
+        ...source,
+        selection: assembly.promptEpisodes.some((episode) =>
+          episode.sourceTurnIds.includes(source.reference)
+        )
+          ? ("SELECTED" as const)
+          : ("AVAILABLE" as const)
+      })),
+      {
+        owner: "CONVERSATION",
+        reference: "direct-context",
+        revision: contextUseDigest(direct.content ?? ""),
+        digest: contextUseDigest(direct.content ?? ""),
+        availability: !direct.enabled
+          ? "NOT_USED"
+          : direct.availability === "UNAVAILABLE"
+            ? "UNAVAILABLE"
+            : direct.availability === "NOT_RETAINED"
+              ? "NOT_RETAINED"
+              : direct.content
+                ? "AVAILABLE"
+                : "EMPTY",
+        revisionKind: "OBSERVED_SNAPSHOT",
+        selection: direct.enabled ? "SELECTED" : "OMITTED",
+        reason: "exact observed direct-context projection",
+        roots: direct.sourceUses?.map((source) => source.reference) ?? direct.sourceReferences ?? []
+      },
+      ...assembly.episodes.map((episode) => ({
+        owner: "MEMORY" as const,
+        reference: episode.id,
+        revision: episode.sourceDigest,
+        digest: contextUseDigest(episode),
+        availability: episode.sourceEvidence
+          ? ("AVAILABLE" as const)
+          : ("LEGACY_UNLINEAGED" as const),
+        revisionKind: "OBSERVED_SNAPSHOT" as const,
+        selection: assembly.promptEpisodes.some((selected) => selected.id === episode.id)
+          ? ("SELECTED" as const)
+          : ("AVAILABLE" as const),
+        reason: "memory-vnext.v1:recent episode projection",
+        roots: episode.sourceTurnIds
+      })),
+      ...assembly.associative.items.map((item) => ({
+        owner: "MEMORY" as const,
+        reference: item.provenanceId,
+        revision: contextUseDigest(item),
+        digest: contextUseDigest(item),
+        availability: "AVAILABLE" as const,
+        revisionKind: "OBSERVED_SNAPSHOT" as const,
+        selection: "SELECTED" as const,
+        reason: "memory-vnext.v1:associative selection",
+        roots: []
+      })),
+      ...(memory.observedOutcome?.events ?? outcome.events).map((item) => ({
+        owner: "MEMORY" as const,
+        reference: item.id,
+        revision: semanticMemoryContextRevision(item),
+        digest: contextUseDigest(item),
+        availability: item.lineage ? ("AVAILABLE" as const) : ("LEGACY_UNLINEAGED" as const),
+        revisionKind: "OBSERVED_SNAPSHOT" as const,
+        selection: selected.has(item.id)
+          ? ("SELECTED" as const)
+          : memory.memoryRetrievalDropped.some((dropped) => dropped.id === item.id)
+            ? ("OMITTED" as const)
+            : ("AVAILABLE" as const),
+        reason:
+          memory.memoryRetrievalDropped.find((dropped) => dropped.id === item.id)?.reason ??
+          "observed Memory read; no global revision",
+        semanticReferences: memoryHistorySelectors(item),
+        roots: memoryHistoryRoots(item)
+      })),
+      ...memory.retrievedMemories
+        .filter(
+          (item) =>
+            !(memory.observedOutcome?.events ?? outcome.events).some(
+              (event) => event.id === item.id
+            )
+        )
+        .map((item) => ({
+          owner: "MEMORY" as const,
+          reference: item.id,
+          revision: item.contextRevision ?? contextUseDigest(item),
+          digest: contextUseDigest(item),
+          availability: "LEGACY_UNLINEAGED" as const,
+          revisionKind: "OBSERVED_SNAPSHOT" as const,
+          selection: selected.has(item.id)
+            ? ("SELECTED" as const)
+            : item.excludedReason || memory.memoryRetrievalDropped.some((d) => d.id === item.id)
+              ? ("OMITTED" as const)
+              : ("AVAILABLE" as const),
+          reason:
+            item.excludedReason ??
+            memory.memoryRetrievalDropped.find((d) => d.id === item.id)?.reason ??
+            "legacy observed row lifecycle snapshot",
+          roots: []
+        })),
+      {
+        owner: "MEMORY",
+        reference: "retrieval-window",
+        revision: null,
+        digest: contextUseDigest({
+          status: memory.memoryFinalStatus ?? outcome.status,
+          semanticProviderStatus: outcome.status,
+          ids: [
+            ...(memory.observedOutcome?.events ?? outcome.events).map((e) => e.id),
+            ...memory.retrievedMemories.map((e) => e.id)
+          ],
+          scope: memory.retrievalScope
+        }),
+        availability:
+          memory.readRequested === false
+            ? "NOT_USED"
+            : (memory.memoryFinalStatus ?? outcome.status) === "empty"
+              ? "EMPTY"
+              : (memory.memoryFinalStatus ?? outcome.status) === "unavailable"
+                ? "UNAVAILABLE"
+                : (memory.memoryFinalStatus ?? outcome.status) === "error"
+                  ? "ERROR"
+                  : "AVAILABLE",
+        revisionKind: "OBSERVED_SNAPSHOT",
+        selection: "SELECTED",
+        reason: outcome.limited
+          ? "bounded top-k; not COMPLETE"
+          : "observed retrieval only; not COMPLETE",
+        roots: []
+      }
+    ];
+    const canonical = assembleCanonicalContext({
+      semanticSections: this.semanticContexts.get(prompt),
+      promptSections: prompt.sections,
+      currentSpeakerEvidence: speaker ? JSON.stringify(speaker) : null
+    });
+    const blocks = [
+      ...canonical.sharedSections.map((section) => ({
+        key: section.kind,
+        epistemicState: section.state,
+        text: section.summary ?? "",
+        sourceReferences: section.provenanceReferences
+          ? [...section.provenanceReferences]
+          : sources
+              .filter(
+                (s) =>
+                  s.selection === "SELECTED" &&
+                  (section.kind === "MEMORY_EVIDENCE"
+                    ? s.owner === "MEMORY"
+                    : section.kind === "RECENT_CONVERSATION"
+                      ? s.owner === "CONVERSATION"
+                      : ["IDENTITY", "PERSONA", "RELATIONSHIP_CONTEXT"].includes(section.kind)
+                        ? s.owner === "P8"
+                        : section.kind === "CURRENT_SITUATION"
+                          ? s.reference === "volatile:CurrentSituation" ||
+                            s.owner === "VOICE_BINDING"
+                          : false)
+              )
+              .map((s) => s.reference)
+      })),
+      ...prompt.sections.map((section) => ({
+        key: section.name,
+        text: section.content,
+        sourceReferences:
+          section.name === "RelevantMemory"
+            ? sources
+                .filter((s) => s.owner === "MEMORY" && s.selection === "SELECTED")
+                .map((s) => s.reference)
+            : section.name === "DirectContext"
+              ? (direct.sourceUses?.map((s) => s.reference) ?? [])
+              : ["CurrentTime", "CurrentAffect", "CurrentSituation"].includes(section.name)
+                ? [`volatile:${section.name}`]
+                : []
+      }))
+    ];
+    const capturedCorrectionDigest = contextUseDigest(correctionStore);
+    const memoryDependencies = async () => {
+      const bindingOwner = this.options.memory.getNativeVoiceBindingOwner?.();
+      for (const source of voiceSources) {
+        const projection = source.semanticReferences?.[0]
+          ? (JSON.parse(source.semanticReferences[0]) as P8VoiceBindingProjection)
+          : null;
+        if (!projection || !bindingOwner) return false;
+        if (projection.bindingRevision) {
+          const state = await bindingOwner.getBindingState(
+            projection.voiceProfileId,
+            projection.personaId
+          );
+          if (state.revision !== projection.bindingRevision) return false;
+        } else if (projection.nativeOwnerRevision) {
+          const snapshot = await bindingOwner.listBindingStates();
+          if (!snapshot.complete || snapshot.ownerRevision !== projection.nativeOwnerRevision)
+            return false;
+        }
+      }
+
+      const legacy = memory.retrievedMemories.filter(
+        (item) => item.contextRevision && selected.has(item.id)
+      );
+      if (this.options.memory.getContextMemoryRevision)
+        for (const item of legacy)
+          if (
+            (await this.options.memory.getContextMemoryRevision(item.id)) !== item.contextRevision
+          )
+            return false;
+      const provider = this.options.memory.getMemoryProvider?.();
+      if (provider)
+        for (const event of outcome.events.filter((item) => selected.has(item.id))) {
+          const actual = await provider.getEvent({
+            id: event.id,
+            scope: event.scope ?? memory.retrievalScope
+          });
+          if (
+            !actual ||
+            semanticMemoryContextRevision(actual) !== semanticMemoryContextRevision(event)
+          )
+            return false;
+        }
+      return true;
+    };
+    const use: PendingContextUse = {
+      manifest: {
+        assemblyVersion: "canonical-context.v1:p8-reconstruction.v1:memory-vnext.v1",
+        selectionVersion: "runtime-context-selection.v1",
+        enumeration: "TOP_K",
+        sources,
+        blocks: blocks.map((block) => ({
+          key: block.key,
+          ...("epistemicState" in block ? { epistemicState: block.epistemicState } : {}),
+          digest: contextUseDigest(block.text),
+          characters: block.text.length,
+          sourceReferences: block.sourceReferences,
+          stability: ["IDENTITY", "PERSONA", "SystemIdentity", "CharacterStyle"].includes(block.key)
+            ? "STABLE"
+            : "VOLATILE"
+        })),
+        stable: {
+          version: canonical.stability.stablePrefix.version,
+          digest: contextUseDigest(canonical.stability.stablePrefix.identity)
+        },
+        volatile: {
+          version: "canonical-volatile.v1",
+          digest: contextUseDigest(canonical.stability.volatileContext)
+        }
+      },
+      blocks,
+      verifyCurrent: async () =>
+        (await memoryDependencies()) &&
+        (!this.options.verifyContextOwners || (await this.options.verifyContextOwners())) &&
+        (!this.options.p8CorrectionStore ||
+          contextUseDigest(
+            await this.options.p8CorrectionStore.loadCorrections({ address, scopeReference })
+          ) === capturedCorrectionDigest)
+    };
+    this.contextUses.set(prompt, use);
+    this.activateContextUse(prompt);
+  }
+
+  private activateContextUse(prompt: PromptBuildOutput): void {
+    const context = currentProviderWorkContext();
+    if (!context) return;
+    const use = this.contextUses.get(prompt);
+    if (context.contextUse !== use) context.assemblyOrdinal = (context.assemblyOrdinal ?? 0) + 1;
+    context.contextUse = use;
   }
 
   /** Consume server-owned acoustic evidence once when the capture controller commits a turn. */
@@ -1766,6 +2134,8 @@ export class RuntimeOrchestrator {
     const cognitionOwner = this.beginCognitionTurn(
       isRuntimeUserTurnEvent(input) ? input.payload.sessionId : input.sessionId
     );
+    const historicalExecution = currentProviderWorkContext();
+    if (historicalExecution) historicalExecution.executionId = cognitionOwner.executionId;
     try {
       let userEvent = isRuntimeUserTurnEvent(input)
         ? input
@@ -1921,6 +2291,8 @@ export class RuntimeOrchestrator {
     const cognitionOwner = this.beginCognitionTurn(
       isRuntimeUserTurnEvent(input) ? input.payload.sessionId : input.sessionId
     );
+    const historicalExecution = currentProviderWorkContext();
+    if (historicalExecution) historicalExecution.executionId = cognitionOwner.executionId;
     try {
       let userEvent = isRuntimeUserTurnEvent(input)
         ? input
@@ -2827,6 +3199,7 @@ export class RuntimeOrchestrator {
           throw createRuntimeCancelledError(decisionProvider.name);
         }
 
+        this.activateContextUse(decisionPrompt);
         this.lastProactiveEvaluationAtMs = this.nowMs();
         const decisionOutput = await this.measureProvider(
           "chat",
@@ -2925,6 +3298,7 @@ export class RuntimeOrchestrator {
             })()
           : this.options.providers.getAssistantContinuationProvider?.();
         if (!continuationProvider) throw new ProactiveAdmissionError("not-eligible");
+        this.activateContextUse(textPrompt);
         activeProviderName = continuationProvider.name;
         finalOutput = await this.measureProvider(
           "chat",
@@ -3277,6 +3651,7 @@ export class RuntimeOrchestrator {
           directContextText: directContext.content
         })
       : emptyMemoryContext();
+    memoryContext.readRequested = memoryOptions.readMemory;
     const vnext = await this.assembleHierarchicalMemory(event.payload.sessionId, {
       queryText: event.payload.content,
       currentTurnText: event.payload.content,
@@ -3433,7 +3808,8 @@ export class RuntimeOrchestrator {
       memoryContext,
       directContext,
       vnext,
-      this.voiceSpeakers.get(event)
+      this.voiceSpeakers.get(event),
+      this.voiceUseSources.get(event)
     );
     return { prompt, memoryOptions };
   }
@@ -3460,6 +3836,7 @@ export class RuntimeOrchestrator {
             }
           )
         : emptyMemoryContext();
+    memoryContext.readRequested = input.readMemory && Boolean(queryText);
     const promptInput = {
       maxCharacters: modelContextBudget(this.options.providers.getChatContextWindow?.())
         .maxInputCharacters,
@@ -5284,7 +5661,7 @@ export class RuntimeOrchestrator {
     excludedMessageContentLength = 0
   ): Promise<void> {
     const conversation = this.options.conversation;
-    if (!conversation || !this.directContextConfig.enabled || this.getSessionTurns(sessionId)) {
+    if (!conversation || !this.directContextConfig.enabled) {
       return;
     }
 
@@ -5297,7 +5674,7 @@ export class RuntimeOrchestrator {
           (excludedMessageId ? excludedMessageContentLength : 0)
       });
       const entries = buildDirectContextEntries(messages, excludedMessageId).slice(-maxStoredTurns);
-      this.setSessionTurns(sessionId, entries);
+      this.setSessionTurns(sessionId, entries, "AVAILABLE");
     } catch (error) {
       await this.publishPersistenceError(
         "context_restore",
@@ -5310,7 +5687,7 @@ export class RuntimeOrchestrator {
         operation: "context_restore",
         sessionId
       });
-      this.setSessionTurns(sessionId, []);
+      this.setSessionTurns(sessionId, [], "UNAVAILABLE");
     }
   }
 
@@ -5393,6 +5770,7 @@ export class RuntimeOrchestrator {
         this.errorLogContext(error, request.traceId)
       );
       memoryContext.memoryQueryLength = request.queryText.length;
+      memoryContext.memoryFinalStatus = "error";
       return memoryContext;
     }
 
@@ -5470,6 +5848,7 @@ export class RuntimeOrchestrator {
       events: built.events,
       status: outcome.status === "ok" && built.events.length === 0 ? "empty" : outcome.status
     };
+    context.observedOutcome = outcome;
     context.retrievedMemoryCountRaw = outcome.rawCount ?? outcome.events.length;
     context.retrievedMemoryCount = built.diagnostics.selectedCount;
     context.memoryProviderStatus = outcome.status;
@@ -5586,7 +5965,7 @@ export class RuntimeOrchestrator {
       const messages = this.options.conversation
         ? await this.options.conversation.listRecentMessages(sessionId, window)
         : sessionTurnsToMessages(sessionId, this.getSessionTurns(sessionId) ?? []);
-      return await assembleMemoryVNextContext({
+      const assembled = await assembleMemoryVNextContext({
         now: new Date(),
         queryText: input.queryText,
         currentTurnText: input.currentTurnText,
@@ -5616,12 +5995,40 @@ export class RuntimeOrchestrator {
         ),
         persistEpisodes: false
       });
+      this.assemblySources.set(assembled, [
+        {
+          owner: "CONVERSATION",
+          reference: "conversation-window:L1",
+          revision: contextUseDigest(messages),
+          digest: contextUseDigest(messages),
+          availability: messages.length ? "AVAILABLE" : "EMPTY",
+          revisionKind: "OBSERVED_SNAPSHOT",
+          selection: "AVAILABLE",
+          reason: "Independent bounded L1 read; not a global checkpoint",
+          roots: messages.map((message) => message.id)
+        },
+        ...messages.map(
+          (message) =>
+            ({
+              owner: "CONVERSATION",
+              reference: message.id,
+              revision: `observed:${message.sequence}:${message.status}:${contextUseDigest(message.content)}`,
+              digest: contextUseDigest(message),
+              availability: "AVAILABLE",
+              revisionKind: "OBSERVED_SNAPSHOT",
+              selection: "SELECTED",
+              reason: "OBSERVED_LEGACY_SNAPSHOT:bounded conversation read",
+              roots: message.sourceJournalRef ? [JSON.stringify(message.sourceJournalRef)] : []
+            }) as ContextSourceUse
+        )
+      ]);
+      return assembled;
     } catch (error) {
       this.options.logger?.warn?.(
         "memory vNext assembly failed; continuing with empty L1",
         this.errorLogContext(error)
       );
-      return assembleMemoryVNextContext({
+      const fallback = await assembleMemoryVNextContext({
         now: new Date(),
         queryText: input.queryText,
         currentTurnText: input.currentTurnText,
@@ -5635,6 +6042,20 @@ export class RuntimeOrchestrator {
           limited: false
         }
       });
+      this.assemblySources.set(fallback, [
+        {
+          owner: "CONVERSATION",
+          reference: "conversation-window:L1",
+          revision: null,
+          digest: null,
+          availability: "UNAVAILABLE",
+          revisionKind: "OBSERVED_SNAPSHOT",
+          selection: "AVAILABLE",
+          reason: "Bounded L1 assembly read failed; no empty-read proof",
+          roots: []
+        }
+      ]);
+      return fallback;
     }
   }
 
@@ -5741,7 +6162,10 @@ export class RuntimeOrchestrator {
       turnCount: lines.length,
       charCount: content.length,
       truncated,
-      source: "session-turns"
+      source: "session-turns",
+      sourceReferences: selected.flatMap((entry) => entry.sourceRefs ?? []),
+      sourceUses: selected.flatMap((entry) => entry.sourceUses ?? []),
+      availability: this.sessionTurns.get(sessionId)?.readAvailability ?? "NOT_RETAINED"
     };
   }
 
@@ -5807,9 +6231,15 @@ export class RuntimeOrchestrator {
     return entry.entries;
   }
 
-  private setSessionTurns(sessionId: string, entries: DirectContextEntry[]): void {
+  private setSessionTurns(
+    sessionId: string,
+    entries: DirectContextEntry[],
+    readAvailability: SessionTurnsCacheEntry["readAvailability"] = this.sessionTurns.get(sessionId)
+      ?.readAvailability ?? "NOT_RETAINED"
+  ): void {
     this.sessionTurns.delete(sessionId);
     this.sessionTurns.set(sessionId, {
+      readAvailability,
       entries,
       lastAccessedAtMs: Date.now()
     });
@@ -6141,7 +6571,9 @@ type MemoryExtractionRuntimeDebug = MemoryExtractorStatus & {
 };
 
 type MemoryContext = {
+  readRequested?: boolean | undefined;
   semanticOutcome?: MemoryRetrievalOutcome;
+  observedOutcome?: MemoryRetrievalOutcome;
   retrievedMemoryCountRaw: number;
   retrievedMemoryCount: number;
   memoryProviderStatus?: MemoryRetrievalStatus | undefined;
@@ -6670,6 +7102,11 @@ function buildDirectContextEntries(
       // persistence order differs from user-message order.
       order: user.index,
       entry: {
+        sourceRefs: [user.message.id, assistant.message.id],
+        sourceUses: [
+          directConversationSource(user.message),
+          directConversationSource(assistant.message)
+        ],
         kind: "turn",
         traceId: user.message.traceId,
         timestamp: assistant.message.completedAt ?? assistant.message.createdAt,
@@ -6717,6 +7154,8 @@ function buildDirectContextEntries(
       candidates.push({
         order: assistant.index,
         entry: {
+          sourceRefs: [assistant.message.id],
+          sourceUses: [directConversationSource(assistant.message)],
           kind: "assistant-only",
           traceId: assistant.message.traceId,
           timestamp: assistant.message.completedAt ?? assistant.message.createdAt,
@@ -6740,6 +7179,8 @@ function buildDirectContextEntries(
     candidates.push({
       order: assistant.index,
       entry: {
+        sourceRefs: [assistant.message.id],
+        sourceUses: [directConversationSource(assistant.message)],
         kind: "assistant-only",
         traceId: assistant.message.traceId,
         timestamp: assistant.message.completedAt ?? assistant.message.createdAt,
@@ -6755,6 +7196,8 @@ function buildDirectContextEntries(
     candidates.push({
       order: user.index,
       entry: {
+        sourceRefs: [user.message.id],
+        sourceUses: [directConversationSource(user.message)],
         kind: "user-only",
         traceId: user.message.traceId,
         timestamp: user.message.completedAt ?? user.message.createdAt,
@@ -7493,4 +7936,78 @@ function bindingStateFingerprint(
     lineageStatus: state.lineageStatus,
     eventIds: [...state.eventIds].sort((a, b) => a.localeCompare(b))
   });
+}
+
+function memoryHistoryRoots(event: MemoryEvent): string[] {
+  const lineage = event.lineage as unknown;
+  const refs: string[] = [];
+  function visit(value: unknown) {
+    if (!value || typeof value !== "object") return;
+    if (Array.isArray(value)) {
+      value.forEach(visit);
+      return;
+    }
+    const item = value as Record<string, unknown>;
+    if (
+      item["kind"] === "JOURNAL_EVENT" &&
+      typeof item["namespace"] === "string" &&
+      typeof item["eventId"] === "string"
+    )
+      refs.push(
+        JSON.stringify({
+          kind: item["kind"],
+          namespace: item["namespace"],
+          eventId: item["eventId"]
+        })
+      );
+    else Object.values(item).forEach(visit);
+  }
+  visit(lineage);
+  return [...new Set(refs)];
+}
+
+function memoryHistorySelectors(event: MemoryEvent): string[] {
+  const lineage = event.lineage;
+  if (!lineage || lineage.state !== "GROUNDED") return [];
+  return [
+    ...lineage.parents.map((parent) => JSON.stringify(parent)),
+    JSON.stringify({
+      origin: lineage.origin,
+      derivation: lineage.derivation,
+      ...("authority" in lineage
+        ? { authority: lineage.authority, sourceTime: lineage.sourceTime }
+        : {
+            sources: lineage.sources.map((source) => ({
+              ref: source.ref,
+              selector: source.selector,
+              origin: source.origin,
+              sourceTime: source.sourceTime,
+              authority: source.authority
+            }))
+          })
+    })
+  ];
+}
+
+function directConversationSource(message: ConversationMessage): ContextSourceUse {
+  const observed = {
+    messageId: message.id,
+    sequence: String(message.sequence),
+    status: message.status,
+    contentDigest: contextUseDigest(message.content),
+    createdAt: message.createdAt,
+    completedAt: message.completedAt
+  };
+  return {
+    owner: "CONVERSATION",
+    reference: `direct:${message.id}:${contextUseDigest(observed)}`,
+    revision: contextUseDigest(observed),
+    digest: contextUseDigest(message),
+    availability: "AVAILABLE",
+    revisionKind: "OBSERVED_SNAPSHOT",
+    selection: "SELECTED",
+    reason: "OBSERVED_LEGACY_SNAPSHOT:direct-context read slot",
+    semanticReferences: [JSON.stringify(observed)],
+    roots: message.sourceJournalRef ? [JSON.stringify(message.sourceJournalRef)] : []
+  };
 }

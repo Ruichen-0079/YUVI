@@ -121,3 +121,5 @@ export * from "./product-configuration.js";
 export * from "./accounting.js";
 
 export { isProviderResponseObservedError } from "./invocation-witness.js";
+
+export { describeExposure } from "./accounting.js";

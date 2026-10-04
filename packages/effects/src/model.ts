@@ -256,7 +256,15 @@ export function freezeEffectRequest(raw: unknown): EffectIntentRequest {
           digest: z.string().regex(/^[a-f0-9]{64}$/),
           availability: z.enum(["TRANSIENT", "RETAINED_REFERENCE"]),
           reference: token.nullable(),
-          manifest: z.literal("A10_3_NOT_IMPLEMENTED")
+          manifest: z.union([
+            z.literal("A10_3_NOT_IMPLEMENTED"),
+            z
+              .object({
+                manifestId: z.string().regex(/^cm1_[a-f0-9]{64}$/),
+                exposureId: z.string().regex(/^ce1_[a-f0-9]{64}$/)
+              })
+              .strict()
+          ])
         })
         .strict(),
       configurationRef: token,
@@ -290,7 +298,16 @@ export function freezeEffectRequest(raw: unknown): EffectIntentRequest {
             .strict()
             .safeParse(parsed.data.payload)
         : z
-            .object({ path: z.string().min(1).max(4096) })
+            .object({
+              path: z.string().min(1).max(4096),
+              contextUse: z
+                .object({
+                  manifestId: z.string().regex(/^cm1_[a-f0-9]{64}$/),
+                  exposureId: z.string().regex(/^ce1_[a-f0-9]{64}$/)
+                })
+                .strict()
+                .optional()
+            })
             .strict()
             .safeParse(parsed.data.payload);
   if (!payload.success)

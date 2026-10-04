@@ -412,6 +412,10 @@ importers:
         version: 2.1.9(@types/node@22.19.18)
 
   packages/providers:
+    dependencies:
+      '@companion/protocol':
+        specifier: workspace:*
+        version: link:../protocol
     devDependencies:
       typescript:
         specifier: ^5.7.3

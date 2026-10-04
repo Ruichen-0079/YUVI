@@ -56,6 +56,9 @@ export class HostReadTextEffects {
   private readonly grants = new Map<string, ReadTextEffectInput>();
   readonly dispatcher: EffectDispatcher | null;
   private accepting = true;
+  captureContext?:
+    | ((key: string, input: unknown) => Promise<{ manifestId: string; exposureId: string }>)
+    | undefined;
   constructor(
     private readonly admission: EffectIntentAdmissionPort,
     store: EffectDispatchStore | null,
@@ -128,6 +131,7 @@ export class HostReadTextEffects {
     const isCurrent = () => this.accepting && !g.signal?.aborted && g.isCurrent();
     const id = effectIntentId("yuvi.read-text.v1", g.logicalKey);
     if (this.grants.has(id)) throw Error("Read-text logical work already has a volatile owner.");
+    const contextUse = await this.captureContext?.(g.logicalKey, { path: g.path });
     // Install before COMMIT can make pending work visible to the background worker.
     this.grants.set(id, g);
     try {
@@ -137,7 +141,7 @@ export class HostReadTextEffects {
           logicalKey: g.logicalKey,
           scope: g.scope,
           audience: identity.audience,
-          payload: { path: g.path },
+          payload: { path: g.path, ...(contextUse ? { contextUse } : {}) },
           causalRefs: [g.cause],
           executionId: g.executionId,
           expiresAt: g.expiresAt

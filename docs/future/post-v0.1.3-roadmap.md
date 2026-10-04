@@ -6,7 +6,7 @@ Experiment definitions (E1–E6) and risks (R1–R8) live in [research methodolo
 
 ## Entry condition
 
-v0.1.3 closure requires the gates in [its roadmap](09-v0.1.3-platform-completion.md): durable journal, outbox, lineage-bound consumers, context manifests, synthetic conformance and the real QQ probe. Aggregate A10.1, A9.1/A9.2 and A10.2 are implemented; A9.3 and aggregate A9 are implemented, and A10.3, A11 and A12 remain open, so release closure is not claimed. No atom below may bypass those invariants, and none may add a writer that the [authority map](authority.md) does not name.
+v0.1.3 closure requires the gates in [its roadmap](09-v0.1.3-platform-completion.md): durable journal, outbox, lineage-bound consumers, context manifests, synthetic conformance and the real QQ probe. Aggregate A10.1, A9.1/A9.2 and A10.2 are implemented; A9.3/aggregate A9 and A10.3/aggregate A10 are implemented ([A10.3 validation](../validation/v0.1.3-a10.3-context-manifest-reconstruction.md)); A11 and A12 remain open, so release closure is not claimed. No atom below may bypass those invariants, and none may add a writer that the [authority map](authority.md) does not name.
 
 ## Dependency order
 
@@ -407,4 +407,4 @@ Every _(gate)_ atom must commit to version control, **before** running: target b
 
 Persistent self or self vectors, a generic Life Layer, a generic regulation substrate, artificial hormones or neurotransmitter variables, desire or social-need meters, a stored generic trust variable, a “Yuvi-likeness” score, and engagement or retention optimization. 岁月感 and 第一人称生活实感 remain **LONG-TERM EVALUATION GOALS** measured by M2 probes. They are not modules.
 
-A9.3 closure: [canonical accounting, current regression counts and outbound audit](../validation/v0.1.3-a9.3-aggregate-effect-coverage.md). Historical descriptions of incomplete provider/publication coverage above are superseded by that record. A10.3 remains planned.
+A9.3 closure: [canonical accounting, current regression counts and outbound audit](../validation/v0.1.3-a9.3-aggregate-effect-coverage.md). Historical descriptions of incomplete provider/publication coverage above are superseded by that record. A10.3 is IMPLEMENTED REALITY; see [A10.3 validation](../validation/v0.1.3-a10.3-context-manifest-reconstruction.md). A11/A12 remain open.

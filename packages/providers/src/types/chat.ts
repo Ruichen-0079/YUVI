@@ -7,6 +7,8 @@ import type {
 
 export type ChatInput = {
   messages: TextMessage[];
+  /** Producer-declared serialization versions; evidence only, never context authority. */
+  contextProjectionVersions?: readonly string[] | undefined;
   model?: string | undefined;
   temperature?: number | undefined;
   maxTokens?: number | undefined;

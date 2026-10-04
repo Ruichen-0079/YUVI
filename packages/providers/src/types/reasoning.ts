@@ -8,6 +8,8 @@ import type {
 
 export type ReasoningInput = {
   messages: TextMessage[];
+  /** Producer-declared serialization versions; evidence only, never context authority. */
+  contextProjectionVersions?: readonly string[] | undefined;
   model?: string | undefined;
   effort?: "low" | "medium" | "high" | undefined;
   temperature?: number | undefined;
@@ -78,5 +80,8 @@ export type ReasoningCallOptions = ProviderCallOptions & {
 export interface ReasoningProvider {
   readonly name: string;
   healthCheck(): Promise<ProviderHealth>;
-  generateReasoning(input: ReasoningInput, options?: ReasoningCallOptions): Promise<ReasoningOutput>;
+  generateReasoning(
+    input: ReasoningInput,
+    options?: ReasoningCallOptions
+  ): Promise<ReasoningOutput>;
 }

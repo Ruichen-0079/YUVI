@@ -379,6 +379,7 @@ export type MemorySearchRankComponents = {
 };
 
 export type RetrievedMemoryDebug = {
+  contextRevision?: string | undefined;
   id: string;
   type: MemoryType;
   subtype: MemorySubtype | null;
