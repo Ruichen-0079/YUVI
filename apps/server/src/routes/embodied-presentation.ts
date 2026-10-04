@@ -6,10 +6,16 @@ export async function registerEmbodiedPresentationRoutes(
   app: FastifyInstance,
   context: AppContext
 ): Promise<void> {
+  app.post("/v1/embodied-presentation/permit", async (request, reply) => {
+    const accepted = await context.presentationEffects.accept(
+      (await import("@companion/protocol")).PresentationPermissionSchema.parse(request.body)
+    );
+    return reply.code(accepted ? 204 : 409).send();
+  });
   app.post("/v1/embodied-presentation/outcome", async (request, reply) => {
     let resolved: boolean;
     try {
-      resolved = context.embodiedPresentationBridge.resolve(request.body);
+      resolved = await context.presentationEffects.report(request.body);
     } catch {
       return reply.code(400).send({ error: "invalid_presentation_outcome" });
     }

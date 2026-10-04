@@ -1,3 +1,8 @@
+import {
+  AccountedPresentationRequestSchema,
+  type AccountedPresentationRequest
+} from "@companion/protocol";
+import type { SpeechSegmentSeal } from "@companion/protocol";
 import type { SpeechQueueState } from "./speech-queue.js";
 import type {
   ProactiveTurnAdmission,
@@ -48,7 +53,14 @@ export type CompanionBusMessage =
   | { kind: "start-generation"; requestId: string; sessionId: string }
   | { kind: "voice-enabled"; enabled: boolean }
   | { kind: "tts-config"; config: CompanionTtsConfiguration | null }
-  | { kind: "speak"; requestId: string; sequence: number; text: string; language: string }
+  | {
+      kind: "speak";
+      requestId: string;
+      sequence: number;
+      text: string;
+      language: string;
+      seal?: SpeechSegmentSeal;
+    }
   | { kind: "speech-end"; requestId: string }
   | { kind: "stop-speech"; requestId: string }
   | { kind: "generation-state"; requestId: string; state: CompanionGenerationState }
@@ -60,6 +72,7 @@ export type CompanionBusMessage =
       state: CompanionPlaybackState;
     }
   | { kind: "speech-status"; requestId: string; state: SpeechQueueState }
+  | { kind: "accounted-presentation-request"; envelope: AccountedPresentationRequest }
   | { kind: "embodied-presentation-request"; request: EmbodiedPresentationRequest }
   | { kind: "embodied-presentation-outcome"; report: EmbodiedPresentationOutcomeReport }
   | CompanionProactiveTextRequest
@@ -81,6 +94,7 @@ const knownKinds = new Set<string>([
   "companion-ready",
   "playback-status",
   "speech-status",
+  "accounted-presentation-request",
   "embodied-presentation-request",
   "embodied-presentation-outcome",
   "proactive-text-request",
@@ -166,6 +180,11 @@ export function isCompanionBusMessage(value: unknown): value is CompanionBusMess
       );
     case "speech-status":
       return isNonEmptyString(message["requestId"]) && isSpeechQueueState(message["state"]);
+    case "accounted-presentation-request":
+      return (
+        hasExactKeys(message, ["kind", "envelope"]) &&
+        AccountedPresentationRequestSchema.safeParse(message["envelope"]).success
+      );
     case "embodied-presentation-request":
       try {
         if (!hasExactKeys(message, ["kind", "request"])) return false;

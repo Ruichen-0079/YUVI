@@ -12,8 +12,50 @@ const mockState = vi.hoisted(() => ({
   controllers: [] as any[],
   canvasProps: [] as any[],
   surfaceStates: [] as any[],
-  surfaceSubscribes: [] as any[]
+  surfaceSubscribes: [] as any[],
+  permitGate: undefined as undefined | Promise<void>
 }));
+
+vi.mock("./api/client.js", () => ({
+  apiClient: {
+    createMediaGeneration: async ({ requestId }: any) => ({
+      generation: `generation:${requestId}`
+    }),
+    revokeMediaGeneration: async () => {},
+    sealSpeechSegment: async ({ segment, generation }: any) => ({
+      segmentId: `segment:${segment.replyId}:${segment.sequence}`,
+      generation
+    }),
+    mediaPermission: async (input: any) => {
+      await mockState.permitGate;
+      return { ...input, expiresAt: "2099-01-01T00:00:00.000Z", capability: "fixture-permission" };
+    },
+    reportMedia: async () => {},
+    acceptPresentationPermission: async () => {},
+    postEmbodiedPresentationOutcome: async () => {},
+    synthesizeSpeech: async () => {
+      throw Error("Controlled synthesis unavailable");
+    }
+  }
+}));
+function sealedSpeak(requestId: string, text: string, language: string) {
+  return {
+    kind: "speak",
+    requestId,
+    sequence: 0,
+    text,
+    language,
+    seal: {
+      version: "speech-segment-seal.v1",
+      replyId: `reply:${requestId}`,
+      sequence: "1",
+      throughSequence: "1",
+      preparedStart: 0,
+      preparedEnd: text.length,
+      preparationVersion: "speech-preparation.v1"
+    }
+  };
+}
 
 vi.mock("./subtitle-bus.js", () => ({
   publishSubtitleProjection: (message: any) => mockState.subtitles.push(message)
@@ -160,8 +202,7 @@ vi.mock("./tauri-window.js", () => ({
   preloadTauriWindowApi: async () => undefined,
   startWindowDragging: async () => undefined,
   startWindowResizeDragging: async () => undefined,
-  getCompanionPresentationState: async () =>
-    mockState.surfaceStates.at(-1) ?? { locked: false },
+  getCompanionPresentationState: async () => mockState.surfaceStates.at(-1) ?? { locked: false },
   subscribeSurfaceChanged: (refresh: () => void, onError: (error: unknown) => void) => {
     mockState.surfaceSubscribes.push({ refresh, onError });
     return () => undefined;
@@ -426,6 +467,7 @@ async function emitPlayback(
 }
 
 afterEach(() => {
+  mockState.permitGate = undefined;
   mockState.subtitles.length = 0;
   mockState.buses.length = 0;
   mockState.queues.length = 0;
@@ -650,6 +692,7 @@ describe("spoken Subtitle lifecycle", () => {
     try {
       const bus = mockState.buses.at(-1);
       await emitBus(bus, { kind: "start-generation", requestId: "turn-a", sessionId: "session" });
+      await emitBus(bus, sealedSpeak("turn-a", "同じ文字", "ja"));
       const queue = mockState.queues.at(-1);
       queue.callbacks.onSynthesisCompleted({
         segment: { requestId: "turn-a", sequence: 0 },
@@ -669,6 +712,30 @@ describe("spoken Subtitle lifecycle", () => {
       await emitPlayback(queue, "playbackStarted");
       await emitPlayback(queue, "playbackEnded");
       expect(mockState.subtitles).toHaveLength(count);
+    } finally {
+      await act(async () => mounted.root.unmount());
+      mounted.restore();
+    }
+  });
+
+  it("withholds visible subtitles while permission is pending and fences a late permission after replacement", async () => {
+    const mounted = await mountCompanionPage();
+    let release!: () => void;
+    mockState.permitGate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    try {
+      const bus = mockState.buses.at(-1);
+      await emitBus(bus, { kind: "start-generation", requestId: "turn-a", sessionId: "session" });
+      await emitBus(bus, { kind: "tts-config", config: { enabled: false, mode: "external" } });
+      await emitBus(bus, sealedSpeak("turn-a", "pending text", "en"));
+      expect(mockState.subtitles.every((message) => message.kind === "clear")).toBe(true);
+      await emitBus(bus, { kind: "start-generation", requestId: "turn-b", sessionId: "session" });
+      await act(async () => {
+        release();
+        await Promise.resolve();
+      });
+      expect(mockState.subtitles.every((message) => message.kind === "clear")).toBe(true);
     } finally {
       await act(async () => mounted.root.unmount());
       mounted.restore();
@@ -695,7 +762,7 @@ describe("spoken Subtitle lifecycle", () => {
     }
   });
 
-  it("publishes committed text immediately when TTS is disabled", async () => {
+  it("publishes committed text after durable subtitle permission when TTS is disabled", async () => {
     const mounted = await mountCompanionPage();
     try {
       const bus = mockState.buses.at(-1);
@@ -704,13 +771,7 @@ describe("spoken Subtitle lifecycle", () => {
         kind: "tts-config",
         config: { enabled: false, mode: "external" }
       });
-      await emitBus(bus, {
-        kind: "speak",
-        requestId: "turn-a",
-        sequence: 0,
-        text: "字幕回退文本",
-        language: "zh"
-      });
+      await emitBus(bus, sealedSpeak("turn-a", "字幕回退文本", "zh"));
       expect(mockState.subtitles.at(-1)).toMatchObject({
         kind: "committed-assistant-text",
         requestId: "turn-a",
@@ -729,13 +790,7 @@ describe("spoken Subtitle lifecycle", () => {
     try {
       const bus = mockState.buses.at(-1);
       await emitBus(bus, { kind: "start-generation", requestId: "turn-a", sessionId: "session" });
-      await emitBus(bus, {
-        kind: "speak",
-        requestId: "turn-a",
-        sequence: 0,
-        text: "fallback on failure",
-        language: "en"
-      });
+      await emitBus(bus, sealedSpeak("turn-a", "fallback on failure", "en"));
       const queue = mockState.queues.at(-1);
       // No subtitle before terminal audio events; sync path still waits.
       expect(mockState.subtitles.every((message) => message.kind === "clear")).toBe(true);

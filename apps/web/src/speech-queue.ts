@@ -1,7 +1,9 @@
-import type { TTSResponse } from "./api/client.js";
+import type { SpeechSegmentSeal } from "@companion/protocol";
+import { apiClient, type TTSResponse } from "./api/client.js";
 import type { SpeechSegmentIdentity } from "./speech-identity.js";
 
 export type SpeechQueueItem = {
+  seal?: SpeechSegmentSeal;
   text: string;
   language: string;
 };
@@ -25,7 +27,8 @@ export type SpeechItemState =
 
 export type SpeechSynthesizer = (
   item: SpeechQueueItem,
-  signal: AbortSignal
+  signal: AbortSignal,
+  segment?: SpeechSegmentIdentity
 ) => Promise<TTSResponse>;
 
 export type SpeechPlayer = (
@@ -172,7 +175,7 @@ export class SpeechPlaybackQueue {
         this.callbacks.onItemState?.(pending.segment, "synthesizing");
         let output: TTSResponse;
         try {
-          output = await this.synthesize(pending.item, this.controller.signal);
+          output = await this.synthesize(pending.item, this.controller.signal, pending.segment);
         } catch (error) {
           this.synthesizingItem = null;
           if (this.controller.signal.aborted) break;
@@ -259,10 +262,33 @@ export function detectSpeechLanguage(text: string): string {
   return "en";
 }
 
-export function createBrowserSpeechPlayer(): SpeechPlayer {
+export type BrowserPlaybackAccounting = {
+  authorize(
+    output: TTSResponse,
+    signal: AbortSignal
+  ): Promise<{
+    report(
+      observation: "ATTACHED" | "PLAYING" | "COMPLETED" | "INTERRUPTED" | "ERROR"
+    ): Promise<void>;
+  }>;
+};
+const canonicalPlayback: BrowserPlaybackAccounting = {
+  async authorize(output, signal) {
+    if (!output.media || signal.aborted)
+      throw Error("Active sealed audio is required for playback.");
+    const permission = await apiClient.mediaPermission({ ...output.media, kind: "PLAYBACK" });
+    if (Date.parse(permission.expiresAt) <= Date.now()) throw Error("Playback permission expired.");
+    if (signal.aborted) throw new DOMException("Speech playback cancelled.", "AbortError");
+    return { report: (observation) => apiClient.reportMedia({ permission, observation }) };
+  }
+};
+export function createBrowserSpeechPlayer(
+  accounting: BrowserPlaybackAccounting = canonicalPlayback
+): SpeechPlayer {
   let current: HTMLAudioElement | null = null;
-  return (output, signal, lifecycle) =>
-    new Promise<void>((resolve, reject) => {
+  return async (output, signal, lifecycle) => {
+    const permit = await accounting.authorize(output, signal);
+    return new Promise<void>((resolve, reject) => {
       if (signal.aborted) {
         reject(new DOMException("Speech playback cancelled.", "AbortError"));
         return;
@@ -294,6 +320,7 @@ export function createBrowserSpeechPlayer(): SpeechPlayer {
       const cleanup = () => {
         speechAudioData.delete(audio);
         URL.revokeObjectURL(url);
+        audio.onplaying = null;
         audio.onended = null;
         audio.onerror = null;
         audio.removeAttribute?.("src");
@@ -312,32 +339,47 @@ export function createBrowserSpeechPlayer(): SpeechPlayer {
       };
       const abort = () => {
         audio.pause();
+        void permit.report("INTERRUPTED").catch(() => {});
         emit({ type: "playbackStopped", audio });
         finish(new DOMException("Speech playback cancelled.", "AbortError"));
       };
+      audio.onplaying = () => {
+        if (settled || signal.aborted) return;
+        void permit.report("PLAYING").then(
+          () => {
+            if (!settled && !signal.aborted) emit({ type: "playbackStarted", audio });
+          },
+          () => {
+            audio.pause();
+            finish(new Error("Playback report was fenced."));
+          }
+        );
+      };
       audio.onended = () => {
+        void permit.report("COMPLETED").catch(() => {});
         emit({ type: "playbackEnded", audio });
         finish();
       };
       audio.onerror = () => {
         const error = new Error("Speech playback failed.");
+        void permit.report("ERROR").catch(() => {});
         emit({ type: "playbackError", audio, error });
         finish(error);
       };
+      void permit.report("ATTACHED").catch(() => {});
       emit({ type: "audioElementAttached", audio });
       signal.addEventListener("abort", abort, { once: true });
       void audio
         .play()
         .then(() => {
-          // A pending play() promise may settle after cancellation. Once the
-          // lifecycle is settled, the old generation must not revive speech
-          // presence or the mouth analyser.
-          if (!settled) emit({ type: "playbackStarted", audio });
+          /* play acceptance is not device PLAYING evidence. */
         })
         .catch((error) => {
           if (settled) return;
+          void permit.report("ERROR").catch(() => {});
           emit({ type: "playbackError", audio, error });
           finish(error);
         });
     });
+  };
 }

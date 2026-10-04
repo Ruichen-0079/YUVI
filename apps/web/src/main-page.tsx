@@ -1,3 +1,4 @@
+import type { SpeechSegmentSeal } from "@companion/protocol";
 import { useConversationSession, useConversationHistory } from "./use-conversation-history.js";
 import { t } from "./locale.js";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
@@ -56,10 +57,7 @@ import {
 } from "./speech-playback-correlation.js";
 import type { SpeechSegmentIdentity } from "./speech-identity.js";
 import { isTauriRuntime } from "./tauri-window.js";
-import {
-  readVisionImageAttachment,
-  type VisionImageAttachmentDraft
-} from "./vision-input.js";
+import { readVisionImageAttachment, type VisionImageAttachmentDraft } from "./vision-input.js";
 import { fetchUserSettings, subscribeUserSettingsChanged } from "./user-settings-client.js";
 import { initialServiceStatusState, type ServiceStatusState } from "./service-status-state.js";
 import {
@@ -104,9 +102,9 @@ export function MainPage(): JSX.Element {
   const [sessionId, setSessionId] = useConversationSession("default");
   const [readMemory, setReadMemory] = useState(true);
   const [writeMemory, setWriteMemory] = useState(true);
-  const [memoryPreferenceState, setMemoryPreferenceState] = useState<"loading" | "ready" | "unavailable">(
-    () => (isTauriRuntime() ? "loading" : "ready")
-  );
+  const [memoryPreferenceState, setMemoryPreferenceState] = useState<
+    "loading" | "ready" | "unavailable"
+  >(() => (isTauriRuntime() ? "loading" : "ready"));
   const [promptPreview, setPromptPreview] = useState(true);
   const [serviceStatus, setServiceStatus] = useState<ServiceStatusState>(initialServiceStatusState);
   const [ttsConfig, setTtsConfig] = useState<CompanionTtsConfiguration | null>(() =>
@@ -120,7 +118,11 @@ export function MainPage(): JSX.Element {
   const [messages, dispatchMessages] = useReducer(reduceChatMessages, [] as ChatMessage[]);
   const [requestStatus, setRequestStatus] = useState<RequestStatus>("idle");
   const [error, setError] = useState<string | null>(null);
-  const historyError = useConversationHistory(sessionId, requestStatus === "sending", dispatchMessages);
+  const historyError = useConversationHistory(
+    sessionId,
+    requestStatus === "sending",
+    dispatchMessages
+  );
   const [voicePlaybackStatus, setVoicePlaybackStatus] = useState<VoicePlaybackStatus>("idle");
   const [actualPlaybackActive, setActualPlaybackActive] = useState(false);
   const [input, setInput] = useState("");
@@ -168,6 +170,8 @@ export function MainPage(): JSX.Element {
     generation: string;
     segmenter: SpeechSegmenter;
     sequence: number;
+    replyId?: string;
+    throughSequence?: string;
     ended: boolean;
     feedback: SpeechPipelineFeedback;
   } | null>(null);
@@ -179,7 +183,6 @@ export function MainPage(): JSX.Element {
   const audioCaptureRef = useRef<ActiveAudioCapture | null>(null);
   const liveSpeechCaptureRef = useRef<LiveSpeechCapture | null>(null);
   const handsFreeBufferRef = useRef<HandsFreeUtteranceBuffer | null>(null);
-  const speechPlaybackByRequestRef = useRef(new Map<string, string>());
   const transcribeAbortRef = useRef<AbortController | null>(null);
   const [micTrackSettings, setMicTrackSettings] = useState<MicrophoneTrackSettings | null>(null);
 
@@ -397,10 +400,6 @@ export function MainPage(): JSX.Element {
         setVoicePlaybackStatus(message.state);
         if (message.state === "idle" || message.state === "stopped") {
           speechEpochRef.current = null;
-          reportPlaybackTerminal(
-            message.requestId,
-            message.state === "stopped" ? "INTERRUPTED" : "COMPLETED"
-          );
         }
       } else if (message.kind === "playback-status") {
         if (speechEpochRef.current !== message.requestId) return;
@@ -424,13 +423,6 @@ export function MainPage(): JSX.Element {
           }
         }
         applyPlaybackStatus(message.state, setVoicePlaybackStatus, setActualPlaybackActive);
-        if (message.state === "started") {
-          reportPlaybackOutcome(message.requestId, "STARTED");
-        } else if (message.state === "stopped") {
-          reportPlaybackTerminal(message.requestId, "INTERRUPTED");
-        } else if (message.state === "error") {
-          reportPlaybackTerminal(message.requestId, "FAILED");
-        }
       } else if (message.kind === "proactive-text-request") {
         handleProactiveTextRequest(message);
       }
@@ -592,14 +584,6 @@ export function MainPage(): JSX.Element {
       ended: false,
       feedback
     };
-    if (shouldRequestTts) {
-      void apiClient
-        .admitSpeechPlayback({ sessionId, requestId })
-        .then((effect) => {
-          speechPlaybackByRequestRef.current.set(requestId, effect.effectId);
-        })
-        .catch(() => undefined);
-    }
     dispatchMessages({
       type: "append-turn",
       user: {
@@ -649,6 +633,8 @@ export function MainPage(): JSX.Element {
             // The companion window owns sentence-level TTS for this path;
             // avoid asking Runtime to synthesize the full reply a second time.
             voiceOutput: false,
+            speechPlan: "CLIENT_SEGMENTED",
+            speechRequestId: requestId,
             promptPreview
           }
         },
@@ -658,7 +644,8 @@ export function MainPage(): JSX.Element {
             if (!mountedRef.current || !isCurrentRequest(activeRequestRef.current, ownership)) {
               return;
             }
-            if ("traceId" in event) dispatchMessages({ type: "bind-trace", assistantId, traceId: event.traceId });
+            if ("traceId" in event)
+              dispatchMessages({ type: "bind-trace", assistantId, traceId: event.traceId });
             if (event.type === "text-delta") {
               dispatchMessages({
                 type: "append-delta",
@@ -666,7 +653,13 @@ export function MainPage(): JSX.Element {
                 text: event.text,
                 traceId: event.traceId
               });
-              forwardSpeechSegments(requestId, event.text, event.language);
+              forwardSpeechSegments(
+                requestId,
+                event.text,
+                event.language,
+                event.replyId,
+                event.sequence
+              );
               return;
             }
             if (event.type === "error") {
@@ -741,66 +734,76 @@ export function MainPage(): JSX.Element {
     let assistantProjected = false;
 
     try {
-      const response = await apiClient.streamProactiveTurn(effect.request, {
-        signal: effect.ownership.controller.signal,
-        onEvent: (event: ProactiveMessageStreamEvent) => {
-          if (!isCurrent()) return;
-          if (event.type === "proactive-decision") {
-            busRef.current?.post({
-              kind: "proactive-text-admission-result",
-              decisionId: effect.decisionId,
-              ...RUNTIME_ADMITTED
-            });
-            if (event.decision === "NO_OP") {
-              effect.ownership.completedObserved = true;
-              setRequestStatus("idle");
-            }
-            return;
+      const response = await apiClient.streamProactiveTurn(
+        {
+          ...effect.request,
+          options: {
+            ...effect.request.options,
+            speechPlan: "CLIENT_SEGMENTED",
+            speechRequestId: effect.requestId
           }
-          if (event.type === "text-delta") {
-            if (!assistantProjected) {
-              assistantProjected = true;
-              dispatchMessages({
-                type: "append-assistant",
-                assistant: {
-                  id: effect.assistantId,
-                  requestId: effect.requestId,
-                  role: "assistant",
-                  content: event.text,
-                  status: "streaming",
+        },
+        {
+          signal: effect.ownership.controller.signal,
+          onEvent: (event: ProactiveMessageStreamEvent) => {
+            if (!isCurrent()) return;
+            if (event.type === "proactive-decision") {
+              busRef.current?.post({
+                kind: "proactive-text-admission-result",
+                decisionId: effect.decisionId,
+                ...RUNTIME_ADMITTED
+              });
+              if (event.decision === "NO_OP") {
+                effect.ownership.completedObserved = true;
+                setRequestStatus("idle");
+              }
+              return;
+            }
+            if (event.type === "text-delta") {
+              if (!assistantProjected) {
+                assistantProjected = true;
+                dispatchMessages({
+                  type: "append-assistant",
+                  assistant: {
+                    id: effect.assistantId,
+                    requestId: effect.requestId,
+                    role: "assistant",
+                    content: event.text,
+                    status: "streaming",
+                    traceId: event.traceId
+                  }
+                });
+              } else {
+                dispatchMessages({
+                  type: "append-delta",
+                  assistantId: effect.assistantId,
+                  text: event.text,
                   traceId: event.traceId
-                }
-              });
-            } else {
-              dispatchMessages({
-                type: "append-delta",
-                assistantId: effect.assistantId,
-                text: event.text,
-                traceId: event.traceId
-              });
+                });
+              }
+              return;
             }
-            return;
-          }
-          if (event.type === "error") {
+            if (event.type === "error") {
+              dispatchMessages({
+                type: "fail",
+                assistantId: effect.assistantId,
+                error: event.message
+              });
+              setError(event.message);
+              return;
+            }
+            effect.ownership.completedObserved = true;
             dispatchMessages({
-              type: "fail",
+              type: "complete",
               assistantId: effect.assistantId,
-              error: event.message
+              content: event.content,
+              traceId: event.traceId,
+              provider: event.provider
             });
-            setError(event.message);
-            return;
+            setRequestStatus("success");
           }
-          effect.ownership.completedObserved = true;
-          dispatchMessages({
-            type: "complete",
-            assistantId: effect.assistantId,
-            content: event.content,
-            traceId: event.traceId,
-            provider: event.provider
-          });
-          setRequestStatus("success");
         }
-      });
+      );
 
       if (!isCurrent()) return;
       if (response.type === "proactive-decision") {
@@ -850,7 +853,13 @@ export function MainPage(): JSX.Element {
     }
   }
 
-  function forwardSpeechSegments(requestId: string, text: string, language?: string): void {
+  function forwardSpeechSegments(
+    requestId: string,
+    text: string,
+    language?: string,
+    replyId?: string,
+    throughSequence?: string
+  ): void {
     const speech = speechSessionRef.current;
     const bus = busRef.current;
     // Speak segments are the single committed-text feed for Companion speech
@@ -860,11 +869,28 @@ export function MainPage(): JSX.Element {
       return;
     }
     if (language) speech.language = language;
-    for (const segment of speech.segmenter.push(text)) {
+    if (replyId) speech.replyId = replyId;
+    if (throughSequence) speech.throughSequence = throughSequence;
+    speech.segmenter.push(text);
+    for (const decision of speech.segmenter.sealedSegments) {
+      const segment = decision.text;
       bus.post({
         kind: "speak",
         requestId,
         sequence: speech.sequence++,
+        ...(speech.replyId && speech.throughSequence
+          ? {
+              seal: {
+                version: "speech-segment-seal.v1",
+                replyId: speech.replyId,
+                sequence: String(speech.sequence),
+                throughSequence: speech.throughSequence,
+                preparedStart: decision.preparedStart,
+                preparedEnd: decision.preparedEnd,
+                preparationVersion: "speech-preparation.v1"
+              } satisfies SpeechSegmentSeal
+            }
+          : {}),
         text: segment,
         language: speech.language ?? detectSpeechLanguage(segment)
       });
@@ -880,11 +906,26 @@ export function MainPage(): JSX.Element {
     // Always flush committed segments for Subtitle even when TTS audio is
     // off; Companion suppresses audio queuing in that case but still
     // publishes subtitle fallbacks.
-    for (const segment of speech.segmenter.flush(reason)) {
+    speech.segmenter.flush(reason);
+    for (const decision of speech.segmenter.sealedSegments) {
+      const segment = decision.text;
       bus.post({
         kind: "speak",
         requestId,
         sequence: speech.sequence++,
+        ...(speech.replyId && speech.throughSequence
+          ? {
+              seal: {
+                version: "speech-segment-seal.v1",
+                replyId: speech.replyId,
+                sequence: String(speech.sequence),
+                throughSequence: speech.throughSequence,
+                preparedStart: decision.preparedStart,
+                preparedEnd: decision.preparedEnd,
+                preparationVersion: "speech-preparation.v1"
+              } satisfies SpeechSegmentSeal
+            }
+          : {}),
         text: segment,
         language: speech.language ?? detectSpeechLanguage(segment)
       });
@@ -928,24 +969,6 @@ export function MainPage(): JSX.Element {
     setVoicePlaybackStatus("stopped");
     setActualPlaybackActive(false);
     playbackCorrelationRef.current = retireActiveSpeechPlayback(playbackCorrelationRef.current);
-    reportPlaybackTerminal(requestId, "INTERRUPTED");
-  }
-
-  function reportPlaybackOutcome(
-    requestId: string,
-    outcome: "STARTED" | "COMPLETED" | "FAILED" | "INTERRUPTED"
-  ): void {
-    const effectId = speechPlaybackByRequestRef.current.get(requestId);
-    if (!effectId) return;
-    void apiClient.reportSpeechPlaybackOutcome({ effectId, outcome }).catch(() => undefined);
-  }
-
-  function reportPlaybackTerminal(
-    requestId: string,
-    outcome: "COMPLETED" | "FAILED" | "INTERRUPTED"
-  ): void {
-    reportPlaybackOutcome(requestId, outcome);
-    if (outcome !== "COMPLETED") speechPlaybackByRequestRef.current.delete(requestId);
   }
 
   async function startLiveSpeech(): Promise<void> {
@@ -1106,14 +1129,6 @@ export function MainPage(): JSX.Element {
       ended: false,
       feedback
     };
-    if (shouldRequestTts) {
-      void apiClient
-        .admitSpeechPlayback({ sessionId, requestId })
-        .then((effect) => {
-          speechPlaybackByRequestRef.current.set(requestId, effect.effectId);
-        })
-        .catch(() => undefined);
-    }
     dispatchMessages({
       type: "append-turn",
       user: {
@@ -1145,6 +1160,8 @@ export function MainPage(): JSX.Element {
             readMemory,
             writeMemory,
             voiceOutput: false,
+            speechPlan: "CLIENT_SEGMENTED",
+            speechRequestId: requestId,
             promptPreview
           }
         },
@@ -1154,7 +1171,8 @@ export function MainPage(): JSX.Element {
             if (!mountedRef.current || !isCurrentRequest(activeRequestRef.current, ownership)) {
               return;
             }
-            if ("traceId" in event) dispatchMessages({ type: "bind-trace", assistantId, traceId: event.traceId });
+            if ("traceId" in event)
+              dispatchMessages({ type: "bind-trace", assistantId, traceId: event.traceId });
             if (event.type === "text-delta") {
               dispatchMessages({
                 type: "append-delta",
@@ -1162,7 +1180,13 @@ export function MainPage(): JSX.Element {
                 text: event.text,
                 traceId: event.traceId
               });
-              forwardSpeechSegments(requestId, event.text, event.language);
+              forwardSpeechSegments(
+                requestId,
+                event.text,
+                event.language,
+                event.replyId,
+                event.sequence
+              );
               return;
             }
             if (event.type === "error") {
@@ -1318,7 +1342,8 @@ export function MainPage(): JSX.Element {
       setImageAttachment(attachment);
     } catch (caught) {
       if (!mountedRef.current) return;
-      const message = caught instanceof Error ? caught.message : "The selected image could not be read.";
+      const message =
+        caught instanceof Error ? caught.message : "The selected image could not be read.";
       setAttachmentError(t(message));
     }
   }
@@ -1388,7 +1413,11 @@ export function MainPage(): JSX.Element {
                       {message.role === "assistant" &&
                         message.status === "streaming" &&
                         !message.content && (
-                          <span className="yuvi-main-thinking" role="status" aria-label={t("Generating")}>
+                          <span
+                            className="yuvi-main-thinking"
+                            role="status"
+                            aria-label={t("Generating")}
+                          >
                             <span />
                             <span />
                             <span />
@@ -1501,9 +1530,7 @@ export function MainPage(): JSX.Element {
                 aria-pressed={microphoneActive}
                 aria-label={microphoneLabel}
                 title={microphoneLabel}
-                onClick={() =>
-                  void (microphoneActive ? stopLiveSpeech() : startLiveSpeech())
-                }
+                onClick={() => void (microphoneActive ? stopLiveSpeech() : startLiveSpeech())}
               >
                 <MicrophoneIcon active={microphoneActive} />
               </button>
@@ -1683,8 +1710,10 @@ function friendlyAudioError(error: unknown): string {
     if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
       return "麦克风访问被拒绝。请重新点击麦克风并允许访问；若桌面版没有权限提示，请重启更新后的 YUVI。";
     }
-    if (error.name === "NotFoundError") return "未找到麦克风。请连接麦克风，并在系统声音设置中选择输入设备后重试。";
-    if (error.name === "NotReadableError") return "无法打开麦克风。请在系统声音设置中检查输入设备，并关闭占用它的应用后重试。";
+    if (error.name === "NotFoundError")
+      return "未找到麦克风。请连接麦克风，并在系统声音设置中选择输入设备后重试。";
+    if (error.name === "NotReadableError")
+      return "无法打开麦克风。请在系统声音设置中检查输入设备，并关闭占用它的应用后重试。";
     if (error.message) return error.message;
   }
   return "语音录音或转写失败，请检查麦克风权限和本地语音服务。";

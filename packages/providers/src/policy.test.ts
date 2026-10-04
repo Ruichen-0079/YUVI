@@ -33,7 +33,9 @@ function health(provider: string): Promise<ProviderHealth> {
 function providerError(
   provider: string,
   code: ProviderErrorCode,
-  overrides: Partial<Omit<ProviderErrorOptions, "provider" | "capability" | "code" | "message">> = {}
+  overrides: Partial<
+    Omit<ProviderErrorOptions, "provider" | "capability" | "code" | "message">
+  > = {}
 ): ProviderError {
   return new ProviderError({
     provider,
@@ -121,15 +123,22 @@ describe("provider error policy defaults", () => {
     });
     expect(forced.retryable).toBe(true);
     expect(forced.fallbackEligible).toBe(false);
-    expect(
-      canFallbackProviderError(forced, { anotherProviderExists: true })
-    ).toBe(false);
+    expect(canFallbackProviderError(forced, { anotherProviderExists: true })).toBe(false);
   });
 
-  it("derives replay safety only from effectState", () => {
+  it("permits replay only when dispatch is proven not to have started", () => {
     expect(isProviderReplaySafe("not_started")).toBe(true);
-    expect(isProviderReplaySafe("unknown")).toBe(true);
+    expect(isProviderReplaySafe("unknown")).toBe(false);
     expect(isProviderReplaySafe("committed")).toBe(false);
+
+    const unknown = new ProviderError({
+      provider: "primary",
+      capability: "chat",
+      code: ProviderErrorCode.Timeout,
+      message: "response was lost",
+      effectState: "unknown"
+    });
+    expect(isSafeToReplay(unknown)).toBe(false);
 
     const committed = new ProviderError({
       provider: "primary",
@@ -143,7 +152,7 @@ describe("provider error policy defaults", () => {
     expect(JSON.stringify(committed)).not.toContain("safeToReplay");
   });
 
-  it("does not expose internal policy fields through toJSON", () => {
+  it("serializes a safe error summary without internal policy fields", () => {
     const error = new ProviderError({
       provider: "primary",
       capability: "chat",
@@ -161,7 +170,7 @@ describe("provider error policy defaults", () => {
       code: ProviderErrorCode.RateLimited,
       retryable: true,
       statusCode: undefined,
-      message: "limited"
+      message: "primary chat failed (RATE_LIMITED)."
     });
     expect(JSON.stringify(error)).not.toContain("fallbackEligible");
     expect(JSON.stringify(error)).not.toContain("effectState");
@@ -221,7 +230,7 @@ describe("provider error policy defaults", () => {
 });
 
 describe("non-stream provider chain policy", () => {
-  it("falls back from InvalidApiKey and reports identity-based fallbackUsed", async () => {
+  it("falls back only when InvalidApiKey is explicitly known to precede dispatch", async () => {
     const primary = vi.fn(async () => {
       throw providerError("primary", ProviderErrorCode.InvalidApiKey);
     });
@@ -332,10 +341,10 @@ describe("non-stream provider chain policy", () => {
     const controller = new AbortController();
     controller.abort();
     await expect(
-      new FallbackChatProvider([chatLeaf("primary", primary), chatLeaf("backup", backup)]).generateReply(
-        input,
-        { signal: controller.signal }
-      )
+      new FallbackChatProvider([
+        chatLeaf("primary", primary),
+        chatLeaf("backup", backup)
+      ]).generateReply(input, { signal: controller.signal })
     ).rejects.toMatchObject({
       code: ProviderErrorCode.Cancelled,
       provider: "primary",
@@ -363,17 +372,23 @@ describe("non-stream provider chain policy", () => {
     expect(backup).not.toHaveBeenCalled();
   });
 
-  it("does not retry the same provider for RateLimited", async () => {
+  it("does not hop to another provider for RateLimited UNKNOWN", async () => {
     const primary = vi.fn(async () => {
       throw providerError("primary", ProviderErrorCode.RateLimited);
     });
     const backup = vi.fn(async () => ok("backup"));
-    const output = await new FallbackChatProvider([
-      chatLeaf("primary", primary),
-      chatLeaf("backup", backup)
-    ]).generateReply(input);
+    await expect(
+      new FallbackChatProvider([
+        chatLeaf("primary", primary),
+        chatLeaf("backup", backup)
+      ]).generateReply(input)
+    ).rejects.toMatchObject({
+      provider: "primary",
+      code: ProviderErrorCode.RateLimited,
+      effectState: "unknown"
+    });
     expect(primary).toHaveBeenCalledTimes(1);
-    expect(output.finalProvider).toBe("backup");
+    expect(backup).not.toHaveBeenCalled();
   });
 
   it("does not switch providers when retryable is true but fallbackEligible is false", async () => {
@@ -397,14 +412,20 @@ describe("non-stream provider chain policy", () => {
     expect(backup).not.toHaveBeenCalled();
   });
 
-  it("allows fallback for malformed responses", async () => {
-    const output = await new FallbackChatProvider([
-      chatLeaf("primary", async () => {
-        throw providerError("primary", ProviderErrorCode.MalformedResponse);
-      }),
-      chatLeaf("backup", async () => ({ message: { role: "assistant", content: "ok" } }))
-    ]).generateReply(input);
-    expect(output.finalProvider).toBe("backup");
+  it("does not fall back for malformed responses with UNKNOWN effect state", async () => {
+    const backup = vi.fn(async (): Promise<ChatOutput> => ok("unused"));
+    await expect(
+      new FallbackChatProvider([
+        chatLeaf("primary", async () => {
+          throw providerError("primary", ProviderErrorCode.MalformedResponse);
+        }),
+        chatLeaf("backup", backup)
+      ]).generateReply(input)
+    ).rejects.toMatchObject({
+      code: ProviderErrorCode.MalformedResponse,
+      effectState: "unknown"
+    });
+    expect(backup).not.toHaveBeenCalled();
     const sample = new ProviderError({
       provider: "primary",
       capability: "chat",
@@ -435,25 +456,35 @@ describe("non-stream provider chain policy", () => {
     expect(backup).not.toHaveBeenCalled();
   });
 
-  it("allows fallback for remote vendor UnsupportedInput", async () => {
-    const output = await new FallbackChatProvider([
-      chatLeaf("primary", async () => {
-        throw providerError("primary", ProviderErrorCode.UnsupportedInput, { statusCode: 400 });
-      }),
-      chatLeaf("backup", async () => ({ message: { role: "assistant", content: "ok" } }))
-    ]).generateReply(input);
-    expect(output.finalProvider).toBe("backup");
-    const sample = providerError("primary", ProviderErrorCode.UnsupportedInput, { statusCode: 413 });
+  it("does not fall back for an HTTP rejection without certified no-effect evidence", async () => {
+    const backup = vi.fn(async (): Promise<ChatOutput> => ok("unused"));
+    await expect(
+      new FallbackChatProvider([
+        chatLeaf("primary", async () => {
+          throw providerError("primary", ProviderErrorCode.UnsupportedInput, { statusCode: 400 });
+        }),
+        chatLeaf("backup", backup)
+      ]).generateReply(input)
+    ).rejects.toMatchObject({
+      code: ProviderErrorCode.UnsupportedInput,
+      effectState: "unknown"
+    });
+    expect(backup).not.toHaveBeenCalled();
+    const sample = providerError("primary", ProviderErrorCode.UnsupportedInput, {
+      statusCode: 413
+    });
     expect(sample.fallbackEligible).toBe(true);
     expect(sample.effectState).toBe("unknown");
   });
 
-  it("attributes total failure to the last normalized provider error", async () => {
+  it("attributes failure to the last provider only after a proven pre-dispatch fallback", async () => {
     let error: unknown;
     try {
       await new FallbackChatProvider([
         chatLeaf("primary", async () => {
-          throw providerError("primary", ProviderErrorCode.RateLimited);
+          throw providerError("primary", ProviderErrorCode.ProviderUnavailable, {
+            effectState: "not_started"
+          });
         }),
         chatLeaf("backup", async () => {
           throw providerError("backup", ProviderErrorCode.Timeout, { statusCode: 408 });
@@ -473,22 +504,90 @@ describe("non-stream provider chain policy", () => {
       statusCode: 408
     });
     const terminal = error as ProviderError;
-    expect(terminal.attemptedProviders?.map((attempt) => [attempt.provider, attempt.status])).toEqual([
-      ["primary", "failed"],
+    expect(
+      terminal.attemptedProviders?.map((attempt) => [attempt.provider, attempt.status])
+    ).toEqual([
+      ["primary", "unavailable"],
       ["backup", "failed"]
     ]);
     expect(JSON.stringify(terminal)).not.toContain("fallbackUsed");
   });
 
-  it("does not fabricate fallbackUsed on total failure", async () => {
+  it("does not invoke another provider when the first failure is UNKNOWN", async () => {
+    const backup = vi.fn(async () => ok("unused"));
     await expect(
       new FallbackChatProvider([
         chatLeaf("primary", async () => {
           throw providerError("primary", ProviderErrorCode.NetworkError);
         }),
-        chatLeaf("backup", async () => {
-          throw providerError("backup", ProviderErrorCode.ProviderUnavailable, { statusCode: 503 });
-        })
+        chatLeaf("backup", backup)
+      ]).generateReply(input)
+    ).rejects.toMatchObject({
+      provider: "primary",
+      attemptedProviders: [expect.objectContaining({ provider: "primary" })]
+    });
+    expect(backup).not.toHaveBeenCalled();
+  });
+
+  it("requires explicit no-dispatch certainty even when fallbackEligible is true", async () => {
+    const backup = vi.fn(async () => ok("unused"));
+    await expect(
+      new FallbackChatProvider([
+        chatLeaf("primary", async () => {
+          throw providerError("primary", ProviderErrorCode.ProviderUnavailable, {
+            fallbackEligible: true,
+            effectState: "unknown"
+          });
+        }),
+        chatLeaf("backup", backup)
+      ]).generateReply(input)
+    ).rejects.toMatchObject({ effectState: "unknown", fallbackEligible: true });
+    expect(backup).not.toHaveBeenCalled();
+  });
+
+  it("preserves one fallback after a definite pre-dispatch failure", async () => {
+    const backup = vi.fn(async () => ok("backup"));
+    const result = await new FallbackChatProvider([
+      chatLeaf("primary", async () => {
+        throw providerError("primary", ProviderErrorCode.ProviderUnavailable, {
+          fallbackEligible: true,
+          effectState: "not_started"
+        });
+      }),
+      chatLeaf("backup", backup)
+    ]).generateReply(input);
+    expect(result.finalProvider).toBe("backup");
+    expect(backup).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not invoke a backup after remote timeout even if fallback is requested", async () => {
+    const backup = vi.fn(async () => ok("unused"));
+    await expect(
+      new FallbackChatProvider([
+        chatLeaf("primary", async () => {
+          throw providerError("primary", ProviderErrorCode.Timeout, {
+            fallbackEligible: true,
+            effectState: "unknown"
+          });
+        }),
+        chatLeaf("backup", backup)
+      ]).generateReply(input)
+    ).rejects.toMatchObject({ effectState: "unknown" });
+    expect(backup).not.toHaveBeenCalled();
+  });
+
+  it("does not fabricate fallbackUsed on total failure", async () => {
+    const backup = vi.fn(async () => {
+      throw providerError("backup", ProviderErrorCode.ProviderUnavailable, { statusCode: 503 });
+    });
+    await expect(
+      new FallbackChatProvider([
+        chatLeaf("primary", async () => {
+          throw providerError("primary", ProviderErrorCode.ProviderUnavailable, {
+            effectState: "not_started"
+          });
+        }),
+        chatLeaf("backup", backup)
       ]).generateReply(input)
     ).rejects.toMatchObject({
       provider: "backup",
@@ -499,20 +598,21 @@ describe("non-stream provider chain policy", () => {
     });
   });
 
-  it("normalizes unknown leaf errors without leaking the raw message", async () => {
+  it("keeps unknown leaf failures from invoking a fallback provider", async () => {
     const backup = vi.fn(async () => ok("ok"));
-    const output = await new FallbackChatProvider([
-      chatLeaf("primary", async () => {
-        throw new Error("secret-ish implementation failure");
-      }),
-      chatLeaf("backup", backup)
-    ]).generateReply(input);
-    expect(output.finalProvider).toBe("backup");
-    expect(JSON.stringify(output.attemptedProviders)).not.toContain("secret-ish");
-    expect(output.attemptedProviders?.[0]).toMatchObject({
+    await expect(
+      new FallbackChatProvider([
+        chatLeaf("primary", async () => {
+          throw new Error("secret-ish implementation failure");
+        }),
+        chatLeaf("backup", backup)
+      ]).generateReply(input)
+    ).rejects.toMatchObject({
       provider: "primary",
-      errorCode: ProviderErrorCode.ProviderUnavailable
+      code: ProviderErrorCode.ProviderUnavailable,
+      effectState: "unknown"
     });
+    expect(backup).not.toHaveBeenCalled();
   });
 
   it("keeps local placeholder unavailable fallback-eligible and not retryable", async () => {
@@ -521,9 +621,7 @@ describe("non-stream provider chain policy", () => {
       PROVIDER_ALLOW_MOCKS: "false",
       CHAT_PROVIDER_CHAIN: "deepseek"
     });
-    await expect(
-      registry.getChatProvider().generateReply(input)
-    ).rejects.toMatchObject({
+    await expect(registry.getChatProvider().generateReply(input)).rejects.toMatchObject({
       provider: "deepseek",
       code: ProviderErrorCode.ProviderUnavailable,
       retryable: false,
@@ -582,7 +680,7 @@ describe("stream provider chain policy", () => {
     });
   });
 
-  it("still falls back on pre-first InvalidApiKey", async () => {
+  it("allows fallback only for an explicit pre-dispatch provider failure", async () => {
     const events = await collect(
       new FallbackChatProvider([
         createMockStreamingChatProvider("primary", {
@@ -600,32 +698,42 @@ describe("stream provider chain policy", () => {
     });
   });
 
-  it("falls back on pre-first RateLimited and malformed responses", async () => {
-    const rateLimited = await collect(
-      new FallbackChatProvider([
-        createMockStreamingChatProvider("primary", {
-          failBeforeFirst: providerError("primary", ProviderErrorCode.RateLimited)
-        }),
-        createMockStreamingChatProvider("backup", { chunks: ["ok"] })
-      ]).streamReply(input)
-    );
-    expect(rateLimited.at(-1)).toMatchObject({
-      type: "completed",
-      output: { finalProvider: "backup" }
+  it("does not fall back on rate-limit or malformed-response UNKNOWN", async () => {
+    const rateLimitedBackup = vi.fn(async function* (): AsyncIterable<ChatStreamEvent> {
+      yield { type: "text-delta", text: "backup" };
     });
+    await expect(
+      collect(
+        new FallbackChatProvider([
+          createMockStreamingChatProvider("primary", {
+            failBeforeFirst: providerError("primary", ProviderErrorCode.RateLimited)
+          }),
+          {
+            ...createMockStreamingChatProvider("backup", { chunks: ["ok"] }),
+            streamReply: rateLimitedBackup
+          }
+        ]).streamReply(input)
+      )
+    ).rejects.toMatchObject({ code: ProviderErrorCode.RateLimited, effectState: "unknown" });
+    expect(rateLimitedBackup).not.toHaveBeenCalled();
 
-    const malformed = await collect(
-      new FallbackChatProvider([
-        createMockStreamingChatProvider("primary", {
-          failBeforeFirst: providerError("primary", ProviderErrorCode.MalformedResponse)
-        }),
-        createMockStreamingChatProvider("backup", { chunks: ["ok"] })
-      ]).streamReply(input)
-    );
-    expect(malformed.at(-1)).toMatchObject({
-      type: "completed",
-      output: { finalProvider: "backup" }
+    const malformedBackup = vi.fn(async function* (): AsyncIterable<ChatStreamEvent> {
+      yield { type: "text-delta", text: "backup" };
     });
+    await expect(
+      collect(
+        new FallbackChatProvider([
+          createMockStreamingChatProvider("primary", {
+            failBeforeFirst: providerError("primary", ProviderErrorCode.MalformedResponse)
+          }),
+          {
+            ...createMockStreamingChatProvider("backup", { chunks: ["ok"] }),
+            streamReply: malformedBackup
+          }
+        ]).streamReply(input)
+      )
+    ).rejects.toMatchObject({ code: ProviderErrorCode.MalformedResponse, effectState: "unknown" });
+    expect(malformedBackup).not.toHaveBeenCalled();
   });
 
   it("treats visible output as a committed effect and does not fall back", async () => {
@@ -656,13 +764,17 @@ describe("stream provider chain policy", () => {
       code: ProviderErrorCode.NetworkError,
       effectState: "committed"
     });
-    expect(isSafeToReplay(new ProviderError({
-      provider: "primary",
-      capability: "chat",
-      code: ProviderErrorCode.NetworkError,
-      message: "after delta",
-      effectState: "committed"
-    }))).toBe(false);
+    expect(
+      isSafeToReplay(
+        new ProviderError({
+          provider: "primary",
+          capability: "chat",
+          code: ProviderErrorCode.NetworkError,
+          message: "after delta",
+          effectState: "committed"
+        })
+      )
+    ).toBe(false);
     expect(events).toEqual([{ type: "text-delta", text: "partial" }]);
     expect(backup).not.toHaveBeenCalled();
   });
@@ -670,14 +782,15 @@ describe("stream provider chain policy", () => {
 
 describe("reasoning legacy stream flag", () => {
   it("forces generateReasoning to request a non-stream JSON body", async () => {
-    const fetchSpy = vi.fn(async (_input: string | URL | Request, _init?: RequestInit) =>
-      new Response(
-        JSON.stringify({
-          model: "deepseek-reasoner",
-          choices: [{ finish_reason: "stop", message: { content: "answer" } }]
-        }),
-        { status: 200 }
-      )
+    const fetchSpy = vi.fn(
+      async (_input: string | URL | Request, _init?: RequestInit) =>
+        new Response(
+          JSON.stringify({
+            model: "deepseek-reasoner",
+            choices: [{ finish_reason: "stop", message: { content: "answer" } }]
+          }),
+          { status: 200 }
+        )
     );
     vi.stubGlobal("fetch", fetchSpy);
     try {

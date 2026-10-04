@@ -1,3 +1,4 @@
+import type { SpeechSegmentSeal } from "@companion/protocol";
 import { t } from "./locale.js";
 import { publishSubtitleProjection } from "./subtitle-bus.js";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -66,10 +67,18 @@ import {
  */
 export function CompanionPage(): JSX.Element {
   const presentationReportsRef = useRef(Promise.resolve());
-  const submitPresentationOutcome = (report: import("@companion/protocol").EmbodiedPresentationOutcomeReport) => {
+  const presentationPermissionsRef = useRef(
+    new Map<string, import("@companion/protocol").PresentationPermission>()
+  );
+  const submitPresentationOutcome = (
+    report: import("@companion/protocol").EmbodiedPresentationOutcomeReport
+  ) => {
+    const permission = presentationPermissionsRef.current.get(report.effectId);
+    if (!permission) return;
     companionBusRef.current?.post({ kind: "embodied-presentation-outcome", report });
     presentationReportsRef.current = presentationReportsRef.current
-      .then(() => apiClient.postEmbodiedPresentationOutcome(report)).catch(() => undefined);
+      .then(() => apiClient.postEmbodiedPresentationOutcome({ permission, report }))
+      .catch(() => undefined);
   };
   const lumiRef = useRef<LumiControllerHandle>(null);
   const sessionRef = useRef<{
@@ -239,6 +248,28 @@ export function CompanionPage(): JSX.Element {
     announcer.start();
     void preloadTauriWindowApi();
     const speechBuffer = speechBufferRef.current;
+    let mediaGeneration: Promise<string> | undefined;
+    const segmentSeals = new Map<string, SpeechSegmentSeal>();
+    async function authorizeSubtitle(
+      requestId: string,
+      sequence: number,
+      text: string,
+      write: () => void
+    ): Promise<void> {
+      const seal = segmentSeals.get(`${requestId}:${sequence}`);
+      if (!seal || !mediaGeneration || activeEpochRef.current !== requestId) return;
+      const generation = await mediaGeneration;
+      const sealed = await apiClient.sealSpeechSegment({ segment: seal, text, generation });
+      const permission = await apiClient.mediaPermission({ ...sealed, kind: "SUBTITLE" });
+      if (
+        Date.parse(permission.expiresAt) <= Date.now() ||
+        activeEpochRef.current !== requestId ||
+        speechStoppedEpochRef.current === requestId
+      )
+        return;
+      write();
+      await apiClient.reportMedia({ permission, observation: "SUBTITLE_ACCEPTED" });
+    }
 
     function recordSpeechLedger(
       requestId: string,
@@ -264,7 +295,7 @@ export function CompanionPage(): JSX.Element {
 
     function enqueueSpeak(
       session: NonNullable<typeof sessionRef.current>,
-      segment: { sequence: number; text: string; language: string }
+      segment: { sequence: number; text: string; language: string; seal?: SpeechSegmentSeal }
     ): void {
       if (!session.deduper.isNew(session.requestId, segment.sequence)) {
         recordSpeechLedger(session.requestId, segment.sequence, "dedup-drop");
@@ -282,7 +313,11 @@ export function CompanionPage(): JSX.Element {
         language: segment.language
       });
       session.queue.enqueue(
-        { text: segment.text, language: segment.language },
+        {
+          text: segment.text,
+          language: segment.language,
+          ...(segment.seal ? { seal: segment.seal } : {})
+        },
         { requestId: session.requestId, sequence: segment.sequence }
       );
     }
@@ -296,13 +331,15 @@ export function CompanionPage(): JSX.Element {
       const key = `${requestId}:${sequence}`;
       if (subtitlePublishedRef.current.has(key)) return;
       subtitlePublishedRef.current.add(key);
-      publishSubtitleProjection({
-        kind: "committed-assistant-text",
-        requestId,
-        messageId: `${requestId}:${sequence}`,
-        text,
-        language
-      });
+      void authorizeSubtitle(requestId, sequence, text, () =>
+        publishSubtitleProjection({
+          kind: "committed-assistant-text",
+          requestId,
+          messageId: `${requestId}:${sequence}`,
+          text,
+          language
+        })
+      ).catch(() => {});
     }
 
     function acceptPlaybackEvent(event: SpeechPlaybackEvent): {
@@ -329,6 +366,15 @@ export function CompanionPage(): JSX.Element {
       recordSpeechLedger(requestId, null, "turn-start");
       publishSubtitleProjection({ kind: "clear" });
       activeEpochRef.current = requestId;
+      const oldGeneration = mediaGeneration;
+      if (oldGeneration)
+        void oldGeneration.then((id) => apiClient.revokeMediaGeneration(id)).catch(() => {});
+      for (const key of segmentSeals.keys())
+        if (!key.startsWith(`${requestId}:`)) segmentSeals.delete(key);
+      mediaGeneration = apiClient
+        .createMediaGeneration({ sessionId, requestId })
+        .then((result) => result.generation);
+      void mediaGeneration.catch(() => {});
       speechStoppedEpochRef.current = null;
       // New turn owns its subtitle fallback state; never replay old turns.
       subtitlePublishedRef.current.clear();
@@ -359,14 +405,18 @@ export function CompanionPage(): JSX.Element {
       }
       const subtitleText = new Map<number, { text: string; language: string }>();
       const queue = new SpeechPlaybackQueue(
-        (item, signal) =>
-          apiClient.synthesizeSpeech({
+        async (item, signal) => {
+          if (!item.seal || !mediaGeneration) throw Error("Sealed speech decision unavailable.");
+          return apiClient.synthesizeSpeech({
+            segment: item.seal,
+            generation: await mediaGeneration,
             text: item.text,
             language: item.language,
             format: "wav",
             sessionId,
             signal
-          }),
+          });
+        },
         createBrowserSpeechPlayer(),
         {
           onState: (state) => {
@@ -396,20 +446,20 @@ export function CompanionPage(): JSX.Element {
                 const payload = synced ?? fallback;
                 if (payload && segment.requestId === requestId) {
                   subtitlePublishedRef.current.add(key);
-                  publishSubtitleProjection({
-                    kind: "committed-assistant-text",
-                    requestId,
-                    messageId: key,
-                    ...payload
-                  });
+                  void authorizeSubtitle(requestId, segment.sequence, payload.text, () =>
+                    publishSubtitleProjection({
+                      kind: "committed-assistant-text",
+                      requestId,
+                      messageId: key,
+                      ...payload
+                    })
+                  ).catch(() => {});
                 }
               }
             }
             if (state === "cancelled" || state === "failed" || state === "completed") {
               subtitleText.delete(segment.sequence);
-              subtitleFallbackCacheRef.current.delete(
-                `${segment.requestId}:${segment.sequence}`
-              );
+              subtitleFallbackCacheRef.current.delete(`${segment.requestId}:${segment.sequence}`);
             }
             recordSpeechLedger(segment.requestId, segment.sequence, state);
             if (import.meta.env.DEV) {
@@ -445,12 +495,14 @@ export function CompanionPage(): JSX.Element {
                 const key = `${requestId}:${event.segment.sequence}`;
                 if (!subtitlePublishedRef.current.has(key)) {
                   subtitlePublishedRef.current.add(key);
-                  publishSubtitleProjection({
-                    kind: "committed-assistant-text",
-                    requestId,
-                    messageId: key,
-                    ...subtitle
-                  });
+                  void authorizeSubtitle(requestId, event.segment.sequence, subtitle.text, () =>
+                    publishSubtitleProjection({
+                      kind: "committed-assistant-text",
+                      requestId,
+                      messageId: key,
+                      ...subtitle
+                    })
+                  ).catch(() => {});
                 }
               }
               recordSpeechLedger(requestId, event.segment.sequence, "audio.play", {
@@ -500,6 +552,7 @@ export function CompanionPage(): JSX.Element {
     }
 
     function handleSpeak(message: Extract<CompanionBusMessage, { kind: "speak" }>): void {
+      if (message.seal) segmentSeals.set(`${message.requestId}:${message.sequence}`, message.seal);
       if (
         activeEpochRef.current !== message.requestId ||
         speechStoppedEpochRef.current === message.requestId
@@ -511,17 +564,28 @@ export function CompanionPage(): JSX.Element {
         recordSpeechLedger(message.requestId, message.sequence, "voice-disabled-drop");
         // Committed text still belongs on the Subtitle surface when audio is
         // disabled; speech sync simply has no playback to align to.
-        publishSubtitleFallback(message.requestId, message.sequence, message.text, message.language);
+        publishSubtitleFallback(
+          message.requestId,
+          message.sequence,
+          message.text,
+          message.language
+        );
         return;
       }
       if (ttsConfigRef.current?.enabled !== true) {
         recordSpeechLedger(message.requestId, message.sequence, "tts-disabled-drop");
-        publishSubtitleFallback(message.requestId, message.sequence, message.text, message.language);
+        publishSubtitleFallback(
+          message.requestId,
+          message.sequence,
+          message.text,
+          message.language
+        );
         return;
       }
       recordSpeechLedger(message.requestId, message.sequence, "companion-receive", {
         text: message.text,
-        language: message.language
+        language: message.language,
+        ...(message.seal ? { seal: message.seal } : {})
       });
       const session = sessionRef.current;
       if (session && session.requestId === message.requestId) {
@@ -534,7 +598,8 @@ export function CompanionPage(): JSX.Element {
         requestId: message.requestId,
         sequence: message.sequence,
         text: message.text,
-        language: message.language
+        language: message.language,
+        ...(message.seal ? { seal: message.seal } : {})
       });
       recordSpeechLedger(
         message.requestId,
@@ -646,11 +711,42 @@ export function CompanionPage(): JSX.Element {
         case "speech-status":
         case "proactive-text-admission-result":
           return;
+        case "accounted-presentation-request": {
+          const envelope = message.envelope,
+            generation = mediaGeneration;
+          if (
+            !generation ||
+            activeEpochRef.current !== envelope.permission.requestId ||
+            Date.parse(envelope.permission.expiresAt) <= Date.now()
+          )
+            return;
+          if (
+            presentationPermissionsRef.current.has(envelope.request.effectId) ||
+            presentationPermissionsRef.current.size >= 256
+          )
+            return;
+          presentationPermissionsRef.current.set(envelope.request.effectId, envelope.permission);
+          void generation
+            .then(async (id) => {
+              if (
+                id !== envelope.permission.generation ||
+                activeEpochRef.current !== envelope.permission.requestId
+              )
+                return;
+              await apiClient.acceptPresentationPermission(envelope.permission);
+              if (
+                activeEpochRef.current !== envelope.permission.requestId ||
+                Date.parse(envelope.permission.expiresAt) <= Date.now()
+              )
+                return;
+              const report = lumiRef.current?.executeEmbodiedPresentationRequest(envelope.request);
+              if (report) submitPresentationOutcome(report);
+            })
+            .catch(() => {});
+          return;
+        }
         case "embodied-presentation-request": {
-          const report = lumiRef.current?.executeEmbodiedPresentationRequest(message.request);
-          if (report) {
-            submitPresentationOutcome(report);
-          }
+          // Historical/rehearsal messages lack a canonical dispatch capability.
           return;
         }
         case "embodied-presentation-outcome":

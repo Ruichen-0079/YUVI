@@ -16,6 +16,8 @@ import { desktopCorsHeaders } from "../cors.js";
 import { SseConnectionClosedError, writeSseFrame } from "./sse.js";
 import { resolveMessageIdentity } from "./message.js";
 import { toProactiveTurnAdmissionFailure } from "../proactive-turn-receipt-admission.js";
+import { randomUUID } from "node:crypto";
+import type { ReplyPublicationTarget } from "@companion/memory";
 
 const SSE_HEADERS = {
   "content-type": "text/event-stream; charset=utf-8",
@@ -48,6 +50,8 @@ export const ProactiveTurnStreamRequestSchema = z
     options: z
       .object({
         readMemory: z.boolean(),
+        speechPlan: z.enum(["NONE", "CLIENT_SEGMENTED"]).optional(),
+        speechRequestId: z.string().min(1).max(512).optional(),
         promptPreview: z.boolean().optional()
       })
       .strict()
@@ -134,16 +138,46 @@ export async function registerProactiveTurnStreamRoutes(
       ...SSE_HEADERS,
       ...desktopCorsHeaders(request.headers.origin)
     });
+    reply.raw.flushHeaders();
     const abortController = new AbortController();
-    const unsubscribe = context.subscribeProactiveStream((event) => {
-      if (event.sessionId !== sessionId) return;
-      void writeSseFrame(reply.raw, event.type, event, abortController.signal).catch(() => {
+    const target: ReplyPublicationTarget = {
+      surface: "HTTP_SSE",
+      targetId: `HTTP_SSE:proactive-live:${randomUUID()}`,
+      targetGeneration: randomUUID()
+    };
+    const unregister = context.outwardEffects?.registerTarget(
+      target,
+      (session) => session === sessionId,
+      () => !abortController.signal.aborted && !reply.raw.destroyed
+    );
+    const unsubscribe = context.subscribeProactiveStream(async (event) => {
+      if (event.sessionId !== sessionId || abortController.signal.aborted) return;
+      try {
+        if (
+          context.outwardEffects &&
+          !(event.type === "proactive-decision" && event.decision === "NO_OP")
+        )
+          await context.outwardEffects.publish({
+            target,
+            frameId:
+              event.type === "text-delta" ? event.componentId! : `${event.traceId}:${event.type}`,
+            payload: event,
+            scope: `session:${sessionId}`,
+            ...(event.type === "text-delta"
+              ? { replyId: event.replyId, componentId: event.componentId }
+              : {}),
+            write: () => writeSseFrame(reply.raw, event.type, event, abortController.signal)
+          });
+        else await writeSseFrame(reply.raw, event.type, event, abortController.signal);
+      } catch {
         abortController.abort();
-      });
+        unregister?.();
+      }
     });
     const onDisconnect = () => {
       abortController.abort();
       unsubscribe();
+      unregister?.();
     };
     request.raw.once("aborted", onDisconnect);
     reply.raw.once("close", onDisconnect);
@@ -163,6 +197,8 @@ export async function registerProactiveTurnStreamRoutes(
     let headersStarted = false;
     let responseFinalized = false;
     let clientDisconnected = false;
+    let publicationTarget: ReplyPublicationTarget | undefined;
+    let unregisterPublicationTarget: (() => void) | undefined;
     let journalAdmitted = false;
     let closePromise: Promise<void> | undefined;
 
@@ -201,7 +237,7 @@ export async function registerProactiveTurnStreamRoutes(
         return;
       }
 
-      await context.proactiveTurnReceiptAdmission.admit({
+      const sourceJournalRef = await context.proactiveTurnReceiptAdmission.admit({
         sessionId: input.data.sessionId,
         readMemory: input.data.options.readMemory,
         promptPreview: input.data.options.promptPreview ?? false
@@ -219,18 +255,33 @@ export async function registerProactiveTurnStreamRoutes(
         return;
       }
 
+      publicationTarget = {
+        surface: "HTTP_SSE",
+        targetId: `HTTP_SSE:proactive:${requestTraceId}`,
+        targetGeneration: randomUUID()
+      };
+      unregisterPublicationTarget = context.outwardEffects?.registerTarget(
+        publicationTarget,
+        (session) => session === input.data.sessionId,
+        () => !clientDisconnected && !abortController.signal.aborted
+      );
+
       const identity = resolveMessageIdentity({});
       const runtimeStream = context.runtime.streamAssistantInitiatedTurn(
         {
           sessionId: input.data.sessionId,
           idempotencyKey: input.data.idempotencyKey,
+          ...(sourceJournalRef ? { sourceJournalRef } : {}),
           readMemory: input.data.options.readMemory,
           ...(identity.personaId ? { personaId: identity.personaId } : {}),
           ...(identity.subjectUserId ? { subjectUserId: identity.subjectUserId } : {})
         },
         {
+          speechPlan: input.data.options.speechPlan,
+          speechRequestId: input.data.options.speechRequestId,
           signal: abortController.signal,
-          promptPreview: input.data.options.promptPreview
+          promptPreview: input.data.options.promptPreview,
+          replyPublicationTargets: [publicationTarget]
         }
       );
       const activeIterator = runtimeStream[Symbol.asyncIterator]();
@@ -243,7 +294,13 @@ export async function registerProactiveTurnStreamRoutes(
         if (clientDisconnected) {
           return;
         }
-        return sendProactiveTurnError(reply, error, requestTraceId);
+        return sendAccountedProactiveError(
+          reply,
+          error,
+          requestTraceId,
+          context,
+          publicationTarget
+        );
       }
 
       if (clientDisconnected) {
@@ -286,7 +343,24 @@ export async function registerProactiveTurnStreamRoutes(
             throw new Error("Proactive Runtime completed without REQUEST_TEXT.");
           }
         }
-        await writeSseFrame(reply.raw, next.value.type, next.value, abortController.signal);
+        if (
+          context.outwardEffects &&
+          publicationTarget &&
+          !(next.value.type === "proactive-decision" && next.value.decision === "NO_OP")
+        ) {
+          const value = next.value;
+          await context.outwardEffects.publish({
+            target: publicationTarget,
+            frameId:
+              value.type === "text-delta" ? value.componentId! : `${value.traceId}:${value.type}`,
+            payload: value,
+            scope: `session:${input.data.sessionId}`,
+            ...(value.type === "text-delta"
+              ? { replyId: value.replyId, componentId: value.componentId }
+              : {}),
+            write: () => writeSseFrame(reply.raw, value.type, value, abortController.signal)
+          });
+        } else await writeSseFrame(reply.raw, next.value.type, next.value, abortController.signal);
         if (
           next.value.type === "completed" ||
           (next.value.type === "proactive-decision" && next.value.decision === "NO_OP")
@@ -317,11 +391,25 @@ export async function registerProactiveTurnStreamRoutes(
             traceId: requestTraceId
           });
         }
-        return sendProactiveTurnError(reply, error, requestTraceId);
+        return sendAccountedProactiveError(
+          reply,
+          error,
+          requestTraceId,
+          context,
+          publicationTarget
+        );
       }
       if (!responseFinalized && !reply.raw.destroyed && !reply.raw.writableEnded) {
         try {
-          await writeSseFrame(reply.raw, "error", toSseError(error, requestTraceId));
+          const payload = toSseError(error, requestTraceId);
+          if (context.outwardEffects && publicationTarget)
+            await context.outwardEffects.publish({
+              target: publicationTarget,
+              frameId: `error:${randomUUID()}`,
+              payload,
+              write: () => writeSseFrame(reply.raw, "error", payload)
+            });
+          else if (!context.outwardEffects) await writeSseFrame(reply.raw, "error", payload);
         } catch (writeError) {
           request.log.warn({ err: writeError }, "failed to write proactive turn stream error");
         }
@@ -330,6 +418,7 @@ export async function registerProactiveTurnStreamRoutes(
         }
       }
     } finally {
+      unregisterPublicationTarget?.();
       request.raw.off("aborted", onDisconnect);
       reply.raw.off("close", onDisconnect);
       reply.raw.off("error", onResponseError);
@@ -465,4 +554,49 @@ function safeProviderMessage(code: string): string {
     default:
       return "Provider request failed.";
   }
+}
+
+async function sendAccountedProactiveError(
+  reply: { status(code: number): { send(payload: unknown): unknown }; raw: { destroy(): void } },
+  error: unknown,
+  traceId: string,
+  context: AppContext,
+  target?: import("@companion/memory").ReplyPublicationTarget
+) {
+  if (
+    !context.outwardEffects ||
+    !target ||
+    error instanceof ProactiveAdmissionError ||
+    error instanceof AssistantTurnConflictError
+  )
+    return sendProactiveTurnError(reply, error, traceId);
+  let code = 500,
+    payload: unknown;
+  sendProactiveTurnError(
+    {
+      status(status) {
+        code = status;
+        return {
+          send(value) {
+            payload = value;
+          }
+        };
+      }
+    },
+    error,
+    traceId
+  );
+  try {
+    await context.outwardEffects.publish({
+      target,
+      frameId: `error:${randomUUID()}`,
+      payload,
+      write: async () => {
+        reply.status(code).send(payload);
+      }
+    });
+  } catch {
+    reply.raw.destroy();
+  }
+  return reply;
 }

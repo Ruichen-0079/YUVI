@@ -8,7 +8,10 @@ import { createPostgresPool, type PostgresPool } from "@companion/database";
 import { JournalStoreError, PostgresJournalRepository } from "@companion/journal";
 import type { JournalCommittedEnvelope } from "@companion/protocol";
 import { emptyProductConfiguration, type ProductConfiguration } from "@companion/providers";
-import type { VoiceProfileNativeCommand, VoiceProfileNativeCommandReceipt } from "@companion/providers";
+import type {
+  VoiceProfileNativeCommand,
+  VoiceProfileNativeCommandReceipt
+} from "@companion/providers";
 import {
   readSqlMigrations,
   runPostgresMigrations
@@ -214,11 +217,14 @@ describe.skipIf(!databaseUrl)("A8.2e1 Product controls with real PostgreSQL Jour
     await adminPool.query(`create schema ${quotedSchema}`);
     const migrations = await readSqlMigrations();
     const requiredNames = [
+      "006_conversation_v1.sql",
+      "007_conversation_streaming.sql",
       "013_life_event_journal_v1.sql",
       "019_evidence_admission_v1.sql",
       "020_effect_intents_v1.sql",
       "021_effect_attempts_v1.sql",
-      "022_native_control_effects_v1.sql"
+      "022_native_control_effects_v1.sql",
+      "023_reply_components_v1.sql"
     ];
     const selected = requiredNames.map((name) => migrations.find((entry) => entry.name === name));
     expect(selected.every(Boolean)).toBe(true);
@@ -519,8 +525,14 @@ describe.skipIf(!databaseUrl)("A8.2e1 Product controls with real PostgreSQL Jour
         ownerFamily: "PRODUCT_PERSON",
         targetReference: personId,
         revisions: expect.arrayContaining([
-          { ownerReference: `person:${personId}`, revision: savedSettings?.personRevisionById?.[personId] },
-          { ownerReference: "primary-person-selection", revision: savedSettings?.primaryPersonRevision }
+          {
+            ownerReference: `person:${personId}`,
+            revision: savedSettings?.personRevisionById?.[personId]
+          },
+          {
+            ownerReference: "primary-person-selection",
+            revision: savedSettings?.primaryPersonRevision
+          }
         ])
       }
     });
@@ -679,7 +691,9 @@ describe.skipIf(!databaseUrl)("A8.2e1 Product controls with real PostgreSQL Jour
       readAuthorityState: vi.fn(async () => ({
         complete: true,
         revision: "speaker-generation-1",
-        profiles: [{ voiceProfileId, label: "Private acoustic label", enrolledAt: "2026-01-01T00:00:00Z" }]
+        profiles: [
+          { voiceProfileId, label: "Private acoustic label", enrolledAt: "2026-01-01T00:00:00Z" }
+        ]
       }))
     };
     vi.spyOn(run.context.providers, "getSTTProvider").mockReturnValue({
@@ -756,9 +770,16 @@ describe.skipIf(!databaseUrl)("A8.2e1 Product controls with real PostgreSQL Jour
 
   it("reassigns one voice profile across persona scopes with one exact A9 owner commit", async () => {
     const namespace = nextNamespace();
-    const run = await setup(namespace, undefined, undefined, { MEMORY_PERSONA_ID: "voice-scope-a" });
+    const run = await setup(namespace, undefined, undefined, {
+      MEMORY_PERSONA_ID: "voice-scope-a"
+    });
     await registerLocalServiceRoutes(run.app, run.context, loadServerConfig(process.env));
-    const createPerson = async (displayName: string, personaId: string, commandHandle: string, primary: boolean) => {
+    const createPerson = async (
+      displayName: string,
+      personaId: string,
+      commandHandle: string,
+      primary: boolean
+    ) => {
       const current = readProductSettings(process.env);
       const response = await run.app.inject({
         method: "POST",
@@ -787,28 +808,47 @@ describe.skipIf(!databaseUrl)("A8.2e1 Product controls with real PostgreSQL Jour
         profiles: [{ voiceProfileId, label: "private label" }]
       }))
     };
-    vi.spyOn(run.context.providers, "getSTTProvider").mockReturnValue({ voiceProfiles: profiles } as never);
+    vi.spyOn(run.context.providers, "getSTTProvider").mockReturnValue({
+      voiceProfiles: profiles
+    } as never);
     const bindingOwner = run.context.memory.getNativeVoiceBindingOwner()!;
     const applyBinding = vi.spyOn(bindingOwner, "applyBindingCommand");
 
-    const assign = (personId: string, commandHandle: string) => run.app.inject({
-      method: "POST",
-      url: `/voice-profiles/${voiceProfileId}/person`,
-      payload: { personId, commandHandle }
-    });
+    const assign = (personId: string, commandHandle: string) =>
+      run.app.inject({
+        method: "POST",
+        url: `/voice-profiles/${voiceProfileId}/person`,
+        payload: { personId, commandHandle }
+      });
     const first = await assign(personA, "voice-scope-bind-a");
     expect(first.statusCode, first.body).toBe(200);
-    const previous = await run.context.memory.getNativeVoiceBindingOwner()!.getBindingState(voiceProfileId, "voice-scope-a");
-    expect(previous).toMatchObject({ status: "ACTIVE", personId: personA, lineageStatus: "VERSIONED" });
+    const previous = await run.context.memory
+      .getNativeVoiceBindingOwner()!
+      .getBindingState(voiceProfileId, "voice-scope-a");
+    expect(previous).toMatchObject({
+      status: "ACTIVE",
+      personId: personA,
+      lineageStatus: "VERSIONED"
+    });
 
     const switched = await assign(personB, "voice-scope-bind-b");
     expect(switched.statusCode, switched.body).toBe(200);
-    expect(await run.context.memory.getNativeVoiceBindingOwner()!.getBindingState(voiceProfileId, "voice-scope-a"))
-      .toMatchObject({ status: "UNBOUND", revision: expect.any(String), eventIds: [] });
-    const current = await run.context.memory.getNativeVoiceBindingOwner()!.getBindingState(voiceProfileId, "voice-scope-b");
-    expect(current).toMatchObject({ status: "ACTIVE", personId: personB, lineageStatus: "VERSIONED" });
+    expect(
+      await run.context.memory
+        .getNativeVoiceBindingOwner()!
+        .getBindingState(voiceProfileId, "voice-scope-a")
+    ).toMatchObject({ status: "UNBOUND", revision: expect.any(String), eventIds: [] });
+    const current = await run.context.memory
+      .getNativeVoiceBindingOwner()!
+      .getBindingState(voiceProfileId, "voice-scope-b");
+    expect(current).toMatchObject({
+      status: "ACTIVE",
+      personId: personB,
+      lineageStatus: "VERSIONED"
+    });
 
-    const switchedCommand = applyBinding.mock.calls.map(([command]) => command)
+    const switchedCommand = applyBinding.mock.calls
+      .map(([command]) => command)
       .find((command) => command.commandHandle === "voice-scope-bind-b");
     expect(switchedCommand).toMatchObject({
       operation: "REPLACE",
@@ -831,7 +871,10 @@ describe.skipIf(!databaseUrl)("A8.2e1 Product controls with real PostgreSQL Jour
         ownerFamily: "VOICE_BINDING",
         eventIds: [expect.any(String), expect.any(String)],
         revisions: [
-          { ownerReference: expect.stringContaining("voice-profile"), revision: expect.any(String) },
+          {
+            ownerReference: expect.stringContaining("voice-profile"),
+            revision: expect.any(String)
+          },
           { ownerReference: expect.stringContaining("voice-profile"), revision: expect.any(String) }
         ]
       }
@@ -840,7 +883,9 @@ describe.skipIf(!databaseUrl)("A8.2e1 Product controls with real PostgreSQL Jour
 
   it("routes direct acoustic enrollment and deletion through committed CONTROL, A9, and exact SpeakerStore revisions", async () => {
     const namespace = nextNamespace();
-    const run = await setup(namespace, undefined, undefined, { MEMORY_PERSONA_ID: "acoustic-delete-persona" });
+    const run = await setup(namespace, undefined, undefined, {
+      MEMORY_PERSONA_ID: "acoustic-delete-persona"
+    });
     const rows: Array<{ voiceProfileId: string; label: string }> = [];
     const receipts = new Map<string, VoiceProfileNativeCommandReceipt>();
     let acousticRevision: string | null = "speaker-generation-0";
@@ -856,60 +901,70 @@ describe.skipIf(!databaseUrl)("A8.2e1 Product controls with real PostgreSQL Jour
         profiles: rows.map((row) => ({ ...row }))
       })),
       fenceNativeCommand: vi.fn(async (command: VoiceProfileNativeCommand) =>
-        receipts.has(command.commandHandle) ? "APPLIED" as const : "READY" as const
+        receipts.has(command.commandHandle) ? ("APPLIED" as const) : ("READY" as const)
       ),
-      applyNativeCommand: vi.fn(async (command: VoiceProfileNativeCommand & { audioBase64?: string }) => {
-        const previous = receipts.get(command.commandHandle);
-        if (previous) return { status: "ALREADY_APPLIED" as const, receipt: previous };
-        if (command.expectedRevision !== acousticRevision)
-          return {
-            status: "PROVEN_NOT_APPLIED" as const,
-            reason: "REVISION_MISMATCH" as const,
-            revision: acousticRevision
+      applyNativeCommand: vi.fn(
+        async (command: VoiceProfileNativeCommand & { audioBase64?: string }) => {
+          const previous = receipts.get(command.commandHandle);
+          if (previous) return { status: "ALREADY_APPLIED" as const, receipt: previous };
+          if (command.expectedRevision !== acousticRevision)
+            return {
+              status: "PROVEN_NOT_APPLIED" as const,
+              reason: "REVISION_MISMATCH" as const,
+              revision: acousticRevision
+            };
+          const causal = command.causalRefs[0];
+          const committed = causal
+            ? (await events(namespace)).find((row) => row.event_id === causal.eventId)
+            : undefined;
+          expect(committed?.envelope.command).toMatchObject({
+            kind: "RECEIPT",
+            data: { receiptClass: "CONTROL" }
+          });
+          const admitted = await nativeIntent(command.commandHandle);
+          expect(admitted?.intent["request"]["causalRefs"]).toContainEqual(causal);
+          const attempts = await nativeAttempt(command.intentId);
+          expect(attempts).toHaveLength(1);
+          expect(attempts[0]?.dispatch_started_at).not.toBeNull();
+          if (command.operation === "ENROLL") {
+            if (
+              !command.audioBase64 ||
+              rows.some((row) => row.voiceProfileId === command.voiceProfileId)
+            )
+              return {
+                status: "PROVEN_NOT_APPLIED" as const,
+                reason: "PROFILE_EXISTS" as const,
+                revision: acousticRevision
+              };
+            rows.push({ voiceProfileId: command.voiceProfileId, label: command.label ?? "" });
+          } else {
+            const index = rows.findIndex((row) => row.voiceProfileId === command.voiceProfileId);
+            if (index < 0)
+              return {
+                status: "PROVEN_NOT_APPLIED" as const,
+                reason: "PROFILE_ABSENT" as const,
+                revision: acousticRevision
+              };
+            rows.splice(index, 1);
+          }
+          const priorRevision = acousticRevision;
+          acousticRevision = `speaker-generation-${++generation}`;
+          const receipt: VoiceProfileNativeCommandReceipt = {
+            commandHandle: command.commandHandle,
+            intentId: command.intentId,
+            attemptId: command.attemptId,
+            fence: command.fence,
+            payloadDigest: command.payloadDigest,
+            operation: command.operation,
+            voiceProfileId: command.voiceProfileId,
+            priorRevision,
+            resultingRevision: acousticRevision,
+            causalRefs: command.causalRefs
           };
-        const causal = command.causalRefs[0];
-        const committed = causal ? (await events(namespace)).find((row) => row.event_id === causal.eventId) : undefined;
-        expect(committed?.envelope.command).toMatchObject({ kind: "RECEIPT", data: { receiptClass: "CONTROL" } });
-        const admitted = await nativeIntent(command.commandHandle);
-        expect(admitted?.intent["request"]["causalRefs"]).toContainEqual(causal);
-        const attempts = await nativeAttempt(command.intentId);
-        expect(attempts).toHaveLength(1);
-        expect(attempts[0]?.dispatch_started_at).not.toBeNull();
-        if (command.operation === "ENROLL") {
-          if (!command.audioBase64 || rows.some((row) => row.voiceProfileId === command.voiceProfileId))
-            return {
-              status: "PROVEN_NOT_APPLIED" as const,
-              reason: "PROFILE_EXISTS" as const,
-              revision: acousticRevision
-            };
-          rows.push({ voiceProfileId: command.voiceProfileId, label: command.label ?? "" });
-        } else {
-          const index = rows.findIndex((row) => row.voiceProfileId === command.voiceProfileId);
-          if (index < 0)
-            return {
-              status: "PROVEN_NOT_APPLIED" as const,
-              reason: "PROFILE_ABSENT" as const,
-              revision: acousticRevision
-            };
-          rows.splice(index, 1);
+          receipts.set(command.commandHandle, receipt);
+          return { status: "APPLIED" as const, receipt };
         }
-        const priorRevision = acousticRevision;
-        acousticRevision = `speaker-generation-${++generation}`;
-        const receipt: VoiceProfileNativeCommandReceipt = {
-          commandHandle: command.commandHandle,
-          intentId: command.intentId,
-          attemptId: command.attemptId,
-          fence: command.fence,
-          payloadDigest: command.payloadDigest,
-          operation: command.operation,
-          voiceProfileId: command.voiceProfileId,
-          priorRevision,
-          resultingRevision: acousticRevision,
-          causalRefs: command.causalRefs
-        };
-        receipts.set(command.commandHandle, receipt);
-        return { status: "APPLIED" as const, receipt };
-      }),
+      ),
       reconcileNativeCommand: vi.fn(async (command: VoiceProfileNativeCommand) => {
         const receipt = receipts.get(command.commandHandle);
         return receipt
@@ -930,7 +985,12 @@ describe.skipIf(!databaseUrl)("A8.2e1 Product controls with real PostgreSQL Jour
     const enroll = await run.app.inject({
       method: "POST",
       url: "/voice-profiles",
-      payload: { audioBase64: audio, mimeType: "audio/wav", label: "DIRECT_PRIVATE_LABEL", commandHandle }
+      payload: {
+        audioBase64: audio,
+        mimeType: "audio/wav",
+        label: "DIRECT_PRIVATE_LABEL",
+        commandHandle
+      }
     });
     expect(enroll.statusCode, enroll.body).toBe(200);
     const voiceProfileId = enroll.json().voiceProfileId as string;
@@ -941,8 +1001,11 @@ describe.skipIf(!databaseUrl)("A8.2e1 Product controls with real PostgreSQL Jour
     const enrolledEvents = await events(namespace);
     expect(enrolledEvents).toHaveLength(1);
     const enrollEvent = enrolledEvents[0]!;
-    expect(enrollEvent.envelope.authority.surface.reference).toBe("yuvi:voice-profile-acoustic-control");
-    const enrollPayload = (await payloads(namespace)).find((row) => row.text_content !== null)?.text_content ?? "";
+    expect(enrollEvent.envelope.authority.surface.reference).toBe(
+      "yuvi:voice-profile-acoustic-control"
+    );
+    const enrollPayload =
+      (await payloads(namespace)).find((row) => row.text_content !== null)?.text_content ?? "";
     expect(enrollPayload).toContain("acoustic.profile.enroll");
     expect(enrollPayload).not.toContain(audio);
     expect(enrollPayload).not.toContain("DIRECT_PRIVATE_AUDIO_MARKER");
@@ -962,14 +1025,21 @@ describe.skipIf(!databaseUrl)("A8.2e1 Product controls with real PostgreSQL Jour
       certainty: "APPLIED",
       nativeOwnerCommit: {
         ownerFamily: "ACOUSTIC_PROFILE",
-        revisions: [{ ownerReference: "speaker-store-generation", revision: "speaker-generation-1" }]
+        revisions: [
+          { ownerReference: "speaker-store-generation", revision: "speaker-generation-1" }
+        ]
       }
     });
 
     const replay = await run.app.inject({
       method: "POST",
       url: "/voice-profiles",
-      payload: { audioBase64: audio, mimeType: "audio/wav", label: "DIRECT_PRIVATE_LABEL", commandHandle }
+      payload: {
+        audioBase64: audio,
+        mimeType: "audio/wav",
+        label: "DIRECT_PRIVATE_LABEL",
+        commandHandle
+      }
     });
     expect(replay.statusCode, replay.body).toBe(200);
     expect(voiceProfiles.applyNativeCommand).toHaveBeenCalledTimes(1);
@@ -1031,7 +1101,9 @@ describe.skipIf(!databaseUrl)("A8.2e1 Product controls with real PostgreSQL Jour
           certainty: "APPLIED",
           nativeOwnerCommit: {
             ownerFamily: "ACOUSTIC_PROFILE",
-            revisions: [{ ownerReference: "speaker-store-generation", revision: "speaker-generation-2" }]
+            revisions: [
+              { ownerReference: "speaker-store-generation", revision: "speaker-generation-2" }
+            ]
           }
         }
       }
@@ -1058,44 +1130,71 @@ describe.skipIf(!databaseUrl)("A8.2e1 Product controls with real PostgreSQL Jour
         profiles: acousticRows.map((row) => ({ ...row }))
       })),
       fenceNativeCommand: vi.fn(async (command: VoiceProfileNativeCommand) =>
-        nativeReceipts.has(command.commandHandle) ? "APPLIED" as const : "READY" as const
+        nativeReceipts.has(command.commandHandle) ? ("APPLIED" as const) : ("READY" as const)
       ),
-      applyNativeCommand: vi.fn(async (command: VoiceProfileNativeCommand & { audioBase64?: string }) => {
-        const existing = nativeReceipts.get(command.commandHandle);
-        if (existing) return { status: "ALREADY_APPLIED" as const, receipt: existing };
-        if (command.expectedRevision !== acousticRevision)
-          return { status: "PROVEN_NOT_APPLIED" as const, reason: "REVISION_MISMATCH" as const, revision: acousticRevision };
-        if (command.operation === "ENROLL") {
-          if (!command.audioBase64 || acousticRows.some((row) => row.voiceProfileId === command.voiceProfileId))
-            return { status: "PROVEN_NOT_APPLIED" as const, reason: "PROFILE_EXISTS" as const, revision: acousticRevision };
-          acousticRows.push({ voiceProfileId: command.voiceProfileId, label: command.label ?? "" });
-        } else {
-          const index = acousticRows.findIndex((row) => row.voiceProfileId === command.voiceProfileId);
-          if (index < 0) return { status: "PROVEN_NOT_APPLIED" as const, reason: "PROFILE_ABSENT" as const, revision: acousticRevision };
-          acousticRows.splice(index, 1);
+      applyNativeCommand: vi.fn(
+        async (command: VoiceProfileNativeCommand & { audioBase64?: string }) => {
+          const existing = nativeReceipts.get(command.commandHandle);
+          if (existing) return { status: "ALREADY_APPLIED" as const, receipt: existing };
+          if (command.expectedRevision !== acousticRevision)
+            return {
+              status: "PROVEN_NOT_APPLIED" as const,
+              reason: "REVISION_MISMATCH" as const,
+              revision: acousticRevision
+            };
+          if (command.operation === "ENROLL") {
+            if (
+              !command.audioBase64 ||
+              acousticRows.some((row) => row.voiceProfileId === command.voiceProfileId)
+            )
+              return {
+                status: "PROVEN_NOT_APPLIED" as const,
+                reason: "PROFILE_EXISTS" as const,
+                revision: acousticRevision
+              };
+            acousticRows.push({
+              voiceProfileId: command.voiceProfileId,
+              label: command.label ?? ""
+            });
+          } else {
+            const index = acousticRows.findIndex(
+              (row) => row.voiceProfileId === command.voiceProfileId
+            );
+            if (index < 0)
+              return {
+                status: "PROVEN_NOT_APPLIED" as const,
+                reason: "PROFILE_ABSENT" as const,
+                revision: acousticRevision
+              };
+            acousticRows.splice(index, 1);
+          }
+          const priorRevision = acousticRevision;
+          acousticRevision = `acoustic-generation-${++generation}`;
+          const receipt: VoiceProfileNativeCommandReceipt = {
+            commandHandle: command.commandHandle,
+            intentId: command.intentId,
+            attemptId: command.attemptId,
+            fence: command.fence,
+            payloadDigest: command.payloadDigest,
+            operation: command.operation,
+            voiceProfileId: command.voiceProfileId,
+            priorRevision,
+            resultingRevision: acousticRevision,
+            causalRefs: command.causalRefs
+          };
+          nativeReceipts.set(command.commandHandle, receipt);
+          return { status: "APPLIED" as const, receipt };
         }
-        const priorRevision = acousticRevision;
-        acousticRevision = `acoustic-generation-${++generation}`;
-        const receipt: VoiceProfileNativeCommandReceipt = {
-          commandHandle: command.commandHandle,
-          intentId: command.intentId,
-          attemptId: command.attemptId,
-          fence: command.fence,
-          payloadDigest: command.payloadDigest,
-          operation: command.operation,
-          voiceProfileId: command.voiceProfileId,
-          priorRevision,
-          resultingRevision: acousticRevision,
-          causalRefs: command.causalRefs
-        };
-        nativeReceipts.set(command.commandHandle, receipt);
-        return { status: "APPLIED" as const, receipt };
-      }),
+      ),
       reconcileNativeCommand: vi.fn(async (command: VoiceProfileNativeCommand) => {
         const receipt = nativeReceipts.get(command.commandHandle);
         return receipt
           ? { status: "ALREADY_APPLIED" as const, receipt }
-          : { status: "PROVEN_NOT_APPLIED" as const, reason: "EXACT_PREDECESSOR_REMAINS" as const, revision: acousticRevision };
+          : {
+              status: "PROVEN_NOT_APPLIED" as const,
+              reason: "EXACT_PREDECESSOR_REMAINS" as const,
+              revision: acousticRevision
+            };
       })
     };
     vi.spyOn(run.context.providers, "getSTTProvider").mockReturnValue({
@@ -1177,7 +1276,9 @@ describe.skipIf(!databaseUrl)("A8.2e1 Product controls with real PostgreSQL Jour
     );
     expect(enrolledTarget.rows[0]?.["target_reference"]).toBe(currentProfiles[0]?.voiceProfileId);
     expect(await run.context.runtime.getVoiceProfilePerson(oldVoiceProfileId)).toBeNull();
-    expect(await run.context.runtime.getVoiceProfilePerson(currentProfiles[0]!.voiceProfileId)).toBe(personId);
+    expect(
+      await run.context.runtime.getVoiceProfilePerson(currentProfiles[0]!.voiceProfileId)
+    ).toBe(personId);
 
     const workflow = await pool!.query(
       `select workflow_id,workflow_kind,plan_digest,plan::text as plan from native_control_workflows where workflow_id=$1`,
@@ -1190,14 +1291,20 @@ describe.skipIf(!databaseUrl)("A8.2e1 Product controls with real PostgreSQL Jour
        where workflow_id=$1 order by ordinal`,
       [workflowId]
     );
-    expect(children.rows.map((row) => row["step_key"])).toEqual(["enroll_new", "switch_binding", "retire_old"]);
+    expect(children.rows.map((row) => row["step_key"])).toEqual([
+      "enroll_new",
+      "switch_binding",
+      "retire_old"
+    ]);
     expect(children.rows.map((row) => row["ordinal"])).toEqual([0, 1, 2]);
     for (const child of children.rows) {
       const attempts = await nativeAttempt(String(child["intent_id"]));
       expect(attempts).toHaveLength(1);
       expect(attempts[0]?.evidence).toMatchObject({ certainty: "APPLIED" });
       expect(attempts[0]?.observation_version).toBe("effect-observation.v2");
-      expect((attempts[0]?.evidence?.["nativeOwnerCommit"] as Record<string, unknown>)?.["revisions"]).toBeTruthy();
+      expect(
+        (attempts[0]?.evidence?.["nativeOwnerCommit"] as Record<string, unknown>)?.["revisions"]
+      ).toBeTruthy();
     }
     const planText = String(workflow.rows[0]?.["plan"]);
     expect(planText).not.toContain("WORKFLOW_PRIVATE_AUDIO");

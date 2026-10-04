@@ -80,7 +80,7 @@ describe("speech activity routes", () => {
     await app.close();
   });
 
-  it("admits and reports speech playback outcomes through Runtime", async () => {
+  it("retires legacy playback admission without invoking a second authority", async () => {
     const admitSpeechPlayback = vi.fn(() => ({
       effectId: "speech.1",
       requestId: "turn-1",
@@ -99,14 +99,16 @@ describe("speech activity routes", () => {
       url: "/v1/speech-playback",
       payload: { sessionId: "s", requestId: "turn-1" }
     });
-    expect(admitted.statusCode).toBe(200);
-    expect(admitted.json()).toMatchObject({ effectId: "speech.1", state: "ADMITTED" });
+    expect(admitted.statusCode).toBe(410);
+    expect(admitted.json()).toMatchObject({ error: "canonical_media_permission_required" });
     const outcome = await app.inject({
       method: "POST",
       url: "/v1/speech-playback/outcome",
       payload: { effectId: "speech.1", outcome: "INTERRUPTED" }
     });
-    expect(outcome.json()).toMatchObject({ state: "INTERRUPTED" });
+    expect(outcome.statusCode).toBe(410);
+    expect(admitSpeechPlayback).not.toHaveBeenCalled();
+    expect(reportSpeechPlaybackOutcome).not.toHaveBeenCalled();
     await app.close();
   });
 

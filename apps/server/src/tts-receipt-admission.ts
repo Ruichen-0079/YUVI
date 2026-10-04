@@ -3,6 +3,7 @@ import {
   JOURNAL_COMMAND_VERSION,
   JOURNAL_SELECTOR_VERSION,
   type JournalPayloadDescriptor,
+  type JournalEventRef,
   type SourceSelector
 } from "@companion/protocol";
 import {
@@ -27,7 +28,7 @@ export type TtsReceiptInput = Readonly<{
 }>;
 
 export interface TtsReceiptAdmission {
-  admit(input: TtsReceiptInput): Promise<void>;
+  admit(input: TtsReceiptInput): Promise<JournalEventRef | void>;
 }
 
 const TtsReceiptInputSchema = z
@@ -47,7 +48,7 @@ export class HostTtsReceiptAdmission implements TtsReceiptAdmission {
     private readonly createPayloadId: () => string = createOpaqueTtsPayloadId
   ) {}
 
-  async admit(rawInput: TtsReceiptInput): Promise<void> {
+  async admit(rawInput: TtsReceiptInput): Promise<JournalEventRef | void> {
     const parsed = TtsReceiptInputSchema.safeParse(rawInput);
     if (!parsed.success) {
       throw new JournalStoreError(
@@ -124,9 +125,7 @@ export class HostTtsReceiptAdmission implements TtsReceiptAdmission {
       },
       surface: { kind: "LOCAL", reference: "yuvi:http:/v1/tts" },
       correlations:
-        input.sessionId === undefined
-          ? []
-          : [{ kind: "CONVERSATION", sessionId: input.sessionId }],
+        input.sessionId === undefined ? [] : [{ kind: "CONVERSATION", sessionId: input.sessionId }],
       audience: { kind: "UNKNOWN", reason: "the standalone TTS route has no audience snapshot" },
       disclosurePolicy: {
         state: "UNRESOLVED",
@@ -154,7 +153,12 @@ export class HostTtsReceiptAdmission implements TtsReceiptAdmission {
     };
 
     // No sourceDedup is supplied: request options and content are not delivery identities.
-    await this.journal.appendWithHostAuthority(appendInput, authority);
+    const receipt = await this.journal.appendWithHostAuthority(appendInput, authority);
+    return {
+      kind: "JOURNAL_EVENT",
+      namespace: receipt.envelope.journalNamespace,
+      eventId: receipt.envelope.eventId
+    };
   }
 }
 

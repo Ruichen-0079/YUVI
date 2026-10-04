@@ -1,7 +1,15 @@
+import {
+  SpeechSegmentSealSchema,
+  MediaDeviceReportSchema,
+  type JournalEventRef
+} from "@companion/protocol";
+import type { ReplyPublicationTarget } from "@companion/memory";
+import { createHash, randomUUID } from "node:crypto";
 import { retainSpeechReview } from "../services/voice-review.js";
 import { SpeechCaptureFenceError, type SpeechCaptureReservationResult } from "@companion/core";
 import { JournalStoreError } from "@companion/journal";
 import {
+  withProviderWorkContext,
   ProviderError,
   ProviderErrorCode,
   type ProviderAttempt,
@@ -56,13 +64,19 @@ const VoiceMessageRequestSchema = z.object({
     .optional()
 });
 
-const TTSRequestSchema = z.object({
-  sessionId: z.string().min(1).default("default"),
-  text: z.string().min(1),
-  voice: z.string().min(1).optional(),
-  format: z.enum(["mp3", "wav", "opus", "pcm", "mulaw", "alaw"]).optional(),
-  language: z.string().min(1).optional()
-});
+const TTSRequestSchema = z
+  .object({
+    segment: SpeechSegmentSealSchema.optional(),
+    generation: z.string().min(1).max(512).optional(),
+    sessionId: z.string().min(1).default("default"),
+    text: z.string().min(1),
+    voice: z.string().min(1).optional(),
+    format: z.enum(["mp3", "wav", "opus", "pcm", "mulaw", "alaw"]).optional(),
+    language: z.string().min(1).optional()
+  })
+  .refine((v) => Boolean(v.segment) === Boolean(v.generation), {
+    message: "Speech segment and generation must be supplied together."
+  });
 
 const VisionRequestSchema = z.object({
   ...IdentitySchema,
@@ -256,11 +270,17 @@ export function createRequestDisconnectBoundary(
 async function transcribeAudioWithDisconnectBoundary(
   request: FastifyRequest,
   provider: STTProvider,
-  input: STTInput
+  input: STTInput,
+  context: AppContext,
+  scope: string
 ): Promise<STTOutput> {
   const boundary = createRequestDisconnectBoundary(request);
   try {
-    const output = await provider.transcribeAudio(input, { signal: boundary.signal });
+    const cause = await context.outwardEffects?.operationCause("capture-preparation", scope);
+    const output = await withProviderWorkContext(
+      { scope, cause, isCurrent: () => !boundary.signal.aborted },
+      () => provider.transcribeAudio(input, { signal: boundary.signal })
+    );
     if (boundary.signal.aborted) throw createCancelledProviderError(provider.name, "unknown");
     return output;
   } finally {
@@ -285,17 +305,23 @@ export async function registerMediaRoutes(
 
     const provider = context.providers.getSTTProvider();
     try {
-      const output = await transcribeAudioWithDisconnectBoundary(request, provider, {
-        audioBase64: parsed.data.audioBase64,
-        mimeType: parsed.data.mimeType,
-        language: parsed.data.language,
-        metadata: {
-          identify: !parsed.data.preview,
-          diarize: !parsed.data.preview,
-          ...identityMetadata(parsed.data),
-          ...(parsed.data.mockText ? { mockTranscription: parsed.data.mockText } : {})
-        }
-      });
+      const output = await transcribeAudioWithDisconnectBoundary(
+        request,
+        provider,
+        {
+          audioBase64: parsed.data.audioBase64,
+          mimeType: parsed.data.mimeType,
+          language: parsed.data.language,
+          metadata: {
+            identify: !parsed.data.preview,
+            diarize: !parsed.data.preview,
+            ...identityMetadata(parsed.data),
+            ...(parsed.data.mockText ? { mockTranscription: parsed.data.mockText } : {})
+          }
+        },
+        context,
+        `session:${parsed.data.sessionId}:capture:${parsed.data.captureEpoch ?? randomUUID()}`
+      );
       if (parsed.data.preview) return reply.send({ text: output.text, language: output.language });
       retainSpeechReview(parsed.data.audioBase64, output);
       const admitted = await admitFinalizedSpeech(context, output, {
@@ -341,16 +367,24 @@ export async function registerMediaRoutes(
     }
 
     const sttProvider = context.providers.getSTTProvider();
+    let unregister: (() => void) | undefined;
+    let responseTarget: ReplyPublicationTarget | undefined;
     try {
-      const transcription = await transcribeAudioWithDisconnectBoundary(request, sttProvider, {
-        audioBase64: parsed.data.audioBase64,
-        mimeType: parsed.data.mimeType,
-        language: parsed.data.language,
-        metadata: {
-          ...identityMetadata(parsed.data),
-          ...(parsed.data.mockText ? { mockTranscription: parsed.data.mockText } : {})
-        }
-      });
+      const transcription = await transcribeAudioWithDisconnectBoundary(
+        request,
+        sttProvider,
+        {
+          audioBase64: parsed.data.audioBase64,
+          mimeType: parsed.data.mimeType,
+          language: parsed.data.language,
+          metadata: {
+            ...identityMetadata(parsed.data),
+            ...(parsed.data.mockText ? { mockTranscription: parsed.data.mockText } : {})
+          }
+        },
+        context,
+        `session:${parsed.data.sessionId}:capture:${parsed.data.captureEpoch ?? randomUUID()}`
+      );
       retainSpeechReview(parsed.data.audioBase64, transcription);
       const admitted = await admitFinalizedSpeech(context, transcription, {
         sessionId: parsed.data.sessionId,
@@ -371,6 +405,17 @@ export async function registerMediaRoutes(
         observation.observationId!,
         parsed.data.sessionId,
         observation.text
+      );
+      const target: ReplyPublicationTarget = {
+        surface: "HTTP",
+        targetId: `HTTP:voice:${transcriptEvent.traceId}`,
+        targetGeneration: randomUUID()
+      };
+      responseTarget = target;
+      unregister = context.outwardEffects?.registerTarget(
+        target,
+        (_session, trace) => trace === transcriptEvent.traceId,
+        () => !request.raw.aborted && !reply.raw.destroyed
       );
       const response = await context.runtime.handleUserMessage(transcriptEvent, {
         readMemory: parsed.data.options?.readMemory,
@@ -411,7 +456,7 @@ export async function registerMediaRoutes(
             : undefined
         });
       }
-      return reply.send({
+      const payload = {
         transcription: {
           text: observation.text,
           language: observation.language,
@@ -437,10 +482,133 @@ export async function registerMediaRoutes(
         promptPreview: parsed.data.options?.promptPreview
           ? context.runtime.getLatestPromptPreview()
           : undefined
-      });
+      };
+      if (context.outwardEffects)
+        await context.outwardEffects.publish({
+          target,
+          frameId: `${response.id}:voice-http`,
+          replyId: response.id,
+          componentId: `rc1_${createHash("sha256")
+            .update(
+              `${response.id}\0${"1"}\0${createHash("sha256").update(response.payload.content).digest("hex")}`
+            )
+            .digest("hex")}`,
+          payload,
+          write: async () => {
+            reply.send(payload);
+          }
+        });
+      else reply.send(payload);
+      return reply;
     } catch (error) {
       if (error instanceof JournalStoreError) return sendSpeechAdmissionFailure(reply, error);
+      if (responseTarget && context.outwardEffects) {
+        let code = 500,
+          payload: unknown;
+        sendSpeechCaptureOrProviderFailure(
+          {
+            status(status) {
+              code = status;
+              return {
+                send(value) {
+                  payload = value;
+                }
+              };
+            }
+          },
+          error
+        );
+        try {
+          await context.outwardEffects.publish({
+            target: responseTarget,
+            frameId: `error:${randomUUID()}`,
+            payload,
+            write: async () => {
+              reply.status(code).send(payload);
+            }
+          });
+        } catch {
+          reply.raw.destroy();
+        }
+        return reply;
+      }
       return sendSpeechCaptureOrProviderFailure(reply, error);
+    } finally {
+      unregister?.();
+    }
+  });
+
+  app.post("/v1/media/generations", async (request, reply) => {
+    const input = z
+      .object({ sessionId: z.string().min(1).max(512), requestId: z.string().min(1).max(512) })
+      .strict()
+      .parse(request.body);
+    return reply.send({
+      generation: context.mediaEffects.generation(input.sessionId, input.requestId)
+    });
+  });
+  app.delete("/v1/media/generations/:generation", async (request, reply) => {
+    context.mediaEffects.revoke(
+      z.object({ generation: z.string().min(1).max(512) }).parse(request.params).generation
+    );
+    return reply.code(204).send();
+  });
+  app.post("/v1/media/segments", async (request, reply) => {
+    const input = z
+      .object({
+        segment: SpeechSegmentSealSchema,
+        text: z.string().min(1).max(32000),
+        generation: z.string().min(1).max(512)
+      })
+      .strict()
+      .parse(request.body);
+    const segment = await context.mediaEffects.sealSegment({
+      seal: input.segment,
+      text: input.text,
+      generation: input.generation
+    });
+    return reply.send({ segmentId: segment.segmentId, generation: segment.generation });
+  });
+  app.post("/v1/media/permissions", async (request, reply) => {
+    const input = z
+      .object({
+        segmentId: z.string().min(1).max(512),
+        generation: z.string().min(1).max(512),
+        kind: z.enum(["PLAYBACK", "SUBTITLE"])
+      })
+      .strict()
+      .parse(request.body);
+    const permission = await context.mediaEffects.permission(input);
+    const target: ReplyPublicationTarget = {
+      surface: "HTTP",
+      targetId: `HTTP:media-permit:${randomUUID()}`,
+      targetGeneration: randomUUID()
+    };
+    const unregister = context.outwardEffects.registerTarget(
+      target,
+      () => false,
+      () => !request.raw.aborted && !reply.raw.destroyed
+    );
+    try {
+      await context.outwardEffects.publish({
+        target,
+        frameId: permission.attemptId,
+        payload: permission,
+        write: async () => {
+          reply.send(permission);
+        }
+      });
+      return reply;
+    } finally {
+      unregister();
+    }
+  });
+  app.post("/v1/media/reports", async (request, reply) => {
+    try {
+      await context.mediaEffects.report(MediaDeviceReportSchema.parse(request.body));
+      return reply.code(204).send();
+    } catch {
+      return reply.code(409).send({ error: "stale_or_invalid_media_report" });
     }
   });
 
@@ -451,6 +619,8 @@ export async function registerMediaRoutes(
     }
 
     const boundary = createRequestDisconnectBoundary(request);
+    let unregister: (() => void) | undefined;
+    let ttsCause: JournalEventRef | void;
     try {
       if (boundary.signal.aborted) {
         return sendProviderFailure(
@@ -461,7 +631,7 @@ export async function registerMediaRoutes(
       }
 
       try {
-        await context.ttsReceiptAdmission.admit({
+        ttsCause = await context.ttsReceiptAdmission.admit({
           ...(parsed.data.sessionId.length <= 512 ? { sessionId: parsed.data.sessionId } : {}),
           textCharacterCount: [...parsed.data.text].length,
           voiceSupplied: parsed.data.voice !== undefined,
@@ -473,7 +643,9 @@ export async function registerMediaRoutes(
           return;
         }
         const failure = toTtsAdmissionFailure(error);
-        return reply.status(failure.statusCode).send({ error: "journal_admission_failed", ...failure });
+        return reply
+          .status(failure.statusCode)
+          .send({ error: "journal_admission_failed", ...failure });
       }
 
       if (boundary.signal.aborted || isResponseUnavailable(request, reply)) {
@@ -485,18 +657,31 @@ export async function registerMediaRoutes(
         throw createCancelledProviderError(provider.name, "not_started");
       }
 
-      const output = await provider.synthesizeSpeech(
-        {
-          text: parsed.data.text,
-          voice: parsed.data.voice,
-          format: parsed.data.format,
-          metadata: {
-            sessionId: parsed.data.sessionId,
-            ...(parsed.data.language ? { language: parsed.data.language } : {})
-          }
-        },
-        { signal: boundary.signal }
-      );
+      const segment = context.mediaEffects
+        ? parsed.data.segment && parsed.data.generation
+          ? await context.mediaEffects.sealSegment({
+              seal: parsed.data.segment,
+              text: parsed.data.text,
+              generation: parsed.data.generation
+            })
+          : await context.mediaEffects.sealWhole(
+              parsed.data.text,
+              parsed.data.sessionId,
+              ttsCause || undefined
+            )
+        : undefined;
+      const synthesisInput = {
+        text: parsed.data.text,
+        voice: parsed.data.voice,
+        format: parsed.data.format,
+        metadata: {
+          sessionId: parsed.data.sessionId,
+          ...(parsed.data.language ? { language: parsed.data.language } : {})
+        }
+      };
+      const output = segment
+        ? await context.mediaEffects.synthesize(segment, synthesisInput, boundary.signal)
+        : await provider.synthesizeSpeech(synthesisInput, { signal: boundary.signal });
 
       if (boundary.signal.aborted) {
         throw createCancelledProviderError(provider.name, "unknown");
@@ -505,18 +690,47 @@ export async function registerMediaRoutes(
         return;
       }
 
-      return reply.send({
+      const payload = {
         audioBase64: output.audioBase64 ?? Buffer.from(output.audio).toString("base64"),
         mimeType: output.mimeType,
         durationMs: output.durationMs,
-        ...standardProviderMetadata("tts", output)
-      });
+        ...standardProviderMetadata("tts", output),
+        ...(segment
+          ? { media: { segmentId: segment.segmentId, generation: segment.generation } }
+          : {})
+      };
+      if (context.outwardEffects) {
+        const target: ReplyPublicationTarget = {
+          surface: "HTTP",
+          targetId: `HTTP:TTS:${randomUUID()}`,
+          targetGeneration: randomUUID()
+        };
+        unregister = context.outwardEffects.registerTarget(
+          target,
+          () => false,
+          () => !boundary.signal.aborted && !isResponseUnavailable(request, reply)
+        );
+        await context.outwardEffects.publish({
+          target,
+          frameId: segment?.segmentId ?? randomUUID(),
+          payload,
+          scope: `session:${parsed.data.sessionId}`,
+          cause: segment?.cause,
+          replyId: segment?.replyId,
+          write: async () => {
+            reply.send(payload);
+          }
+        });
+        return reply;
+      }
+      return reply.send(payload);
     } catch (error) {
       if (isResponseUnavailable(request, reply)) {
         return;
       }
       return sendProviderFailure(reply, "tts", error);
     } finally {
+      unregister?.();
       boundary.cleanup();
     }
   });
@@ -533,16 +747,18 @@ export async function registerMediaRoutes(
     }
 
     const boundary = createRequestDisconnectBoundary(request);
+    let sourceJournalRef: JournalEventRef | undefined;
     try {
       if (boundary.signal.aborted) {
         throw createCancelledVisionProviderError("vision", "not_started");
       }
 
       try {
-        await context.visionReceiptAdmission.admit({
+        const visionReceipt = await context.visionReceiptAdmission.admit({
           imageSource: parsed.data.imageUrl ? "URL_REFERENCE" : "INLINE_BYTES",
           ...(parsed.data.prompt !== undefined ? { prompt: parsed.data.prompt } : {})
         });
+        sourceJournalRef = visionReceipt || undefined;
       } catch (error) {
         if (isResponseUnavailable(request, reply)) {
           return;
@@ -562,15 +778,23 @@ export async function registerMediaRoutes(
         throw createCancelledVisionProviderError(provider.name, "not_started");
       }
 
-      const output = await provider.analyzeImage(
+      const output = await withProviderWorkContext(
         {
-          imageBase64: parsed.data.imageBase64,
-          imageUrl: parsed.data.imageUrl,
-          mimeType: normalizePublicVisionMimeType(parsed.data.mimeType) ?? parsed.data.mimeType,
-          prompt: parsed.data.prompt,
-          metadata: identityMetadata(parsed.data)
+          scope: `session:${parsed.data.sessionId}`,
+          cause: sourceJournalRef,
+          isCurrent: () => !boundary.signal.aborted
         },
-        { signal: boundary.signal }
+        () =>
+          provider.analyzeImage(
+            {
+              imageBase64: parsed.data.imageBase64,
+              imageUrl: parsed.data.imageUrl,
+              mimeType: normalizePublicVisionMimeType(parsed.data.mimeType) ?? parsed.data.mimeType,
+              prompt: parsed.data.prompt,
+              metadata: identityMetadata(parsed.data)
+            },
+            { signal: boundary.signal }
+          )
       );
 
       if (boundary.signal.aborted) {

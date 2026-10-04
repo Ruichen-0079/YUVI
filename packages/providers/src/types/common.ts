@@ -111,6 +111,7 @@ export type ProviderDebug = {
 };
 
 export type ProviderMetadata = {
+  sourceAttemptId?: string | undefined;
   /** Capability that produced this output when the output is carried alone. */
   capability?: ProviderCapability | undefined;
   /** Concrete provider identity that produced this output. */

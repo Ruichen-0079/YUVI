@@ -1,12 +1,12 @@
 # Post-v0.1.3 roadmap: measured research and gated engineering
 
-Status: every atom here is **PLANNED ENGINEERING** or a **RESEARCH HYPOTHESIS** test. None is implemented, and none is v0.1.3 scope. Atoms marked *(gate)* are experiments whose outcome can **stop** later atoms. A stop is a successful result: “explicit, evidence-linked mechanisms are sufficient; no latent self substrate is necessary” closes the latent path.
+Status: every atom here is **PLANNED ENGINEERING** or a **RESEARCH HYPOTHESIS** test. None is implemented, and none is v0.1.3 scope. Atoms marked _(gate)_ are experiments whose outcome can **stop** later atoms. A stop is a successful result: “explicit, evidence-linked mechanisms are sufficient; no latent self substrate is necessary” closes the latent path.
 
 Experiment definitions (E1–E6) and risks (R1–R8) live in [research methodology](research-methodology.md). Baseline meanings (B0…Z) live in [selection research](selection-research.md). Measurement restrictions live in [measured consolidation](measured-consolidation.md). This file only orders and bounds the work.
 
 ## Entry condition
 
-v0.1.3 closure requires the gates in [its roadmap](09-v0.1.3-platform-completion.md): durable journal, outbox, lineage-bound consumers, context manifests, synthetic conformance and the real QQ probe. Aggregate A10.1, A9.1/A9.2 and A10.2 are implemented; A9.3 remains planned, aggregate A9 remains incomplete, and A10.3, A11 and A12 remain open, so release closure is not claimed. No atom below may bypass those invariants, and none may add a writer that the [authority map](authority.md) does not name.
+v0.1.3 closure requires the gates in [its roadmap](09-v0.1.3-platform-completion.md): durable journal, outbox, lineage-bound consumers, context manifests, synthetic conformance and the real QQ probe. Aggregate A10.1, A9.1/A9.2 and A10.2 are implemented; A9.3 and aggregate A9 are implemented, and A10.3, A11 and A12 remain open, so release closure is not claimed. No atom below may bypass those invariants, and none may add a writer that the [authority map](authority.md) does not name.
 
 ## Dependency order
 
@@ -25,7 +25,7 @@ E2 → O1 (optional)
 
 The explicit order above wins over numeric sorting. Every atom updates its owning document(s) and [implementation baseline](implementation-baseline.md) as part of its own Definition of Done. There is no separate documentation-cleanup atom.
 
-Every *(gate)* atom must commit to version control, **before** running: target behavior, minimum useful effect, failure thresholds, sample size, splitting unit, exclusions, and the decision taken on each outcome. A result without that preregistration cannot promote anything.
+Every _(gate)_ atom must commit to version control, **before** running: target behavior, minimum useful effect, failure thresholds, sample size, splitting unit, exclusions, and the decision taken on each outcome. A result without that preregistration cannot promote anything.
 
 ---
 
@@ -63,7 +63,7 @@ Every *(gate)* atom must commit to version control, **before** running: target b
 **Downstream.** E1a, P1, C1.
 **Not yet.** Real-user longitudinal data (needs PV1).
 
-## E1a *(gate)* — Long-context length and provenance scan
+## E1a _(gate)_ — Long-context length and provenance scan
 
 **Goal.** Run E1 arms B0, B0p and B1 over increasing history length, noise and provenance quality.
 **Why it exists.** It locates how much continuity plain long context plus provenance already delivers, and whether model priors dominate (R1).
@@ -103,7 +103,7 @@ Every *(gate)* atom must commit to version control, **before** running: target b
 **Why it exists.** Obligations fail at time boundaries: restarts, clock changes, long absence.
 **Preconditions.** P1.
 **Existing authority to preserve.** A2 does not resume old executions. P6 user priority.
-**Exact scope.** Scheduling keyed by item/revision/trigger; restart re-evaluates permissions, membership and deadlines; offline time produces an overdue *review*, never a burst of old outbound messages.
+**Exact scope.** Scheduling keyed by item/revision/trigger; restart re-evaluates permissions, membership and deadlines; offline time produces an overdue _review_, never a burst of old outbound messages.
 **Explicit non-goals.** Autonomous outreach policy.
 **Code/docs to inspect.** Runtime proactive policy, journal recovery table.
 **Required invariants.** I2/I3 on any resulting effect; no duplicate trigger after restart.
@@ -148,7 +148,7 @@ Every *(gate)* atom must commit to version control, **before** running: target b
 **Downstream.** E2.
 **Not yet.** Persistent variables.
 
-## E2 *(gate)* — Codebook reliability pilot
+## E2 _(gate)_ — Codebook reliability pilot
 
 **Goal.** Measure annotation reliability per [research methodology E2](research-methodology.md#required-experiments).
 **Why it exists.** Unreliable labels cannot feed persistent state (R7, R8).
@@ -216,7 +216,7 @@ Every *(gate)* atom must commit to version control, **before** running: target b
 **Downstream.** E6, RD1, MR1.
 **Not yet.** Learned selection.
 
-## E6 *(gate)* — Attribution correction and descendant invalidation
+## E6 _(gate)_ — Attribution correction and descendant invalidation
 
 **Goal.** Introduce wrong evidence or a wrong binding, derive from it, amend it, and verify that stale descendants stop influencing behavior.
 **Preconditions.** C4, P3.
@@ -230,7 +230,7 @@ Every *(gate)* atom must commit to version control, **before** running: target b
 **Migration/compatibility.** None.
 **Downstream.** MR1.
 
-## E4 *(gate)* — Manipulation effect versus attacker budget
+## E4 _(gate)_ — Manipulation effect versus attacker budget
 
 **Goal / scope.** The E4 curves in research methodology, run against C3 projections and against B0p.
 **Why it exists.** R4, and genuine sustained influence versus manipulation.
@@ -240,7 +240,7 @@ Every *(gate)* atom must commit to version control, **before** running: target b
 **Tests.** Attacker event, source, time and share sweeps. **Migration.** None. **Exit.** Published curves plus a decision per construct.
 **Downstream.** S1 exposure policy, Z1. **Not yet.** Automated defenses that modify evidence.
 
-## E5 *(gate)* — Pulse response and decay
+## E5 _(gate)_ — Pulse response and decay
 
 **Goal / scope.** Inject one controlled experience; measure immediate effect, integration, persistence, decay and recovery over accelerated time (E5 row).
 **Why it exists.** It tests whether bounded durable change exists at all, without endless self-reinforcement.
@@ -267,7 +267,7 @@ Every *(gate)* atom must commit to version control, **before** running: target b
 **Downstream.** S2, RD1.
 **Not yet.** Z.
 
-## S2 / E3 *(gate)* — State ablation and oracle gap
+## S2 / E3 _(gate)_ — State ablation and oracle gap
 
 **Goal.** E3: remove persistent state with inputs fixed, swap relevant and unrelated evidence, and compare O_text, O_selection, B3 and Zero.
 **Why it exists.** It decides whether selection has headroom that learning could close.
@@ -299,7 +299,7 @@ Every *(gate)* atom must commit to version control, **before** running: target b
 **Downstream.** Z1, RD2 on real data, MR1 real holdouts.
 **Not yet.** None.
 
-## Z1 *(gate, optional)* — Offline learned selection trial
+## Z1 _(gate, optional)_ — Offline learned selection trial
 
 **Goal.** Only if S2 found a frozen minimum O_selection gap: test whether a small offline Z closes a meaningful part of it on held-out histories.
 **Preconditions.** S2 gap, PV1, E4 curves.
@@ -332,7 +332,7 @@ Every *(gate)* atom must commit to version control, **before** running: target b
 **Downstream.** RD2.
 **Not yet.** Exploration.
 
-## RD2 *(gate)* — Residual revealed-disposition experiment (shadow)
+## RD2 _(gate)_ — Residual revealed-disposition experiment (shadow)
 
 **Goal.** Test whether residual innovation beyond the existing policy, over repeated independent opportunities with negative evidence, supports tiny bounded epoch updates.
 **Preconditions.** RD1, E5; PV1 if real data is used.
@@ -348,7 +348,7 @@ Every *(gate)* atom must commit to version control, **before** running: target b
 **Downstream.** X1 (only if informative).
 **Not yet.** Exploration.
 
-## X1 *(research)* — Charter-constrained exploration channel
+## X1 _(research)_ — Charter-constrained exploration channel
 
 **Goal.** A small, resource-limited exploration channel that creates informative choice opportunities not selected by the user.
 **Preconditions.** RD2 shows that residual evidence is measurable.
@@ -394,7 +394,7 @@ Every *(gate)* atom must commit to version control, **before** running: target b
 **Downstream.** Eventual P8 retirement.
 **Not yet.** Deleting authored charter content.
 
-## O1 *(optional research)* — Open-vocabulary hypothesis queue
+## O1 _(optional research)_ — Open-vocabulary hypothesis queue
 
 **Goal / scope.** Per [measured consolidation](measured-consolidation.md#optional-hypotheses): a model proposes a named pattern with selectors and a disconfirmation plan. It enters a pending research queue, which is not state.
 **Preconditions.** E2. **Authority to preserve.** No new variables without measurement definitions.
@@ -406,3 +406,5 @@ Every *(gate)* atom must commit to version control, **before** running: target b
 ## Permanently excluded
 
 Persistent self or self vectors, a generic Life Layer, a generic regulation substrate, artificial hormones or neurotransmitter variables, desire or social-need meters, a stored generic trust variable, a “Yuvi-likeness” score, and engagement or retention optimization. 岁月感 and 第一人称生活实感 remain **LONG-TERM EVALUATION GOALS** measured by M2 probes. They are not modules.
+
+A9.3 closure: [canonical accounting, current regression counts and outbound audit](../validation/v0.1.3-a9.3-aggregate-effect-coverage.md). Historical descriptions of incomplete provider/publication coverage above are superseded by that record. A10.3 remains planned.

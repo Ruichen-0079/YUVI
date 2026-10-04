@@ -1,3 +1,4 @@
+import { providerFetch as fetch } from "../invocation-witness.js";
 import type { ProviderCapability, ProviderHealth } from "../types/common.js";
 import {
   ProviderError,

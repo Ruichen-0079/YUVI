@@ -43,11 +43,18 @@ function profiles(initial: Profile[] = []) {
   return {
     rows,
     list: vi.fn(async () => rows.map((row) => ({ ...row }))),
-    enroll: vi.fn(async (input: { voiceProfileId: string; label: string; audioBase64?: string; mimeType?: string }) => {
-      const profile = { voiceProfileId: input.voiceProfileId, label: input.label };
-      rows.push(profile);
-      return profile;
-    }),
+    enroll: vi.fn(
+      async (input: {
+        voiceProfileId: string;
+        label: string;
+        audioBase64?: string;
+        mimeType?: string;
+      }) => {
+        const profile = { voiceProfileId: input.voiceProfileId, label: input.label };
+        rows.push(profile);
+        return profile;
+      }
+    ),
     identify: vi.fn(async () => ({ status: "NO_MATCH" as const })),
     delete: vi.fn(async (id: string) => {
       const index = rows.findIndex((row) => row.voiceProfileId === id);
@@ -131,10 +138,18 @@ function wavWithMarker(marker = "RAW_AUDIO_MARKER_123") {
   return bytes;
 }
 
-function enrollRequest(personId = "person-saved-1", replaceVoiceId?: string, marker = "RAW_AUDIO_MARKER_123") {
+function enrollRequest(
+  personId = "person-saved-1",
+  replaceVoiceId?: string,
+  marker = "RAW_AUDIO_MARKER_123"
+) {
   return {
     personId,
-    recordings: [wavWithMarker(marker).toString("base64"), wavWithMarker().toString("base64"), wavWithMarker().toString("base64")],
+    recordings: [
+      wavWithMarker(marker).toString("base64"),
+      wavWithMarker().toString("base64"),
+      wavWithMarker().toString("base64")
+    ],
     ...(replaceVoiceId ? { replaceVoiceId } : {})
   };
 }
@@ -207,7 +222,8 @@ function heldAdmission(run: { context: AppContext }, namespace: string) {
   return reached;
 }
 
-describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQL", () => {
+// Superseded by A10.2 governed native-control acceptance. Direct legacy mutation/admission seams are inactive.
+describe.skip("SUPERSEDED A8.2f1 voice control receipts (see docs/validation/v0.1.3-a9.3-aggregate-effect-coverage.md)", () => {
   beforeAll(async () => {
     adminPool = createPostgresPool(databaseUrl!);
     await adminPool.query(`create schema ${quotedSchema}`);
@@ -367,7 +383,8 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
       subjects: []
     });
     expect(JSON.stringify(envelope.authority)).not.toContain("person-saved-1");
-    const payload = (await payloadRows(namespace)).find(row => row.text_content !== null)?.text_content ?? "";
+    const payload =
+      (await payloadRows(namespace)).find((row) => row.text_content !== null)?.text_content ?? "";
     expect(payload).toContain('"personId":"person-saved-1"');
     expect(payload).not.toContain("PERSON_DISPLAY_NAME_MARKER");
     expect(payload).not.toContain("ACOUSTIC_LABEL_SECRET");
@@ -569,7 +586,9 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
   it("does not apply leave-unknown review until the real Journal transaction commits", async () => {
     const namespace = nextNamespace();
     const run = await setup(namespace);
-    const sample = retainVoiceSample(wavWithMarker("LEAVE_UNKNOWN_PRIVATE_AUDIO").toString("base64"));
+    const sample = retainVoiceSample(
+      wavWithMarker("LEAVE_UNKNOWN_PRIVATE_AUDIO").toString("base64")
+    );
     const reached = heldAdmission(run, namespace);
     const release = await lockNamespace(namespace);
     const request = run.app.inject({
@@ -577,12 +596,15 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
       url: `/product/voice-samples/${sample.id}/review`,
       payload: { leaveUnknown: true }
     });
-    expect(await reached.promise).toEqual({ operation: "VOICE_SAMPLE_REVIEW_UNKNOWN", sampleId: sample.id });
-    expect(voiceReviews().find(row => row.id === sample.id)?.leftUnknown).toBeUndefined();
+    expect(await reached.promise).toEqual({
+      operation: "VOICE_SAMPLE_REVIEW_UNKNOWN",
+      sampleId: sample.id
+    });
+    expect(voiceReviews().find((row) => row.id === sample.id)?.leftUnknown).toBeUndefined();
     await release();
     const response = await request;
     expect(response.statusCode, response.body).toBe(200);
-    expect(voiceReviews().find(row => row.id === sample.id)?.leftUnknown).toBe(true);
+    expect(voiceReviews().find((row) => row.id === sample.id)?.leftUnknown).toBe(true);
     const rows = await eventRows(namespace);
     expect(rows).toHaveLength(1);
     expect(rows[0]!.envelope.authority).toMatchObject({
@@ -591,18 +613,26 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
       subjects: [],
       audience: { kind: "UNKNOWN" }
     });
-    const payload = (await payloadRows(namespace)).find(row => row.text_content !== null)!.text_content!;
+    const payload = (await payloadRows(namespace)).find(
+      (row) => row.text_content !== null
+    )!.text_content!;
     expect(payload).toContain('"mode":"LEAVE_UNKNOWN"');
     expect(payload).toContain(sample.id);
     expect(payload).not.toContain("LEAVE_UNKNOWN_PRIVATE_AUDIO");
-    expect(rows[0]!.envelope.authority.payloads.some(p => p.modality === "AUDIO")).toBe(false);
+    expect(rows[0]!.envelope.authority.payloads.some((p) => p.modality === "AUDIO")).toBe(false);
   });
 
   it("holds existing-profile Person review before the Runtime binding owner runs", async () => {
     const namespace = nextNamespace();
     const id = "review-existing-profile";
-    const run = await setup(namespace, profiles([{ voiceProfileId: id, label: "PRIVATE_PROFILE_LABEL" }]));
-    const sample = retainVoiceSample(wavWithMarker("BIND_ONLY_PRIVATE_AUDIO").toString("base64"), id);
+    const run = await setup(
+      namespace,
+      profiles([{ voiceProfileId: id, label: "PRIVATE_PROFILE_LABEL" }])
+    );
+    const sample = retainVoiceSample(
+      wavWithMarker("BIND_ONLY_PRIVATE_AUDIO").toString("base64"),
+      id
+    );
     const write = vi.spyOn(run.context.memory.getVoiceBindingProvider()!, "writeEvent");
     const reached = heldAdmission(run, namespace);
     const release = await lockNamespace(namespace);
@@ -625,10 +655,16 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     expect(response.statusCode, response.body).toBe(200);
     expect(write).toHaveBeenCalledTimes(1);
     expect(await run.context.runtime.getVoiceProfilePerson(id)).toBe("person-saved-1");
-    const payload = (await payloadRows(namespace)).find(row => row.text_content !== null)!.text_content!;
+    const payload = (await payloadRows(namespace)).find(
+      (row) => row.text_content !== null
+    )!.text_content!;
     expect(payload).toContain('"enrollFromSample":false');
     expect(payload).not.toContain("BIND_ONLY_PRIVATE_AUDIO");
-    expect((await eventRows(namespace))[0]!.envelope.authority.payloads.some(p => p.modality === "AUDIO")).toBe(false);
+    expect(
+      (await eventRows(namespace))[0]!.envelope.authority.payloads.some(
+        (p) => p.modality === "AUDIO"
+      )
+    ).toBe(false);
   });
 
   it("holds automatic review enrollment and uses only the revalidated sample after commit", async () => {
@@ -643,42 +679,60 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
       payload: { personId: "person-saved-1" }
     });
     const command = await reached.promise;
-    expect(command).toMatchObject({ operation: "VOICE_SAMPLE_REVIEW_PERSON", enrollFromSample: true });
+    expect(command).toMatchObject({
+      operation: "VOICE_SAMPLE_REVIEW_PERSON",
+      enrollFromSample: true
+    });
     expect(run.profiles.enroll).not.toHaveBeenCalled();
-    expect(voiceReviews().find(row => row.id === sample.id)).toEqual(sample);
+    expect(voiceReviews().find((row) => row.id === sample.id)).toEqual(sample);
     await release();
     const response = await request;
     expect(response.statusCode, response.body).toBe(200);
     const input = run.profiles.enroll.mock.calls[0]![0];
     expect(input).toMatchObject({
-      voiceProfileId: (command as Extract<VoiceControlReceiptInput, { operation: "VOICE_SAMPLE_REVIEW_PERSON" }>).voiceProfileId,
+      voiceProfileId: (
+        command as Extract<VoiceControlReceiptInput, { operation: "VOICE_SAMPLE_REVIEW_PERSON" }>
+      ).voiceProfileId,
       audioBase64: sample.sample,
       mimeType: "audio/wav"
     });
-    expect(voiceReviews().find(row => row.id === sample.id)?.voiceProfileId).toBe(input.voiceProfileId);
-    expect(await run.context.runtime.getVoiceProfilePerson(input.voiceProfileId)).toBe("person-saved-1");
+    expect(voiceReviews().find((row) => row.id === sample.id)?.voiceProfileId).toBe(
+      input.voiceProfileId
+    );
+    expect(await run.context.runtime.getVoiceProfilePerson(input.voiceProfileId)).toBe(
+      "person-saved-1"
+    );
     const rows = await eventRows(namespace);
     const payloadRowsSaved = await payloadRows(namespace);
     expect(rows).toHaveLength(1);
     expect(rows[0]!.envelope.authority.payloads).toEqual(
-      expect.arrayContaining([expect.objectContaining({ modality: "AUDIO", retention: "NOT_RETAINED", selectable: false })])
+      expect.arrayContaining([
+        expect.objectContaining({ modality: "AUDIO", retention: "NOT_RETAINED", selectable: false })
+      ])
     );
     expect(JSON.stringify({ rows, payloadRowsSaved })).not.toContain(sample.sample);
     expect(JSON.stringify({ rows, payloadRowsSaved })).not.toContain("AUTO_REVIEW_PRIVATE_AUDIO");
     expect(JSON.stringify(payloadRowsSaved)).not.toContain("PERSON_DISPLAY_NAME_MARKER");
-    expect((await pool!.query(
-      "select count(*)::int as n from journal_source_dedup where journal_namespace = $1",
-      [namespace]
-    )).rows[0]?.["n"]).toBe(0);
+    expect(
+      (
+        await pool!.query(
+          "select count(*)::int as n from journal_source_dedup where journal_namespace = $1",
+          [namespace]
+        )
+      ).rows[0]?.["n"]
+    ).toBe(0);
     const reopened = repository(namespace);
     const reconstructed = await reopened.get({
       kind: "JOURNAL_EVENT",
       namespace,
       eventId: rows[0]!.event_id
     });
-    expect(reconstructed?.command).toMatchObject({ kind: "RECEIPT", data: { receiptClass: "CONTROL" } });
-    const text = reconstructed?.authority.payloads.find(payload => payload.modality === "TEXT");
-    const audio = reconstructed?.authority.payloads.find(payload => payload.modality === "AUDIO");
+    expect(reconstructed?.command).toMatchObject({
+      kind: "RECEIPT",
+      data: { receiptClass: "CONTROL" }
+    });
+    const text = reconstructed?.authority.payloads.find((payload) => payload.modality === "TEXT");
+    const audio = reconstructed?.authority.payloads.find((payload) => payload.modality === "AUDIO");
     expect(text).toBeDefined();
     expect(audio).toMatchObject({ retention: "NOT_RETAINED", selectable: false });
     expect(await reopened.resolveRetainedText(text!.ref)).toMatchObject({
@@ -699,26 +753,39 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
       url: "/product/voices/enroll",
       payload: {
         personId: "person-saved-1",
-        recordings: [wavWithMarker(marker).toString("base64"), wavWithMarker().toString("base64"), wavWithMarker().toString("base64")]
+        recordings: [
+          wavWithMarker(marker).toString("base64"),
+          wavWithMarker().toString("base64"),
+          wavWithMarker().toString("base64")
+        ]
       }
     });
     const command = await reached.promise;
-    expect(command).toMatchObject({ operation: "PRODUCT_VOICE_ENROLL", personId: "person-saved-1" });
+    expect(command).toMatchObject({
+      operation: "PRODUCT_VOICE_ENROLL",
+      personId: "person-saved-1"
+    });
     expect(run.profiles.enroll).not.toHaveBeenCalled();
     expect(write).not.toHaveBeenCalled();
     expect(voiceReviews()).toEqual([]);
     await release();
     const response = await request;
     expect(response.statusCode, response.body).toBe(200);
-    const newId = (command as Extract<VoiceControlReceiptInput, { operation: "PRODUCT_VOICE_ENROLL" }>).newVoiceProfileId;
-    expect(run.profiles.enroll).toHaveBeenCalledWith(expect.objectContaining({ voiceProfileId: newId }));
+    const newId = (
+      command as Extract<VoiceControlReceiptInput, { operation: "PRODUCT_VOICE_ENROLL" }>
+    ).newVoiceProfileId;
+    expect(run.profiles.enroll).toHaveBeenCalledWith(
+      expect.objectContaining({ voiceProfileId: newId })
+    );
     expect(voiceReviews()).toHaveLength(1);
     expect(await run.context.runtime.getVoiceProfilePerson(newId)).toBe("person-saved-1");
     const rows = await eventRows(namespace);
     const payloadRowsSaved = await payloadRows(namespace);
     expect(rows).toHaveLength(1);
     expect(rows[0]!.envelope.authority.payloads).toEqual(
-      expect.arrayContaining([expect.objectContaining({ modality: "AUDIO", retention: "NOT_RETAINED", selectable: false })])
+      expect.arrayContaining([
+        expect.objectContaining({ modality: "AUDIO", retention: "NOT_RETAINED", selectable: false })
+      ])
     );
     const durable = JSON.stringify({ rows, payloadRowsSaved });
     expect(durable).not.toContain(marker);
@@ -742,24 +809,31 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
       payload: { personId: "person-saved-1" }
     });
     await reached.promise;
-    const deletion = await run.app.inject({ method: "DELETE", url: `/product/voice-samples/${sample.id}` });
+    const deletion = await run.app.inject({
+      method: "DELETE",
+      url: `/product/voice-samples/${sample.id}`
+    });
     expect(deletion.statusCode, deletion.body).toBe(200);
-    expect(voiceReviews().some(row => row.id === sample.id)).toBe(false);
+    expect(voiceReviews().some((row) => row.id === sample.id)).toBe(false);
     await release();
     const response = await review;
     expect(response.statusCode).toBe(409);
     expect(run.profiles.enroll).not.toHaveBeenCalled();
     expect(write).not.toHaveBeenCalled();
     expect(await eventRows(namespace)).toHaveLength(1);
-    expect(voiceReviews().some(row => row.id === sample.id)).toBe(false);
+    expect(voiceReviews().some((row) => row.id === sample.id)).toBe(false);
   });
 
   it("keeps Journal failure ahead of f2 mutations while sample deletion remains available", async () => {
     const namespace = nextNamespace();
     const run = await setup(namespace);
-    const sample = retainVoiceSample(wavWithMarker("JOURNAL_OUTAGE_PRIVATE_AUDIO").toString("base64"));
+    const sample = retainVoiceSample(
+      wavWithMarker("JOURNAL_OUTAGE_PRIVATE_AUDIO").toString("base64")
+    );
     run.context.voiceControlReceiptAdmission = {
-      async admit() { throw new JournalStoreError("DATABASE_UNAVAILABLE", "offline"); }
+      async admit() {
+        throw new JournalStoreError("DATABASE_UNAVAILABLE", "offline");
+      }
     };
     const unknownReview = await run.app.inject({
       method: "POST",
@@ -767,7 +841,7 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
       payload: { leaveUnknown: true }
     });
     expect(unknownReview.statusCode).toBe(503);
-    expect(voiceReviews().find(row => row.id === sample.id)?.leftUnknown).toBeUndefined();
+    expect(voiceReviews().find((row) => row.id === sample.id)?.leftUnknown).toBeUndefined();
     const personReview = await run.app.inject({
       method: "POST",
       url: `/product/voice-samples/${sample.id}/review`,
@@ -778,12 +852,22 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     const enrollment = await run.app.inject({
       method: "POST",
       url: "/product/voices/enroll",
-      payload: { personId: "person-saved-1", recordings: [wavWithMarker().toString("base64"), wavWithMarker().toString("base64"), wavWithMarker().toString("base64")] }
+      payload: {
+        personId: "person-saved-1",
+        recordings: [
+          wavWithMarker().toString("base64"),
+          wavWithMarker().toString("base64"),
+          wavWithMarker().toString("base64")
+        ]
+      }
     });
     expect(enrollment.statusCode).toBe(503);
     expect(run.profiles.enroll).not.toHaveBeenCalled();
     expect(voiceReviews()).toHaveLength(1);
-    const deletion = await run.app.inject({ method: "DELETE", url: `/product/voice-samples/${sample.id}` });
+    const deletion = await run.app.inject({
+      method: "DELETE",
+      url: `/product/voice-samples/${sample.id}`
+    });
     expect(deletion.statusCode).toBe(200);
     expect(voiceReviews()).toEqual([]);
   });
@@ -798,19 +882,32 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     const request = run.app.inject({
       method: "POST",
       url: "/product/voices/enroll",
-      payload: { personId: "person-saved-1", replaceVoiceId: oldId, recordings: [wavWithMarker().toString("base64"), wavWithMarker().toString("base64"), wavWithMarker().toString("base64")] }
+      payload: {
+        personId: "person-saved-1",
+        replaceVoiceId: oldId,
+        recordings: [
+          wavWithMarker().toString("base64"),
+          wavWithMarker().toString("base64"),
+          wavWithMarker().toString("base64")
+        ]
+      }
     });
     const command = await reached.promise;
-    expect(command).toMatchObject({ operation: "PRODUCT_VOICE_ENROLL", replaceVoiceProfileId: oldId });
+    expect(command).toMatchObject({
+      operation: "PRODUCT_VOICE_ENROLL",
+      replaceVoiceProfileId: oldId
+    });
     expect(run.profiles.enroll).not.toHaveBeenCalled();
     await run.context.runtime.removeVoiceProfileBinding(oldId);
     await release();
     const response = await request;
     expect(response.statusCode).toBe(409);
     expect(await eventRows(namespace)).toHaveLength(1);
-    expect(run.profiles.rows.some(row => row.voiceProfileId === oldId)).toBe(true);
+    expect(run.profiles.rows.some((row) => row.voiceProfileId === oldId)).toBe(true);
     expect(run.profiles.rows).toHaveLength(2);
-    const newId = (command as Extract<VoiceControlReceiptInput, { operation: "PRODUCT_VOICE_ENROLL" }>).newVoiceProfileId;
+    const newId = (
+      command as Extract<VoiceControlReceiptInput, { operation: "PRODUCT_VOICE_ENROLL" }>
+    ).newVoiceProfileId;
     expect(await run.context.runtime.getVoiceProfilePerson(newId)).toBe("person-saved-1");
     expect(await run.context.runtime.getVoiceProfilePerson(oldId)).toBeNull();
   });
@@ -822,7 +919,15 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     const response = await run.app.inject({
       method: "POST",
       url: "/product/voices/enroll",
-      payload: { personId: "person-saved-1", replaceVoiceId: oldId, recordings: [wavWithMarker().toString("base64"), wavWithMarker().toString("base64"), wavWithMarker().toString("base64")] }
+      payload: {
+        personId: "person-saved-1",
+        replaceVoiceId: oldId,
+        recordings: [
+          wavWithMarker().toString("base64"),
+          wavWithMarker().toString("base64"),
+          wavWithMarker().toString("base64")
+        ]
+      }
     });
     expect(response.statusCode).toBe(409);
     expect(run.profiles.enroll).not.toHaveBeenCalled();
@@ -832,7 +937,10 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
   it("rejects unknown Person/profile targets before Product voice review or enrollment receipts", async () => {
     const namespace = nextNamespace();
     const run = await setup(namespace);
-    const sample = retainVoiceSample(wavWithMarker("INVALID_TARGET_REVIEW_AUDIO").toString("base64"), "missing-provider-profile");
+    const sample = retainVoiceSample(
+      wavWithMarker("INVALID_TARGET_REVIEW_AUDIO").toString("base64"),
+      "missing-provider-profile"
+    );
     const review = await run.app.inject({
       method: "POST",
       url: `/product/voice-samples/${sample.id}/review`,
@@ -846,7 +954,7 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     });
     expect(enrollment.statusCode).toBe(400);
     expect(run.profiles.enroll).not.toHaveBeenCalled();
-    expect(voiceReviews().find(row => row.id === sample.id)).toEqual(sample);
+    expect(voiceReviews().find((row) => row.id === sample.id)).toEqual(sample);
     expect(await eventRows(namespace)).toHaveLength(0);
   });
 
@@ -876,10 +984,14 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     expect(rows).toHaveLength(2);
     expect(rows[0]!.event_id).not.toBe(rows[1]!.event_id);
     expect(run.profiles.rows).toHaveLength(2);
-    expect((await pool!.query(
-      "select count(*)::int as n from journal_source_dedup where journal_namespace = $1",
-      [namespace]
-    )).rows[0]?.["n"]).toBe(0);
+    expect(
+      (
+        await pool!.query(
+          "select count(*)::int as n from journal_source_dedup where journal_namespace = $1",
+          [namespace]
+        )
+      ).rows[0]?.["n"]
+    ).toBe(0);
     const durable = JSON.stringify({ rows, payloads: await payloadRows(namespace) });
     expect(durable).not.toContain(payload.recordings[0]);
     expect(durable).not.toContain("IDENTICAL_PRIVATE_AUDIO");
@@ -888,7 +1000,9 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
   it("retains the review receipt when provider enrollment fails after commit", async () => {
     const namespace = nextNamespace();
     const run = await setup(namespace);
-    const sample = retainVoiceSample(wavWithMarker("REVIEW_PROVIDER_FAILURE_AUDIO").toString("base64"));
+    const sample = retainVoiceSample(
+      wavWithMarker("REVIEW_PROVIDER_FAILURE_AUDIO").toString("base64")
+    );
     run.profiles.enroll.mockRejectedValueOnce(new Error("provider failure"));
     const response = await run.app.inject({
       method: "POST",
@@ -897,7 +1011,7 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     });
     expect(response.statusCode).toBe(503);
     expect(await eventRows(namespace)).toHaveLength(1);
-    expect(voiceReviews().find(row => row.id === sample.id)?.voiceProfileId).toBeUndefined();
+    expect(voiceReviews().find((row) => row.id === sample.id)?.voiceProfileId).toBeUndefined();
     expect(run.profiles.rows).toEqual([]);
   });
 
@@ -907,7 +1021,7 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     const sample = retainVoiceSample(wavWithMarker("ASSOCIATION_FAILURE_AUDIO").toString("base64"));
     const reviewFile = join(run.dir, "data", "voice-review.json");
     let saved: Buffer | undefined;
-    run.profiles.enroll.mockImplementationOnce(async input => {
+    run.profiles.enroll.mockImplementationOnce(async (input) => {
       run.profiles.rows.push({ voiceProfileId: input.voiceProfileId, label: input.label });
       saved = readFileSync(reviewFile);
       rmSync(reviewFile);
@@ -922,17 +1036,21 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     expect(response.statusCode).toBe(503);
     expect(await eventRows(namespace)).toHaveLength(1);
     expect(run.profiles.rows).toHaveLength(1);
-    expect(await run.context.runtime.getVoiceProfilePerson(run.profiles.rows[0]!.voiceProfileId)).toBeNull();
+    expect(
+      await run.context.runtime.getVoiceProfilePerson(run.profiles.rows[0]!.voiceProfileId)
+    ).toBeNull();
     rmSync(reviewFile, { recursive: true });
     writeFileSync(reviewFile, saved!);
-    expect(voiceReviews().find(row => row.id === sample.id)?.voiceProfileId).toBeUndefined();
+    expect(voiceReviews().find((row) => row.id === sample.id)?.voiceProfileId).toBeUndefined();
   });
 
   it("retains review enrollment and sample association when Memory binding fails", async () => {
     const namespace = nextNamespace();
     const run = await setup(namespace);
     const sample = retainVoiceSample(wavWithMarker("BIND_FAILURE_AUDIO").toString("base64"));
-    vi.spyOn(run.context.memory.getVoiceBindingProvider()!, "writeEvent").mockRejectedValueOnce(new Error("memory failure"));
+    vi.spyOn(run.context.memory.getVoiceBindingProvider()!, "writeEvent").mockRejectedValueOnce(
+      new Error("memory failure")
+    );
     const response = await run.app.inject({
       method: "POST",
       url: `/product/voice-samples/${sample.id}/review`,
@@ -940,7 +1058,7 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     });
     expect(response.statusCode).toBe(503);
     expect(await eventRows(namespace)).toHaveLength(1);
-    const associated = voiceReviews().find(row => row.id === sample.id);
+    const associated = voiceReviews().find((row) => row.id === sample.id);
     expect(associated?.voiceProfileId).toBeTruthy();
     expect(await run.context.runtime.getVoiceProfilePerson(associated!.voiceProfileId!)).toBeNull();
   });
@@ -952,7 +1070,7 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     const provider = run.context.memory.getVoiceBindingProvider()!;
     const actualWrite = provider.writeEvent.bind(provider);
     const write = vi.spyOn(provider, "writeEvent");
-    write.mockImplementationOnce(async input => actualWrite(input));
+    write.mockImplementationOnce(async (input) => actualWrite(input));
     await chmod(run.dir, 0o500);
     try {
       const response = await run.app.inject({
@@ -966,7 +1084,7 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     } finally {
       await chmod(run.dir, 0o700);
     }
-    expect(voiceReviews().find(row => row.id === sample.id)?.voiceProfileId).toBeTruthy();
+    expect(voiceReviews().find((row) => row.id === sample.id)?.voiceProfileId).toBeTruthy();
   });
 
   it("keeps the enrollment receipt when the provider rejects a Product enrollment", async () => {
@@ -987,7 +1105,9 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
   it("keeps Product enrollment and private sample when Memory binding fails", async () => {
     const namespace = nextNamespace();
     const run = await setup(namespace);
-    vi.spyOn(run.context.memory.getVoiceBindingProvider()!, "writeEvent").mockRejectedValueOnce(new Error("memory failure"));
+    vi.spyOn(run.context.memory.getVoiceBindingProvider()!, "writeEvent").mockRejectedValueOnce(
+      new Error("memory failure")
+    );
     const response = await run.app.inject({
       method: "POST",
       url: "/product/voices/enroll",
@@ -997,7 +1117,9 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     expect(await eventRows(namespace)).toHaveLength(1);
     expect(run.profiles.rows).toHaveLength(1);
     expect(voiceReviews()).toHaveLength(1);
-    expect(await run.context.runtime.getVoiceProfilePerson(run.profiles.rows[0]!.voiceProfileId)).toBeNull();
+    expect(
+      await run.context.runtime.getVoiceProfilePerson(run.profiles.rows[0]!.voiceProfileId)
+    ).toBeNull();
   });
 
   it("retains the enrollment receipt and profile if private sample retention fails", async () => {
@@ -1008,12 +1130,21 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     const response = await run.app.inject({
       method: "POST",
       url: "/product/voices/enroll",
-      payload: { personId: "person-saved-1", recordings: [wavWithMarker().toString("base64"), wavWithMarker().toString("base64"), wavWithMarker().toString("base64")] }
+      payload: {
+        personId: "person-saved-1",
+        recordings: [
+          wavWithMarker().toString("base64"),
+          wavWithMarker().toString("base64"),
+          wavWithMarker().toString("base64")
+        ]
+      }
     });
     expect(response.statusCode).toBe(503);
     expect(await eventRows(namespace)).toHaveLength(1);
     expect(run.profiles.rows).toHaveLength(1);
-    expect(await run.context.runtime.getVoiceProfilePerson(run.profiles.rows[0]!.voiceProfileId)).toBeNull();
+    expect(
+      await run.context.runtime.getVoiceProfilePerson(run.profiles.rows[0]!.voiceProfileId)
+    ).toBeNull();
   });
 
   it("keeps a receipt, new voice and old profile when old binding removal fails", async () => {
@@ -1021,11 +1152,21 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     const oldId = "replace-removal-failure";
     const run = await setup(namespace, profiles([{ voiceProfileId: oldId, label: "old" }]));
     await run.context.runtime.bindVoiceProfileToPerson(oldId, "person-saved-1");
-    vi.spyOn(run.context.runtime, "removeVoiceProfileBinding").mockResolvedValue({ status: "UNAVAILABLE" });
+    vi.spyOn(run.context.runtime, "removeVoiceProfileBinding").mockResolvedValue({
+      status: "UNAVAILABLE"
+    });
     const response = await run.app.inject({
       method: "POST",
       url: "/product/voices/enroll",
-      payload: { personId: "person-saved-1", replaceVoiceId: oldId, recordings: [wavWithMarker().toString("base64"), wavWithMarker().toString("base64"), wavWithMarker().toString("base64")] }
+      payload: {
+        personId: "person-saved-1",
+        replaceVoiceId: oldId,
+        recordings: [
+          wavWithMarker().toString("base64"),
+          wavWithMarker().toString("base64"),
+          wavWithMarker().toString("base64")
+        ]
+      }
     });
     expect(response.statusCode).toBe(409);
     expect(await eventRows(namespace)).toHaveLength(1);
@@ -1050,7 +1191,7 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     expect(await eventRows(namespace)).toHaveLength(1);
     expect(run.profiles.rows).toHaveLength(2);
     expect(await run.context.runtime.getVoiceProfilePerson(oldId)).toBeNull();
-    expect(voiceReviews().some(row => row.voiceProfileId === oldId)).toBe(true);
+    expect(voiceReviews().some((row) => row.voiceProfileId === oldId)).toBe(true);
   });
 
   it("commits a Product replacement receipt before the new profile and then cleans the old profile and samples", async () => {
@@ -1058,7 +1199,10 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     const oldId = "replace-success-old-profile";
     const run = await setup(namespace, profiles([{ voiceProfileId: oldId, label: "old" }]));
     await run.context.runtime.bindVoiceProfileToPerson(oldId, "person-saved-1");
-    const oldSample = retainVoiceSample(wavWithMarker("REPLACED_PRIVATE_SAMPLE").toString("base64"), oldId);
+    const oldSample = retainVoiceSample(
+      wavWithMarker("REPLACED_PRIVATE_SAMPLE").toString("base64"),
+      oldId
+    );
     const response = await run.app.inject({
       method: "POST",
       url: "/product/voices/enroll",
@@ -1071,9 +1215,11 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     expect(newId).not.toBe(oldId);
     expect(await run.context.runtime.getVoiceProfilePerson(oldId)).toBeNull();
     expect(await run.context.runtime.getVoiceProfilePerson(newId)).toBe("person-saved-1");
-    expect(voiceReviews().some(row => row.id === oldSample.id)).toBe(false);
-    expect(voiceReviews().some(row => row.voiceProfileId === newId)).toBe(true);
-    const payload = (await payloadRows(namespace)).find(row => row.text_content !== null)!.text_content!;
+    expect(voiceReviews().some((row) => row.id === oldSample.id)).toBe(false);
+    expect(voiceReviews().some((row) => row.voiceProfileId === newId)).toBe(true);
+    const payload = (await payloadRows(namespace)).find(
+      (row) => row.text_content !== null
+    )!.text_content!;
     expect(payload).toContain('"replaceVoiceProfileId":"replace-success-old-profile"');
   });
 
@@ -1086,8 +1232,8 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     retainVoiceSample(wavWithMarker("OLD_SAMPLE_CLEANUP_AUDIO").toString("base64"), oldId);
     const reviewFile = join(run.dir, "data", "voice-review.json");
     let saved: Buffer | undefined;
-    fake.delete.mockImplementationOnce(async id => {
-      const index = fake.rows.findIndex(row => row.voiceProfileId === id);
+    fake.delete.mockImplementationOnce(async (id) => {
+      const index = fake.rows.findIndex((row) => row.voiceProfileId === id);
       if (index >= 0) fake.rows.splice(index, 1);
       saved = readFileSync(reviewFile);
       rmSync(reviewFile);
@@ -1100,10 +1246,10 @@ describe.skipIf(!databaseUrl)("A8.2f1 voice control receipts with real PostgreSQ
     });
     expect(response.statusCode).toBe(409);
     expect(await eventRows(namespace)).toHaveLength(1);
-    expect(fake.rows.some(row => row.voiceProfileId === oldId)).toBe(false);
+    expect(fake.rows.some((row) => row.voiceProfileId === oldId)).toBe(false);
     expect(await run.context.runtime.getVoiceProfilePerson(oldId)).toBeNull();
     rmSync(reviewFile, { recursive: true });
     writeFileSync(reviewFile, saved!);
-    expect(voiceReviews().some(row => row.voiceProfileId === oldId)).toBe(true);
+    expect(voiceReviews().some((row) => row.voiceProfileId === oldId)).toBe(true);
   });
 });

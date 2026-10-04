@@ -266,20 +266,48 @@ describe("OpenAI-compatible native chat streaming", () => {
       PROVIDER_ALLOW_MOCKS: "false",
       YUVI_PRODUCT_CONFIGURATION: JSON.stringify({
         version: 1,
-        providers: [{ id: "remote", displayName: "Remote", adapter: "openai-compatible",
-          baseUrl: "https://api.deepinfra.com/v1/openai/", apiKey: "test-key" }],
-        models: [{ id: "chat", providerId: "remote", displayName: "Chat", modelId: "remote-model",
-          enabled: true, temperature: 0.7, contextWindow: null, capabilities: ["chat"] }],
-        routes: { chat: ["chat"], reasoning: [], proactive: [], embedding: [], vision: [], stt: [], tts: [] }
+        providers: [
+          {
+            id: "remote",
+            displayName: "Remote",
+            adapter: "openai-compatible",
+            baseUrl: "https://api.deepinfra.com/v1/openai/",
+            apiKey: "test-key"
+          }
+        ],
+        models: [
+          {
+            id: "chat",
+            providerId: "remote",
+            displayName: "Chat",
+            modelId: "remote-model",
+            enabled: true,
+            temperature: 0.7,
+            contextWindow: null,
+            capabilities: ["chat"]
+          }
+        ],
+        routes: {
+          chat: ["chat"],
+          reasoning: [],
+          proactive: [],
+          embedding: [],
+          vision: [],
+          stt: [],
+          tts: []
+        }
       })
     });
     expect((await collect(registry.getChatProvider())).at(-1)).toMatchObject({
-      type: "completed", output: { message: { content: "remote" } }
+      type: "completed",
+      output: { message: { content: "remote" } }
     });
-    expect(fetchMock).toHaveBeenCalledWith("https://api.deepinfra.com/v1/openai/chat/completions",
-      expect.objectContaining({ body: expect.stringContaining('"model":"remote-model"') }));
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.deepinfra.com/v1/openai/chat/completions",
+      expect.objectContaining({ body: expect.stringContaining('"model":"remote-model"') })
+    );
   });
-  it("falls back between real OpenAI-compatible routes before the first delta", async () => {
+  it("does not fall back after a dispatched streaming provider rejection", async () => {
     const fetchMock = vi.fn(async (input: string | URL | Request) => {
       if (String(input).includes("deepseek")) {
         return new Response(JSON.stringify({ error: "rate limited" }), { status: 429 });
@@ -299,20 +327,12 @@ describe("OpenAI-compatible native chat streaming", () => {
       NVIDIA_CHAT_MODEL: "nvidia-model"
     });
 
-    const events = await collect(registry.getChatProvider());
-    expect(events.filter((event) => event.type === "text-delta")).toEqual([
-      { type: "text-delta", text: "backup" }
-    ]);
-    expect(events.at(-1)).toMatchObject({
-      type: "completed",
-      output: {
-        finalProvider: "nvidia",
-        attemptedProviders: [
-          { provider: "deepseek", errorCode: ProviderErrorCode.RateLimited },
-          { provider: "nvidia", status: "success" }
-        ]
-      }
+    await expect(collect(registry.getChatProvider())).rejects.toMatchObject({
+      code: ProviderErrorCode.RateLimited,
+      effectState: "unknown"
     });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("deepseek");
   });
 
   it.each([

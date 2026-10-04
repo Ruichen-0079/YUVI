@@ -215,7 +215,7 @@ it("aborts a waiting provider, drops a late delta, and closes the cancelled life
     (await conversation.listRecentMessages("stream", { limit: 10 })).filter(
       (row) => row.role === "assistant"
     )
-  ).toEqual([]);
+  ).toMatchObject([{ content: "今天", status: "cancelled" }]);
   await runtime.sealAndDrainMemoryWrites();
 });
 
@@ -283,7 +283,7 @@ it.each([
     { type: "text-delta", text: "late" }
   ]
 ] satisfies ChatStreamEvent[][])(
-  "fails malformed provider streams without committing a reply: %j",
+  "fails malformed provider streams while retaining only the durable prefix: %j",
   async (...events) => {
     const { turn, conversation } = setup(async function* () {
       yield* events;
@@ -295,7 +295,7 @@ it.each([
       (await conversation.listRecentMessages("stream", { limit: 10 })).filter(
         (row) => row.role === "assistant"
       )
-    ).toEqual([]);
+    ).toMatchObject([{ content: "ok", status: "failed" }]);
   }
 );
 

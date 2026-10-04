@@ -80,6 +80,78 @@ describe("ConversationRepository", () => {
     ).rejects.toThrow("only be attached to a user");
   });
 
+  it("uses stable monotonic reply component identity and fails closed on conflicts", async () => {
+    const repository = new InMemoryConversationRepository();
+    await repository.appendMessage({
+      ...message("reply-memory", "reply-memory-session", "assistant", ""),
+      status: "streaming",
+      completedAt: null
+    });
+    const first = await repository.appendReplyComponent!({
+      replyId: "reply-memory",
+      messageId: "reply-memory",
+      sequence: "1",
+      text: "hello",
+      projectionVersion: "runtime-text.v1"
+    });
+    const replay = await repository.appendReplyComponent!({
+      replyId: "reply-memory",
+      messageId: "reply-memory",
+      sequence: "1",
+      text: "hello",
+      projectionVersion: "runtime-text.v1"
+    });
+    expect(first).toMatchObject({ inserted: true, message: { content: "hello" } });
+    expect(replay).toMatchObject({ inserted: false, componentId: first.componentId });
+    expect((await repository.getMessageById("reply-memory"))?.content).toBe("hello");
+    await expect(
+      repository.appendReplyComponent!({
+        replyId: "reply-memory",
+        messageId: "reply-memory",
+        sequence: "1",
+        text: "changed",
+        projectionVersion: "runtime-text.v1"
+      })
+    ).rejects.toThrow(/conflicts with durable content/);
+    await expect(
+      repository.appendReplyComponent!({
+        replyId: "reply-memory",
+        messageId: "reply-memory",
+        sequence: "3",
+        text: "gap",
+        projectionVersion: "runtime-text.v1"
+      })
+    ).rejects.toThrow(/next monotonic sequence/);
+  });
+
+  it("delegates publication admission without owning a second dispatch state", async () => {
+    const repository = new InMemoryConversationRepository();
+    await repository.appendMessage({
+      ...message("reply-publication", "reply-publication-session", "assistant", ""),
+      status: "streaming",
+      completedAt: null
+    });
+    const target = {
+      surface: "HTTP_SSE" as const,
+      targetId: "HTTP_SSE:trace-publication",
+      targetGeneration: "connection-publication"
+    };
+    let admitted: unknown;
+    repository.setPublicationAdmission(async (input) => {
+      admitted = input;
+    });
+    const component = await repository.appendReplyComponent!({
+      replyId: "reply-publication",
+      messageId: "reply-publication",
+      sequence: "1",
+      text: "hello",
+      projectionVersion: "runtime-text.v1",
+      publicationTargets: [target]
+    });
+    expect(component.inserted).toBe(true);
+    expect(admitted).toMatchObject({ componentId: component.componentId, targets: [target] });
+  });
+
   it("keeps sessions isolated, ordered, bounded, and idempotent in memory", async () => {
     const repository = new InMemoryConversationRepository();
     await repository.appendMessage(message("1", "session-a", "user", "hello"));

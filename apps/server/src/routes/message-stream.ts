@@ -10,10 +10,12 @@ import {
   MESSAGE_REQUEST_BODY_LIMIT,
   normalizeMessageMemoryOptions,
   resolveMessageIdentity,
-  sendMessageError
+  sendMessageError,
+  sendAccountedMessageError
 } from "./message.js";
 import { SseConnectionClosedError, writeSseFrame } from "./sse.js";
 import { desktopCorsHeaders } from "../cors.js";
+import type { ReplyPublicationTarget } from "@companion/memory";
 import {
   toConversationalAdmissionFailure,
   toConversationalJournalRef
@@ -34,202 +36,255 @@ export async function registerMessageStreamRoutes(
     "/v1/messages/stream",
     { bodyLimit: MESSAGE_REQUEST_BODY_LIMIT },
     async (request, reply) => {
-    const input = MessageRequestSchema.safeParse(request.body);
-    if (!input.success) {
-      return reply.status(400).send({ error: "invalid_request", details: input.error.flatten() });
-    }
+      const input = MessageRequestSchema.safeParse(request.body);
+      if (!input.success) {
+        return reply.status(400).send({ error: "invalid_request", details: input.error.flatten() });
+      }
 
-    const content = input.data.content ?? input.data.text ?? "";
-    const voiceOutput = Boolean(
-      input.data.voiceOutput ?? input.data.options?.voiceOutput ?? input.data.options?.tts
-    );
-    const memoryOptions = normalizeMessageMemoryOptions(input.data.options);
-    const identity = resolveMessageIdentity(input.data);
-    let userEvent;
-    let runtimeEventId: string | undefined;
-    let sourceJournalRef: JournalEventRef | undefined;
-    try {
-      if (input.data.speechObservationId) {
-        userEvent = context.runtime.commitSpeechTurn(
+      const content = input.data.content ?? input.data.text ?? "";
+      const voiceOutput = Boolean(
+        input.data.voiceOutput ?? input.data.options?.voiceOutput ?? input.data.options?.tts
+      );
+      const memoryOptions = normalizeMessageMemoryOptions(input.data.options);
+      const identity = resolveMessageIdentity(input.data);
+      let userEvent;
+      let runtimeEventId: string | undefined;
+      let sourceJournalRef: JournalEventRef | undefined;
+      try {
+        if (input.data.speechObservationId) {
+          userEvent = context.runtime.commitSpeechTurn(
             input.data.speechObservationId,
             input.data.sessionId,
             content
           );
-      } else {
-        runtimeEventId = randomUUID();
-      }
-    } catch {
-      return reply.status(409).send({ error: "invalid_speech_observation" });
-    }
-    const abortController = new AbortController();
-    let iterator: AsyncIterator<RuntimeReplyStreamEvent> | undefined;
-    let headersStarted = false;
-    let responseFinalized = false;
-    let clientDisconnected = false;
-    let closePromise: Promise<void> | undefined;
-
-    const closeIterator = (): Promise<void> => {
-      if (!iterator) {
-        return Promise.resolve();
-      }
-      if (closePromise) {
-        return closePromise;
-      }
-      closePromise = Promise.resolve(iterator.return?.()).then(
-        () => undefined,
-        (error) => {
-          request.log.warn({ err: error }, "failed to close message stream iterator");
+        } else {
+          runtimeEventId = randomUUID();
         }
-      );
-      return closePromise;
-    };
-    const onDisconnect = () => {
-      if (responseFinalized) {
-        return;
+      } catch {
+        return reply.status(409).send({ error: "invalid_speech_observation" });
       }
-      clientDisconnected = true;
-      abortController.abort();
-      void closeIterator();
-    };
-    const onResponseError = () => onDisconnect();
+      const abortController = new AbortController();
+      let iterator: AsyncIterator<RuntimeReplyStreamEvent> | undefined;
+      let headersStarted = false;
+      let responseFinalized = false;
+      let clientDisconnected = false;
+      let closePromise: Promise<void> | undefined;
+      let publicationTarget: ReplyPublicationTarget | undefined;
+      let unregisterPublicationTarget: (() => void) | undefined;
 
-    request.raw.once("aborted", onDisconnect);
-    reply.raw.once("close", onDisconnect);
-    reply.raw.once("error", onResponseError);
-
-    try {
-      if (runtimeEventId) {
-        try {
-          const receipt = await context.conversationalReceiptAdmission.admit({
-            surface: "HTTP_SSE",
-            sessionId: input.data.sessionId,
-            runtimeEventId,
-            content,
-            ...(input.data.imageAttachment ? { hasImageAttachment: true } : {})
-          });
-          sourceJournalRef = toConversationalJournalRef(receipt.envelope);
-          request.log.info(
-            { journalEventId: receipt.envelope.eventId, runtimeEventId, sessionId: input.data.sessionId },
-            "conversation receipt committed"
-          );
-        } catch (error) {
-          const failure = toConversationalAdmissionFailure(error);
-          request.log.error(
-            { runtimeEventId, sessionId: input.data.sessionId, code: failure.code },
-            "conversation receipt admission failed"
-          );
-          return reply.status(503).send({
-            error: "journal_admission_failed",
-            ...failure,
-            traceId: runtimeEventId
-          });
+      const closeIterator = (): Promise<void> => {
+        if (!iterator) {
+          return Promise.resolve();
         }
-        if (clientDisconnected) {
-          return;
+        if (closePromise) {
+          return closePromise;
         }
-        userEvent = createEvent("user.message", {
-          sessionId: input.data.sessionId,
-          content,
-          ...(sourceJournalRef ? { sourceJournalRef } : {}),
-          ...(identity.subjectUserId ? { subjectUserId: identity.subjectUserId } : {}),
-          ...(identity.personaId ? { personaId: identity.personaId } : {})
-        }, { id: runtimeEventId });
-      }
-      if (clientDisconnected) {
-        return;
-      }
-      if (!userEvent) {
-        throw new Error("Conversation Runtime event was not constructed after admission.");
-      }
-
-      const runtimeStream = context.runtime.streamUserMessage(userEvent, {
-        signal: abortController.signal,
-        voiceOutput,
-        useMemory: memoryOptions.legacyUseMemory,
-        readMemory: memoryOptions.readMemory,
-        writeMemory: memoryOptions.writeMemory,
-        ...(input.data.imageAttachment ? { imageAttachment: input.data.imageAttachment } : {}),
-        controlAuthority: "LOCAL_EXPLICIT_CONTROLLER"
-      });
-      iterator = runtimeStream[Symbol.asyncIterator]();
-      let next: IteratorResult<RuntimeReplyStreamEvent>;
-      try {
-        next = await iterator.next();
-      } catch (error) {
-        if (clientDisconnected) {
-          return;
-        }
-        return sendMessageError(reply, error, userEvent.traceId);
-      }
-
-      if (clientDisconnected) {
-        return;
-      }
-      if (next.done) {
-        return sendMessageError(
-          reply,
-          new Error("Message stream ended before a completed event was produced."),
-          userEvent.traceId
+        closePromise = Promise.resolve(iterator.return?.()).then(
+          () => undefined,
+          (error) => {
+            request.log.warn({ err: error }, "failed to close message stream iterator");
+          }
         );
-      }
+        return closePromise;
+      };
+      const onDisconnect = () => {
+        if (responseFinalized) {
+          return;
+        }
+        clientDisconnected = true;
+        abortController.abort();
+        void closeIterator();
+      };
+      const onResponseError = () => onDisconnect();
 
-      reply.hijack();
-      headersStarted = true;
-      reply.raw.writeHead(200, {
-        ...SSE_HEADERS,
-        ...desktopCorsHeaders(request.headers.origin)
-      });
+      request.raw.once("aborted", onDisconnect);
+      reply.raw.once("close", onDisconnect);
+      reply.raw.once("error", onResponseError);
 
-      let completed = false;
-      while (!next.done) {
+      try {
+        if (runtimeEventId) {
+          try {
+            const receipt = await context.conversationalReceiptAdmission.admit({
+              surface: "HTTP_SSE",
+              sessionId: input.data.sessionId,
+              runtimeEventId,
+              content,
+              ...(input.data.imageAttachment ? { hasImageAttachment: true } : {})
+            });
+            sourceJournalRef = toConversationalJournalRef(receipt.envelope);
+            request.log.info(
+              {
+                journalEventId: receipt.envelope.eventId,
+                runtimeEventId,
+                sessionId: input.data.sessionId
+              },
+              "conversation receipt committed"
+            );
+          } catch (error) {
+            const failure = toConversationalAdmissionFailure(error);
+            request.log.error(
+              { runtimeEventId, sessionId: input.data.sessionId, code: failure.code },
+              "conversation receipt admission failed"
+            );
+            return reply.status(503).send({
+              error: "journal_admission_failed",
+              ...failure,
+              traceId: runtimeEventId
+            });
+          }
+          if (clientDisconnected) {
+            return;
+          }
+          userEvent = createEvent(
+            "user.message",
+            {
+              sessionId: input.data.sessionId,
+              content,
+              ...(sourceJournalRef ? { sourceJournalRef } : {}),
+              ...(identity.subjectUserId ? { subjectUserId: identity.subjectUserId } : {}),
+              ...(identity.personaId ? { personaId: identity.personaId } : {})
+            },
+            { id: runtimeEventId }
+          );
+        }
         if (clientDisconnected) {
           return;
         }
-        const frame = runtimeEventToSseFrame(next.value);
-        await writeSseFrame(reply.raw, frame.event, frame.data, abortController.signal);
-
-        if (next.value.type === "completed") {
-          completed = true;
-          responseFinalized = true;
-          break;
+        if (!userEvent) {
+          throw new Error("Conversation Runtime event was not constructed after admission.");
         }
-        next = await iterator.next();
-      }
 
-      if (!completed) {
-        throw new Error("Message stream ended before a completed event was produced.");
-      }
-      if (!reply.raw.writableEnded) {
-        reply.raw.end();
-      }
-    } catch (error) {
-      if (clientDisconnected || error instanceof SseConnectionClosedError) {
-        return;
-      }
-      if (!headersStarted) {
-        return sendMessageError(reply, error, userEvent?.traceId ?? runtimeEventId ?? "unavailable");
-      }
-      if (!responseFinalized && !reply.raw.destroyed && !reply.raw.writableEnded) {
+        publicationTarget = {
+          surface: "HTTP_SSE",
+          targetId: `HTTP_SSE:${userEvent.traceId}`,
+          targetGeneration: randomUUID()
+        };
+        unregisterPublicationTarget = context.outwardEffects?.registerTarget(
+          publicationTarget,
+          (session) => session === input.data.sessionId,
+          () => !clientDisconnected && !abortController.signal.aborted
+        );
+
+        const runtimeStream = context.runtime.streamUserMessage(userEvent, {
+          signal: abortController.signal,
+          voiceOutput,
+          speechPlan: input.data.options?.speechPlan,
+          speechRequestId: input.data.options?.speechRequestId,
+          useMemory: memoryOptions.legacyUseMemory,
+          readMemory: memoryOptions.readMemory,
+          writeMemory: memoryOptions.writeMemory,
+          ...(input.data.imageAttachment ? { imageAttachment: input.data.imageAttachment } : {}),
+          replyPublicationTargets: [publicationTarget],
+          controlAuthority: "LOCAL_EXPLICIT_CONTROLLER"
+        });
+        iterator = runtimeStream[Symbol.asyncIterator]();
+        let next: IteratorResult<RuntimeReplyStreamEvent>;
         try {
-          await writeSseFrame(
-            reply.raw,
-            "error",
-            toSseError(error, userEvent?.traceId ?? runtimeEventId ?? "unavailable")
+          next = await iterator.next();
+        } catch (error) {
+          if (clientDisconnected) {
+            return;
+          }
+          return publicationTarget
+            ? sendAccountedMessageError(context, publicationTarget, reply, error, userEvent.traceId)
+            : sendMessageError(reply, error, userEvent.traceId);
+        }
+
+        if (clientDisconnected) {
+          return;
+        }
+        if (next.done) {
+          return sendMessageError(
+            reply,
+            new Error("Message stream ended before a completed event was produced."),
+            userEvent.traceId
           );
-        } catch (writeError) {
-          request.log.warn({ err: writeError }, "failed to write message stream error");
+        }
+
+        reply.hijack();
+        headersStarted = true;
+        reply.raw.writeHead(200, {
+          ...SSE_HEADERS,
+          ...desktopCorsHeaders(request.headers.origin)
+        });
+
+        let completed = false;
+        while (!next.done) {
+          if (clientDisconnected) {
+            return;
+          }
+          const frame = runtimeEventToSseFrame(next.value);
+          if (context.outwardEffects && publicationTarget) {
+            await context.outwardEffects.publish({
+              target: publicationTarget,
+              frameId:
+                next.value.type === "text-delta"
+                  ? next.value.componentId!
+                  : `${next.value.traceId}:${next.value.type}`,
+              payload: frame.data,
+              scope: `session:${input.data.sessionId}`,
+              ...(next.value.type === "text-delta"
+                ? { replyId: next.value.replyId, componentId: next.value.componentId }
+                : {}),
+              write: () => writeSseFrame(reply.raw, frame.event, frame.data, abortController.signal)
+            });
+          } else await writeSseFrame(reply.raw, frame.event, frame.data, abortController.signal);
+
+          if (next.value.type === "completed") {
+            completed = true;
+            responseFinalized = true;
+            break;
+          }
+          next = await iterator.next();
+        }
+
+        if (!completed) {
+          throw new Error("Message stream ended before a completed event was produced.");
         }
         if (!reply.raw.writableEnded) {
           reply.raw.end();
         }
+      } catch (error) {
+        if (clientDisconnected || error instanceof SseConnectionClosedError) {
+          return;
+        }
+        if (!headersStarted) {
+          return sendMessageError(
+            reply,
+            error,
+            userEvent?.traceId ?? runtimeEventId ?? "unavailable"
+          );
+        }
+        if (!responseFinalized && !reply.raw.destroyed && !reply.raw.writableEnded) {
+          try {
+            const payload = toSseError(
+              error,
+              userEvent?.traceId ?? runtimeEventId ?? "unavailable"
+            );
+            if (context.outwardEffects && publicationTarget)
+              await context.outwardEffects.publish({
+                target: publicationTarget,
+                frameId: `error:${randomUUID()}`,
+                payload,
+                write: () => writeSseFrame(reply.raw, "error", payload)
+              });
+            else if (!context.outwardEffects) await writeSseFrame(reply.raw, "error", payload);
+          } catch (writeError) {
+            request.log.warn({ err: writeError }, "failed to write message stream error");
+          }
+          if (!reply.raw.writableEnded) {
+            reply.raw.end();
+          }
+        }
+      } finally {
+        unregisterPublicationTarget?.();
+        request.raw.off("aborted", onDisconnect);
+        reply.raw.off("close", onDisconnect);
+        reply.raw.off("error", onResponseError);
+        await closeIterator();
       }
-    } finally {
-      request.raw.off("aborted", onDisconnect);
-      reply.raw.off("close", onDisconnect);
-      reply.raw.off("error", onResponseError);
-      await closeIterator();
     }
-  });
+  );
 }
 
 function runtimeEventToSseFrame(event: RuntimeReplyStreamEvent): {

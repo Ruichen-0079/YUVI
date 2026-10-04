@@ -1,4 +1,16 @@
-import { parseProductConfiguration, modelEndpoint, type ProductConfiguration, type CapabilityRoute } from "./product-configuration.js";
+import { providerFetch as fetch } from "./invocation-witness.js";
+import { randomUUID } from "node:crypto";
+import {
+  accountProviderLeaf,
+  scopeProviderTask,
+  type ProviderAccountingPort
+} from "./accounting.js";
+import {
+  parseProductConfiguration,
+  modelEndpoint,
+  type ProductConfiguration,
+  type CapabilityRoute
+} from "./product-configuration.js";
 import type {
   ChatInput,
   ChatOutput,
@@ -66,6 +78,8 @@ import { LocalSTTProvider } from "./local/LocalSTTProvider.js";
 import { createTransportAbort, type TransportAbort } from "./transport-abort.js";
 
 export type ProviderRegistryConfig = {
+  accounting?: ProviderAccountingPort | undefined;
+  accountingConfigurationRef?: string | undefined;
   product?: ProductConfiguration;
   observeProductCall?: (cap: CapabilityRoute, id: string, available: boolean) => void;
   chatContextWindows?: Partial<Record<string, number>>;
@@ -201,8 +215,12 @@ export class ProviderRegistry implements ProviderResolver {
   private readonly visionProviders = new Map<string, VisionProvider>();
   private readonly embeddingProviders = new Map<string, EmbeddingProvider>();
   private readonly proactiveObservations = new Map<string, "available" | "unavailable">();
-  recordProactiveObservation(id: string, available: boolean) { this.proactiveObservations.set(id, available ? "available" : "unavailable"); }
-  getProactiveRouteObservations() { return Object.fromEntries(this.proactiveObservations); }
+  recordProactiveObservation(id: string, available: boolean) {
+    this.proactiveObservations.set(id, available ? "available" : "unavailable");
+  }
+  getProactiveRouteObservations() {
+    return Object.fromEntries(this.proactiveObservations);
+  }
   private proactiveDecisionProvider: ProactiveDecisionProvider | undefined;
   private assistantContinuationProvider: AssistantContinuationProvider | undefined;
   /**
@@ -212,7 +230,22 @@ export class ProviderRegistry implements ProviderResolver {
    */
   private readonly observationCache = new Map<string, ProviderObservation>();
 
-  constructor(private readonly config: ProviderRegistryConfig) {}
+  constructor(private readonly config: ProviderRegistryConfig) {
+    config.accountingConfigurationRef ??= `provider-config:${randomUUID()}`;
+  }
+  setAccounting(port: ProviderAccountingPort) {
+    this.config.accounting = port;
+  }
+  private scopeTask<T>(provider: T, capability: CapabilityRoute): T {
+    return scopeProviderTask(
+      provider,
+      this.config.accountingConfigurationRef!,
+      this.config.chains[capability as ProviderCapability]?.map((provider) => ({
+        provider,
+        model: null
+      })) ?? []
+    );
+  }
 
   registerChatProvider(provider: ChatProvider): void {
     this.chatProviders.set(provider.name, provider);
@@ -255,18 +288,20 @@ export class ProviderRegistry implements ProviderResolver {
   }
 
   getProactiveDecisionProvider(): ProactiveDecisionProvider {
-    return (
+    return this.scopeTask(
       this.proactiveDecisionProvider ??
-      new UnavailableProactiveDecisionProvider("Proactive decision provider is not configured.")
+        new UnavailableProactiveDecisionProvider("Proactive decision provider is not configured."),
+      "proactive"
     );
   }
 
   getAssistantContinuationProvider(): AssistantContinuationProvider {
-    return (
+    return this.scopeTask(
       this.assistantContinuationProvider ??
-      new UnavailableAssistantContinuationProvider(
-        "Assistant continuation provider is not configured."
-      )
+        new UnavailableAssistantContinuationProvider(
+          "Assistant continuation provider is not configured."
+        ),
+      "chat"
     );
   }
 
@@ -388,7 +423,7 @@ export class ProviderRegistry implements ProviderResolver {
       });
     }
 
-    return provider;
+    return this.scopeTask(provider, capability);
   }
 
   private createStatus(capability: ProviderCapability, name: string): ProviderHealth {
@@ -451,9 +486,14 @@ export class ProviderRegistry implements ProviderResolver {
 
   private isConfigured(capability: ProviderCapability, name: string): boolean {
     if (this.config.product) {
-      const m = this.config.product.models.find(m => m.id === name);
-      const p = this.config.product.providers.find(p => p.id === m?.providerId);
-      return Boolean(m?.enabled && m.capabilities.includes(capability) && p && (!["dashscope", "xai-tts"].includes(p.adapter) || p.apiKey));
+      const m = this.config.product.models.find((m) => m.id === name);
+      const p = this.config.product.providers.find((p) => p.id === m?.providerId);
+      return Boolean(
+        m?.enabled &&
+        m.capabilities.includes(capability) &&
+        p &&
+        (!["dashscope", "xai-tts"].includes(p.adapter) || p.apiKey)
+      );
     }
     if ((capability === "chat" || capability === "reasoning") && name === "deepseek") {
       return Boolean(
@@ -614,8 +654,8 @@ export class ProviderRegistry implements ProviderResolver {
     name: string
   ): Pick<ProviderHealth, "baseUrl" | "model" | "dimensions"> {
     if (this.config.product) {
-      const m = this.config.product.models.find(m => m.id === name);
-      const p = this.config.product.providers.find(p => p.id === m?.providerId);
+      const m = this.config.product.models.find((m) => m.id === name);
+      const p = this.config.product.providers.find((p) => p.id === m?.providerId);
       return { model: m?.modelId, baseUrl: p?.baseUrl, dimensions: m?.dimensions };
     }
     if ((capability === "chat" || capability === "reasoning") && name === "deepseek") {
@@ -778,7 +818,11 @@ export function createProviderRegistryFromEnv(env: ProviderEnv = process.env): P
       config.chains[cap] = config.product.routes[cap];
       config.defaults[cap] = config.chains[cap][0] ?? "unavailable";
     }
-    config.chatContextWindows = Object.fromEntries(config.product.models.filter(m => m.contextWindow !== null).map(m => [m.id, m.contextWindow!]));
+    config.chatContextWindows = Object.fromEntries(
+      config.product.models
+        .filter((m) => m.contextWindow !== null)
+        .map((m) => [m.id, m.contextWindow!])
+    );
     config.allowMocks = false;
   }
   validateQwen512DurableEmbeddingConfig(config);
@@ -786,7 +830,12 @@ export function createProviderRegistryFromEnv(env: ProviderEnv = process.env): P
   const registry = new ProviderRegistry(config);
   config.observeProductCall = (cap, id, available) => {
     if (cap === "proactive") registry.recordProactiveObservation(id, available);
-    else registry.recordLiveVerification({ capability: cap, provider: id, observed: available ? "available" : "unavailable" });
+    else
+      registry.recordLiveVerification({
+        capability: cap,
+        provider: id,
+        observed: available ? "available" : "unavailable"
+      });
   };
   registry.registerChatProvider(resolveChatProvider(config));
   registry.registerReasoningProvider(resolveReasoningProvider(config));
@@ -794,8 +843,14 @@ export function createProviderRegistryFromEnv(env: ProviderEnv = process.env): P
   registry.registerSTTProvider(resolveSTTProvider(config));
   registry.registerVisionProvider(resolveVisionProvider(config));
   registry.registerEmbeddingProvider(resolveEmbeddingProvider(config));
-  registry.registerProactiveDecisionProvider(resolveProactiveDecisionProvider(config));
-  registry.registerAssistantContinuationProvider(resolveAssistantContinuationProvider(config));
+  registry.registerProactiveDecisionProvider(
+    config.product
+      ? resolveProactiveDecisionProvider(config)
+      : accountLeaf(config, "proactive", resolveProactiveDecisionProvider(config))
+  );
+  registry.registerAssistantContinuationProvider(
+    accountLeaf(config, "chat", resolveAssistantContinuationProvider(config))
+  );
 
   return registry;
 }
@@ -1305,8 +1360,21 @@ function resolveProactiveDecisionProvider(
   config: ProviderRegistryConfig
 ): ProactiveDecisionProvider {
   if (config.product) {
-    const providers = config.product.routes.proactive.map(id => productAdapter(config, "proactive", id) as ProactiveDecisionProvider);
-    return providers.length ? { name: providers[0]!.name, decide: (input, options) => runProviderChain(providers, "chat", p => p.decide(input, options), options) } : new UnavailableProactiveDecisionProvider("Proactive is not configured.");
+    const providers = config.product.routes.proactive.map(
+      (id) =>
+        accountLeaf(
+          config,
+          "proactive",
+          productAdapter(config, "proactive", id)
+        ) as ProactiveDecisionProvider
+    );
+    return providers.length
+      ? {
+          name: providers[0]!.name,
+          decide: (input, options) =>
+            runProviderChain(providers, "chat", (p) => p.decide(input, options), options)
+        }
+      : new UnavailableProactiveDecisionProvider("Proactive is not configured.");
   }
   const { apiKey, baseUrl, proactiveDecisionModel } = config.openaiCompatible;
   if (!apiKey || !baseUrl || !proactiveDecisionModel) {
@@ -1330,9 +1398,16 @@ function resolveAssistantContinuationProvider(
   config: ProviderRegistryConfig
 ): AssistantContinuationProvider {
   if (config.product) {
-    const m = config.product.models.find(m => m.id === config.product!.routes.chat[0]);
-    const p = config.product.providers.find(p => p.id === m?.providerId);
-    return m?.continuationFormat && p ? new OpenAICompatibleAssistantContinuationProvider({ provider: m.id, baseUrl: modelEndpoint(p.baseUrl), model: m.modelId, apiKey: p.apiKey }, m.continuationFormat) : new UnavailableAssistantContinuationProvider("Assistant continuation format is not configured.");
+    const m = config.product.models.find((m) => m.id === config.product!.routes.chat[0]);
+    const p = config.product.providers.find((p) => p.id === m?.providerId);
+    return m?.continuationFormat && p
+      ? new OpenAICompatibleAssistantContinuationProvider(
+          { provider: m.id, baseUrl: modelEndpoint(p.baseUrl), model: m.modelId, apiKey: p.apiKey },
+          m.continuationFormat
+        )
+      : new UnavailableAssistantContinuationProvider(
+          "Assistant continuation format is not configured."
+        );
   }
   const { apiKey, baseUrl, chatModel, assistantContinuationFormat } = config.openaiCompatible;
   if (!apiKey || !baseUrl || !chatModel || !assistantContinuationFormat) {
@@ -1536,10 +1611,10 @@ function resolveConfiguredProvider<TProvider>(input: {
   createUnavailable(name: string): TProvider;
 }): TProvider {
   const provider = input.config.product
-    ? productAdapter(input.config, input.capability, input.name) as TProvider | undefined
+    ? (productAdapter(input.config, input.capability, input.name) as TProvider | undefined)
     : input.factories[input.name]?.(input.config);
   if (provider) {
-    return provider;
+    return accountLeaf(input.config, input.capability, provider);
   }
 
   if (input.config.allowMocks && input.name === "mock") {
@@ -2496,7 +2571,12 @@ class OpenAICompatibleChatProvider implements ChatProvider {
   }
 
   streamReply(input: ChatInput, options: ChatStreamOptions = {}) {
-    return streamOpenAICompatibleChatCompletion(this.options, "chat", { ...input, temperature: input.temperature ?? this.options.temperature }, options);
+    return streamOpenAICompatibleChatCompletion(
+      this.options,
+      "chat",
+      { ...input, temperature: input.temperature ?? this.options.temperature },
+      options
+    );
   }
 }
 
@@ -3451,43 +3531,127 @@ function trimTrailingSlash(value: string): string {
 }
 
 /** Instantiate only adapters with a real implementation for the declared route. */
-function createProductAdapter(config: ProviderRegistryConfig, cap: CapabilityRoute, id: string): ChatProvider | ReasoningProvider | ProactiveDecisionProvider | EmbeddingProvider | VisionProvider | STTProvider | TTSProvider | undefined {
-  const m = config.product!.models.find(m => m.id === id);
-  const p = config.product!.providers.find(p => p.id === m?.providerId);
+function createProductAdapter(
+  config: ProviderRegistryConfig,
+  cap: CapabilityRoute,
+  id: string
+):
+  | ChatProvider
+  | ReasoningProvider
+  | ProactiveDecisionProvider
+  | EmbeddingProvider
+  | VisionProvider
+  | STTProvider
+  | TTSProvider
+  | undefined {
+  const m = config.product!.models.find((m) => m.id === id);
+  const p = config.product!.providers.find((p) => p.id === m?.providerId);
   if (!m?.enabled || !p || !m.capabilities.includes(cap)) return undefined;
-  const options = { provider: m.id, baseUrl: modelEndpoint(p.baseUrl), apiKey: p.apiKey, model: m.modelId, temperature: m.temperature };
+  const options = {
+    provider: m.id,
+    baseUrl: modelEndpoint(p.baseUrl),
+    apiKey: p.apiKey,
+    model: m.modelId,
+    temperature: m.temperature
+  };
   if (p.adapter === "openai-compatible") {
     if (cap === "chat") return new OpenAICompatibleChatProvider(options);
     if (cap === "reasoning") return new OpenAICompatibleReasoningProvider(options);
     if (cap === "proactive") return new OpenAICompatibleProactiveDecisionProvider(options);
-    if (cap === "embedding") return new OpenAICompatibleEmbeddingProvider(config, { ...options, dimensions: m.dimensions });
+    if (cap === "embedding")
+      return new OpenAICompatibleEmbeddingProvider(config, {
+        ...options,
+        dimensions: m.dimensions
+      });
     if (cap === "vision") return new XAIVisionProvider({ ...options, allowAnonymous: true });
   }
   // Preserve method receivers on specialized adapters while giving every model its own route identity.
   let adapter: STTProvider | TTSProvider | undefined;
-  if (p.adapter === "local-stt") adapter = new LocalSTTProvider({ baseUrl: p.baseUrl, model: m.modelId });
-  if (p.adapter === "dashscope" && p.apiKey) adapter = new DashScopeSTTProvider({ ...options, baseUrl: p.baseUrl });
-  if (p.adapter === "xai-tts" && p.apiKey) adapter = new XAITTSProvider({ ...options, defaultVoice: m.voice });
-  if (p.adapter === "dots-tts") adapter = new DotsTTSProvider({ baseUrl: p.baseUrl, model: m.modelId });
-  if (p.adapter === "gpt-sovits") adapter = ttsProviderFactories["local"]!({ ...config, local: { ...config.local, ttsModel: m.modelId }, gptSovits: { ...config.gptSovits, wrapperBaseUrl: p.baseUrl } });
-  return adapter ? new Proxy(adapter, { get(target, key) { if (key === "name") return m.id; const value = Reflect.get(target, key); return typeof value === "function" ? value.bind(target) : value; } }) : undefined;
+  if (p.adapter === "local-stt")
+    adapter = new LocalSTTProvider({ baseUrl: p.baseUrl, model: m.modelId });
+  if (p.adapter === "dashscope" && p.apiKey)
+    adapter = new DashScopeSTTProvider({ ...options, baseUrl: p.baseUrl });
+  if (p.adapter === "xai-tts" && p.apiKey)
+    adapter = new XAITTSProvider({ ...options, defaultVoice: m.voice });
+  if (p.adapter === "dots-tts")
+    adapter = new DotsTTSProvider({ baseUrl: p.baseUrl, model: m.modelId });
+  if (p.adapter === "gpt-sovits")
+    adapter = ttsProviderFactories["local"]!({
+      ...config,
+      local: { ...config.local, ttsModel: m.modelId },
+      gptSovits: { ...config.gptSovits, wrapperBaseUrl: p.baseUrl }
+    });
+  return adapter
+    ? new Proxy(adapter, {
+        get(target, key) {
+          if (key === "name") return m.id;
+          const value = Reflect.get(target, key);
+          return typeof value === "function" ? value.bind(target) : value;
+        }
+      })
+    : undefined;
 }
 
 function productAdapter(config: ProviderRegistryConfig, cap: CapabilityRoute, id: string) {
   const adapter = createProductAdapter(config, cap, id);
   if (!adapter) return undefined;
-  const methods = new Set(["generateReply", "generateReasoning", "decide", "embedText", "analyzeImage", "transcribeAudio", "synthesizeSpeech"]);
-  return new Proxy(adapter, { get(target, key) {
-    const value = Reflect.get(target, key);
-    if (typeof value !== "function") return value;
-    if (key === "streamReply") return async function* (...args: unknown[]) {
-      try { yield* value.apply(target, args); config.observeProductCall?.(cap, id, true); }
-      catch (error) { if (!(error instanceof ProviderError && error.code === ProviderErrorCode.Cancelled)) config.observeProductCall?.(cap, id, false); throw error; }
-    };
-    if (!methods.has(String(key))) return value.bind(target);
-    return async (...args: unknown[]) => {
-      try { const output = await value.apply(target, args); config.observeProductCall?.(cap, id, true); return output; }
-      catch (error) { if (!(error instanceof ProviderError && error.code === ProviderErrorCode.Cancelled)) config.observeProductCall?.(cap, id, false); throw error; }
-    };
-  } });
+  const methods = new Set([
+    "generateReply",
+    "generateReasoning",
+    "decide",
+    "embedText",
+    "analyzeImage",
+    "transcribeAudio",
+    "synthesizeSpeech"
+  ]);
+  return new Proxy(adapter, {
+    get(target, key) {
+      const value = Reflect.get(target, key);
+      if (typeof value !== "function") return value;
+      if (key === "streamReply")
+        return async function* (...args: unknown[]) {
+          try {
+            yield* value.apply(target, args);
+            config.observeProductCall?.(cap, id, true);
+          } catch (error) {
+            if (!(error instanceof ProviderError && error.code === ProviderErrorCode.Cancelled))
+              config.observeProductCall?.(cap, id, false);
+            throw error;
+          }
+        };
+      if (!methods.has(String(key))) return value.bind(target);
+      return async (...args: unknown[]) => {
+        try {
+          const output = await value.apply(target, args);
+          config.observeProductCall?.(cap, id, true);
+          return output;
+        } catch (error) {
+          if (!(error instanceof ProviderError && error.code === ProviderErrorCode.Cancelled))
+            config.observeProductCall?.(cap, id, false);
+          throw error;
+        }
+      };
+    }
+  });
+}
+
+function accountLeaf<T>(
+  config: ProviderRegistryConfig,
+  capability: CapabilityRoute,
+  provider: T
+): T {
+  if (config.allowMocks && String((provider as { name?: string })?.name).startsWith("mock"))
+    return provider;
+  return accountProviderLeaf(
+    provider,
+    () => config.accounting,
+    config.accountingConfigurationRef ?? "provider-config:unbound",
+    (capability === "proactive"
+      ? (config.product?.routes.proactive ?? [])
+      : config.chains[capability]
+    ).map((provider) => ({
+      provider,
+      model: config.product?.models.find((m) => m.id === provider)?.modelId ?? null
+    }))
+  );
 }

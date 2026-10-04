@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { assembleDreamFixtureEpisodes } from "./dream-test-fixture.js";
 import { Pool } from "pg";
 import { afterAll, describe, expect, it } from "vitest";
@@ -506,15 +507,27 @@ describe("Context compression and thin temporal projection", () => {
 describe("Memory vNext postgres persistence", () => {
   const databaseUrl = process.env["DATABASE_URL"];
   const pools: Pool[] = [];
+  const schema = `memory_vnext_${randomBytes(6).toString("hex")}`;
+  let admin: Pool | undefined;
 
   afterAll(async () => {
     await Promise.all(pools.map((pool) => pool.end()));
+    if (admin) {
+      await admin.query(`drop schema if exists "${schema}" cascade`);
+      await admin.end();
+    }
   });
 
   it.skipIf(!databaseUrl)("upserts L1 episodes idempotently and survives rollover", async () => {
-    await runPostgresMigrations({ databaseUrl: databaseUrl! });
+    admin = new Pool({ connectionString: normalizePostgresConnectionString(databaseUrl!) });
+    await admin.query(`create schema "${schema}"`);
+    await runPostgresMigrations({
+      databaseUrl: databaseUrl!,
+      settings: { search_path: `${schema},public` }
+    });
     const pool = new Pool({
-      connectionString: normalizePostgresConnectionString(databaseUrl!)
+      connectionString: normalizePostgresConnectionString(databaseUrl!),
+      options: `-c search_path=${schema},public`
     });
     pools.push(pool);
     const store = new PostgresRecentEpisodeStore(pool);

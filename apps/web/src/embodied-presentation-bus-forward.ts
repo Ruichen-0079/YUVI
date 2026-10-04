@@ -1,9 +1,15 @@
-import { createEmbodiedPresentationRequest } from "@companion/protocol";
+import {
+  AccountedPresentationRequestSchema,
+  createEmbodiedPresentationRequest
+} from "@companion/protocol";
 import type { RuntimeEvent } from "./api/client.js";
 import type { CompanionBusMessage } from "./companion-bus.js";
 
 export type EmbodiedPresentationBusPost = (
-  message: Extract<CompanionBusMessage, { kind: "embodied-presentation-request" }>
+  message: Extract<
+    CompanionBusMessage,
+    { kind: "embodied-presentation-request" | "accounted-presentation-request" }
+  >
 ) => void;
 
 /**
@@ -15,6 +21,11 @@ export function forwardEmbodiedPresentationRequest(
   post: EmbodiedPresentationBusPost
 ): void {
   if (event.type !== "runtime.embodied.presentation.request") {
+    return;
+  }
+  const accounted = AccountedPresentationRequestSchema.safeParse(event.payload);
+  if (accounted.success) {
+    post({ kind: "accounted-presentation-request", envelope: accounted.data });
     return;
   }
   try {

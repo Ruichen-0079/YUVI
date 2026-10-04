@@ -1,3 +1,4 @@
+import { providerFetch as fetch } from "../invocation-witness.js";
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { dirname, isAbsolute, join } from "node:path";
@@ -37,7 +38,8 @@ export class LocalSTTProvider implements STTProvider {
     cleanupPending?: boolean;
   }> {
     if (this.options.speakerMetadataPath) {
-      if (!isAbsolute(this.options.speakerMetadataPath)) throw new Error("Speaker metadata path must be absolute.");
+      if (!isAbsolute(this.options.speakerMetadataPath))
+        throw new Error("Speaker metadata path must be absolute.");
       try {
         let body = JSON.parse(await readFile(this.options.speakerMetadataPath, "utf8")) as {
           speakers?: Array<{ speakerId: string; label: string }>;
@@ -50,40 +52,62 @@ export class LocalSTTProvider implements STTProvider {
           metadataSha256?: unknown;
         };
         if (body.version === 1) {
-          if (typeof body.generation !== "string" || !/^generation-[a-f0-9]{32}$/.test(body.generation) ||
-              body.metadataFile !== "speakers.json" || typeof body.metadataSha256 !== "string")
+          if (
+            typeof body.generation !== "string" ||
+            !/^generation-[a-f0-9]{32}$/.test(body.generation) ||
+            body.metadataFile !== "speakers.json" ||
+            typeof body.metadataSha256 !== "string"
+          )
             throw new Error("Invalid speaker generation manifest.");
-          const metadataPath = join(dirname(this.options.speakerMetadataPath), body.generation, body.metadataFile);
+          const metadataPath = join(
+            dirname(this.options.speakerMetadataPath),
+            body.generation,
+            body.metadataFile
+          );
           const metadataText = await readFile(metadataPath, "utf8");
           if (createHash("sha256").update(metadataText).digest("hex") !== body.metadataSha256)
             throw new Error("Speaker generation metadata digest mismatch.");
-          body = { ...JSON.parse(metadataText) as typeof body, revision: body.revision, complete: true };
+          body = {
+            ...(JSON.parse(metadataText) as typeof body),
+            revision: body.revision,
+            complete: true
+          };
         }
-        if (!Array.isArray(body.speakers) || body.speakers.some(p => typeof p.speakerId !== "string" || typeof p.label !== "string"))
+        if (
+          !Array.isArray(body.speakers) ||
+          body.speakers.some((p) => typeof p.speakerId !== "string" || typeof p.label !== "string")
+        )
           throw new Error("Invalid speaker metadata.");
         return {
           complete: body.complete !== false,
           revision: typeof body.revision === "string" ? body.revision : null,
-          profiles: body.speakers.map(p => ({ voiceProfileId: p.speakerId, label: p.label }))
+          profiles: body.speakers.map((p) => ({ voiceProfileId: p.speakerId, label: p.label }))
         };
       } catch (error) {
-        if ((error as NodeJS.ErrnoException).code === "ENOENT") return { complete: true, revision: null, profiles: [] };
+        if ((error as NodeJS.ErrnoException).code === "ENOENT")
+          return { complete: true, revision: null, profiles: [] };
         throw error;
       }
     }
     const body = (await this.profileRequest("/speakers")) as {
       speakers: Array<{ speakerId: string; label: string }>;
       revision?: string | null;
-          complete?: boolean;
+      complete?: boolean;
       cleanupPending?: boolean;
     };
-    if (!Array.isArray(body.speakers) || body.speakers.some(p => typeof p.speakerId !== "string" || typeof p.label !== "string"))
+    if (
+      !Array.isArray(body.speakers) ||
+      body.speakers.some((p) => typeof p.speakerId !== "string" || typeof p.label !== "string")
+    )
       throw new Error("Invalid speaker metadata.");
     return {
       complete: body.complete === true,
       revision: typeof body.revision === "string" ? body.revision : null,
       ...(typeof body.cleanupPending === "boolean" ? { cleanupPending: body.cleanupPending } : {}),
-      profiles: body.speakers.map(record => ({ voiceProfileId: record.speakerId, label: record.label }))
+      profiles: body.speakers.map((record) => ({
+        voiceProfileId: record.speakerId,
+        label: record.label
+      }))
     };
   }
 
@@ -110,17 +134,28 @@ export class LocalSTTProvider implements STTProvider {
       await this.profileRequest(`/speakers/${encodeURIComponent(id)}`, "DELETE");
     },
     fenceNativeCommand: async (command) => {
-      const result = await this.profileRequest("/speakers/commands/fence", "POST", { command }) as { status?: unknown };
-      if (result.status !== "READY" && result.status !== "APPLIED" && result.status !== "UNKNOWN" && result.status !== "CONFLICT")
+      const result = (await this.profileRequest("/speakers/commands/fence", "POST", {
+        command
+      })) as { status?: unknown };
+      if (
+        result.status !== "READY" &&
+        result.status !== "APPLIED" &&
+        result.status !== "UNKNOWN" &&
+        result.status !== "CONFLICT"
+      )
         throw new Error("Acoustic owner returned an invalid fence result.");
       return result.status;
     },
-    applyNativeCommand: async (command) => this.profileRequest("/speakers/commands", "POST", {
-      command: stripAudio(command),
-      ...(command.audioBase64 === undefined ? {} : { audioBase64: command.audioBase64 }),
-      mimeType: "audio/wav"
-    }) as Promise<VoiceProfileNativeCommandResult>,
-    reconcileNativeCommand: async (command) => this.profileRequest("/speakers/commands/reconcile", "POST", { command }) as Promise<VoiceProfileNativeCommandResult>
+    applyNativeCommand: async (command) =>
+      this.profileRequest("/speakers/commands", "POST", {
+        command: stripAudio(command),
+        ...(command.audioBase64 === undefined ? {} : { audioBase64: command.audioBase64 }),
+        mimeType: "audio/wav"
+      }) as Promise<VoiceProfileNativeCommandResult>,
+    reconcileNativeCommand: async (command) =>
+      this.profileRequest("/speakers/commands/reconcile", "POST", {
+        command
+      }) as Promise<VoiceProfileNativeCommandResult>
   };
 
   private async profileRequest(path: string, method = "GET", body?: unknown): Promise<unknown> {
@@ -310,7 +345,9 @@ export class LocalSTTProvider implements STTProvider {
   }
 }
 
-function stripAudio(command: VoiceProfileNativeCommand & { audioBase64?: string }): VoiceProfileNativeCommand {
+function stripAudio(
+  command: VoiceProfileNativeCommand & { audioBase64?: string }
+): VoiceProfileNativeCommand {
   const { audioBase64: _audioBase64, ...metadata } = command;
   return metadata;
 }

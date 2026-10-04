@@ -34,8 +34,9 @@ as mocks.
 - `src/types/vision.ts`: vision provider contract.
 - `src/types/embedding.ts`: embedding provider contract.
 - `src/types/errors.ts`: normalized provider errors and call-error policy
-  (`retryable`, `fallbackEligible`, `effectState`). Replay safety is derived
-  from `effectState !== "committed"`. `ProviderRouteStatus.fallbackEligible`
+  (`retryable`, `fallbackEligible`, `effectState`). Replay and provider-hop
+  safety require `effectState === "not_started"`; `unknown` is not evidence
+  that the earlier invocation did not apply. `ProviderRouteStatus.fallbackEligible`
   remains a route/readiness projection and is a different concept.
 
 ## Provider contracts

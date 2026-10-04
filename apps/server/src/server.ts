@@ -187,7 +187,16 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   // Seal/drain generic work before Fastify waits for active HTTP handlers to close.
   // The dispatch-start marker preserves UNKNOWN even if a caller cannot finish the drain.
   let effectDrain: Promise<{ drained: boolean }> | undefined;
-  const drainEffects = () => (effectDrain ??= context.readTextEffects.shutdown());
+  let runtimeDrain: ReturnType<typeof context.runtime.sealAndDrainMemoryWrites> | undefined;
+  const drainEffects = () => {
+    context.runtime.stopProactiveScheduler();
+    runtimeDrain ??= context.runtime.sealAndDrainMemoryWrites();
+    context.outwardEffects.seal();
+    context.mediaEffects.seal();
+    context.presentationEffects.seal();
+    maintenanceScheduler.close();
+    return (effectDrain ??= context.readTextEffects.shutdown());
+  };
   app.addHook("preClose", async () => {
     await drainEffects();
   });
@@ -198,7 +207,7 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
     maintenanceScheduler.close();
     context.embodiedPresentationBridge.close();
     await context.memoryIngestionCoordinator.shutdown({ graceMs: 2_000 });
-    await context.runtime.sealAndDrainMemoryWrites();
+    await runtimeDrain;
     await context.profileLifecycle.shutdown({ graceMs: 2_000 });
     await context.finalizedIngestionRepository.close?.();
     await context.memoryRepository.close?.();

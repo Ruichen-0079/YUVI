@@ -75,30 +75,36 @@ export class HostReadTextEffects {
     };
     const grants = this.grants;
     this.dispatcher = store
-      ? new EffectDispatcher(store, [
-          {
-            contractRef: "yuvi.read-text.v1",
-            adapter: EFFECT_DELIVERY_CONTRACTS["yuvi.read-text.v1"].adapter,
-            isCurrent: current,
-            async invoke(i, _a, signal) {
-              // No provider selection, MCP network transport, or publication is hidden in this adapter.
-              const grantSignal = grants.get(i.intentId)?.signal;
-              const result = await readAuthorizedLocalText(
-                (i.request.payload as { path: string }).path,
-                grantSignal ? AbortSignal.any([signal, grantSignal]) : signal
-              );
-              return {
-                evidence: {
-                  certainty: "APPLIED",
-                  layer: "LOCAL_READ_RETURNED",
-                  reason: "RETURNED",
-                  remoteEffectId: null
-                },
-                transientResult: result
-              };
+      ? new EffectDispatcher(
+          store,
+          [
+            {
+              contractRef: "yuvi.read-text.v1",
+              adapter: EFFECT_DELIVERY_CONTRACTS["yuvi.read-text.v1"].adapter,
+              isCurrent: current,
+              async invoke(i, _a, signal) {
+                // No provider selection, MCP network transport, or publication is hidden in this adapter.
+                const grantSignal = grants.get(i.intentId)?.signal;
+                const result = await readAuthorizedLocalText(
+                  (i.request.payload as { path: string }).path,
+                  grantSignal ? AbortSignal.any([signal, grantSignal]) : signal
+                );
+                return {
+                  evidence: {
+                    certainty: "APPLIED",
+                    layer: "LOCAL_READ_RETURNED",
+                    reason: "RETURNED",
+                    remoteEffectId: null
+                  },
+                  transientResult: result
+                };
+              }
             }
-          }
-        ])
+          ],
+          30_000,
+          4,
+          true
+        )
       : null;
   }
   start() {

@@ -107,7 +107,11 @@ export function ChatPage(): JSX.Element {
   const [messages, dispatchMessages] = useReducer(reduceChatMessages, [] as ChatMessage[]);
   const [requestStatus, setRequestStatus] = useState<RequestStatus>("idle");
   const [error, setError] = useState<string | null>(null);
-  const historyError = useConversationHistory(sessionId, requestStatus === "sending", dispatchMessages);
+  const historyError = useConversationHistory(
+    sessionId,
+    requestStatus === "sending",
+    dispatchMessages
+  );
   const [lastTraceId, setLastTraceId] = useState<string | null>(null);
   const [voicePlaybackStatus, setVoicePlaybackStatus] = useState<VoicePlaybackStatus>("idle");
   const [actualPlaybackActive, setActualPlaybackActive] = useState(false);
@@ -125,6 +129,9 @@ export function ChatPage(): JSX.Element {
   const timingRef = useRef<ChatTimingMetrics | null>(null);
   const speechSessionRef = useRef<{
     generation: string;
+    mediaGeneration: Promise<string>;
+    replyId?: string | undefined;
+    throughSequence?: string | undefined;
     segmenter: SpeechSegmenter;
     queue: SpeechPlaybackQueue;
     nextSegmentSequence: number;
@@ -238,6 +245,10 @@ export function ChatPage(): JSX.Element {
       mountedRef.current = false;
       activeRequestRef.current?.controller.abort();
       activeRequestRef.current = null;
+      if (speechSessionRef.current)
+        void speechSessionRef.current.mediaGeneration
+          .then((id) => apiClient.revokeMediaGeneration(id))
+          .catch(() => {});
       speechSessionRef.current?.queue.cancel();
       speechSessionRef.current = null;
       playbackCorrelationRef.current = createSpeechPlaybackCorrelation();
@@ -268,7 +279,18 @@ export function ChatPage(): JSX.Element {
       requestId: speech.generation,
       sequence: speech.nextSegmentSequence++
     };
-    speech.queue.enqueue({ text, language: detectSpeechLanguage(text) }, segment);
+    const decision = speech.segmenter.sealedSegments.find((s) => s.text === text);
+    if (!decision || !speech.replyId || !speech.throughSequence) return;
+    const seal = {
+      version: "speech-segment-seal.v1" as const,
+      replyId: speech.replyId,
+      sequence: String(segment.sequence + 1),
+      throughSequence: speech.throughSequence,
+      preparedStart: decision.preparedStart,
+      preparedEnd: decision.preparedEnd,
+      preparationVersion: "speech-preparation.v1" as const
+    };
+    speech.queue.enqueue({ seal, text, language: detectSpeechLanguage(text) }, segment);
   }
 
   async function send(): Promise<void> {
@@ -304,6 +326,10 @@ export function ChatPage(): JSX.Element {
       // Resume the shared Web Audio context while this send is still a user gesture.
       lumiRef.current?.resumeAudio();
       const generation = requestId;
+      const mediaGeneration = apiClient
+        .createMediaGeneration({ sessionId, requestId })
+        .then((r) => r.generation);
+      void mediaGeneration.catch(() => {});
       const feedback = createSpeechPipelineFeedback();
       const segmenter = new SpeechSegmenter({
         pipeline: () => {
@@ -312,8 +338,10 @@ export function ChatPage(): JSX.Element {
         }
       });
       const queue = new SpeechPlaybackQueue(
-        (item, signal) =>
+        async (item, signal) =>
           apiClient.synthesizeSpeech({
+            ...(item.seal ? { segment: item.seal } : {}),
+            generation: await mediaGeneration,
             text: item.text,
             language: item.language,
             format: "wav",
@@ -420,6 +448,7 @@ export function ChatPage(): JSX.Element {
       );
       speechSessionRef.current = {
         generation,
+        mediaGeneration,
         segmenter,
         queue,
         nextSegmentSequence: 0,
@@ -460,6 +489,8 @@ export function ChatPage(): JSX.Element {
             // Browser playback owns sentence-level TTS for this path. Avoid
             // asking Runtime to synthesize the complete reply a second time.
             voiceOutput: false,
+            speechPlan: shouldRequestTts ? "CLIENT_SEGMENTED" : "NONE",
+            speechRequestId: requestId,
             promptPreview
           }
         },
@@ -469,7 +500,8 @@ export function ChatPage(): JSX.Element {
             if (!mountedRef.current || activeRequestRef.current?.id !== requestId) {
               return;
             }
-            if ("traceId" in event) dispatchMessages({ type: "bind-trace", assistantId, traceId: event.traceId });
+            if ("traceId" in event)
+              dispatchMessages({ type: "bind-trace", assistantId, traceId: event.traceId });
             if (event.type === "text-delta") {
               if (timingRef.current && timingRef.current.firstTextDeltaAt === undefined) {
                 recordChatTiming(timingRef, { firstTextDeltaAt: performance.now() });
@@ -483,6 +515,8 @@ export function ChatPage(): JSX.Element {
               });
               const speech = speechSessionRef.current;
               if (speech?.generation === requestId && effectiveVoiceOutputRef.current.requestTts) {
+                speech.replyId = event.replyId;
+                speech.throughSequence = event.sequence;
                 for (const text of speech.segmenter.push(event.text)) {
                   if (
                     timingRef.current &&
@@ -636,7 +670,10 @@ export function ChatPage(): JSX.Element {
           <div className="h-[420px] overflow-auto rounded-md border border-ink-100 bg-ink-50 p-3">
             {historyError && <p role="status">{t("Unable to load chat history. Retrying…")}</p>}
             {messages.length === 0 ? (
-              <EmptyState title={t("No chat yet")} message={t("Send a message to exercise the runtime.")} />
+              <EmptyState
+                title={t("No chat yet")}
+                message={t("Send a message to exercise the runtime.")}
+              />
             ) : (
               <div className="space-y-3">
                 {messages.map((message) => (
@@ -663,9 +700,15 @@ export function ChatPage(): JSX.Element {
                     )}
                     {message.role === "user" && message.useMemory !== undefined && (
                       <div className="mt-2 flex flex-wrap gap-2 text-xs text-ink-500">
-                        <span>{t("readMemory:")}{" "}{message.readMemory ? "true" : "false"}</span>
-                        <span>{t("writeMemory:")}{" "}{message.writeMemory ? "true" : "false"}</span>
-                        <span>{t("voice output:")}{" "}{message.voiceOutput ? t("enabled") : t("disabled")}</span>
+                        <span>
+                          {t("readMemory:")} {message.readMemory ? "true" : "false"}
+                        </span>
+                        <span>
+                          {t("writeMemory:")} {message.writeMemory ? "true" : "false"}
+                        </span>
+                        <span>
+                          {t("voice output:")} {message.voiceOutput ? t("enabled") : t("disabled")}
+                        </span>
                       </div>
                     )}
                     {message.role === "assistant" && (
@@ -681,7 +724,10 @@ export function ChatPage(): JSX.Element {
             <Notice
               tone="info"
               title={t("Latest trace")}
-              message={t("{0}. Open Prompt Preview to inspect the generated prompt for the latest turn.", lastTraceId)}
+              message={t(
+                "{0}. Open Prompt Preview to inspect the generated prompt for the latest turn.",
+                lastTraceId
+              )}
             />
           )}
           <div className="mt-3 flex gap-2">
@@ -704,7 +750,9 @@ export function ChatPage(): JSX.Element {
                 className="button-secondary h-20 w-24"
                 onClick={stopGeneration}
                 aria-label={t("Stop generating")}
-              >{t("Stop")}</button>
+              >
+                {t("Stop")}
+              </button>
             ) : (
               <button
                 type="button"
@@ -712,7 +760,9 @@ export function ChatPage(): JSX.Element {
                 disabled={Boolean(activeRequestRef.current) || !input.trim()}
                 onClick={() => void send()}
                 aria-label={t("Send message")}
-              >{t("Send")}</button>
+              >
+                {t("Send")}
+              </button>
             )}
             {(voicePlaybackStatus === "synthesizing" || voicePlaybackStatus === "playing") && (
               <button
@@ -720,7 +770,9 @@ export function ChatPage(): JSX.Element {
                 className="button-secondary h-20 w-24"
                 onClick={stopSpeech}
                 aria-label={t("Stop speech")}
-              >{t("Stop speech")}</button>
+              >
+                {t("Stop speech")}
+              </button>
             )}
           </div>
           {voiceOutput && voicePlaybackStatus !== "idle" && (
@@ -777,7 +829,11 @@ export function ChatPage(): JSX.Element {
                   {JSON.stringify(outgoingPayload, null, 2)}
                 </pre>
               </div>
-              <p className="text-xs leading-5 text-ink-500">{t("Chat uses the persistent SSE endpoint. Refreshing the page does not restore chat history yet because no session-history API is available.")}</p>
+              <p className="text-xs leading-5 text-ink-500">
+                {t(
+                  "Chat uses the persistent SSE endpoint. Refreshing the page does not restore chat history yet because no session-history API is available."
+                )}
+              </p>
             </div>
           </Panel>
         </div>
@@ -826,7 +882,11 @@ function ProviderMetadataSummary(props: {
   }
 
   if (typeof provider === "string") {
-    return <div className="mt-2 text-xs text-ink-500">{t("provider:")}{" "}{provider}</div>;
+    return (
+      <div className="mt-2 text-xs text-ink-500">
+        {t("provider:")} {provider}
+      </div>
+    );
   }
 
   return (
@@ -838,15 +898,37 @@ function ProviderMetadataSummary(props: {
       >
         {provider.mock ? "MOCK MODE" : t("REAL PROVIDER / {0}", provider.name)}
       </span>
-      {provider.name && <span>{t("provider:")}{" "}{provider.name}</span>}
-      {provider.model && <span>{t("model:")}{" "}{provider.model}</span>}
-      {provider.latencyMs !== undefined && (
-        <span>{t("latency:")}{" "}{formatLatency(provider.latencyMs)}</span>
+      {provider.name && (
+        <span>
+          {t("provider:")} {provider.name}
+        </span>
       )}
-      {provider.healthStatus && <span>{t("health:")}{" "}{provider.healthStatus}</span>}
-      {provider.tokenUsage && <span>{t("tokens:")}{" "}{formatTokenUsage(provider.tokenUsage)}</span>}
+      {provider.model && (
+        <span>
+          {t("model:")} {provider.model}
+        </span>
+      )}
+      {provider.latencyMs !== undefined && (
+        <span>
+          {t("latency:")} {formatLatency(provider.latencyMs)}
+        </span>
+      )}
+      {provider.healthStatus && (
+        <span>
+          {t("health:")} {provider.healthStatus}
+        </span>
+      )}
+      {provider.tokenUsage && (
+        <span>
+          {t("tokens:")} {formatTokenUsage(provider.tokenUsage)}
+        </span>
+      )}
       {provider.mock && (
-        <span className="basis-full text-amber-700">{t("Configure Chat in Product configuration (Provider → Model → Capability Route), or restart the server.")}</span>
+        <span className="basis-full text-amber-700">
+          {t(
+            "Configure Chat in Product configuration (Provider → Model → Capability Route), or restart the server."
+          )}
+        </span>
       )}
     </div>
   );

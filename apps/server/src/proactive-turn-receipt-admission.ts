@@ -20,7 +20,9 @@ export type ProactiveTurnReceiptInput = Readonly<{
 }>;
 
 export interface ProactiveTurnReceiptAdmission {
-  admit(input: ProactiveTurnReceiptInput): Promise<void>;
+  admit(
+    input: ProactiveTurnReceiptInput
+  ): Promise<import("@companion/protocol").JournalEventRef | void>;
 }
 
 const ProactiveTurnReceiptInputSchema = z
@@ -42,7 +44,9 @@ export class HostProactiveTurnReceiptAdmission implements ProactiveTurnReceiptAd
     private readonly createPayloadId: () => string = createOpaqueProactiveTurnPayloadId
   ) {}
 
-  async admit(rawInput: ProactiveTurnReceiptInput): Promise<void> {
+  async admit(
+    rawInput: ProactiveTurnReceiptInput
+  ): Promise<import("@companion/protocol").JournalEventRef | void> {
     const parsed = ProactiveTurnReceiptInputSchema.safeParse(rawInput);
     if (!parsed.success) {
       throw new JournalStoreError(
@@ -126,7 +130,12 @@ export class HostProactiveTurnReceiptAdmission implements ProactiveTurnReceiptAd
     };
 
     // The Runtime idempotency key is a volatile logical claim key, not transport dedup identity.
-    await this.journal.appendWithHostAuthority(appendInput, authority);
+    const receipt = await this.journal.appendWithHostAuthority(appendInput, authority);
+    return {
+      kind: "JOURNAL_EVENT",
+      namespace: receipt.envelope.journalNamespace,
+      eventId: receipt.envelope.eventId
+    };
   }
 }
 

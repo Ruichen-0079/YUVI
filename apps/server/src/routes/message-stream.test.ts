@@ -22,7 +22,10 @@ function runtimeFor(
     }
   }
 ): AppContext {
-  return { runtime: { streamUserMessage }, conversationalReceiptAdmission: admission } as unknown as AppContext;
+  return {
+    runtime: { streamUserMessage },
+    conversationalReceiptAdmission: admission
+  } as unknown as AppContext;
 }
 
 async function createTestApp(context: AppContext) {
@@ -45,6 +48,75 @@ function parseFrames(body: string): Array<{ event: string; data: Record<string, 
 }
 
 describe("versioned message SSE route", () => {
+  it("claims durable target work before an identified delta write and records only gateway acceptance", async () => {
+    const order: string[] = [];
+    let suppliedTarget: unknown;
+    const context = runtimeFor(
+      async function* (_input, options): AsyncIterable<RuntimeReplyStreamEvent> {
+        suppliedTarget = options?.replyPublicationTargets;
+        yield {
+          type: "text-delta",
+          text: "visible",
+          messageId: "assistant-pub",
+          replyId: "reply-pub",
+          componentId: `rc1_${"a".repeat(64)}`,
+          sequence: "1",
+          sessionId: "session-pub",
+          traceId: "trace-pub"
+        };
+        yield {
+          type: "completed",
+          messageId: "assistant-pub",
+          replyId: "reply-pub",
+          lastSequence: "1",
+          sessionId: "session-pub",
+          traceId: "trace-pub",
+          content: "visible",
+          provider: "mock"
+        };
+      }
+    );
+    context.outwardEffects = {
+      registerTarget() {
+        return () => {};
+      },
+      async publish(input: { write: () => Promise<void> }) {
+        order.push("start");
+        await input.write();
+        order.push("observe:LOCAL_GATEWAY_WRITE_ACCEPTED");
+      }
+    } as unknown as AppContext["outwardEffects"];
+    const app = await createTestApp(context);
+    app.addHook("onRequest", async (_request, reply) => {
+      const raw = reply.raw.write.bind(reply.raw);
+      reply.raw.write = ((...args: Parameters<typeof reply.raw.write>) => {
+        order.push("write");
+        return raw(...args);
+      }) as typeof reply.raw.write;
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/messages/stream",
+      payload: { sessionId: "session-pub", content: "hello" }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toContain("visible");
+    expect(suppliedTarget).toEqual([
+      {
+        surface: "HTTP_SSE",
+        targetId: expect.stringMatching(/^HTTP_SSE:/),
+        targetGeneration: expect.any(String)
+      }
+    ]);
+    expect(order.indexOf("start")).toBeLessThan(order.indexOf("write"));
+    expect(order.indexOf("write")).toBeLessThan(
+      order.indexOf("observe:LOCAL_GATEWAY_WRITE_ACCEPTED")
+    );
+    await app.close();
+  });
+
   it("streams ordered deltas and one completed event", async () => {
     const app = await createTestApp(
       runtimeFor(async function* (): AsyncIterable<RuntimeReplyStreamEvent> {
@@ -88,12 +160,13 @@ describe("versioned message SSE route", () => {
     expect(response.headers["access-control-allow-origin"]).toBe("http://tauri.localhost");
     expect(response.headers["access-control-allow-credentials"]).toBe("true");
     const frames = parseFrames(response.body);
-    expect(frames.map((frame) => frame.event)).toEqual([
-      "text-delta",
-      "text-delta",
-      "completed"
-    ]);
-    expect(frames.map((frame) => frame.data["text"]).filter(Boolean).join("")).toBe("hello");
+    expect(frames.map((frame) => frame.event)).toEqual(["text-delta", "text-delta", "completed"]);
+    expect(
+      frames
+        .map((frame) => frame.data["text"])
+        .filter(Boolean)
+        .join("")
+    ).toBe("hello");
     expect(frames.at(-1)?.data).toMatchObject({ type: "completed", content: "hello" });
     await app.close();
   });
@@ -164,7 +237,9 @@ describe("versioned message SSE route", () => {
         provider: "mock"
       };
     });
-    const app = await createTestApp(runtimeFor(runtime as AppContext["runtime"]["streamUserMessage"]));
+    const app = await createTestApp(
+      runtimeFor(runtime as AppContext["runtime"]["streamUserMessage"])
+    );
 
     const response = await app.inject({
       method: "POST",
@@ -383,9 +458,7 @@ describe("SSE encoding and backpressure", () => {
     expect(encoded.split("\n\n")).toHaveLength(2);
     expect(encoded.match(/^event: /gm)).toHaveLength(1);
     const dataLine = encoded.split("\n").find((line) => line.startsWith("data: "))!;
-    expect(JSON.parse(dataLine.slice(6))["text"]).toContain(
-      "event: forged"
-    );
+    expect(JSON.parse(dataLine.slice(6))["text"]).toContain("event: forged");
   });
 
   it("waits for drain when a writable applies backpressure", async () => {

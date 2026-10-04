@@ -1,3 +1,4 @@
+import { providerFetch as fetch } from "../invocation-witness.js";
 import { readFile } from "node:fs/promises";
 import { extname, isAbsolute } from "node:path";
 import type { ProviderCallOptions, ProviderHealth, TokenUsage } from "../types/common.js";

@@ -1,3 +1,6 @@
+vi.mock("./outward-effects.js", () => import("./test-support/offline-outward-effects.js"));
+vi.mock("./media-effects.js", () => import("./test-support/offline-media-effects.js"));
+vi.mock("./presentation-effects.js", () => import("./test-support/offline-media-effects.js"));
 import { createHash } from "node:crypto";
 import { createPostgresPool } from "@companion/database";
 import { readSqlMigrations } from "../../../packages/memory/src/migrations.js";
@@ -11,11 +14,19 @@ import { buildServer } from "./server.js";
 import { loadServerConfig } from "./config.js";
 import { createTestSpeechReceiptAdmission } from "./test-support/speech-receipt.js";
 import { createTestVoiceControlReceiptAdmission } from "./test-support/voice-control-receipt.js";
-import { importLegacyConfiguration, productPath, writePrivateJson } from "./services/product-store.js";
+import {
+  importLegacyConfiguration,
+  productPath,
+  writePrivateJson
+} from "./services/product-store.js";
 import { createFileP8CorrectionStore } from "@companion/core";
 import { LocalControllerEvidenceProvider } from "@companion/memory";
 import { createTestProductPersonCommandPort } from "./test-support/product-person-command.js";
-import type { NativeControlOwnerCommand, ProductPersonCommandPort, ProductPersonCommandResult } from "./product-person-command-effects.js";
+import type {
+  NativeControlOwnerCommand,
+  ProductPersonCommandPort,
+  ProductPersonCommandResult
+} from "./product-person-command-effects.js";
 
 const originalEnv = { ...process.env };
 const createdDirs: string[] = [];
@@ -113,52 +124,84 @@ function createCharacterTestCommandPort(env: NodeJS.ProcessEnv): ProductPersonCo
       receiptRef: commandReceipt
     };
   };
-  return createTestProductPersonCommandPort(async (command): Promise<ProductPersonCommandResult> => {
-    const { commandIds, receiptRef: commandReceipt } = ids(command);
-    if (command.family === "P8_CORRECTION") {
-      const store = createFileP8CorrectionStore(path.join(runtimeEnvDir, "p8-corrections.json"));
-      const nativeCommand = {
-        commandHandle: command.commandHandle,
-        ...commandIds,
-        fence: "1",
-        expectedRevision: command.expectedRevision
-      };
-      const fenced = await store.fenceCorrectionCommand?.(nativeCommand);
-      if (fenced !== "READY") return { status: fenced === "CONFLICT" ? "CONFLICT" : "UNAVAILABLE", reason: fenced ?? "OWNER_UNAVAILABLE" };
-      if (!store.appendCorrectionCommand) return { status: "UNAVAILABLE", reason: "OWNER_COMMAND_UNSUPPORTED" };
-      const result = await store.appendCorrectionCommand(command.correction as never, nativeCommand);
-      if (result.status === "STORED" || result.status === "ALREADY_STORED")
-        return { status: "APPLIED", targetReference: command.correctionReference, receiptRef: commandReceipt, intentId: commandIds.intentId };
-      return { status: result.status === "CONFLICT" ? "CONFLICT" : "UNAVAILABLE", reason: result.status };
+  return createTestProductPersonCommandPort(
+    async (command): Promise<ProductPersonCommandResult> => {
+      const { commandIds, receiptRef: commandReceipt } = ids(command);
+      if (command.family === "P8_CORRECTION") {
+        const store = createFileP8CorrectionStore(path.join(runtimeEnvDir, "p8-corrections.json"));
+        const nativeCommand = {
+          commandHandle: command.commandHandle,
+          ...commandIds,
+          fence: "1",
+          expectedRevision: command.expectedRevision
+        };
+        const fenced = await store.fenceCorrectionCommand?.(nativeCommand);
+        if (fenced !== "READY")
+          return {
+            status: fenced === "CONFLICT" ? "CONFLICT" : "UNAVAILABLE",
+            reason: fenced ?? "OWNER_UNAVAILABLE"
+          };
+        if (!store.appendCorrectionCommand)
+          return { status: "UNAVAILABLE", reason: "OWNER_COMMAND_UNSUPPORTED" };
+        const result = await store.appendCorrectionCommand(
+          command.correction as never,
+          nativeCommand
+        );
+        if (result.status === "STORED" || result.status === "ALREADY_STORED")
+          return {
+            status: "APPLIED",
+            targetReference: command.correctionReference,
+            receiptRef: commandReceipt,
+            intentId: commandIds.intentId
+          };
+        return {
+          status: result.status === "CONFLICT" ? "CONFLICT" : "UNAVAILABLE",
+          reason: result.status
+        };
+      }
+      if (command.family === "VOICE_BINDING") {
+        const owner = new LocalControllerEvidenceProvider(
+          env["YUVI_RUNTIME_DATA_DIR"] || path.join(runtimeEnvDir, "data")
+        );
+        const nativeCommand = {
+          commandHandle: command.commandHandle,
+          ...commandIds,
+          fence: "1",
+          operation: command.operation,
+          voiceProfileId: command.voiceProfileId,
+          personaId: command.personaId,
+          ...(command.personId ? { personId: command.personId } : {}),
+          ...(command.previousVoiceProfileId
+            ? { previousVoiceProfileId: command.previousVoiceProfileId }
+            : {}),
+          ...(command.previousPersonaId ? { previousPersonaId: command.previousPersonaId } : {}),
+          expectedBindingRevision: command.expectedBindingRevision,
+          ...(command.expectedPreviousBindingRevision !== undefined
+            ? { expectedPreviousBindingRevision: command.expectedPreviousBindingRevision }
+            : {})
+        };
+        const fenced = await owner.fenceBindingCommand(nativeCommand);
+        if (fenced !== "READY")
+          return { status: fenced === "CONFLICT" ? "CONFLICT" : "UNAVAILABLE", reason: fenced };
+        const result = await owner.applyBindingCommand(nativeCommand);
+        if (result.status === "APPLIED" || result.status === "ALREADY_APPLIED")
+          return {
+            status: "APPLIED",
+            targetReference: command.voiceProfileId,
+            receiptRef: commandReceipt,
+            intentId: commandIds.intentId
+          };
+        return {
+          status:
+            result.status === "PROVEN_NOT_APPLIED" || result.status === "CONFLICT"
+              ? "CONFLICT"
+              : "UNAVAILABLE",
+          reason: "reason" in result ? result.reason : result.status
+        };
+      }
+      return { status: "UNAVAILABLE", reason: "TEST_NATIVE_COMMAND_NOT_CONFIGURED" };
     }
-    if (command.family === "VOICE_BINDING") {
-      const owner = new LocalControllerEvidenceProvider(
-        env["YUVI_RUNTIME_DATA_DIR"] || path.join(runtimeEnvDir, "data")
-      );
-      const nativeCommand = {
-        commandHandle: command.commandHandle,
-        ...commandIds,
-        fence: "1",
-        operation: command.operation,
-        voiceProfileId: command.voiceProfileId,
-        personaId: command.personaId,
-        ...(command.personId ? { personId: command.personId } : {}),
-        ...(command.previousVoiceProfileId ? { previousVoiceProfileId: command.previousVoiceProfileId } : {}),
-        ...(command.previousPersonaId ? { previousPersonaId: command.previousPersonaId } : {}),
-        expectedBindingRevision: command.expectedBindingRevision,
-        ...(command.expectedPreviousBindingRevision !== undefined
-          ? { expectedPreviousBindingRevision: command.expectedPreviousBindingRevision }
-          : {})
-      };
-      const fenced = await owner.fenceBindingCommand(nativeCommand);
-      if (fenced !== "READY") return { status: fenced === "CONFLICT" ? "CONFLICT" : "UNAVAILABLE", reason: fenced };
-      const result = await owner.applyBindingCommand(nativeCommand);
-      if (result.status === "APPLIED" || result.status === "ALREADY_APPLIED")
-        return { status: "APPLIED", targetReference: command.voiceProfileId, receiptRef: commandReceipt, intentId: commandIds.intentId };
-      return { status: result.status === "PROVEN_NOT_APPLIED" || result.status === "CONFLICT" ? "CONFLICT" : "UNAVAILABLE", reason: "reason" in result ? result.reason : result.status };
-    }
-    return { status: "UNAVAILABLE", reason: "TEST_NATIVE_COMMAND_NOT_CONFIGURED" };
-  });
+  );
 }
 
 function completion(model: string, content: string, reasoningContent?: string) {
@@ -501,131 +544,160 @@ it("persists a controller P8 relationship correction through restart and project
   }
 });
 
-it.skipIf(!originalEnv["YUVI_EFFECT_TEST_DATABASE_URL"]).each([false, true])("reaches Runtime-admitted reads, bounded Cognition and Character re-entry (multiple=%s)", async multiple => {
-  const { writeFile } = await import("node:fs/promises");
-  const directory = await mkdtemp(path.join(tmpdir(), "yuvi-read-text-"));
-  createdDirs.push(directory);
-  const authorizedPath = path.join(directory, "evidence.txt");
-  await writeFile(authorizedPath, "The verified count is forty-two. EXECUTION_EVIDENCE_ONLY_7f2a");
-  const requests: RecordedRequest[] = [];
-  const replies = [
-    '{"disposition":"NEED_COGNITION","focus":"verify count"}',
-    'REQUEST_CAPABILITY\n{"capabilityRef":"capability://opaque/read-authorized-text","request":"Read the authorized count evidence."}',
-    ...(multiple ? ["CONTINUE", 'REQUEST_CAPABILITY\n{"capabilityRef":"capability://opaque/read-authorized-text","request":"Verify the same admitted evidence again."}'] : []),
-    "COMPLETE\nThe evidence says forty-two.",
-    '{"disposition":"RESPOND"}',
-    "The count is forty-two."
-  ];
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async (_input: unknown, init?: RequestInit) => {
-      const body = JSON.parse(String(init?.body)) as RecordedRequest;
-      requests.push(body);
-      return characterResponse(body, replies.shift()!);
-    })
-  );
-  // A9.2 real dispatch requires real committed ancestry and the durable host facility.
-  const databaseUrl=originalEnv["YUVI_EFFECT_TEST_DATABASE_URL"]!;
-  const schema=`a92_character_${crypto.randomUUID().replaceAll("-","")}`;
-  const admin=createPostgresPool(databaseUrl);
-  await admin.query(`create schema "${schema}"`);
-  const pool=createPostgresPool(databaseUrl,{options:`-c search_path=${schema},public`});
-  for(const migration of await readSqlMigrations())await pool.query(migration.sql);
-  const scoped=new URL(databaseUrl);scoped.searchParams.set("options",`-c search_path=${schema},public`);
-  const env = {...productionTestEnv(),DATABASE_URL:scoped.toString(),YUVI_JOURNAL_NAMESPACE:schema};
-  process.env = { ...env };
-  const app = await buildServer(loadServerConfig(env));
-  try {
-    const authorization = await app.inject({
-      method: "POST",
-      url: "/capabilities/read-text/authorize",
-      payload: { sessionId: "read-text", path: authorizedPath }
-    });
-    expect(authorization.statusCode, authorization.body).toBe(200);
-    const reply = await app.inject({
-      method: "POST",
-      url: "/message",
-      payload: {
-        sessionId: "read-text",
-        text: "Verify the count",
-        options: { readMemory: false, writeMemory: false }
+it.skipIf(!originalEnv["YUVI_EFFECT_TEST_DATABASE_URL"]).each([false, true])(
+  "reaches Runtime-admitted reads, bounded Cognition and Character re-entry (multiple=%s)",
+  async (multiple) => {
+    const { writeFile } = await import("node:fs/promises");
+    const directory = await mkdtemp(path.join(tmpdir(), "yuvi-read-text-"));
+    createdDirs.push(directory);
+    const authorizedPath = path.join(directory, "evidence.txt");
+    await writeFile(
+      authorizedPath,
+      "The verified count is forty-two. EXECUTION_EVIDENCE_ONLY_7f2a"
+    );
+    const requests: RecordedRequest[] = [];
+    const replies = [
+      '{"disposition":"NEED_COGNITION","focus":"verify count"}',
+      'REQUEST_CAPABILITY\n{"capabilityRef":"capability://opaque/read-authorized-text","request":"Read the authorized count evidence."}',
+      ...(multiple
+        ? [
+            "CONTINUE",
+            'REQUEST_CAPABILITY\n{"capabilityRef":"capability://opaque/read-authorized-text","request":"Verify the same admitted evidence again."}'
+          ]
+        : []),
+      "COMPLETE\nThe evidence says forty-two.",
+      '{"disposition":"RESPOND"}',
+      "The count is forty-two."
+    ];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_input: unknown, init?: RequestInit) => {
+        const body = JSON.parse(String(init?.body)) as RecordedRequest;
+        requests.push(body);
+        return characterResponse(body, replies.shift()!);
+      })
+    );
+    // A9.2 real dispatch requires real committed ancestry and the durable host facility.
+    const databaseUrl = originalEnv["YUVI_EFFECT_TEST_DATABASE_URL"]!;
+    const schema = `a92_character_${crypto.randomUUID().replaceAll("-", "")}`;
+    const admin = createPostgresPool(databaseUrl);
+    await admin.query(`create schema "${schema}"`);
+    const pool = createPostgresPool(databaseUrl, { options: `-c search_path=${schema},public` });
+    for (const migration of await readSqlMigrations()) await pool.query(migration.sql);
+    const scoped = new URL(databaseUrl);
+    scoped.searchParams.set("options", `-c search_path=${schema},public`);
+    const env = {
+      ...productionTestEnv(),
+      DATABASE_URL: scoped.toString(),
+      YUVI_JOURNAL_NAMESPACE: schema
+    };
+    process.env = { ...env };
+    const app = await buildServer(loadServerConfig(env));
+    try {
+      const authorization = await app.inject({
+        method: "POST",
+        url: "/capabilities/read-text/authorize",
+        payload: { sessionId: "read-text", path: authorizedPath }
+      });
+      expect(authorization.statusCode, authorization.body).toBe(200);
+      const reply = await app.inject({
+        method: "POST",
+        url: "/message",
+        payload: {
+          sessionId: "read-text",
+          text: "Verify the count",
+          options: { readMemory: false, writeMemory: false }
+        }
+      });
+      expect(reply.statusCode, reply.body).toBe(200);
+      expect(reply.json().reply).toBe("The count is forty-two.");
+      const attempts = await pool.query(
+        "select a.attempt_id,a.dispatch_started_at,o.evidence from effect_attempts a join effect_observations o using(attempt_id)"
+      );
+      expect(attempts.rows).toHaveLength(multiple ? 2 : 1);
+      for (const row of attempts.rows) {
+        expect(row["dispatch_started_at"]).not.toBeNull();
+        expect(row["evidence"]["certainty"]).toBe("APPLIED");
       }
-    });
-    expect(reply.statusCode, reply.body).toBe(200);
-    expect(reply.json().reply).toBe("The count is forty-two.");
-    const attempts=await pool.query("select a.attempt_id,a.dispatch_started_at,o.evidence from effect_attempts a join effect_observations o using(attempt_id)");
-    expect(attempts.rows).toHaveLength(multiple ? 2 : 1);
-    for(const row of attempts.rows){expect(row["dispatch_started_at"]).not.toBeNull();expect(row["evidence"]["certainty"]).toBe("APPLIED");}
-    expect(JSON.stringify(attempts.rows)).not.toContain("EXECUTION_EVIDENCE_ONLY_7f2a");
-    expect(requests).toHaveLength(multiple ? 7 : 5);
-    expect(JSON.stringify(requests[2])).toContain("The verified count is forty-two.");
-    expect(JSON.stringify(requests[multiple ? 5 : 3])).toContain("COGNITION_RESULT");
-    expect(JSON.stringify(requests[multiple ? 5 : 3])).toContain("The evidence says forty-two.");
-    expect(JSON.stringify(requests)).not.toContain(authorizedPath);
+      expect(JSON.stringify(attempts.rows)).not.toContain("EXECUTION_EVIDENCE_ONLY_7f2a");
+      expect(requests).toHaveLength(multiple ? 7 : 5);
+      expect(JSON.stringify(requests[2])).toContain("The verified count is forty-two.");
+      expect(JSON.stringify(requests[multiple ? 5 : 3])).toContain("COGNITION_RESULT");
+      expect(JSON.stringify(requests[multiple ? 5 : 3])).toContain("The evidence says forty-two.");
+      expect(JSON.stringify(requests)).not.toContain(authorizedPath);
 
-    const characterContext = JSON.parse(
-      requests[0]!.messages![0]!.content.split("Semantic context:\n")[1]!.split("\n")[0]!
-    );
-    const cognitionShared = JSON.parse(requests[1]!.messages![0]!.content.split("\n")[1]!);
-    for (const kind of ["IDENTITY", "PERSONA", "RELATIONSHIP_CONTEXT", "MEMORY_EVIDENCE", "RECENT_CONVERSATION"]) {
-      const characterSection = characterContext.sections.find((section: { kind: string }) => section.kind === kind);
-      const cognitionSection = cognitionShared.find((section: { kind: string }) => section.kind === kind);
-      expect(cognitionSection).toMatchObject({ kind, state: characterSection.state });
-      expect(cognitionSection.summary).toBe(characterSection.summary);
-    }
+      const characterContext = JSON.parse(
+        requests[0]!.messages![0]!.content.split("Semantic context:\n")[1]!.split("\n")[0]!
+      );
+      const cognitionShared = JSON.parse(requests[1]!.messages![0]!.content.split("\n")[1]!);
+      for (const kind of [
+        "IDENTITY",
+        "PERSONA",
+        "RELATIONSHIP_CONTEXT",
+        "MEMORY_EVIDENCE",
+        "RECENT_CONVERSATION"
+      ]) {
+        const characterSection = characterContext.sections.find(
+          (section: { kind: string }) => section.kind === kind
+        );
+        const cognitionSection = cognitionShared.find(
+          (section: { kind: string }) => section.kind === kind
+        );
+        expect(cognitionSection).toMatchObject({ kind, state: characterSection.state });
+        expect(cognitionSection.summary).toBe(characterSection.summary);
+      }
 
-    // The real provider transport preserves adjacency, including repeated refs.
-    const continuation = requests[multiple ? 4 : 2]!.messages!;
-    const evidenceMessages = continuation.filter((message) =>
-      message.content.includes("EXECUTION_EVIDENCE_ONLY_7f2a")
-    );
-    expect(evidenceMessages).toHaveLength(multiple ? 2 : 1);
-    for (const observation of evidenceMessages) {
-      const index = continuation.indexOf(observation);
-      expect(continuation[index - 1]!.role).toBe("assistant");
-      expect(continuation[index - 1]!.content).toMatch(/^REQUEST_CAPABILITY\n/);
-      expect(observation.role).toBe("user");
-    }
-    expect(reply.body).not.toContain("EXECUTION_EVIDENCE_ONLY_7f2a");
-    const history = await app.inject("/v1/conversations/history?sessionId=read-text");
-    expect(
-      history
-        .json()
-        .messages.map((message: { role: string; content: string }) => ({
+      // The real provider transport preserves adjacency, including repeated refs.
+      const continuation = requests[multiple ? 4 : 2]!.messages!;
+      const evidenceMessages = continuation.filter((message) =>
+        message.content.includes("EXECUTION_EVIDENCE_ONLY_7f2a")
+      );
+      expect(evidenceMessages).toHaveLength(multiple ? 2 : 1);
+      for (const observation of evidenceMessages) {
+        const index = continuation.indexOf(observation);
+        expect(continuation[index - 1]!.role).toBe("assistant");
+        expect(continuation[index - 1]!.content).toMatch(/^REQUEST_CAPABILITY\n/);
+        expect(observation.role).toBe("user");
+      }
+      expect(reply.body).not.toContain("EXECUTION_EVIDENCE_ONLY_7f2a");
+      const history = await app.inject("/v1/conversations/history?sessionId=read-text");
+      expect(
+        history.json().messages.map((message: { role: string; content: string }) => ({
           role: message.role,
           content: message.content
         }))
-    ).toEqual([
-      { role: "user", content: "Verify the count" },
-      { role: "assistant", content: "The count is forty-two." }
-    ]);
-    expect((await app.inject("/memory/recent?limit=20")).json().memories).toEqual([]);
+      ).toEqual([
+        { role: "user", content: "Verify the count" },
+        { role: "assistant", content: "The count is forty-two." }
+      ]);
+      expect((await app.inject("/memory/recent?limit=20")).json().memories).toEqual([]);
 
-    // A later turn may receive the final conversation, never the ephemeral evidence.
-    const laterStart = requests.length;
-    replies.push('{"disposition":"RESPOND"}', "You are welcome.");
-    const later = await app.inject({
-      method: "POST",
-      url: "/message",
-      payload: {
-        sessionId: "read-text",
-        text: "Thank you",
-        options: { readMemory: true, writeMemory: false }
-      }
-    });
-    expect(later.statusCode, later.body).toBe(200);
-    const laterContext = JSON.stringify(requests.slice(laterStart));
-    expect(laterContext).toContain("The count is forty-two.");
-    expect(laterContext).not.toMatch(
-      /EXECUTION_EVIDENCE_ONLY_7f2a|Read the authorized count evidence|Verify the same admitted evidence again|The evidence says forty-two\.|Status: SUCCESS/
-    );
-  } finally {
-    await app.close();
-    await pool.end();
-    await admin.query(`drop schema "${schema}" cascade`);
-    await admin.end();
+      // A later turn may receive the final conversation, never the ephemeral evidence.
+      const laterStart = requests.length;
+      replies.push('{"disposition":"RESPOND"}', "You are welcome.");
+      const later = await app.inject({
+        method: "POST",
+        url: "/message",
+        payload: {
+          sessionId: "read-text",
+          text: "Thank you",
+          options: { readMemory: true, writeMemory: false }
+        }
+      });
+      expect(later.statusCode, later.body).toBe(200);
+      const laterContext = JSON.stringify(requests.slice(laterStart));
+      expect(laterContext).toContain("The count is forty-two.");
+      expect(laterContext).not.toMatch(
+        /EXECUTION_EVIDENCE_ONLY_7f2a|Read the authorized count evidence|Verify the same admitted evidence again|The evidence says forty-two\.|Status: SUCCESS/
+      );
+    } finally {
+      await app.close();
+      await pool.end();
+      await admin.query(`drop schema "${schema}" cascade`);
+      await admin.end();
+    }
   }
-});
+);
 
 it("binds a voice through the controller, restores it, and isolates resolved, mixed and conflicting speech turns", async () => {
   const records = new Map<string, Record<string, unknown>>();
@@ -714,7 +786,11 @@ it("binds a voice through the controller, restores it, and isolates resolved, mi
   writePrivateJson(productPath(), settings);
   let app = await buildServerWithAdmission(env);
   const bind = (personId: string) =>
-    app.inject({ method: "POST", url: "/voice-profiles/profile-a/person", payload: { personId, commandHandle: `bind-${personId}` } });
+    app.inject({
+      method: "POST",
+      url: "/voice-profiles/profile-a/person",
+      payload: { personId, commandHandle: `bind-${personId}` }
+    });
   const speak = (sessionId: string) =>
     app.inject({
       method: "POST",

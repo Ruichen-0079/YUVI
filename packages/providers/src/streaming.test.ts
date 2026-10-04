@@ -146,7 +146,13 @@ describe("provider-neutral chat streaming", () => {
 
   it("falls back before the first delta and exposes only the successful provider stream", async () => {
     const primary = createMockStreamingChatProvider("primary", {
-      failBeforeFirst: providerError("primary", ProviderErrorCode.RateLimited)
+      failBeforeFirst: new ProviderError({
+        provider: "primary",
+        capability: "chat",
+        code: ProviderErrorCode.ProviderUnavailable,
+        message: "provider unavailable before transport dispatch",
+        effectState: "not_started"
+      })
     });
     const backup = createMockStreamingChatProvider("backup", {
       chunks: ["backup ", "reply"],
@@ -166,7 +172,7 @@ describe("provider-neutral chat streaming", () => {
       expect(
         completed.output.attemptedProviders?.map((attempt) => [attempt.provider, attempt.status])
       ).toEqual([
-        ["primary", "failed"],
+        ["primary", "unavailable"],
         ["backup", "success"]
       ]);
     }

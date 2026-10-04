@@ -1,3 +1,4 @@
+import { providerFetch as fetch } from "../invocation-witness.js";
 import type { ProviderCallOptions, ProviderHealth } from "../types/common.js";
 import {
   ProviderError,
@@ -286,10 +287,7 @@ export class GPTSoVITSTTSProvider implements TTSProvider {
 
 type GPTSoVITSTransportKind = "wrapper" | "wrapper-fallback" | "api_v2";
 
-function validateFormat(
-  format: TTSInput["format"],
-  transport: GPTSoVITSTransportKind
-): void {
+function validateFormat(format: TTSInput["format"], transport: GPTSoVITSTransportKind): void {
   if (format === undefined || format === "wav") {
     return;
   }

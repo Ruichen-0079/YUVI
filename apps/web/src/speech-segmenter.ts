@@ -67,6 +67,7 @@ export class SpeechSegmenter {
   private readonly pipeline: (() => SpeechPipelineSnapshot | undefined) | null;
   private readonly onRelease: ((segment: string, reason: SpeechReleaseReason) => void) | null;
   private released = 0;
+  readonly sealedSegments: Array<{ text: string; preparedStart: number; preparedEnd: number }> = [];
 
   constructor(options: SpeechSegmenterOptions = {}) {
     this.minChars = options.minChars ?? 8;
@@ -76,6 +77,7 @@ export class SpeechSegmenter {
   }
 
   push(markdownDelta: string): string[] {
+    this.sealedSegments.length = 0;
     if (this.finished) return [];
     // Deltas are contiguous substrings, not words. Normalize the accumulated
     // Markdown so whitespace, split formatting, punctuation and UTF-16 pairs
@@ -86,6 +88,7 @@ export class SpeechSegmenter {
   }
 
   flush(reason: SpeechFlushReason): string[] {
+    this.sealedSegments.length = 0;
     if (this.finished) return [];
     this.finished = true;
     this.project(true);
@@ -137,7 +140,12 @@ export class SpeechSegmenter {
   }
 
   private drain(force: boolean): string[] {
-    const cuts: Array<{ segment: string; reason: SpeechReleaseReason }> = [];
+    const cuts: Array<{
+      segment: string;
+      reason: SpeechReleaseReason;
+      preparedStart: number;
+      preparedEnd: number;
+    }> = [];
     while (
       this.pending.length > 0 &&
       (this.pending.length >= this.minChars || force || hasNaturalBoundary(this.pending))
@@ -160,7 +168,12 @@ export class SpeechSegmenter {
       }
       const segment = this.pending.slice(0, end).trim();
       if (isSpeakableSpeechText(segment)) {
-        cuts.push({ segment, reason: releaseReason(kind) });
+        cuts.push({
+          segment,
+          reason: releaseReason(kind),
+          preparedStart: this.consumed,
+          preparedEnd: this.consumed + end
+        });
       }
       this.consumed += end;
       this.pending = this.pending.slice(end);
@@ -169,6 +182,11 @@ export class SpeechSegmenter {
     for (const cut of cuts) {
       const prepared = prepareSpeechSegment(cut.segment);
       if (!isSpeakableSpeechText(prepared)) continue;
+      this.sealedSegments.push({
+        text: prepared,
+        preparedStart: cut.preparedStart,
+        preparedEnd: cut.preparedEnd
+      });
       this.released += 1;
       this.onRelease?.(prepared, cut.reason);
       emitted.push(prepared);
@@ -177,7 +195,9 @@ export class SpeechSegmenter {
   }
 }
 
-function releaseReason(kind: BoundaryKind | "first" | "first-merged" | "final"): SpeechReleaseReason {
+function releaseReason(
+  kind: BoundaryKind | "first" | "first-merged" | "final"
+): SpeechReleaseReason {
   switch (kind) {
     case "first":
       return "FIRST_STRONG";
@@ -313,7 +333,11 @@ function isEnglishSentenceEnd(value: string, index: number): boolean {
 }
 
 /** A terminal punctuation run belongs to its sentence, even across deltas. */
-function strongBoundary(value: string, index: number, force: boolean): { index: number; kind: "strong" } {
+function strongBoundary(
+  value: string,
+  index: number,
+  force: boolean
+): { index: number; kind: "strong" } {
   let end = index;
   while (end < value.length && /[\p{P}\p{Z}\s]/u.test(value[end] ?? "")) end += 1;
   // One textual lookahead (or final flush), never a timer. Otherwise a late

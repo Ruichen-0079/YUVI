@@ -13,6 +13,8 @@ import {
   EffectObservationV1Schema,
   EffectObservationV2Schema,
   type EffectObservation,
+  EffectProgressFactSchema,
+  type EffectProgressFact,
   effectAttemptId,
   protocolEvidence,
   retryPermitted,
@@ -43,6 +45,12 @@ export interface EffectDispatchStore {
   cancel(id: string): Promise<boolean>;
   diagnostic(id: string): Promise<EffectDiagnostic | null>;
   observations(id: string): Promise<EffectObservation[]>;
+  renew?(attempt: EffectAttemptV1, leaseMs: number): Promise<boolean>;
+  progress?(
+    attempt: EffectAttemptV1,
+    fact: EffectProgressFact,
+    report?: { reference: string; generation: string }
+  ): Promise<"RECORDED" | "REPLAY" | "STALE" | "CONFLICT">;
 }
 function attempt(row: Record<string, unknown>): EffectAttemptV1 {
   const a = EffectAttemptV1Schema.parse({
@@ -103,7 +111,7 @@ export class PostgresEffectDispatchStore implements EffectDispatchStore {
   private async evidence(c: PoolClient, id: string): Promise<EffectEvidence | null> {
     const r = await c.query(
       `select o.*,a.contract_ref,a.adapter from effect_observations o
-       join effect_attempts a using(attempt_id) where o.attempt_id=$1 order by o.observation_id desc limit 1`,
+       join effect_attempts a using(attempt_id) where o.attempt_id=$1 and o.category='TERMINAL' order by o.observation_id desc limit 1`,
       [id]
     );
     if (!r.rows[0]) return null;
@@ -120,9 +128,10 @@ export class PostgresEffectDispatchStore implements EffectDispatchStore {
       evidence: row["evidence"],
       evidenceDigest: row["evidence_digest"]
     };
-    const observation = version === "effect-observation.v2"
-      ? EffectObservationV2Schema.parse(base)
-      : EffectObservationV1Schema.parse(base);
+    const observation =
+      version === "effect-observation.v2"
+        ? EffectObservationV2Schema.parse(base)
+        : EffectObservationV1Schema.parse(base);
     if (effectDigest(observation.evidence) !== row["evidence_digest"])
       throw new EffectIntentError("INTEGRITY_FAILURE", "Invalid outcome digest.");
     return observation.evidence;
@@ -135,7 +144,9 @@ export class PostgresEffectDispatchStore implements EffectDispatchStore {
         a.fence,
         canonicalEffectJson(e),
         effectDigest(e),
-        a.contractRef === "yuvi.native-control.v1" ? "effect-observation.v2" : "effect-observation.v1"
+        a.contractRef === "yuvi.native-control.v1"
+          ? "effect-observation.v2"
+          : "effect-observation.v1"
       ]
     );
   }
@@ -152,10 +163,10 @@ export class PostgresEffectDispatchStore implements EffectDispatchStore {
     const r = await this.pool.query(
       `select i.intent_id from effect_intents i
       left join lateral (select * from effect_attempts a where a.intent_id=i.intent_id order by ordinal desc limit 1) a on true
-      left join lateral (select evidence from effect_observations o where o.attempt_id=a.attempt_id order by observation_id desc limit 1) o on true
+      left join lateral (select evidence from effect_observations o where o.attempt_id=a.attempt_id and o.category='TERMINAL' order by observation_id desc limit 1) o on true
       where i.state='ADMITTED' and i.pre_dispatch_reason is null and i.contract_ref=any($2::text[]) and (i.work_state='PENDING' or (i.work_state='CLAIMED' and not a.integrity_conflict and a.lease_expires_at<=clock_timestamp()
       and (o.evidence is null or o.evidence->>'certainty'='UNKNOWN' and o.evidence->>'reason'<>'RECONCILIATION_UNSUPPORTED'
-      or o.evidence->>'certainty'='PROVEN_NOT_APPLIED' and o.evidence->>'reason' in ('UNSTARTED_RECOVERY','RECONCILED_NOT_APPLIED'))))
+      or o.evidence->>'certainty'='PROVEN_NOT_APPLIED' and o.evidence->>'reason' in ('UNSTARTED_RECOVERY','RECONCILED_NOT_APPLIED','HOST_CERTIFIED_NOT_STARTED'))))
       order by i.created_at,i.intent_id limit $1`,
       [limit, contracts]
     );
@@ -301,6 +312,72 @@ export class PostgresEffectDispatchStore implements EffectDispatchStore {
       }
     );
   }
+  async renew(a: EffectAttemptV1, leaseMs: number) {
+    if (!Number.isSafeInteger(leaseMs) || leaseMs < 1 || leaseMs > 300_000)
+      throw new EffectIntentError("INVALID_REQUEST", "Invalid renewal lease.");
+    const result = await this.pool.query(
+      `update effect_attempts a
+      set lease_expires_at=clock_timestamp()+($5::int*interval '1 millisecond')
+      where attempt_id=$1 and fence=$2 and lease_owner=$3 and adapter=$4
+      and not integrity_conflict and lease_expires_at>clock_timestamp()
+      and not exists(select 1 from effect_observations o where o.attempt_id=a.attempt_id and o.category='TERMINAL')`,
+      [a.attemptId, a.fence, a.leaseOwner, a.adapter, leaseMs]
+    );
+    return result.rowCount === 1;
+  }
+  async progress(
+    a: EffectAttemptV1,
+    raw: EffectProgressFact,
+    report?: { reference: string; generation: string }
+  ) {
+    const fact = EffectProgressFactSchema.parse(raw);
+    return this.tx(async (c) => {
+      await c.query("select intent_id from effect_intents where intent_id=$1 for update", [
+        a.intentId
+      ]);
+      const last = await this.latest(c, a.intentId);
+      if (
+        !last ||
+        last.a.attemptId !== a.attemptId ||
+        last.a.fence !== a.fence ||
+        last.a.leaseOwner !== a.leaseOwner ||
+        last.a.adapter !== a.adapter ||
+        last.a.contractRef !== a.contractRef ||
+        !last.a.dispatchStartedAt ||
+        last.a.integrityConflict
+      )
+        return "STALE" as const;
+      const prior = await c.query(
+        "select evidence_digest from effect_observations where attempt_id=$1 and category='PROGRESS' and fact_key=$2",
+        [a.attemptId, fact.factKey]
+      );
+      const digest = effectDigest(fact);
+      if (prior.rows[0]) {
+        if (prior.rows[0]["evidence_digest"] === digest) return "REPLAY" as const;
+        await c.query("update effect_attempts set integrity_conflict=true where attempt_id=$1", [
+          a.attemptId
+        ]);
+        return "CONFLICT" as const;
+      }
+      // Ordinary active-worker facts require a live lease. Asynchronous device reports
+      // must first acquire a current reconciliation fence through the host report owner.
+      if (report) {
+        const capability = await c.query(
+          `select evidence from effect_observations where attempt_id=$1 and category='PROGRESS'
+          and evidence->>'kind'='PERMISSION_ISSUED' and evidence->>'reference'=$2 and evidence->>'generation'=$3`,
+          [a.attemptId, report.reference, report.generation]
+        );
+        if (!capability.rows.length || fact.generation !== report.generation)
+          return "STALE" as const;
+      } else if (!last.live) return "STALE" as const;
+      await c.query(
+        `insert into effect_observations(attempt_id,fence,evidence,evidence_digest,observation_version,category,fact_key)
+        values($1,$2,$3::jsonb,$4,'effect-observation.v2','PROGRESS',$5)`,
+        [a.attemptId, a.fence, canonicalEffectJson(fact), digest, fact.factKey]
+      );
+      return "RECORDED" as const;
+    });
+  }
   async record(a: EffectAttemptV1, raw: EffectEvidence) {
     const e = EffectEvidenceSchema.parse(JSON.parse(canonicalEffectJson(raw)));
     if (
@@ -317,9 +394,15 @@ export class PostgresEffectDispatchStore implements EffectDispatchStore {
       e.layer.startsWith("NATIVE_OWNER_") &&
       !e.nativeOwnerCommit
     )
-      throw new EffectIntentError("INTEGRITY_FAILURE", "Native-owner APPLIED evidence requires its exact owner revision.");
+      throw new EffectIntentError(
+        "INTEGRITY_FAILURE",
+        "Native-owner APPLIED evidence requires its exact owner revision."
+      );
     if (e.nativeOwnerCommit && a.contractRef !== "yuvi.native-control.v1")
-      throw new EffectIntentError("INTEGRITY_FAILURE", "Native-owner evidence belongs only to native-control.");
+      throw new EffectIntentError(
+        "INTEGRITY_FAILURE",
+        "Native-owner evidence belongs only to native-control."
+      );
     return this.tx(async (c) => {
       await c.query("select intent_id from effect_intents where intent_id=$1 for update", [
         a.intentId
@@ -377,7 +460,7 @@ export class PostgresEffectDispatchStore implements EffectDispatchStore {
   async observations(id: string): Promise<EffectObservation[]> {
     const r = await this.pool.query(
       `select o.*,a.contract_ref,a.adapter from effect_observations o
-      join effect_attempts a using(attempt_id) where a.intent_id=$1 order by o.observation_id limit 1000`,
+      join effect_attempts a using(attempt_id) where a.intent_id=$1 and o.category='TERMINAL' order by o.observation_id limit 1000`,
       [id]
     );
     return r.rows.map((row) => {
@@ -393,9 +476,10 @@ export class PostgresEffectDispatchStore implements EffectDispatchStore {
         evidence: row["evidence"],
         evidenceDigest: row["evidence_digest"]
       };
-      const v = version === "effect-observation.v2"
-        ? EffectObservationV2Schema.parse(value)
-        : EffectObservationV1Schema.parse(value);
+      const v =
+        version === "effect-observation.v2"
+          ? EffectObservationV2Schema.parse(value)
+          : EffectObservationV1Schema.parse(value);
       if (v.evidenceDigest !== effectDigest(v.evidence))
         throw new EffectIntentError("INTEGRITY_FAILURE", "Invalid observation digest.");
       return v;
@@ -410,6 +494,7 @@ export class PostgresEffectDispatchStore implements EffectDispatchStore {
         e = l ? await this.evidence(c, l.a.attemptId) : null;
       return {
         intentId: id,
+        contractRef: i.contractRef,
         admission: i.decision,
         intentState: i.state,
         certainty: l?.a.integrityConflict

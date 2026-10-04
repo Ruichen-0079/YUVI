@@ -8,6 +8,36 @@ import {
 
 /** Static host contracts, not model/plugin-supplied delivery guarantees. */
 export const EFFECT_CONTRACTS = Object.freeze({
+  "yuvi.provider.v1": Object.freeze({
+    owner: "PROVIDER_TASK",
+    version: "v1",
+    permission: "HOST_PROVIDER_INVOCATION",
+    workOwner: "A9_OUTBOX",
+    cancelBeforeClaim: true,
+    expiry: "OWNER_REQUIRED",
+    logicalKeyPolicy: "OWNER_STABLE_KEY",
+    semanticPayloadPolicy: "PROVIDER_DESCRIPTOR_V1"
+  }),
+  "yuvi.publication.v1": Object.freeze({
+    owner: "TARGET_PUBLICATION",
+    version: "v1",
+    permission: "HOST_TARGET_PUBLICATION",
+    workOwner: "A9_OUTBOX",
+    cancelBeforeClaim: true,
+    expiry: "OWNER_REQUIRED",
+    logicalKeyPolicy: "OWNER_STABLE_KEY",
+    semanticPayloadPolicy: "PUBLICATION_DESCRIPTOR_V1"
+  }),
+  "yuvi.playback.v1": Object.freeze({
+    owner: "CLIENT_PLAYBACK",
+    version: "v1",
+    permission: "HOST_PLAYBACK_PERMISSION",
+    workOwner: "A9_OUTBOX",
+    cancelBeforeClaim: true,
+    expiry: "OWNER_REQUIRED",
+    logicalKeyPolicy: "OWNER_STABLE_KEY",
+    semanticPayloadPolicy: "PLAYBACK_DESCRIPTOR_V1"
+  }),
   "yuvi.embodied-presentation.v1": Object.freeze({
     owner: "RUNTIME_PRESENTATION",
     version: "v1",
@@ -79,7 +109,10 @@ export const EffectIntentRequestSchema = z
     contractRef: z.enum([
       "yuvi.embodied-presentation.v1",
       "yuvi.read-text.v1",
-      "yuvi.native-control.v1"
+      "yuvi.native-control.v1",
+      "yuvi.provider.v1",
+      "yuvi.publication.v1",
+      "yuvi.playback.v1"
     ]),
     logicalKey: token,
     scope: token,
@@ -213,14 +246,41 @@ export function freezeEffectRequest(raw: unknown): EffectIntentRequest {
     );
   if (!Object.hasOwn(parsed.data, "payload"))
     throw new EffectIntentError("INVALID_REQUEST", "Effect payload is required.");
-const payload =
-    parsed.data.contractRef === "yuvi.embodied-presentation.v1"
+  const descriptor = z
+    .object({
+      version: z.literal("outward-work-descriptor.v1"),
+      operation: token,
+      inputSnapshot: z
+        .object({
+          version: z.literal("a9-input-snapshot.v1"),
+          digest: z.string().regex(/^[a-f0-9]{64}$/),
+          availability: z.enum(["TRANSIENT", "RETAINED_REFERENCE"]),
+          reference: token.nullable(),
+          manifest: z.literal("A10_3_NOT_IMPLEMENTED")
+        })
+        .strict(),
+      configurationRef: token,
+      relatedReply: token.nullable(),
+      target: z.object({ surface: token, recipient: token, generation: token }).strict().nullable(),
+      routingPlan: z.array(z.object({ provider: token, model: token.nullable() }).strict()).max(32)
+    })
+    .strict();
+  const payload = ["yuvi.provider.v1", "yuvi.publication.v1", "yuvi.playback.v1"].includes(
+    parsed.data.contractRef
+  )
+    ? descriptor.safeParse(parsed.data.payload)
+    : parsed.data.contractRef === "yuvi.embodied-presentation.v1"
       ? CorrelatedEmbodiedBehaviorSchema.safeParse(parsed.data.payload)
       : parsed.data.contractRef === "yuvi.native-control.v1"
         ? z
             .object({
               version: z.literal("native-control-command.v1"),
-              family: z.enum(["PRODUCT_PERSON", "VOICE_BINDING", "ACOUSTIC_PROFILE", "P8_CORRECTION"]),
+              family: z.enum([
+                "PRODUCT_PERSON",
+                "VOICE_BINDING",
+                "ACOUSTIC_PROFILE",
+                "P8_CORRECTION"
+              ]),
               commandHandle: token,
               payloadRef: token,
               payloadDigest: z.string().regex(/^[a-f0-9]{64}$/),
@@ -229,10 +289,10 @@ const payload =
             })
             .strict()
             .safeParse(parsed.data.payload)
-      : z
-          .object({ path: z.string().min(1).max(4096) })
-          .strict()
-          .safeParse(parsed.data.payload);
+        : z
+            .object({ path: z.string().min(1).max(4096) })
+            .strict()
+            .safeParse(parsed.data.payload);
   if (!payload.success)
     throw new EffectIntentError(
       "INVALID_REQUEST",

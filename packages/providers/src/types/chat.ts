@@ -36,6 +36,7 @@ export type ChatStreamEvent =
   | {
       type: "text-delta";
       text: string;
+      sourceAttemptId?: string | undefined;
     }
   | {
       type: "completed";

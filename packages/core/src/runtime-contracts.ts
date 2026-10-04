@@ -29,6 +29,7 @@ import type {
   MemoryRetrievalStatus,
   RecentEpisodeStore,
   DreamJobStore,
+  ReplyPublicationTarget,
   RetrievedMemoryDebug
 } from "@companion/memory";
 import type { PromptBuildInput, PromptBuildOutput } from "@companion/prompt-builder";
@@ -90,6 +91,15 @@ export type RuntimeOrchestratorOptions = {
   outputLanguage?: CharacterOutputLanguage | undefined;
   /** Optional production Character -> Runtime -> Presentation composition. */
   embodiedPresentation?: RuntimeEmbodiedPresentationPort | undefined;
+  prepareProviderCause?: (
+    operation: string,
+    scope: string
+  ) => Promise<import("@companion/protocol").JournalEventRef>;
+  synthesizeWholeSpeech?: (
+    reply: RuntimeEventLikeAssistantReply,
+    input: import("@companion/providers").TTSInput,
+    signal?: AbortSignal
+  ) => Promise<import("@companion/providers").TTSOutput>;
   /** Wall-clock source for suppression expiry and eligible_after. Tests inject a fake. */
   now?: (() => number) | undefined;
   /** Legacy direct consent for non-projection Runtime callers; production uses the projection gate. */
@@ -125,7 +135,9 @@ export type RuntimeCharacterCognitionExecutor = (
     canonicalContext?: CanonicalContext | undefined;
     signal?: AbortSignal | undefined;
     runtimeAuthorizedPath?: string | undefined;
-    effectContext?: { scope:string; cause: import("@companion/protocol").JournalEventRef } | undefined;
+    effectContext?:
+      | { scope: string; cause: import("@companion/protocol").JournalEventRef }
+      | undefined;
   }>
 ) => Promise<unknown>;
 
@@ -216,6 +228,10 @@ export type RuntimeCharacterPort = Readonly<{
 }>;
 
 export type RuntimeEmbodiedPresentationPort = Readonly<{
+  dispatchCanonical?(
+    decision: RuntimeEmbodiedEffectRecordInitializationDecision,
+    reply: RuntimeEvent
+  ): Promise<void>;
   propose(
     reply: RuntimeEventLikeAssistantReply,
     presentation?: import("@companion/character-abi").CharacterPresentationIntent | null
@@ -363,6 +379,8 @@ export type RuntimeImageAttachment = Readonly<{
 }>;
 
 export type HandleUserMessageOptions = {
+  speechPlan?: "NONE" | "CLIENT_SEGMENTED" | "SERVER_WHOLE" | undefined;
+  speechRequestId?: string | undefined;
   voiceOutput?: boolean | undefined;
   useMemory?: boolean | undefined;
   readMemory?: boolean | undefined;
@@ -378,6 +396,7 @@ export type HandleUserMessageOptions = {
 };
 
 export type AssistantInitiatedTurnInput = {
+  sourceJournalRef?: import("@companion/protocol").JournalEventRef | undefined;
   sessionId: string;
   idempotencyKey: string;
   readMemory: boolean;
@@ -386,8 +405,11 @@ export type AssistantInitiatedTurnInput = {
 };
 
 export type AssistantInitiatedTurnOptions = {
+  speechPlan?: "NONE" | "CLIENT_SEGMENTED" | "SERVER_WHOLE" | undefined;
+  speechRequestId?: string | undefined;
   signal?: AbortSignal | undefined;
   promptPreview?: boolean | undefined;
+  replyPublicationTargets?: readonly ReplyPublicationTarget[] | undefined;
 };
 
 export type ProactiveShouldSpeak = "NO_OP" | "REQUEST_TEXT";
@@ -408,6 +430,9 @@ export type RuntimeReplyStreamEvent =
       language?: string;
       text: string;
       messageId: string;
+      replyId?: string | undefined;
+      componentId?: string | undefined;
+      sequence?: string | undefined;
       sessionId: string;
       traceId: string;
     }
@@ -415,6 +440,8 @@ export type RuntimeReplyStreamEvent =
       type: "completed";
       language?: string;
       messageId: string;
+      replyId?: string | undefined;
+      lastSequence?: string | undefined;
       sessionId: string;
       traceId: string;
       content: string;
@@ -423,6 +450,7 @@ export type RuntimeReplyStreamEvent =
 
 export type StreamUserMessageOptions = HandleUserMessageOptions & {
   signal?: AbortSignal | undefined;
+  replyPublicationTargets?: readonly ReplyPublicationTarget[] | undefined;
 };
 
 export type RuntimePromptPreview = {
@@ -598,6 +626,7 @@ export type RuntimeMemoryCandidateAcceptResult =
     };
 
 export type SafeProviderCallMetadata = {
+  sourceAttemptId?: string | undefined;
   name: string;
   capability: ProviderCapability;
   model?: string | undefined;

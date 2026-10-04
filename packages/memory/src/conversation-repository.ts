@@ -1,4 +1,5 @@
-import type { Pool, QueryResultRow } from "pg";
+import type { Pool, PoolClient, QueryResultRow } from "pg";
+import { createHash } from "node:crypto";
 import { createPostgresPool } from "@companion/database";
 import { JournalEventRefSchema, type JournalEventRef } from "@companion/protocol";
 import { parseMemoryRepositoryEnv, type MemoryRepositoryKind } from "./env.js";
@@ -75,6 +76,41 @@ export type ConversationListOptions = {
   maxCharacters?: number | undefined;
 };
 
+export type ConversationReplyComponentInput = Readonly<{
+  replyId: string;
+  messageId: string;
+  sequence: string;
+  text: string;
+  projectionVersion: string;
+  sourceAttemptId?: string | undefined;
+  publicationTargets?: readonly ReplyPublicationTarget[] | undefined;
+}>;
+
+export type ReplyPublicationTarget = Readonly<{
+  surface: "HTTP_SSE" | "HTTP" | "WEBSOCKET" | "EVENTBUS_CLIENT" | "SUBTITLE";
+  targetId: string;
+  targetGeneration: string;
+}>;
+
+/** Host admission joins the existing component/projection transaction. It owns no domain history. */
+export type ReplyPublicationAdmission = (
+  input: {
+    replyId: string;
+    componentId: string;
+    sequence: string;
+    textDigest: string;
+    message: ConversationMessage;
+    targets: readonly ReplyPublicationTarget[];
+  },
+  client?: PoolClient
+) => Promise<void | (() => void)>;
+
+export type ConversationReplyComponentResult = Readonly<{
+  message: ConversationMessage;
+  componentId: string;
+  inserted: boolean;
+}>;
+
 export interface ConversationRepository {
   readonly kind: ConversationRepositoryKind;
   getDatabaseClient?(): ConversationDatabaseClient;
@@ -83,6 +119,10 @@ export interface ConversationRepository {
   ensureSession(sessionId: string): Promise<void>;
   appendMessage(message: ConversationMessageInput): Promise<ConversationMessage>;
   appendMessageContent(messageId: string, delta: string): Promise<ConversationMessage>;
+  appendReplyComponent?(
+    input: ConversationReplyComponentInput
+  ): Promise<ConversationReplyComponentResult>;
+  setPublicationAdmission?(admit: ReplyPublicationAdmission): void;
   completeMessage(
     messageId: string,
     metadata?: Record<string, unknown>,
@@ -106,12 +146,20 @@ export interface ConversationRepository {
 export type ConversationDatabaseClient = {
   query(text: string, values?: unknown[]): Promise<{ rows: QueryResultRow[] }>;
   end(): Promise<void>;
+  connect?(): Promise<{
+    query(text: string, values?: unknown[]): Promise<{ rows: QueryResultRow[] }>;
+    release(): void;
+  }>;
 };
 
 export class PostgresConversationRepository implements ConversationRepository {
   readonly kind = "postgres";
   private readonly pool: ConversationDatabaseClient;
   private readonly ownsPool: boolean;
+  private publicationAdmission: ReplyPublicationAdmission | undefined;
+  setPublicationAdmission(admit: ReplyPublicationAdmission) {
+    this.publicationAdmission = admit;
+  }
 
   constructor(connectionString: string | ConversationDatabaseClient) {
     this.ownsPool = typeof connectionString === "string";
@@ -213,6 +261,117 @@ export class PostgresConversationRepository implements ConversationRepository {
     throw new Error(
       `Conversation message '${messageId}' cannot append content in status '${existing.status}'.`
     );
+  }
+
+  /**
+   * Commit one immutable Runtime text component and its conversation projection
+   * in one PostgreSQL transaction. A replay is returned as inserted=false and
+   * must never be yielded as fresh output by the Runtime.
+   */
+  async appendReplyComponent(
+    input: ConversationReplyComponentInput
+  ): Promise<ConversationReplyComponentResult> {
+    validateReplyComponent(input);
+    if (!this.pool.connect) {
+      throw new Error("Reply component persistence requires a transactional PostgreSQL pool.");
+    }
+    const client = await this.pool.connect();
+    const digest = sha256(input.text);
+    const componentId = replyComponentId(input.replyId, input.sequence, digest);
+    try {
+      await client.query("begin");
+      const locked = await client.query(
+        "select * from conversation_messages where id=$1 for update",
+        [input.messageId]
+      );
+      if (!locked.rows[0])
+        throw new Error(`Conversation message '${input.messageId}' was not found.`);
+      const message = mapConversationMessageRow(locked.rows[0]);
+
+      const existing = await client.query(
+        `select * from conversation_reply_components
+         where reply_id=$1 and sequence=$2::bigint`,
+        [input.replyId, input.sequence]
+      );
+      if (existing.rows[0]) {
+        const row = existing.rows[0];
+        if (
+          row["component_id"] !== componentId ||
+          row["message_id"] !== input.messageId ||
+          row["text_digest"] !== digest ||
+          row["text_content"] !== input.text ||
+          row["projection_version"] !== input.projectionVersion ||
+          (row["source_attempt_id"] ?? null) !== (input.sourceAttemptId ?? null)
+        ) {
+          throw new Error("Reply component sequence conflicts with durable content.");
+        }
+        await client.query("commit");
+        return { message, componentId, inserted: false };
+      }
+
+      if (message.role !== "assistant" || message.status !== "streaming") {
+        throw new Error("Reply components require a streaming assistant message.");
+      }
+      const last = await client.query(
+        `select sequence from conversation_reply_components
+         where reply_id=$1 order by sequence desc limit 1`,
+        [input.replyId]
+      );
+      const expected = last.rows[0] ? BigInt(String(last.rows[0]["sequence"])) + 1n : 1n;
+      if (BigInt(input.sequence) !== expected) {
+        throw new Error("Reply component sequence is not the next monotonic sequence.");
+      }
+
+      const inserted = await client.query(
+        `insert into conversation_reply_components
+          (component_id, reply_id, message_id, sequence, text_content, text_digest, projection_version,source_attempt_id)
+         values ($1,$2,$3,$4::bigint,$5,$6,$7,$8)
+         on conflict do nothing returning component_id`,
+        [
+          componentId,
+          input.replyId,
+          input.messageId,
+          input.sequence,
+          input.text,
+          digest,
+          input.projectionVersion,
+          input.sourceAttemptId ?? null
+        ]
+      );
+      if (!inserted.rows.length) {
+        throw new Error("Reply component identity conflicts with an existing sequence.");
+      }
+      const afterCommit = this.publicationAdmission
+        ? await this.publicationAdmission(
+            {
+              replyId: input.replyId,
+              componentId,
+              sequence: input.sequence,
+              textDigest: digest,
+              message,
+              targets: input.publicationTargets ?? []
+            },
+            client as PoolClient
+          )
+        : undefined;
+      if (!this.publicationAdmission && input.publicationTargets?.length)
+        throw Error("Canonical publication admission is unavailable.");
+      const projected = await client.query(
+        `update conversation_messages set content=content || $2
+         where id=$1 and status='streaming' returning *`,
+        [input.messageId, input.text]
+      );
+      if (!projected.rows[0])
+        throw new Error("Conversation projection could not accept the component.");
+      await client.query("commit");
+      afterCommit?.();
+      return { message: mapConversationMessageRow(projected.rows[0]), componentId, inserted: true };
+    } catch (error) {
+      await client.query("rollback").catch(() => undefined);
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async completeMessage(
@@ -387,6 +546,24 @@ export class InMemoryConversationRepository implements ConversationRepository {
   readonly kind = "in-memory";
   private readonly sessions = new Map<string, { createdAt: string; updatedAt: string }>();
   private readonly messages = new Map<string, ConversationMessage[]>();
+  private readonly replyComponents = new Map<
+    string,
+    Map<
+      string,
+      {
+        componentId: string;
+        messageId: string;
+        text: string;
+        digest: string;
+        projectionVersion: string;
+        sourceAttemptId: string | undefined;
+      }
+    >
+  >();
+  private publicationAdmission: ReplyPublicationAdmission | undefined;
+  setPublicationAdmission(admit: ReplyPublicationAdmission) {
+    this.publicationAdmission = admit;
+  }
 
   async healthCheck(): Promise<{ status: "healthy"; message: string }> {
     return { status: "healthy", message: "Using in-memory conversation repository." };
@@ -445,6 +622,64 @@ export class InMemoryConversationRepository implements ConversationRepository {
     }
     message.content += delta;
     return cloneConversationMessage(message);
+  }
+
+  async appendReplyComponent(
+    input: ConversationReplyComponentInput
+  ): Promise<ConversationReplyComponentResult> {
+    validateReplyComponent(input);
+    const message = this.findMessage(input.messageId);
+    if (!message) throw new Error(`Conversation message '${input.messageId}' was not found.`);
+    const components = this.replyComponents.get(input.replyId) ?? new Map();
+    const digest = sha256(input.text);
+    const componentId = replyComponentId(input.replyId, input.sequence, digest);
+    const existing = components.get(input.sequence);
+    if (existing) {
+      if (
+        existing.componentId !== componentId ||
+        existing.messageId !== input.messageId ||
+        existing.digest !== digest ||
+        existing.text !== input.text ||
+        existing.projectionVersion !== input.projectionVersion ||
+        (existing.sourceAttemptId ?? null) !== (input.sourceAttemptId ?? null)
+      ) {
+        throw new Error("Reply component sequence conflicts with durable content.");
+      }
+      return { message: cloneConversationMessage(message), componentId, inserted: false };
+    }
+    if (message.role !== "assistant" || message.status !== "streaming") {
+      throw new Error("Reply components require a streaming assistant message.");
+    }
+    const expected = components.size
+      ? BigInt([...components.keys()].sort(compareDecimal).at(-1)!) + 1n
+      : 1n;
+    if (BigInt(input.sequence) !== expected) {
+      throw new Error("Reply component sequence is not the next monotonic sequence.");
+    }
+    const afterCommit = this.publicationAdmission
+      ? await this.publicationAdmission({
+          replyId: input.replyId,
+          componentId,
+          sequence: input.sequence,
+          textDigest: digest,
+          message: cloneConversationMessage(message),
+          targets: input.publicationTargets ?? []
+        })
+      : undefined;
+    if (!this.publicationAdmission && input.publicationTargets?.length)
+      throw Error("Canonical publication admission is unavailable.");
+    components.set(input.sequence, {
+      componentId,
+      messageId: input.messageId,
+      text: input.text,
+      digest,
+      projectionVersion: input.projectionVersion,
+      sourceAttemptId: input.sourceAttemptId
+    });
+    this.replyComponents.set(input.replyId, components);
+    afterCommit?.();
+    message.content += input.text;
+    return { message: cloneConversationMessage(message), componentId, inserted: true };
   }
 
   async completeMessage(
@@ -561,6 +796,47 @@ export class InMemoryConversationRepository implements ConversationRepository {
 
     return recovered;
   }
+}
+
+function validateReplyComponent(input: ConversationReplyComponentInput): void {
+  if (
+    !input.replyId ||
+    input.replyId.length > 512 ||
+    !input.messageId ||
+    input.messageId.length > 512
+  ) {
+    throw new Error("Reply component identity is invalid.");
+  }
+  if (!/^[1-9][0-9]*$/.test(input.sequence) || BigInt(input.sequence) > 9223372036854775807n) {
+    throw new Error("Reply component sequence must be a positive decimal bigint.");
+  }
+  if (!input.text || !input.projectionVersion || input.projectionVersion.length > 128) {
+    throw new Error("Reply component text and projection version are required.");
+  }
+  for (const target of input.publicationTargets ?? []) {
+    if (
+      !["HTTP_SSE", "HTTP", "WEBSOCKET", "EVENTBUS_CLIENT", "SUBTITLE"].includes(target.surface) ||
+      !target.targetId ||
+      target.targetId.length > 512 ||
+      !target.targetGeneration ||
+      target.targetGeneration.length > 256
+    )
+      throw new Error("Reply publication target identity is invalid.");
+  }
+}
+
+function sha256(value: string): string {
+  return createHash("sha256").update(value, "utf8").digest("hex");
+}
+
+function replyComponentId(replyId: string, sequence: string, digest: string): string {
+  return `rc1_${sha256(`${replyId}\0${sequence}\0${digest}`)}`;
+}
+
+function compareDecimal(left: string, right: string): number {
+  const a = BigInt(left);
+  const b = BigInt(right);
+  return a < b ? -1 : a > b ? 1 : 0;
 }
 
 export function createConversationRepositoryFromEnv(
@@ -685,7 +961,9 @@ function assertUserJournalAncestry(
   sourceJournalRef: JournalEventRef | null
 ): void {
   if (role !== "user" && sourceJournalRef) {
-    throw new Error("Journal receipt ancestry may only be attached to a user conversation message.");
+    throw new Error(
+      "Journal receipt ancestry may only be attached to a user conversation message."
+    );
   }
 }
 

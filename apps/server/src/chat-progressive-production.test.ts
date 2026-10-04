@@ -1,3 +1,6 @@
+vi.mock("./outward-effects.js", () => import("./test-support/offline-outward-effects.js"));
+vi.mock("./media-effects.js", () => import("./test-support/offline-media-effects.js"));
+vi.mock("./presentation-effects.js", () => import("./test-support/offline-media-effects.js"));
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";

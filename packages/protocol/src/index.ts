@@ -184,3 +184,6 @@ export function createEvent<TType extends EventType, TPayload>(
     payload
   };
 }
+export * from "./speech-text.js";
+export * from "./media-effects.js";
+export * from "./presentation-permission.js";

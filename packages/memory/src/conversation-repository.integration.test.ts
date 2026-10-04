@@ -42,7 +42,24 @@ describe.skipIf(!databaseUrl)("PostgreSQL conversation Journal ancestry", () => 
     expect(ancestryMigration).toBeDefined();
     await pool.query(ancestryMigration!.sql);
     await pool.query(ancestryMigration!.sql);
+    const replyComponentsMigration = migrations.find(
+      (candidate) => candidate.name === "023_reply_components_v1.sql"
+    );
+    expect(replyComponentsMigration).toBeDefined();
+    for (const name of [
+      "013_life_event_journal_v1.sql",
+      "020_effect_intents_v1.sql",
+      "021_effect_attempts_v1.sql",
+      "022_native_control_effects_v1.sql"
+    ]) {
+      await pool.query(migrations.find((m) => m.name === name)!.sql);
+    }
+    await pool.query(replyComponentsMigration!.sql);
     repository = new PostgresConversationRepository(pool);
+    repository.setPublicationAdmission(async (_input, client) => {
+      if (!client) throw Error("Missing shared transaction");
+      await client.query("select 1");
+    });
   });
 
   afterAll(async () => {
@@ -124,5 +141,131 @@ describe.skipIf(!databaseUrl)("PostgreSQL conversation Journal ancestry", () => 
       metadata: {}
     });
     expect(assistant.sourceJournalRef).toBeNull();
+  });
+
+  it("commits reply components with the conversation projection and withholds duplicate replay", async () => {
+    const assistant = await repository!.appendMessage({
+      id: "reply-component-message",
+      sessionId: "reply-component-session",
+      traceId: "reply-component-trace",
+      parentMessageId: null,
+      role: "assistant",
+      content: "",
+      status: "streaming",
+      createdAt: "2026-09-29T00:00:02.000Z",
+      completedAt: null,
+      metadata: {}
+    });
+    expect(assistant.content).toBe("");
+
+    const first = await repository!.appendReplyComponent!({
+      replyId: "reply-component-reply",
+      messageId: assistant.id,
+      sequence: "1",
+      text: "first",
+      projectionVersion: "runtime-text.v1",
+      publicationTargets: [
+        {
+          surface: "HTTP_SSE",
+          targetId: "HTTP_SSE:trace-a",
+          targetGeneration: "connection-a"
+        }
+      ]
+    });
+    expect(first).toMatchObject({ inserted: true, message: { content: "first" } });
+
+    const replay = await repository!.appendReplyComponent!({
+      replyId: "reply-component-reply",
+      messageId: assistant.id,
+      sequence: "1",
+      text: "first",
+      projectionVersion: "runtime-text.v1"
+    });
+    expect(replay).toMatchObject({ inserted: false, componentId: first.componentId });
+    expect(replay.message.content).toBe("first");
+
+    await expect(
+      repository!.appendReplyComponent!({
+        replyId: "reply-component-reply",
+        messageId: assistant.id,
+        sequence: "1",
+        text: "conflicting",
+        projectionVersion: "runtime-text.v1"
+      })
+    ).rejects.toThrow(/conflicts with durable content/);
+    await expect(
+      repository!.appendReplyComponent!({
+        replyId: "reply-component-reply",
+        messageId: assistant.id,
+        sequence: "3",
+        text: "out of order",
+        projectionVersion: "runtime-text.v1"
+      })
+    ).rejects.toThrow(/next monotonic sequence/);
+
+    const second = await repository!.appendReplyComponent!({
+      replyId: "reply-component-reply",
+      messageId: assistant.id,
+      sequence: "2",
+      text: " second",
+      projectionVersion: "runtime-text.v1"
+    });
+    expect(second).toMatchObject({ inserted: true, message: { content: "first second" } });
+    const components = await pool!.query(
+      `select sequence, text_digest from conversation_reply_components
+       where reply_id=$1 order by sequence`,
+      ["reply-component-reply"]
+    );
+    expect(components.rows.map((row) => String(row["sequence"]))).toEqual(["1", "2"]);
+  });
+
+  it("rolls back the component, conversation projection, and target work together", async () => {
+    const assistant = await repository!.appendMessage({
+      id: "reply-publication-rollback-message",
+      sessionId: "reply-publication-rollback-session",
+      traceId: "reply-publication-rollback-trace",
+      parentMessageId: null,
+      role: "assistant",
+      content: "",
+      status: "streaming",
+      createdAt: "2026-09-29T00:00:04.000Z",
+      completedAt: null,
+      metadata: {}
+    });
+    await pool!
+      .query(`create function reject_reply_projection_v1() returns trigger language plpgsql as $$
+      begin raise exception 'TEST_REPLY_PROJECTION_FAILURE'; end $$`);
+    await pool!
+      .query(`create trigger reject_reply_projection_v1 before update on conversation_messages
+      for each row when (new.id='reply-publication-rollback-message')
+      execute function reject_reply_projection_v1()`);
+    try {
+      await expect(
+        repository!.appendReplyComponent!({
+          replyId: "reply-publication-rollback-reply",
+          messageId: assistant.id,
+          sequence: "1",
+          text: "must rollback",
+          projectionVersion: "runtime-text.v1",
+          publicationTargets: [
+            {
+              surface: "HTTP_SSE",
+              targetId: "HTTP_SSE:trace-rollback",
+              targetGeneration: "connection-rollback"
+            }
+          ]
+        })
+      ).rejects.toThrow(/TEST_REPLY_PROJECTION_FAILURE/);
+    } finally {
+      await pool!.query("drop trigger reject_reply_projection_v1 on conversation_messages");
+      await pool!.query("drop function reject_reply_projection_v1()");
+    }
+    const rows = await pool!.query(
+      `select (select count(*) from conversation_reply_components where reply_id=$1) as components,
+              (select count(*) from effect_intents where intent->'request'->'payload'->>'relatedReply'=$1) as publications,
+              (select content from conversation_messages where id=$2) as projection`,
+      ["reply-publication-rollback-reply", assistant.id]
+    );
+    expect(rows.rows[0]).toMatchObject({ components: "0", publications: "0", projection: "" });
   });
 });

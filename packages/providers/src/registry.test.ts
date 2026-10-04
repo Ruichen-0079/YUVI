@@ -889,8 +889,8 @@ describe("ProviderRegistry", () => {
     });
   });
 
-  it("falls back from primary chat provider to local provider with safe attempt metadata", async () => {
-    vi.stubGlobal("fetch", async (input: string | URL | Request) => {
+  it("does not fall back after a dispatched primary provider response", async () => {
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
       const url = String(input);
       if (url.includes("api.deepseek.com")) {
         return new Response(JSON.stringify({ error: "bad upstream sk-secret-value" }), {
@@ -905,6 +905,7 @@ describe("ProviderRegistry", () => {
         { status: 200 }
       );
     });
+    vi.stubGlobal("fetch", fetchMock);
 
     const registry = createProviderRegistryFromEnv({
       NODE_ENV: "development",
@@ -917,19 +918,16 @@ describe("ProviderRegistry", () => {
       LOCAL_CHAT_MODEL: "local-chat"
     });
 
-    const reply = await registry.getChatProvider().generateReply({
-      messages: [{ role: "user", content: "hello" }]
+    await expect(
+      registry.getChatProvider().generateReply({
+        messages: [{ role: "user", content: "hello" }]
+      })
+    ).rejects.toMatchObject({
+      code: ProviderErrorCode.ProviderUnavailable,
+      effectState: "unknown"
     });
-
-    expect(reply.message.content).toBe("hello from local");
-    expect(reply.fallbackUsed).toBe(true);
-    expect(reply.finalProvider).toBe("local");
-    expect(reply.attemptedProviders?.map((attempt) => attempt.status)).toEqual([
-      "failed",
-      "success"
-    ]);
-    expect(JSON.stringify(reply.attemptedProviders)).not.toContain("deepseek-secret");
-    expect(JSON.stringify(reply.attemptedProviders)).not.toContain("sk-secret-value");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("api.deepseek.com");
   });
 
   it("reports local and NVIDIA provider routes without health calls or secret leakage", () => {

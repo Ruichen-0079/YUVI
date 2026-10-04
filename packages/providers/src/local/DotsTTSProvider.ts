@@ -1,3 +1,4 @@
+import { providerFetch as fetch } from "../invocation-witness.js";
 import type { ProviderCallOptions, ProviderHealth } from "../types/common.js";
 import type { TTSInput, TTSOutput, TTSProvider } from "../types/tts.js";
 import {
@@ -32,7 +33,8 @@ export class DotsTTSProvider implements TTSProvider {
         ((body.state === "ready" && body.model_loaded === true) ||
           (hibernated && body.state !== "error" && body.state !== "warming"));
       message = available
-        ? body.state === "hibernated" || (body.ready_on_demand === true && body.model_loaded !== true)
+        ? body.state === "hibernated" ||
+          (body.ready_on_demand === true && body.model_loaded !== true)
           ? "Local TTS ready on demand."
           : "Local TTS ready."
         : body.state === "warming"
@@ -62,17 +64,7 @@ export class DotsTTSProvider implements TTSProvider {
     });
     const requestId = crypto.randomUUID();
     const base = this.config.baseUrl.replace(/\/$/, "");
-    let started = false;
-    const cancel = () => {
-      if (!started) return;
-      void fetch(`${base}/cancel`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ requestId }),
-        signal: AbortSignal.timeout(2000)
-      }).catch(() => undefined);
-    };
-    transport.signal.addEventListener("abort", cancel, { once: true });
+    // Aborting the transport preserves UNKNOWN; no hidden remote cancel invocation.
     try {
       transport.signal.throwIfAborted();
       const language =
@@ -93,46 +85,30 @@ export class DotsTTSProvider implements TTSProvider {
           retryable: false
         });
       }
-      started = transport.markStarted();
+      transport.markStarted();
       transport.signal.throwIfAborted();
       let response: Response;
-      do {
-        response = await fetch(`${base}/tts`, {
-          method: "POST",
-          signal: transport.signal,
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            requestId,
-            text: input.text,
-            language,
-            ...(input.voice ? { voice: input.voice } : {})
-          })
-        });
-        if (response.status !== 429 && response.status !== 503) break;
-        await response.arrayBuffer();
-        // Only transient unavailability (no work admitted) may be retried.
-        // The local single-flight wrapper answers 429 while busy and 503
-        // while warming; both mean "try again shortly". One prior cancelled
-        // generation can drain.
-        await new Promise<void>((resolve, reject) => {
-          const abort = () => {
-            clearTimeout(timer);
-            reject(new DOMException("Cancelled", "AbortError"));
-          };
-          const timer = setTimeout(() => {
-            transport.signal.removeEventListener("abort", abort);
-            resolve();
-          }, 200);
-          transport.signal.addEventListener("abort", abort, { once: true });
-          if (transport.signal.aborted) abort();
-        });
-      } while (!transport.signal.aborted);
+      response = await fetch(`${base}/tts`, {
+        method: "POST",
+        signal: transport.signal,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          requestId,
+          text: input.text,
+          language,
+          ...(input.voice ? { voice: input.voice } : {})
+        })
+      });
+      // A status code alone is not certified non-invocation evidence. A9 owns
+      // any subsequent attempt; this concrete transport performs exactly one write.
       transport.signal.throwIfAborted();
       if (!response.ok)
         throw new ProviderError({
           provider: this.name,
           capability: "tts",
           code: mapHttpStatusToProviderErrorCode(response.status),
+          statusCode: response.status,
+          effectState: "unknown",
           message: `Local TTS returned HTTP ${response.status}.`,
           retryable: false
         });
@@ -172,7 +148,6 @@ export class DotsTTSProvider implements TTSProvider {
         retryable: false
       });
     } finally {
-      transport.signal.removeEventListener("abort", cancel);
       transport.cleanup();
     }
   }

@@ -1,3 +1,4 @@
+import type { SpeechSegmentSeal, MediaPermission, MediaDeviceReport } from "@companion/protocol";
 import type { ChatMessage } from "../chat-state.js";
 import { resolveApiBaseUrl } from "../desktop-runtime.js";
 import { withActionDeadline } from "../action-deadline.js";
@@ -171,6 +172,8 @@ export type SendMessageRequest = {
     mimeType: "image/png" | "image/jpeg";
   };
   options: {
+    speechPlan?: "NONE" | "CLIENT_SEGMENTED" | "SERVER_WHOLE";
+    speechRequestId?: string;
     useMemory?: boolean;
     readMemory?: boolean;
     writeMemory?: boolean;
@@ -185,6 +188,8 @@ export type ProactiveTurnStreamRequest = {
   modality: "text";
   options: {
     readMemory: boolean;
+    speechPlan?: "NONE" | "CLIENT_SEGMENTED";
+    speechRequestId?: string;
     promptPreview?: boolean;
   };
 };
@@ -499,6 +504,7 @@ export type VoiceMessageResponse = {
 };
 
 export type TTSResponse = CapabilityRuntimeMetadata & {
+  media?: { segmentId: string; generation: string };
   audioBase64: string;
   mimeType: string;
   durationMs?: number;
@@ -996,18 +1002,41 @@ export type ProactiveStreamOptions = {
 
 export type ProactiveTurnResult = CompletedMessage | ProactiveDecisionEvent;
 
-export type Live2DModel = { id: string; name: string; model: string; source: "user" | "configured"; url: string };
-export type Live2DModelState = { models: Live2DModel[]; activeId: string | null; activeUrl: string | null; intendedDefault: string };
+export type Live2DModel = {
+  id: string;
+  name: string;
+  model: string;
+  source: "user" | "configured";
+  url: string;
+};
+export type Live2DModelState = {
+  models: Live2DModel[];
+  activeId: string | null;
+  activeUrl: string | null;
+  intendedDefault: string;
+};
 export const apiClient = {
-  getConversationHistory(sessionId: string, signal?: AbortSignal): Promise<{ sessionId: string; messages: ChatMessage[] }> {
-    return request(`/v1/conversations/history?sessionId=${encodeURIComponent(sessionId)}`, signalRequestInit(signal));
+  getConversationHistory(
+    sessionId: string,
+    signal?: AbortSignal
+  ): Promise<{ sessionId: string; messages: ChatMessage[] }> {
+    return request(
+      `/v1/conversations/history?sessionId=${encodeURIComponent(sessionId)}`,
+      signalRequestInit(signal)
+    );
   },
-  getLive2DModels(signal?: AbortSignal): Promise<Live2DModelState> { return request("/live2d/models", signalRequestInit(signal)); },
+  getLive2DModels(signal?: AbortSignal): Promise<Live2DModelState> {
+    return request("/live2d/models", signalRequestInit(signal));
+  },
   importLive2DZip(input: { name: string; archiveBase64: string }): Promise<Live2DModelState> {
     return request("/live2d/models/import-zip", { method: "POST", body: JSON.stringify(input) });
   },
-  selectLive2DModel(id: string | null): Promise<Live2DModelState> { return request("/live2d/models/select", { method: "POST", body: JSON.stringify({ id }) }); },
-  removeLive2DModel(id: string): Promise<Live2DModelState> { return request(`/live2d/models/${encodeURIComponent(id)}`, { method: "DELETE" }); },
+  selectLive2DModel(id: string | null): Promise<Live2DModelState> {
+    return request("/live2d/models/select", { method: "POST", body: JSON.stringify({ id }) });
+  },
+  removeLive2DModel(id: string): Promise<Live2DModelState> {
+    return request(`/live2d/models/${encodeURIComponent(id)}`, { method: "DELETE" });
+  },
   setDashboardDevToken(token: string): void {
     dashboardDevToken = token;
   },
@@ -1056,14 +1085,21 @@ export const apiClient = {
   }): Promise<{ status: string; voiceProfileId?: string }> {
     return request("/voice-profiles/identify", { method: "POST", body: JSON.stringify(input) });
   },
-  bindVoiceProfilePerson(id: string, personId: string, commandHandle: string): Promise<{ status: string }> {
+  bindVoiceProfilePerson(
+    id: string,
+    personId: string,
+    commandHandle: string
+  ): Promise<{ status: string }> {
     return request(`/voice-profiles/${encodeURIComponent(id)}/person`, {
       method: "POST",
       body: JSON.stringify({ personId, commandHandle })
     });
   },
   deleteVoiceProfile(id: string, commandHandle: string): Promise<{ ok: boolean }> {
-    return request(`/voice-profiles/${encodeURIComponent(id)}?commandHandle=${encodeURIComponent(commandHandle)}`, { method: "DELETE" });
+    return request(
+      `/voice-profiles/${encodeURIComponent(id)}?commandHandle=${encodeURIComponent(commandHandle)}`,
+      { method: "DELETE" }
+    );
   },
 
   sendMessage(input: SendMessageRequest): Promise<MessageResponse> {
@@ -1531,7 +1567,38 @@ export const apiClient = {
     });
   },
 
+  createMediaGeneration(input: {
+    sessionId: string;
+    requestId: string;
+  }): Promise<{ generation: string }> {
+    return request("/v1/media/generations", { method: "POST", body: JSON.stringify(input) });
+  },
+  revokeMediaGeneration(generation: string): Promise<void> {
+    return request(`/v1/media/generations/${encodeURIComponent(generation)}`, { method: "DELETE" });
+  },
+  sealSpeechSegment(input: {
+    segment: SpeechSegmentSeal;
+    text: string;
+    generation: string;
+  }): Promise<{ segmentId: string; generation: string }> {
+    return request("/v1/media/segments", { method: "POST", body: JSON.stringify(input) });
+  },
+  mediaPermission(
+    input: { segmentId: string; generation: string; kind: "PLAYBACK" | "SUBTITLE" },
+    signal?: AbortSignal
+  ): Promise<MediaPermission> {
+    return request("/v1/media/permissions", {
+      method: "POST",
+      body: JSON.stringify(input),
+      ...signalRequestInit(signal)
+    });
+  },
+  reportMedia(input: MediaDeviceReport): Promise<void> {
+    return request("/v1/media/reports", { method: "POST", body: JSON.stringify(input) });
+  },
   synthesizeSpeech(input: {
+    segment?: SpeechSegmentSeal;
+    generation?: string;
     text: string;
     voice?: string;
     format?: "mp3" | "wav" | "opus" | "pcm" | "mulaw" | "alaw";
@@ -1622,7 +1689,17 @@ export const apiClient = {
     return new WebSocket(resolveWebSocketUrl("/ws?dashboard=true"));
   },
 
-  async postEmbodiedPresentationOutcome(report: EmbodiedPresentationOutcomeReport): Promise<void> {
+  async acceptPresentationPermission(
+    permission: import("@companion/protocol").PresentationPermission
+  ): Promise<void> {
+    await request("/v1/embodied-presentation/permit", {
+      method: "POST",
+      body: JSON.stringify(permission)
+    });
+  },
+  async postEmbodiedPresentationOutcome(
+    report: import("@companion/protocol").AccountedPresentationReport
+  ): Promise<void> {
     await request("/v1/embodied-presentation/outcome", {
       method: "POST",
       body: JSON.stringify(report)
@@ -1845,6 +1922,8 @@ function toProactiveTurnStreamRequestBody(
     modality: "text",
     options: {
       readMemory: input.options.readMemory,
+      ...(input.options.speechPlan ? { speechPlan: input.options.speechPlan } : {}),
+      ...(input.options.speechRequestId ? { speechRequestId: input.options.speechRequestId } : {}),
       ...(input.options.promptPreview === undefined
         ? {}
         : { promptPreview: input.options.promptPreview })
@@ -1923,16 +2002,22 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (init?.signal?.aborted) abort();
   init?.signal?.addEventListener("abort", abort, { once: true });
   try {
-    return await withActionDeadline((async () => {
-      const response = await fetch(`${apiBaseUrl()}${path}`, {
-        ...init, headers, signal: controller.signal
-      });
-      if (!response.ok) {
-        const text = await response.text();
-        throw new ApiError(text || response.statusText, response.status);
-      }
-      return response.json() as Promise<T>;
-    })(), path.includes("/import") ? 120_000 : 60_000, () => controller.abort());
+    return await withActionDeadline(
+      (async () => {
+        const response = await fetch(`${apiBaseUrl()}${path}`, {
+          ...init,
+          headers,
+          signal: controller.signal
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new ApiError(text || response.statusText, response.status);
+        }
+        return response.json() as Promise<T>;
+      })(),
+      path.includes("/import") ? 120_000 : 60_000,
+      () => controller.abort()
+    );
   } finally {
     init?.signal?.removeEventListener("abort", abort);
   }
@@ -2048,12 +2133,19 @@ export function resolveWebSocketUrl(path: string): string {
 
 export async function productSample(id: string): Promise<Blob> {
   const controller = new AbortController();
-  return withActionDeadline((async () => {
-    const response = await fetch(`${apiBaseUrl()}/product/voice-samples/${encodeURIComponent(id)}`, {
-      headers: dashboardDevToken ? { authorization: `Bearer ${dashboardDevToken}` } : {},
-      signal: controller.signal
-    });
-    if (!response.ok) throw new Error("Sample unavailable.");
-    return response.blob();
-  })(), 30_000, () => controller.abort());
+  return withActionDeadline(
+    (async () => {
+      const response = await fetch(
+        `${apiBaseUrl()}/product/voice-samples/${encodeURIComponent(id)}`,
+        {
+          headers: dashboardDevToken ? { authorization: `Bearer ${dashboardDevToken}` } : {},
+          signal: controller.signal
+        }
+      );
+      if (!response.ok) throw new Error("Sample unavailable.");
+      return response.blob();
+    })(),
+    30_000,
+    () => controller.abort()
+  );
 }

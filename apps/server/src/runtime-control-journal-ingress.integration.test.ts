@@ -190,10 +190,13 @@ describe.skipIf(!databaseUrl)("A8.2e2 Runtime control receipts with real Postgre
     await adminPool.query(`create schema ${schemaSql}`);
     const migrations = await readSqlMigrations();
     const requiredNames = [
+      "006_conversation_v1.sql",
+      "007_conversation_streaming.sql",
       "013_life_event_journal_v1.sql",
       "020_effect_intents_v1.sql",
       "021_effect_attempts_v1.sql",
-      "022_native_control_effects_v1.sql"
+      "022_native_control_effects_v1.sql",
+      "023_reply_components_v1.sql"
     ];
     const selected = requiredNames.map((name) => migrations.find((entry) => entry.name === name));
     expect(selected.every(Boolean)).toBe(true);

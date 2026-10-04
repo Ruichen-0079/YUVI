@@ -2324,7 +2324,10 @@ describe("MemoryRepository", () => {
     expect(combinedSql).toContain("create table if not exists conversation_sessions");
     expect(combinedSql).toContain("create table if not exists conversation_messages");
     expect(combinedSql).toContain("sequence bigserial");
-    expect(combinedSql).not.toMatch(/max\s*\(\s*sequence\s*\)/i);
+    // Prefix sealing may aggregate immutable component sequence; message allocation remains bigserial.
+    expect(migrations.find((m) => m.name === "006_conversation_v1.sql")!.sql).not.toMatch(
+      /max\s*\(\s*sequence\s*\)/i
+    );
     expect(combinedSql).toContain("conversation_messages_session_sequence_idx");
     expect(combinedSql).toContain("memories_status_idx");
     expect(combinedSql).toContain("memories_search_tsv_idx");

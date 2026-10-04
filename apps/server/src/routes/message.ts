@@ -1,8 +1,9 @@
+import type { ReplyPublicationTarget } from "@companion/memory";
 import { ConversationPersistenceError } from "@companion/core";
 import { parseRuntimeConfig } from "@companion/config";
 import { createEvent } from "@companion/protocol";
 import type { JournalEventRef } from "@companion/protocol";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { ProviderError } from "@companion/providers";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
@@ -67,11 +68,15 @@ export const MessageRequestSchema = z
     personaId: z.string().min(1).optional(),
     speechObservationId: z.string().min(1).optional(),
     voiceOutput: z.boolean().optional(),
+    speechPlan: z.enum(["NONE", "CLIENT_SEGMENTED", "SERVER_WHOLE"]).optional(),
+    speechRequestId: z.string().min(1).max(512).optional(),
     imageAttachment: MessageImageAttachmentSchema.optional(),
     options: z
       .object({
         tts: z.boolean().optional(),
         voiceOutput: z.boolean().optional(),
+        speechPlan: z.enum(["NONE", "CLIENT_SEGMENTED", "SERVER_WHOLE"]).optional(),
+        speechRequestId: z.string().min(1).max(512).optional(),
         useMemory: z.boolean().optional(),
         readMemory: z.boolean().optional(),
         writeMemory: z.boolean().optional(),
@@ -91,10 +96,11 @@ export async function registerMessageRoutes(
   context: AppContext
 ): Promise<void> {
   async function handleMessage(
-    request: { body: unknown; log: FastifyInstance["log"] },
+    request: { body: unknown; log: FastifyInstance["log"]; raw?: { aborted?: boolean } },
     reply: {
       status(code: number): { send(payload: unknown): unknown };
       send(payload: unknown): unknown;
+      raw?: { destroyed?: boolean; destroy?: () => void };
     },
     surface: ConversationalReceiptSurface
   ) {
@@ -184,9 +190,21 @@ export async function registerMessageRoutes(
       "message request received"
     );
 
+    const target: ReplyPublicationTarget = {
+      surface: "HTTP",
+      targetId: `HTTP:${event.traceId}`,
+      targetGeneration: randomUUID()
+    };
+    const unregister = context.outwardEffects?.registerTarget(
+      target,
+      (_session, trace) => trace === event!.traceId,
+      () => !reply.raw?.destroyed && !request.raw?.aborted
+    );
     try {
       const response = await context.runtime.handleUserMessage(event, {
         voiceOutput,
+        speechPlan: input.data.options?.speechPlan ?? input.data.speechPlan,
+        speechRequestId: input.data.options?.speechRequestId ?? input.data.speechRequestId,
         useMemory: memoryOptions.legacyUseMemory,
         readMemory: memoryOptions.readMemory,
         writeMemory: memoryOptions.writeMemory,
@@ -213,7 +231,7 @@ export async function registerMessageRoutes(
         });
       }
       const provider = response.payload.provider;
-      return reply.send({
+      const payload = {
         ...response,
         reply: response.payload.content,
         traceId: response.traceId,
@@ -228,9 +246,30 @@ export async function registerMessageRoutes(
         promptPreview: input.data.options?.promptPreview
           ? context.runtime.getLatestPromptPreview()
           : undefined
-      });
+      };
+      if (context.outwardEffects)
+        await context.outwardEffects.publish({
+          target,
+          frameId: `${response.id}:http`,
+          payload,
+          scope: `session:${input.data.sessionId}`,
+          cause: sourceJournalRef,
+          replyId: response.id,
+          componentId: `rc1_${createHash("sha256")
+            .update(
+              `${response.id}\0${"1"}\0${createHash("sha256").update(response.payload.content).digest("hex")}`
+            )
+            .digest("hex")}`,
+          write: async () => {
+            reply.send(payload);
+          }
+        });
+      else reply.send(payload);
+      return reply;
     } catch (error) {
-      return sendMessageError(reply, error, event.traceId);
+      return sendAccountedMessageError(context, target, reply, error, event.traceId);
+    } finally {
+      unregister?.();
     }
   }
 
@@ -315,4 +354,47 @@ export function sendMessageError(
     message: error instanceof Error ? error.message : "Message handling failed.",
     traceId
   });
+}
+
+/** An admitted turn's terminal error is also a target frame; commit failure closes the target. */
+export async function sendAccountedMessageError(
+  context: AppContext,
+  target: ReplyPublicationTarget,
+  reply: {
+    status(code: number): { send(payload: unknown): unknown };
+    raw?: { destroy?: () => void };
+  },
+  error: unknown,
+  traceId: string
+) {
+  if (!context.outwardEffects) return sendMessageError(reply, error, traceId);
+  let code = 500,
+    payload: unknown;
+  sendMessageError(
+    {
+      status(status) {
+        code = status;
+        return {
+          send(value) {
+            payload = value;
+          }
+        };
+      }
+    },
+    error,
+    traceId
+  );
+  try {
+    await context.outwardEffects.publish({
+      target,
+      frameId: `error:${randomUUID()}`,
+      payload,
+      write: async () => {
+        reply.status(code).send(payload);
+      }
+    });
+  } catch {
+    reply.raw?.destroy?.();
+  }
+  return reply;
 }

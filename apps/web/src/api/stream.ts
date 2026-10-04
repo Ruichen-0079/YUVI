@@ -3,6 +3,9 @@ export type MessageStreamTextDelta = {
   language?: string;
   text: string;
   messageId: string;
+  replyId?: string;
+  componentId?: string;
+  sequence?: string;
   sessionId: string;
   traceId: string;
 };
@@ -12,6 +15,8 @@ export type MessageStreamCompleted = {
   language?: string;
   content: string;
   messageId: string;
+  replyId?: string;
+  lastSequence?: string;
   sessionId: string;
   traceId: string;
   provider: string;
@@ -138,7 +143,11 @@ class SseParser<TEvent extends StreamEvent> {
 
 export class MessageSseParser extends SseParser<MessageStreamEvent> {
   constructor() {
-    super(parseMessageStreamEvent, (event) => event.type === "completed" || event.type === "error");
+    super(
+      parseMessageStreamEvent,
+      (event) => event.type === "completed" || event.type === "error",
+      createProjectedReplyValidator()
+    );
   }
 }
 
@@ -153,7 +162,7 @@ export class ProactiveSseParser extends SseParser<ProactiveMessageStreamEvent> {
         event.type === "error" ||
         event.type === "completed" ||
         (event.type === "proactive-decision" && event.decision === "NO_OP"),
-      (event) => {
+      combineValidators(createProjectedReplyValidator(), (event) => {
         if (event.type === "error") return;
         if (event.type === "proactive-decision") {
           if (this.decisionSeen) {
@@ -176,7 +185,7 @@ export class ProactiveSseParser extends SseParser<ProactiveMessageStreamEvent> {
             "The proactive stream emitted content without REQUEST_TEXT."
           );
         }
-      }
+      })
     );
   }
 }
@@ -310,6 +319,84 @@ function hasMessageIdentity(value: Record<string, unknown>): boolean {
     typeof value["traceId"] === "string" &&
     value["traceId"].length > 0
   );
+}
+
+type ProjectedStreamEvent = MessageStreamEvent | ProactiveDecisionEvent;
+
+function createProjectedReplyValidator(): (event: ProjectedStreamEvent) => void {
+  let replyId: string | undefined;
+  let messageId: string | undefined;
+  let lastSequence = 0n;
+  let projected = false;
+  const componentIds = new Set<string>();
+  return (event) => {
+    if (event.type === "proactive-decision") return;
+    if (event.type === "error") return;
+    if (event.type === "text-delta") {
+      const hasReplyId = event.replyId !== undefined;
+      const hasComponentId = event.componentId !== undefined;
+      const hasSequence = event.sequence !== undefined;
+      if (!hasReplyId && !hasComponentId && !hasSequence && !projected) return;
+      if (
+        typeof event.replyId !== "string" ||
+        !event.replyId ||
+        typeof event.componentId !== "string" ||
+        !/^rc1_[a-f0-9]{64}$/.test(event.componentId) ||
+        typeof event.sequence !== "string" ||
+        !/^[1-9][0-9]*$/.test(event.sequence)
+      ) {
+        throw new MessageStreamProtocolError("The projected text component identity is invalid.");
+      }
+      const sequence = BigInt(event.sequence);
+      if (
+        (replyId !== undefined && event.replyId !== replyId) ||
+        (messageId !== undefined && event.messageId !== messageId) ||
+        sequence !== lastSequence + 1n ||
+        componentIds.has(event.componentId)
+      ) {
+        throw new MessageStreamProtocolError("The projected text component sequence conflicts.");
+      }
+      componentIds.add(event.componentId);
+      replyId = event.replyId;
+      messageId = event.messageId;
+      lastSequence = sequence;
+      projected = true;
+      return;
+    }
+
+    const hasReplyId = event.replyId !== undefined;
+    const hasLastSequence = event.lastSequence !== undefined;
+    if (!hasReplyId && !hasLastSequence && !projected) return;
+    if (
+      !projected &&
+      typeof event.replyId === "string" &&
+      event.replyId.length > 0 &&
+      event.lastSequence === "0"
+    ) {
+      return;
+    }
+    if (
+      typeof event.replyId !== "string" ||
+      !event.replyId ||
+      typeof event.lastSequence !== "string" ||
+      !/^(0|[1-9][0-9]*)$/.test(event.lastSequence) ||
+      event.replyId !== replyId ||
+      event.messageId !== messageId ||
+      BigInt(event.lastSequence) !== lastSequence
+    ) {
+      throw new MessageStreamProtocolError("The completed reply projection seal is invalid.");
+    }
+  };
+}
+
+function combineValidators<TEvent extends ProjectedStreamEvent>(
+  first: (event: ProjectedStreamEvent) => void,
+  second: (event: TEvent) => void
+): (event: TEvent) => void {
+  return (event) => {
+    first(event);
+    second(event);
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

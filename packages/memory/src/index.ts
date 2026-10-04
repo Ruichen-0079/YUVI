@@ -270,6 +270,10 @@ export {
   type ConversationDatabaseClient,
   type ConversationFinalizationFields,
   type ConversationListOptions,
+  type ConversationReplyComponentInput,
+  type ConversationReplyComponentResult,
+  type ReplyPublicationTarget,
+  type ReplyPublicationAdmission,
   type ConversationMessage,
   type ConversationMessageInput,
   type ConversationMessageRole,
@@ -450,4 +454,7 @@ export * from "./profile-lifecycle.js";
 export * from "./evidence-admission.js";
 export * from "./evidence-admission-bootstrap.js";
 
-export { projectFinalizedEffectIntent, projectDreamEffectIntents } from "./effect-intent-compatibility.js";
+export {
+  projectFinalizedEffectIntent,
+  projectDreamEffectIntents
+} from "./effect-intent-compatibility.js";

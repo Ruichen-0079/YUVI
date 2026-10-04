@@ -52,6 +52,18 @@ const completed = {
   provider: "mock"
 };
 
+const projectedDelta = {
+  ...textDelta,
+  replyId: "reply-1",
+  componentId: `rc1_${"a".repeat(64)}`,
+  sequence: "1"
+};
+const projectedCompleted = {
+  ...completed,
+  replyId: "reply-1",
+  lastSequence: "1"
+};
+
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
@@ -62,11 +74,18 @@ describe("MessageSseParser", () => {
     const first = frame("text-delta", { ...textDelta, text: "你" });
     const second = frame("text-delta", { ...textDelta, text: "好" });
     const splitAt = Math.floor(second.length / 2);
-    const events = collect([encoder.encode(first + second.slice(0, splitAt)), encoder.encode(second.slice(splitAt) + frame("completed", completed))]);
+    const events = collect([
+      encoder.encode(first + second.slice(0, splitAt)),
+      encoder.encode(second.slice(splitAt) + frame("completed", completed))
+    ]);
 
     expect(events.map((event) => event.type)).toEqual(["text-delta", "text-delta", "completed"]);
-    expect(events.filter((event) => event.type === "text-delta").map((event) => event.text).join(""))
-      .toBe(completed.content);
+    expect(
+      events
+        .filter((event) => event.type === "text-delta")
+        .map((event) => event.text)
+        .join("")
+    ).toBe(completed.content);
   });
 
   it("preserves UTF-8 characters split across byte chunks", () => {
@@ -89,8 +108,12 @@ describe("MessageSseParser", () => {
       )
     ]);
 
-    expect(events.filter((event) => event.type === "text-delta").map((event) => event.text).join(""))
-      .toBe("第一行\n\n第三行🙂");
+    expect(
+      events
+        .filter((event) => event.type === "text-delta")
+        .map((event) => event.text)
+        .join("")
+    ).toBe("第一行\n\n第三行🙂");
     expect(events.at(-1)).toMatchObject({ type: "completed", content: "第一行\n\n第三行🙂" });
   });
 
@@ -99,7 +122,11 @@ describe("MessageSseParser", () => {
       ...textDelta,
       text: "第一行\nevent: forged\ndata: forged\n\n最后一行"
     };
-    const events = collect([encoder.encode(frame("text-delta", event) + frame("completed", { ...completed, content: event.text }))]);
+    const events = collect([
+      encoder.encode(
+        frame("text-delta", event) + frame("completed", { ...completed, content: event.text })
+      )
+    ]);
 
     expect(events).toHaveLength(2);
     expect(events[0]).toMatchObject({ type: "text-delta", text: event.text });
@@ -116,6 +143,34 @@ describe("MessageSseParser", () => {
     expect(() => collect([encoder.encode(frame("completed", completed) + extra)])).toThrow(
       MessageStreamProtocolError
     );
+  });
+
+  it("accepts a sealed projected reply and rejects duplicate or conflicting component order", () => {
+    expect(
+      collect([
+        encoder.encode(frame("text-delta", projectedDelta) + frame("completed", projectedCompleted))
+      ])
+    ).toHaveLength(2);
+
+    const repeatedSequence = { ...projectedDelta, text: "different" };
+    expect(() =>
+      collect([
+        encoder.encode(
+          frame("text-delta", projectedDelta) +
+            frame("text-delta", repeatedSequence) +
+            frame("completed", projectedCompleted)
+        )
+      ])
+    ).toThrow(MessageStreamProtocolError);
+
+    expect(() =>
+      collect([
+        encoder.encode(
+          frame("text-delta", projectedDelta) +
+            frame("completed", { ...projectedCompleted, lastSequence: "2" })
+        )
+      ])
+    ).toThrow(MessageStreamProtocolError);
   });
 
   it("rejects an incomplete stream and accepts one terminal error", () => {
@@ -147,12 +202,16 @@ describe("apiClient.streamMessage", () => {
   it("returns a completed message after deltas and emits typed events", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(
-        responseFromChunks([
-          encoder.encode(frame("text-delta", { ...textDelta, text: "你" })),
-          encoder.encode(frame("text-delta", { ...textDelta, text: "好" }) + frame("completed", completed))
-        ])
-      )
+      vi
+        .fn()
+        .mockResolvedValue(
+          responseFromChunks([
+            encoder.encode(frame("text-delta", { ...textDelta, text: "你" })),
+            encoder.encode(
+              frame("text-delta", { ...textDelta, text: "好" }) + frame("completed", completed)
+            )
+          ])
+        )
     );
     const events: MessageStreamEvent[] = [];
     const result = await apiClient.streamMessage(
@@ -167,15 +226,23 @@ describe("apiClient.streamMessage", () => {
   it("rejects completed content that differs from accumulated deltas", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(
-        responseFromChunks([
-          encoder.encode(frame("text-delta", textDelta) + frame("completed", { ...completed, content: "不同" }))
-        ])
-      )
+      vi
+        .fn()
+        .mockResolvedValue(
+          responseFromChunks([
+            encoder.encode(
+              frame("text-delta", textDelta) + frame("completed", { ...completed, content: "不同" })
+            )
+          ])
+        )
     );
 
     await expect(
-      apiClient.streamMessage({ sessionId: "session-1", text: "hello", options: { voiceOutput: false } })
+      apiClient.streamMessage({
+        sessionId: "session-1",
+        text: "hello",
+        options: { voiceOutput: false }
+      })
     ).rejects.toBeInstanceOf(MessageStreamProtocolError);
   });
 
@@ -190,7 +257,11 @@ describe("apiClient.streamMessage", () => {
       )
     );
     await expect(
-      apiClient.streamMessage({ sessionId: "session-1", text: "hello", options: { voiceOutput: false } })
+      apiClient.streamMessage({
+        sessionId: "session-1",
+        text: "hello",
+        options: { voiceOutput: false }
+      })
     ).rejects.toMatchObject({ status: 503, message: "消息保存失败，请稍后重试。" });
 
     vi.stubGlobal(
@@ -210,7 +281,11 @@ describe("apiClient.streamMessage", () => {
       )
     );
     await expect(
-      apiClient.streamMessage({ sessionId: "session-1", text: "hello", options: { voiceOutput: false } })
+      apiClient.streamMessage({
+        sessionId: "session-1",
+        text: "hello",
+        options: { voiceOutput: false }
+      })
     ).rejects.toMatchObject({
       code: "TIMEOUT",
       message: "Provider 请求超时。"
@@ -218,15 +293,36 @@ describe("apiClient.streamMessage", () => {
   });
 
   it("explains a missing provider model or endpoint without exposing upstream text", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
-      code: "MODEL_NOT_FOUND", message: "secret upstream details"
-    }), { status: 404 })) );
-    await expect(apiClient.streamMessage({ sessionId: "session-1", text: "hello", options: { voiceOutput: false } }))
-      .rejects.toMatchObject({ status: 404,
-        message: "Provider 模型或 API 地址不存在，请检查模型 ID 和 API Base URL。" });
-    expect(new MessageStreamError({ type: "error", code: "MODEL_NOT_FOUND",
-      message: "secret upstream details", retryable: false }).message)
-      .toBe("Provider 模型或 API 地址不存在，请检查模型 ID 和 API Base URL。");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            code: "MODEL_NOT_FOUND",
+            message: "secret upstream details"
+          }),
+          { status: 404 }
+        )
+      )
+    );
+    await expect(
+      apiClient.streamMessage({
+        sessionId: "session-1",
+        text: "hello",
+        options: { voiceOutput: false }
+      })
+    ).rejects.toMatchObject({
+      status: 404,
+      message: "Provider 模型或 API 地址不存在，请检查模型 ID 和 API Base URL。"
+    });
+    expect(
+      new MessageStreamError({
+        type: "error",
+        code: "MODEL_NOT_FOUND",
+        message: "secret upstream details",
+        retryable: false
+      }).message
+    ).toBe("Provider 模型或 API 地址不存在，请检查模型 ID 和 API Base URL。");
   });
   it("passes AbortSignal to fetch", async () => {
     const controller = new AbortController();

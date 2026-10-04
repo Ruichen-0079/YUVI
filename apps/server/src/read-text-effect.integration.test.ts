@@ -52,7 +52,10 @@ describe.skipIf(!url)("A9.2 real host read-text / Journal / PostgreSQL integrati
       "013_life_event_journal_v1.sql",
       "020_effect_intents_v1.sql",
       "021_effect_attempts_v1.sql",
-      "022_native_control_effects_v1.sql"
+      "022_native_control_effects_v1.sql",
+      "006_conversation_v1.sql",
+      "007_conversation_streaming.sql",
+      "023_reply_components_v1.sql"
     ])
       await pool.query(
         await readFile(

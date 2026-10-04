@@ -18,6 +18,8 @@ export {
   ProviderError,
   ProviderErrorCode,
   canFallbackProviderError,
+  certifyProviderNotStarted,
+  isCertifiedProviderNotStarted,
   cloneProviderError,
   isProviderReplaySafe,
   isRetryableProviderError,
@@ -50,7 +52,12 @@ export type {
   ProactiveDecisionProvider
 } from "./types/proactive.js";
 export { normalizeReasoningOutput } from "./types/reasoning.js";
-export type { ReasoningInput, ReasoningOutput, ReasoningProvider, ReasoningCallOptions } from "./types/reasoning.js";
+export type {
+  ReasoningInput,
+  ReasoningOutput,
+  ReasoningProvider,
+  ReasoningCallOptions
+} from "./types/reasoning.js";
 export type { TTSInput, TTSOutput, TTSProvider } from "./types/tts.js";
 export type {
   STTInput,
@@ -110,3 +117,7 @@ export { DashScopeSTTProvider } from "./alibaba/DashScopeSTTProvider.js";
 export { GPTSoVITSTTSProvider } from "./local/GPTSoVITSTTSProvider.js";
 export { LocalSTTProvider } from "./local/LocalSTTProvider.js";
 export * from "./product-configuration.js";
+
+export * from "./accounting.js";
+
+export { isProviderResponseObservedError } from "./invocation-witness.js";

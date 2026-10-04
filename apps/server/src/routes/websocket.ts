@@ -1,3 +1,4 @@
+import type { ReplyPublicationTarget } from "@companion/memory";
 import {
   RuntimeEventSchema,
   UserMessageEventSchema,
@@ -104,20 +105,50 @@ export async function registerWebSocketRoutes(
     const query = WebSocketQuerySchema.safeParse(request.query);
     const dashboardMode = query.success ? query.data.dashboard : false;
     const activeTraceIds = new ActiveTraceRegistry();
-    const subscription = context.eventBus.subscribe("*", (event) => {
+    let live = true;
+    const target: ReplyPublicationTarget = {
+      surface: "WEBSOCKET",
+      targetId: `WEBSOCKET:${crypto.randomUUID()}`,
+      targetGeneration: crypto.randomUUID()
+    };
+    const unregister = context.outwardEffects?.registerTarget(
+      target,
+      (_session, trace) => dashboardMode || activeTraceIds.has(trace),
+      () => live && socket.readyState === socket.OPEN,
+      false
+    );
+    const sendAccounted = async (payload: unknown, event?: RuntimeEvent) => {
+      if (!live || socket.readyState !== socket.OPEN) return;
+      if (context.outwardEffects)
+        await context.outwardEffects.publish({
+          target,
+          frameId: event?.id ?? crypto.randomUUID(),
+          payload,
+          scope: "websocket-target",
+          ...(event?.type === "agent.reply" ? { replyId: event.id } : {}),
+          write: () =>
+            new Promise<void>((resolve, reject) =>
+              socket.send(JSON.stringify(payload), (error?: Error) =>
+                error ? reject(error) : resolve()
+              )
+            )
+        });
+      else sendJson(socket, payload);
+    };
+    const subscription = context.eventBus.subscribe("*", async (event) => {
       if (dashboardMode) {
-        sendJson(socket, redactRuntimeEvent(event));
+        await sendAccounted(redactRuntimeEvent(event), event);
         return;
       }
 
       if (activeTraceIds.has(event.traceId) && shouldForwardEvent(event)) {
-        sendJson(socket, redactRuntimeEvent(event));
+        await sendAccounted(redactRuntimeEvent(event), event);
         activeTraceIds.observe(event);
       }
     });
 
     if (dashboardMode) {
-      sendJson(socket, {
+      void sendAccounted({
         kind: "dashboard.connected",
         traceId: crypto.randomUUID(),
         timestamp: new Date().toISOString(),
@@ -125,7 +156,7 @@ export async function registerWebSocketRoutes(
           message:
             "Dashboard WebSocket connected. Recent event replay is available through GET /events/recent."
         }
-      });
+      }).catch(() => socket.close());
     }
 
     socket.on("message", async (rawMessage: Buffer) => {
@@ -137,8 +168,7 @@ export async function registerWebSocketRoutes(
         envelope = parsedEnvelope;
         const traceAlreadyActive = activeTraceIds.has(parsedEnvelope.traceId);
         if (!activeTraceIds.add(parsedEnvelope.traceId)) {
-          sendJson(
-            socket,
+          await sendAccounted(
             redactRuntimeEvent(
               createEvent(
                 "runtime.error",
@@ -152,8 +182,7 @@ export async function registerWebSocketRoutes(
 
         if (parsedEnvelope.type !== "user.message") {
           activeTraceIds.delete(parsedEnvelope.traceId);
-          sendJson(
-            socket,
+          await sendAccounted(
             redactRuntimeEvent(
               createEvent(
                 "runtime.error",
@@ -201,8 +230,7 @@ export async function registerWebSocketRoutes(
             { traceId: parsed.traceId, sessionId: parsed.payload.sessionId, code: failure.code },
             "websocket conversation receipt admission failed"
           );
-          sendJson(
-            socket,
+          await sendAccounted(
             redactRuntimeEvent(
               createEvent(
                 "runtime.error",
@@ -224,8 +252,7 @@ export async function registerWebSocketRoutes(
         if (envelope) {
           activeTraceIds.delete(envelope.traceId);
         }
-        sendJson(
-          socket,
+        await sendAccounted(
           redactRuntimeEvent(
             createEvent(
               "runtime.error",
@@ -243,6 +270,8 @@ export async function registerWebSocketRoutes(
     });
 
     socket.on("close", () => {
+      live = false;
+      unregister?.();
       subscription.unsubscribe();
       activeTraceIds.clear();
     });

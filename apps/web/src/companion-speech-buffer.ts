@@ -1,3 +1,4 @@
+import type { SpeechSegmentSeal } from "@companion/protocol";
 /**
  * Bounded current-turn buffer for companion speak messages that arrive before
  * the speech session is ready (start-generation race, remount gaps).
@@ -7,6 +8,7 @@
  */
 
 export type BufferedSpeakSegment = {
+  seal?: SpeechSegmentSeal;
   requestId: string;
   sequence: number;
   text: string;

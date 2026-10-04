@@ -1,3 +1,6 @@
+vi.mock("./outward-effects.js", () => import("./test-support/offline-outward-effects.js"));
+vi.mock("./media-effects.js", () => import("./test-support/offline-media-effects.js"));
+vi.mock("./presentation-effects.js", () => import("./test-support/offline-media-effects.js"));
 import { HostReadTextEffects } from "./read-text-effect.js";
 import { ServerPluginLifecycle } from "./plugin-lifecycle.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -26,17 +29,43 @@ afterEach(async () => {
   }
 });
 
-it("drains A9 workers before plugin teardown",async()=>{
- const dir=await mkdtemp(path.join(tmpdir(),"yuvi-a92-shutdown-"));createdRuntimeEnvDirs.push(dir);
- process.env={NODE_ENV:"test",RUNTIME_MODE:"test",LOG_LEVEL:"silent",PROVIDER_ALLOW_MOCKS:"true",YUVI_RUNTIME_ENV_DIR:dir,MEMORY_REPOSITORY:"in-memory",CONVERSATION_REPOSITORY:"in-memory",EVENT_BUS:"in-memory",MEMORY_MAINTENANCE_ENABLED:"false"};
- const order:string[]=[];let release:()=>void=()=>{};
- const gate=new Promise<void>(r=>release=r);
- vi.spyOn(HostReadTextEffects.prototype,"shutdown").mockImplementation(async()=>{order.push("effect-drain");await gate;return {drained:true};});
- const original=ServerPluginLifecycle.prototype.shutdown;
- vi.spyOn(ServerPluginLifecycle.prototype,"shutdown").mockImplementation(async function(this:ServerPluginLifecycle){order.push("plugin-shutdown");return original.call(this);});
- const app=await buildServer(loadServerConfig(process.env));await app.ready();
- const closing=app.close();await expect.poll(()=>order[0]).toBe("effect-drain");expect(order).toEqual(["effect-drain"]);
- release();await closing;expect(order[1]).toBe("plugin-shutdown");
+it("drains A9 workers before plugin teardown", async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), "yuvi-a92-shutdown-"));
+  createdRuntimeEnvDirs.push(dir);
+  process.env = {
+    NODE_ENV: "test",
+    RUNTIME_MODE: "test",
+    LOG_LEVEL: "silent",
+    PROVIDER_ALLOW_MOCKS: "true",
+    YUVI_RUNTIME_ENV_DIR: dir,
+    MEMORY_REPOSITORY: "in-memory",
+    CONVERSATION_REPOSITORY: "in-memory",
+    EVENT_BUS: "in-memory",
+    MEMORY_MAINTENANCE_ENABLED: "false"
+  };
+  const order: string[] = [];
+  let release: () => void = () => {};
+  const gate = new Promise<void>((r) => (release = r));
+  vi.spyOn(HostReadTextEffects.prototype, "shutdown").mockImplementation(async () => {
+    order.push("effect-drain");
+    await gate;
+    return { drained: true };
+  });
+  const original = ServerPluginLifecycle.prototype.shutdown;
+  vi.spyOn(ServerPluginLifecycle.prototype, "shutdown").mockImplementation(async function (
+    this: ServerPluginLifecycle
+  ) {
+    order.push("plugin-shutdown");
+    return original.call(this);
+  });
+  const app = await buildServer(loadServerConfig(process.env));
+  await app.ready();
+  const closing = app.close();
+  await expect.poll(() => order[0]).toBe("effect-drain");
+  expect(order).toEqual(["effect-drain"]);
+  release();
+  await closing;
+  expect(order[1]).toBe("plugin-shutdown");
 });
 
 describe("server", () => {
@@ -1565,7 +1594,7 @@ describe("server", () => {
     }
   });
 
-  it("keeps chat health operational when live verification succeeds through a fallback", async () => {
+  it("does not fall back after an ambiguous live provider response", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
       const url = String(input);
       if (url.includes("api.deepseek.com")) {
@@ -1592,14 +1621,14 @@ describe("server", () => {
 
     try {
       const verify = await app.inject({ method: "POST", url: "/providers/verify/chat" });
-      expect(verify.statusCode).toBe(200);
+      expect(verify.statusCode).toBe(502);
       expect(verify.json()).toMatchObject({
-        ok: true,
-        provider: "local",
+        ok: false,
+        provider: "deepseek",
         capability: "chat",
         verificationMode: "live",
         readiness: "ready",
-        observed: "available"
+        observed: "unavailable"
       });
 
       const status = await app.inject({ method: "GET", url: "/providers/status" });
@@ -1613,7 +1642,7 @@ describe("server", () => {
           expect.objectContaining({
             provider: "local",
             readiness: "ready",
-            observed: "available"
+            observed: "unknown"
           })
         ])
       );
@@ -1628,18 +1657,18 @@ describe("server", () => {
           },
           chatCapability: {
             readiness: "ready",
-            observed: "available",
+            observed: "unknown",
             operational: true,
             routeCount: 2,
             readyRouteCount: 2,
             readyProviders: expect.arrayContaining([
               expect.objectContaining({ provider: "deepseek", observed: "unavailable" }),
-              expect.objectContaining({ provider: "local", observed: "available" })
+              expect.objectContaining({ provider: "local", observed: "unknown" })
             ])
           }
         }
       });
-      expect(fetchSpy).toHaveBeenCalledTimes(2);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
     } finally {
       await app.close();
     }
@@ -1697,7 +1726,7 @@ describe("server", () => {
     }
   });
 
-  it("fails chat health when every locally ready route is known unavailable", async () => {
+  it("keeps chat health operational when one route is UNKNOWN after dispatch", async () => {
     const fetchSpy = vi
       .spyOn(globalThis, "fetch")
       .mockResolvedValue(
@@ -1720,12 +1749,12 @@ describe("server", () => {
       const beforeHealth = fetchSpy.mock.calls.length;
       const health = await app.inject({ method: "GET", url: "/health" });
       expect(health.json()).toMatchObject({
-        ok: false,
+        ok: true,
         providers: {
           chatCapability: {
             readiness: "ready",
-            observed: "unavailable",
-            operational: false,
+            observed: "unknown",
+            operational: true,
             routeCount: 2,
             readyRouteCount: 2
           }

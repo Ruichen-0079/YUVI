@@ -24,7 +24,7 @@ export type VisionReceiptInput = Readonly<{
 }>;
 
 export interface VisionReceiptAdmission {
-  admit(input: VisionReceiptInput): Promise<void>;
+  admit(input: VisionReceiptInput): Promise<import("@companion/protocol").JournalEventRef | void>;
 }
 
 const VisionReceiptInputSchema = z
@@ -41,7 +41,9 @@ export class HostVisionReceiptAdmission implements VisionReceiptAdmission {
     private readonly createPayloadId: () => string = createOpaqueVisionPayloadId
   ) {}
 
-  async admit(rawInput: VisionReceiptInput): Promise<void> {
+  async admit(
+    rawInput: VisionReceiptInput
+  ): Promise<import("@companion/protocol").JournalEventRef | void> {
     const parsed = VisionReceiptInputSchema.safeParse(rawInput);
     if (!parsed.success) {
       throw new JournalStoreError(
@@ -145,7 +147,12 @@ export class HostVisionReceiptAdmission implements VisionReceiptAdmission {
       command,
       ...(retainedText.length > 0 ? { retainedText } : {})
     };
-    await this.journal.appendWithHostAuthority(appendInput, authority);
+    const receipt = await this.journal.appendWithHostAuthority(appendInput, authority);
+    return {
+      kind: "JOURNAL_EVENT",
+      namespace: receipt.envelope.journalNamespace,
+      eventId: receipt.envelope.eventId
+    };
   }
 }
 

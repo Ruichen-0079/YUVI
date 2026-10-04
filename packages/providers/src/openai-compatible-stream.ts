@@ -1,3 +1,4 @@
+import { providerFetch as fetch } from "./invocation-witness.js";
 import type { ChatInput, ChatOutput, ChatStreamEvent, ChatStreamOptions } from "./types/chat.js";
 import type { ProviderCapability, TokenUsage } from "./types/common.js";
 import { ProviderError, ProviderErrorCode } from "./types/errors.js";

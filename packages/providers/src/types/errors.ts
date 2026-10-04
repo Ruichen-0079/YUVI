@@ -97,13 +97,16 @@ export class ProviderError extends Error {
       code: this.code,
       retryable: this.retryable,
       statusCode: this.statusCode,
-      message: this.message
+      // Transport messages may include upstream response bodies. Keep the
+      // public diagnostic useful without serializing prompts, credentials or
+      // provider supplied error text.
+      message: `${this.provider} ${this.capability} failed (${this.code}).`
     };
   }
 }
 
 export function isProviderReplaySafe(effectState: ProviderEffectState): boolean {
-  return effectState !== "committed";
+  return effectState === "not_started";
 }
 
 export function isSafeToReplay(error: ProviderError): boolean {
@@ -156,8 +159,7 @@ export function normalizeProviderError(
       retryable: false,
       fallbackEligible: false,
       effectState:
-        context.effectState ??
-        (error instanceof ProviderError ? error.effectState : "unknown"),
+        context.effectState ?? (error instanceof ProviderError ? error.effectState : "unknown"),
       cause: error instanceof ProviderError ? error.cause : error,
       ...(error instanceof ProviderError && error.attemptedProviders
         ? { attemptedProviders: error.attemptedProviders }
@@ -193,7 +195,12 @@ export function canFallbackProviderError(
     error.fallbackEligible &&
     error.code !== ProviderErrorCode.Cancelled &&
     !context.signal?.aborted &&
-    error.effectState !== "committed" &&
+    // A provider hop is another concrete external invocation. Once the first
+    // invocation crossed its boundary, UNKNOWN is not evidence that it did not
+    // apply. Only an explicit pre-dispatch/no-invocation disposition permits
+    // fallback; retryable and fallbackEligible are policy hints, not effect
+    // evidence.
+    error.effectState === "not_started" &&
     context.anotherProviderExists &&
     !context.visibleOutput &&
     !context.completed
@@ -293,4 +300,17 @@ function defaultFallbackEligible(
     return effectState !== "not_started";
   }
   return true;
+}
+
+// Host transport/preflight evidence, deliberately absent from serialized ProviderError policy.
+// Only code which has proved it never entered its concrete transport may call this helper.
+const certifiedPreTransportErrors = new WeakSet<ProviderError>();
+export function certifyProviderNotStarted(error: ProviderError): ProviderError {
+  if (error.effectState !== "not_started" || error.statusCode !== undefined)
+    throw new Error("Pre-transport certification requires no invocation and no remote response.");
+  certifiedPreTransportErrors.add(error);
+  return error;
+}
+export function isCertifiedProviderNotStarted(error: unknown): error is ProviderError {
+  return error instanceof ProviderError && certifiedPreTransportErrors.has(error);
 }

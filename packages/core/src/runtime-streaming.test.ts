@@ -394,12 +394,17 @@ describe("RuntimeOrchestrator", () => {
         text: "done",
         language: "en",
         messageId: expect.any(String),
+        replyId: expect.any(String),
+        componentId: expect.stringMatching(/^rc1_[a-f0-9]{64}$/),
+        sequence: "1",
         sessionId: "post-processing-cancel-session",
         traceId: expect.any(String)
       },
       {
         type: "completed",
         messageId: expect.any(String),
+        replyId: expect.any(String),
+        lastSequence: "1",
         sessionId: "post-processing-cancel-session",
         traceId: expect.any(String),
         content: "done",
@@ -947,16 +952,10 @@ describe("RuntimeOrchestrator", () => {
     expect(directContext).not.toContain("stranded partial output");
   });
 
-  it("marks an assistant message failed when an incremental append fails", async () => {
+  it("marks an assistant message failed and withholds a delta when its component commit fails", async () => {
     const conversation = new InMemoryConversationRepository();
-    const appendMessageContent = conversation.appendMessageContent.bind(conversation);
-    let appendCount = 0;
-    conversation.appendMessageContent = async (id, delta) => {
-      appendCount += 1;
-      if (appendCount === 1) {
-        throw new Error("append unavailable");
-      }
-      return appendMessageContent(id, delta);
+    conversation.appendReplyComponent = async () => {
+      throw new Error("component commit unavailable");
     };
     const runtime = new RuntimeOrchestrator({
       eventBus: new InMemoryEventBus({ development: false }),
@@ -981,7 +980,7 @@ describe("RuntimeOrchestrator", () => {
       operation: "assistant_stream_append"
     });
     expect((await conversation.listRecentMessages("append-failed-session")).at(-1)).toMatchObject({
-      content: "one",
+      content: "",
       status: "failed"
     });
   });

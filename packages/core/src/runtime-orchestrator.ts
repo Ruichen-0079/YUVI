@@ -1,4 +1,15 @@
-import { EffectIntentError, type EffectIntentRequest, type EffectAuthorization, type EffectIntent } from "@companion/effects";
+import {
+  currentProviderWorkContext,
+  withProviderWorkContext,
+  withProviderWorkStream
+} from "@companion/providers";
+import { createHash } from "node:crypto";
+import {
+  EffectIntentError,
+  type EffectIntentRequest,
+  type EffectAuthorization,
+  type EffectIntent
+} from "@companion/effects";
 import { projectP8ReconstructionToCharacterAbi } from "@companion/character-abi/p8-projection";
 import { projectMemoryVNextToCharacterAbi } from "@companion/character-abi/memory-vnext-projection";
 import type { CharacterAbiSemanticSection } from "@companion/character-abi";
@@ -298,10 +309,13 @@ export class RuntimeOrchestrator {
   private latestPromptPreview: RuntimePromptPreview | null = null;
   private readonly memoryCandidateHistory: RuntimeMemoryCandidateReview[] = [];
   /** Private host context is not serialized in review DTOs or candidate metadata. */
-  private readonly memoryCandidateGrounding = new Map<string, {
-    context: MemoryGroundingContext;
-    candidateContent: string;
-  }>();
+  private readonly memoryCandidateGrounding = new Map<
+    string,
+    {
+      context: MemoryGroundingContext;
+      candidateContent: string;
+    }
+  >();
   private readonly sessionTurns = new Map<string, SessionTurnsCacheEntry>();
   private readonly assistantTurnClaims = new Map<string, AssistantTurnClaim>();
   private lifecycleState: RuntimeLifecycleState = "active";
@@ -344,6 +358,19 @@ export class RuntimeOrchestrator {
   private readonly speechCaptureStore: SpeechCaptureStore = createSpeechCaptureStore();
   private readonly speechPlaybackStore: SpeechPlaybackStore = createSpeechPlaybackStore();
   private speechActive = false;
+  private readonly accountedPlayback = new Map<
+    string,
+    { requestId: string; observation: string }
+  >();
+  observeAccountedPlayback(intentId: string, requestId: string, observation: string): void {
+    if (this.lifecycleState !== "active") return;
+    if (observation === "PLAYING") {
+      if (this.accountedPlayback.size < 128)
+        this.accountedPlayback.set(intentId, { requestId, observation });
+    } else if (["COMPLETED", "INTERRUPTED", "ERROR", "REVOKED"].includes(observation))
+      this.accountedPlayback.delete(intentId);
+    this.armProactiveWake();
+  }
   private currentSpeechCaptureEpoch: string | null = null;
   private explicitTurnDepth = 0;
   private embodiedPresentationInFlight = 0;
@@ -357,7 +384,9 @@ export class RuntimeOrchestrator {
   } = {};
   private schedulerWakeHandle: unknown = null;
   private schedulerGeneration = 0;
-  private readonly proactiveStreamListeners = new Set<(event: RuntimeReplyStreamEvent) => void>();
+  private readonly proactiveStreamListeners = new Set<
+    (event: RuntimeReplyStreamEvent) => unknown
+  >();
 
   constructor(private readonly options: RuntimeOrchestratorOptions) {
     this.directContextConfig = normalizeDirectContextConfig(options.directContext);
@@ -507,7 +536,7 @@ export class RuntimeOrchestrator {
     this.clearProactiveWake();
   }
 
-  subscribeProactiveStream(listener: (event: RuntimeReplyStreamEvent) => void): () => void {
+  subscribeProactiveStream(listener: (event: RuntimeReplyStreamEvent) => unknown): () => void {
     this.proactiveStreamListeners.add(listener);
     return () => {
       this.proactiveStreamListeners.delete(listener);
@@ -576,6 +605,7 @@ export class RuntimeOrchestrator {
     }
     if (
       this.speechActive ||
+      this.accountedPlayback.size > 0 ||
       this.explicitTurnDepth > 0 ||
       this.embodiedPresentationInFlight > 0 ||
       (!ignoreCurrentAttempt && this.proactiveAttemptActive)
@@ -678,7 +708,9 @@ export class RuntimeOrchestrator {
   /** Read-only readiness check for the existing host-owned voice binding path. */
   canManageVoiceProfileBindings(): boolean {
     try {
-      return Boolean(this.options.memory.getNativeVoiceBindingOwner?.() && this.options.voicePersonaId);
+      return Boolean(
+        this.options.memory.getNativeVoiceBindingOwner?.() && this.options.voicePersonaId
+      );
     } catch {
       return false;
     }
@@ -697,7 +729,10 @@ export class RuntimeOrchestrator {
     const persona = this.options.voicePersonaId;
     if (!owner || !persona) return { status: "UNAVAILABLE" as const };
     try {
-      return { status: "AVAILABLE" as const, state: await owner.getBindingState(voiceProfileId, persona) };
+      return {
+        status: "AVAILABLE" as const,
+        state: await owner.getBindingState(voiceProfileId, persona)
+      };
     } catch {
       return { status: "UNAVAILABLE" as const };
     }
@@ -719,12 +754,17 @@ export class RuntimeOrchestrator {
     }
   }
 
-  async removeVoiceProfileBinding(voiceProfileId: string): Promise<{ status: "GOVERNED_COMMAND_REQUIRED" | "UNAVAILABLE" }> {
+  async removeVoiceProfileBinding(
+    voiceProfileId: string
+  ): Promise<{ status: "GOVERNED_COMMAND_REQUIRED" | "UNAVAILABLE" }> {
     void voiceProfileId;
     return { status: "GOVERNED_COMMAND_REQUIRED" as const };
   }
 
-  async bindVoiceProfileToPerson(voiceProfileId: string, personId: string): Promise<{ status: "GOVERNED_COMMAND_REQUIRED" | "UNAVAILABLE" }> {
+  async bindVoiceProfileToPerson(
+    voiceProfileId: string,
+    personId: string
+  ): Promise<{ status: "GOVERNED_COMMAND_REQUIRED" | "UNAVAILABLE" }> {
     void voiceProfileId;
     void personId;
     return { status: "GOVERNED_COMMAND_REQUIRED" as const };
@@ -740,7 +780,10 @@ export class RuntimeOrchestrator {
     try {
       const owner = this.options.memory.getNativeVoiceBindingOwner?.();
       if (observation && personaId && owner) {
-        const acousticObservationReference = toP8AcousticObservationReference(event, observation.observationId);
+        const acousticObservationReference = toP8AcousticObservationReference(
+          event,
+          observation.observationId
+        );
         const profiles = observedVoiceProfileIds(observation);
         const projectionRead = acousticObservationReference
           ? await readCurrentP8VoiceBindingProjections(
@@ -761,12 +804,17 @@ export class RuntimeOrchestrator {
           bindingProjections: projectionRead?.projections ?? [],
           ...(acousticObservationReference ? { acousticObservationReference } : {})
         });
-        if (interpretation.claimAssertor.resolution === "resolved" && interpretation.claimAssertor.entityId) {
+        if (
+          interpretation.claimAssertor.resolution === "resolved" &&
+          interpretation.claimAssertor.entityId
+        ) {
           personId = interpretation.claimAssertor.entityId;
           if (interpretation.resolutions.length === 1) {
             speaker = interpretation.characterSpeakers[0] ?? { speaker: "unknown" };
           }
-        } else if (interpretation.characterSpeakers.some((item) => item.speaker === "conflicting")) {
+        } else if (
+          interpretation.characterSpeakers.some((item) => item.speaker === "conflicting")
+        ) {
           speaker = { speaker: "conflicting" };
         }
       }
@@ -805,22 +853,39 @@ export class RuntimeOrchestrator {
     return { status: "GOVERNED_COMMAND_REQUIRED" as const };
   }
 
-  async getP8CorrectionOwnerRevision(correction: P8ExplicitCorrection): Promise<{ status: "AVAILABLE"; revision: string | null } | { status: "UNAVAILABLE" }> {
+  async getP8CorrectionOwnerRevision(
+    correction: P8ExplicitCorrection
+  ): Promise<{ status: "AVAILABLE"; revision: string | null } | { status: "UNAVAILABLE" }> {
     const store = this.options.p8CorrectionStore;
     if (!store?.getNativeRevision) return { status: "UNAVAILABLE" };
     try {
       const candidate = createP8CorrectionRecord(correction);
-      const revision = await store.getNativeRevision({ address: candidate.address, scopeReference: candidate.scopeReference });
+      const revision = await store.getNativeRevision({
+        address: candidate.address,
+        scopeReference: candidate.scopeReference
+      });
       return { status: "AVAILABLE", revision };
-    } catch { return { status: "UNAVAILABLE" }; }
+    } catch {
+      return { status: "UNAVAILABLE" };
+    }
   }
 
-  async fenceP8CorrectionCommand(command: Pick<P8NativeCorrectionCommand, "commandHandle" | "intentId" | "attemptId" | "fence" | "payloadDigest">) {
+  async fenceP8CorrectionCommand(
+    command: Pick<
+      P8NativeCorrectionCommand,
+      "commandHandle" | "intentId" | "attemptId" | "fence" | "payloadDigest"
+    >
+  ) {
     const store = this.options.p8CorrectionStore;
-    return store?.fenceCorrectionCommand ? store.fenceCorrectionCommand(command) : "UNKNOWN" as const;
+    return store?.fenceCorrectionCommand
+      ? store.fenceCorrectionCommand(command)
+      : ("UNKNOWN" as const);
   }
 
-  async appendP8CorrectionCommand(correction: P8ExplicitCorrection, command: P8NativeCorrectionCommand) {
+  async appendP8CorrectionCommand(
+    correction: P8ExplicitCorrection,
+    command: P8NativeCorrectionCommand
+  ) {
     const store = this.options.p8CorrectionStore;
     if (!store?.appendCorrectionCommand || !store.getNativeRevision)
       return { status: "ERROR" as const };
@@ -830,15 +895,20 @@ export class RuntimeOrchestrator {
     } catch (error) {
       throw error;
     }
-    const lookup = { address: candidateRecord.address, scopeReference: candidateRecord.scopeReference };
+    const lookup = {
+      address: candidateRecord.address,
+      scopeReference: candidateRecord.scopeReference
+    };
     const currentRevision = await store.getNativeRevision(lookup);
     if (currentRevision !== command.expectedRevision)
       return store.appendCorrectionCommand(correction, command);
     const inspection = await this.inspectP8Correction(correction);
     switch (inspection.status) {
-      case "CONFLICT": return { status: "CONFLICT" as const };
+      case "CONFLICT":
+        return { status: "CONFLICT" as const };
       case "UNAVAILABLE":
-      case "ERROR": return { status: "ERROR" as const };
+      case "ERROR":
+        return { status: "ERROR" as const };
       case "INVALID": {
         // Validation is authoritative when the exact admitted predecessor is
         // still current. If the owner advanced during the inspection, let its
@@ -848,11 +918,15 @@ export class RuntimeOrchestrator {
           return store.appendCorrectionCommand(correction, command);
         throw inspection.error;
       }
-      case "READY": return store.appendCorrectionCommand(correction, command);
+      case "READY":
+        return store.appendCorrectionCommand(correction, command);
     }
   }
 
-  async reconcileP8CorrectionCommand(correction: P8ExplicitCorrection, command: P8NativeCorrectionCommand) {
+  async reconcileP8CorrectionCommand(
+    correction: P8ExplicitCorrection,
+    command: P8NativeCorrectionCommand
+  ) {
     const store = this.options.p8CorrectionStore;
     return store?.reconcileCorrectionCommand
       ? store.reconcileCorrectionCommand(correction, command)
@@ -1141,9 +1215,9 @@ export class RuntimeOrchestrator {
     this.persistProactivePolicy();
   }
 
-  private emitProactiveStreamEvent(event: RuntimeReplyStreamEvent): void {
+  private async emitProactiveStreamEvent(event: RuntimeReplyStreamEvent): Promise<void> {
     for (const listener of this.proactiveStreamListeners) {
-      listener(event);
+      await listener(event);
     }
   }
 
@@ -1191,6 +1265,7 @@ export class RuntimeOrchestrator {
     }
     if (
       this.speechActive ||
+      this.accountedPlayback.size > 0 ||
       this.explicitTurnDepth > 0 ||
       this.proactiveAttemptActive ||
       this.embodiedPresentationInFlight > 0
@@ -1253,15 +1328,19 @@ export class RuntimeOrchestrator {
     snapshot: EffectAuthorization,
     expectedActivityRevision: number
   ): Promise<EffectIntent> {
-    if (!this.options.effectIntents) throw new EffectIntentError("UNAVAILABLE", "Effect admission is not configured.");
+    if (!this.options.effectIntents)
+      throw new EffectIntentError("UNAVAILABLE", "Effect admission is not configured.");
     this.enterLifecycleOperation();
     try {
       return await this.options.effectIntents.admit(request, {
         snapshot,
-        isCurrent: () => this.lifecycleState === "active" &&
+        isCurrent: () =>
+          this.lifecycleState === "active" &&
           this.proactiveState.activityRevision === expectedActivityRevision
       });
-    } finally { this.exitLifecycleOperation(); }
+    } finally {
+      this.exitLifecycleOperation();
+    }
   }
 
   getLatestPromptPreview(): RuntimePromptPreview | null {
@@ -1311,7 +1390,11 @@ export class RuntimeOrchestrator {
     if (decision === null) return;
 
     this.embodiedPresentationInFlight += 1;
-    void this.executeAdmittedEmbodiedPresentation(decision, reply, port.present)
+    void (
+      port.dispatchCanonical
+        ? port.dispatchCanonical(decision, reply)
+        : this.executeAdmittedEmbodiedPresentation(decision, reply, port.present)
+    )
       .catch((error) => {
         void this.publishRuntimeError("Embodied Presentation execution failed.", error, {
           traceId: reply.traceId,
@@ -1607,12 +1690,16 @@ export class RuntimeOrchestrator {
       candidate.sourceTraceId = review.sourceTraceId;
     }
 
-    const result = await this.options.memory.processCandidateForStorage(candidate, {
-      source: "dashboard",
-      tags: candidate.tags,
-      skipAdmissionPolicy: true,
-      storageReason: "manual-accept"
-    }, grounding.context);
+    const result = await this.options.memory.processCandidateForStorage(
+      candidate,
+      {
+        source: "dashboard",
+        tags: candidate.tags,
+        skipAdmissionPolicy: true,
+        storageReason: "manual-accept"
+      },
+      grounding.context
+    );
     if (result.decision !== "stored" || !result.memory) {
       return null;
     }
@@ -1649,6 +1736,23 @@ export class RuntimeOrchestrator {
   }
 
   async handleUserMessage(
+    input: RuntimeUserTurnEvent | HandleUserMessageInput,
+    options: HandleUserMessageOptions = {}
+  ): Promise<AgentReplyEvent | null> {
+    const payload = isRuntimeUserTurnEvent(input) ? input.payload : input;
+    return withProviderWorkContext(
+      {
+        scope: `session:${payload.sessionId}`,
+        cause: payload.sourceJournalRef,
+        executionId: input.traceId,
+        speechPlan: options.speechPlan ?? (options.voiceOutput ? "SERVER_WHOLE" : "NONE"),
+        speechRequestId: options.speechRequestId,
+        isCurrent: () => this.lifecycleState === "active" && !options.signal?.aborted
+      },
+      () => this.executeUserMessage(input, options)
+    );
+  }
+  private async executeUserMessage(
     input: RuntimeUserTurnEvent | HandleUserMessageInput,
     options: HandleUserMessageOptions = {}
   ): Promise<AgentReplyEvent | null> {
@@ -1785,7 +1889,24 @@ export class RuntimeOrchestrator {
     return reply;
   }
 
-  async *streamUserMessage(
+  streamUserMessage(
+    input: RuntimeUserTurnEvent | HandleUserMessageInput,
+    options: StreamUserMessageOptions = {}
+  ): AsyncIterable<RuntimeReplyStreamEvent> {
+    const payload = isRuntimeUserTurnEvent(input) ? input.payload : input;
+    return withProviderWorkStream(
+      {
+        scope: `session:${payload.sessionId}`,
+        cause: payload.sourceJournalRef,
+        executionId: input.traceId,
+        speechPlan: options.speechPlan ?? (options.voiceOutput ? "SERVER_WHOLE" : "NONE"),
+        speechRequestId: options.speechRequestId,
+        isCurrent: () => this.lifecycleState === "active" && !options.signal?.aborted
+      },
+      () => this.executeUserMessageStream(input, options)
+    );
+  }
+  private async *executeUserMessageStream(
     input: RuntimeUserTurnEvent | HandleUserMessageInput,
     options: StreamUserMessageOptions = {}
   ): AsyncIterable<RuntimeReplyStreamEvent> {
@@ -1838,7 +1959,11 @@ export class RuntimeOrchestrator {
         userEvent.payload.content.length
       );
       if (options.imageAttachment) {
-        await this.prepareAttachedVisualEvidence(userEvent, options.imageAttachment, options.signal);
+        await this.prepareAttachedVisualEvidence(
+          userEvent,
+          options.imageAttachment,
+          options.signal
+        );
       }
       const { prompt, memoryOptions } = await this.prepareChatPrompt(userEvent, {
         voiceOutput,
@@ -1876,6 +2001,7 @@ export class RuntimeOrchestrator {
       let assistantCreated = false;
       let accumulatedText = "";
       let finalOutput: ChatOutput | undefined;
+      let replySequence = 0n;
       let sawCompleted = false;
       let terminalStatus: "completed" | "failed" | "cancelled" | undefined;
       let finalized = false;
@@ -1931,13 +2057,21 @@ export class RuntimeOrchestrator {
                 sessionId: userEvent.payload.sessionId,
                 traceId: userEvent.traceId,
                 parentMessageId: agentReplyId,
-                content: event.text,
+                content: "",
                 createdAt: new Date().toISOString()
               });
-              assistantCreated = true;
-            } else if (assistantCreated) {
-              await this.appendStreamingAssistantContent(assistantMessageId, event.text);
             }
+            assistantCreated = true;
+            replySequence += 1n;
+            const sequence = replySequence.toString();
+            const componentId = await this.appendStreamingAssistantContent(
+              assistantMessageId,
+              event.text,
+              agentReplyId,
+              sequence,
+              options.replyPublicationTargets,
+              event.sourceAttemptId
+            );
             accumulatedText += event.text;
             yield {
               type: "text-delta",
@@ -1947,6 +2081,9 @@ export class RuntimeOrchestrator {
                 accumulatedText
               ).toLowerCase(),
               messageId: assistantMessageId,
+              replyId: agentReplyId,
+              componentId,
+              sequence,
               sessionId: userEvent.payload.sessionId,
               traceId: userEvent.traceId
             };
@@ -2012,7 +2149,7 @@ export class RuntimeOrchestrator {
             sessionId: userEvent.payload.sessionId,
             traceId: userEvent.traceId,
             parentMessageId: agentReplyId,
-            content: accumulatedText,
+            content: "",
             createdAt: new Date().toISOString()
           });
           assistantCreated = true;
@@ -2021,6 +2158,11 @@ export class RuntimeOrchestrator {
           await this.completeStreamingAssistantMessage(
             assistantMessageId,
             {
+              replyProjection: {
+                version: "runtime-text.v1",
+                replyId: agentReplyId,
+                lastSequence: replySequence.toString()
+              },
               provider: providerMetadata,
               model: providerMetadata.model,
               tokenUsage: providerMetadata.tokenUsage,
@@ -2151,6 +2293,8 @@ export class RuntimeOrchestrator {
         yield {
           type: "completed",
           messageId: assistantMessageId,
+          replyId: agentReplyId,
+          lastSequence: replySequence.toString(),
           sessionId: userEvent.payload.sessionId,
           traceId: userEvent.traceId,
           content: finalOutput.message.content,
@@ -2242,6 +2386,8 @@ export class RuntimeOrchestrator {
     const startedAt = performance.now();
     let finalized = false;
     let failure: unknown;
+    let assistantMessageCreated = false;
+    let replySequence = 0n;
     try {
       if (controller.signal.aborted) {
         throw createRuntimeCancelledError(chatProvider.name);
@@ -2278,6 +2424,27 @@ export class RuntimeOrchestrator {
             firstDeltaAt ??= performance.now();
             providerDeltaCount += 1;
             responseText += event.text;
+            if (!assistantMessageCreated && this.options.conversation) {
+              await this.createStreamingAssistantMessage({
+                id: input.assistantMessageId,
+                sessionId: input.userEvent.payload.sessionId,
+                traceId: input.userEvent.traceId,
+                parentMessageId: canonicalAgentReplyId(input.userEvent),
+                content: "",
+                createdAt: new Date().toISOString()
+              });
+              assistantMessageCreated = true;
+            }
+            replySequence += 1n;
+            const sequence = replySequence.toString();
+            const componentId = await this.appendStreamingAssistantContent(
+              input.assistantMessageId,
+              event.text,
+              canonicalAgentReplyId(input.userEvent),
+              sequence,
+              input.options.replyPublicationTargets,
+              event.sourceAttemptId
+            );
             yield {
               type: "text-delta",
               text: event.text,
@@ -2286,6 +2453,9 @@ export class RuntimeOrchestrator {
                 responseText
               ).toLowerCase(),
               messageId: input.assistantMessageId,
+              replyId: canonicalAgentReplyId(input.userEvent),
+              componentId,
+              sequence,
               sessionId: input.userEvent.payload.sessionId,
               traceId: input.userEvent.traceId
             };
@@ -2344,6 +2514,8 @@ export class RuntimeOrchestrator {
         yield {
           type: "completed",
           messageId: input.assistantMessageId,
+          replyId: canonicalAgentReplyId(input.userEvent),
+          lastSequence: "0",
           sessionId: input.userEvent.payload.sessionId,
           traceId: input.userEvent.traceId,
           content: "",
@@ -2358,6 +2530,29 @@ export class RuntimeOrchestrator {
         providerMetadata,
         canonicalAgentReplyId(input.userEvent)
       );
+      let singleComponentId: string | undefined;
+      if (!streamed && responseText) {
+        if (!assistantMessageCreated && this.options.conversation) {
+          await this.createStreamingAssistantMessage({
+            id: input.assistantMessageId,
+            sessionId: input.userEvent.payload.sessionId,
+            traceId: input.userEvent.traceId,
+            parentMessageId: reply.id,
+            content: "",
+            createdAt: new Date().toISOString()
+          });
+          assistantMessageCreated = true;
+        }
+        replySequence = 1n;
+        singleComponentId = await this.appendStreamingAssistantContent(
+          input.assistantMessageId,
+          responseText,
+          reply.id,
+          "1",
+          input.options.replyPublicationTargets,
+          providerMetadata.sourceAttemptId
+        );
+      }
       await this.publishAssistantMessage(
         input.userEvent,
         reply,
@@ -2366,7 +2561,12 @@ export class RuntimeOrchestrator {
         this.visuallyGroundedTurns.has(input.userEvent) ? false : input.ingestionDecision.requested,
         this.visuallyGroundedTurns.has(input.userEvent)
           ? "Visual grounding is ephemeral."
-          : input.ingestionDecision.skipReason
+          : input.ingestionDecision.skipReason,
+        {
+          version: "runtime-text.v1",
+          replyId: reply.id,
+          lastSequence: replySequence.toString()
+        }
       );
       this.scheduleEmbodiedPresentation(reply, finalReply.presentation ?? null);
       finalized = true;
@@ -2435,6 +2635,9 @@ export class RuntimeOrchestrator {
             responseText
           ).toLowerCase(),
           messageId: input.assistantMessageId,
+          replyId: reply.id,
+          componentId: singleComponentId!,
+          sequence: "1",
           sessionId: input.userEvent.payload.sessionId,
           traceId: input.userEvent.traceId
         };
@@ -2442,6 +2645,8 @@ export class RuntimeOrchestrator {
       yield {
         type: "completed",
         messageId: input.assistantMessageId,
+        replyId: reply.id,
+        lastSequence: replySequence.toString(),
         sessionId: input.userEvent.payload.sessionId,
         traceId: input.userEvent.traceId,
         content: responseText,
@@ -2459,6 +2664,24 @@ export class RuntimeOrchestrator {
     }
 
     if (failure !== undefined) {
+      if (!finalized && assistantMessageCreated) {
+        const cancelled =
+          failure instanceof ProviderError && failure.code === ProviderErrorCode.Cancelled;
+        await this.failStreamingAssistantMessage(
+          input.assistantMessageId,
+          cancelled ? "cancelled" : "failed",
+          {
+            replyProjection: {
+              version: "runtime-text.v1",
+              replyId: canonicalAgentReplyId(input.userEvent),
+              lastSequence: replySequence.toString()
+            },
+            ...(failure instanceof Error
+              ? { error: redactUnsafeText(safeErrorMessage(failure)) }
+              : {})
+          }
+        );
+      }
       if (!finalized && !(failure instanceof ConversationPersistenceError)) {
         if (failure instanceof ProviderError) {
           if (failure.provider === "character" || failure.code === ProviderErrorCode.Cancelled) {
@@ -2483,6 +2706,28 @@ export class RuntimeOrchestrator {
   }
 
   async *streamAssistantInitiatedTurn(
+    input: AssistantInitiatedTurnInput,
+    options: AssistantInitiatedTurnOptions = {}
+  ): AsyncIterable<RuntimeReplyStreamEvent> {
+    const scope = `session:${input.sessionId}`,
+      revision = this.proactiveState.activityRevision;
+    const cause = input.sourceJournalRef;
+    yield* withProviderWorkStream(
+      {
+        scope,
+        cause,
+        executionId: input.idempotencyKey,
+        speechPlan: options.speechPlan ?? "NONE",
+        speechRequestId: options.speechRequestId,
+        isCurrent: () =>
+          this.lifecycleState === "active" &&
+          this.proactiveState.activityRevision === revision &&
+          !options.signal?.aborted
+      },
+      () => this.executeAssistantInitiatedTurn(input, options)
+    );
+  }
+  private async *executeAssistantInitiatedTurn(
     input: AssistantInitiatedTurnInput,
     options: AssistantInitiatedTurnOptions = {}
   ): AsyncIterable<RuntimeReplyStreamEvent> {
@@ -2514,6 +2759,12 @@ export class RuntimeOrchestrator {
       this.claimAssistantTurn(input);
       claimed = true;
       const admittedRevision = this.admitProactiveAttempt();
+      const providerContext = currentProviderWorkContext();
+      if (providerContext && !providerContext.cause)
+        providerContext.cause = await this.options.prepareProviderCause?.(
+          "proactive-wake",
+          providerContext.scope
+        );
 
       const effectInstanceId = crypto.randomUUID();
       const traceId = crypto.randomUUID();
@@ -2565,6 +2816,7 @@ export class RuntimeOrchestrator {
       let assistantCreated = false;
       let accumulatedText = "";
       let finalOutput: ChatOutput | undefined;
+      let replySequence = 0n;
       let finalized = false;
       let failure: unknown;
       const startedAt = performance.now();
@@ -2634,7 +2886,7 @@ export class RuntimeOrchestrator {
             sessionId: input.sessionId,
             traceId
           };
-          this.emitProactiveStreamEvent(noOpEvent);
+          await this.emitProactiveStreamEvent(noOpEvent);
           yield noOpEvent;
           return;
         }
@@ -2645,7 +2897,7 @@ export class RuntimeOrchestrator {
           sessionId: input.sessionId,
           traceId
         };
-        this.emitProactiveStreamEvent(requestTextEvent);
+        await this.emitProactiveStreamEvent(requestTextEvent);
         yield requestTextEvent;
         if (controller.signal.aborted) {
           throw createRuntimeCancelledError(decisionProvider.name);
@@ -2723,7 +2975,7 @@ export class RuntimeOrchestrator {
             sessionId: input.sessionId,
             traceId,
             parentMessageId: null,
-            content: accumulatedText,
+            content: "",
             createdAt: new Date().toISOString(),
             metadata: {
               origin: "assistant-initiated",
@@ -2736,10 +2988,42 @@ export class RuntimeOrchestrator {
           });
           assistantCreated = true;
         }
+        if (accumulatedText) {
+          const componentId = await this.appendStreamingAssistantContent(
+            assistantMessageId,
+            accumulatedText,
+            replyId,
+            "1",
+            options.replyPublicationTargets,
+            providerMetadata.sourceAttemptId
+          );
+          replySequence = 1n;
+          const deltaEvent = {
+            type: "text-delta" as const,
+            text: accumulatedText,
+            language: resolveCharacterExpressionLanguage(
+              this.outputLanguage(),
+              accumulatedText
+            ).toLowerCase(),
+            messageId: assistantMessageId,
+            replyId,
+            componentId,
+            sequence: "1",
+            sessionId: input.sessionId,
+            traceId
+          };
+          await this.emitProactiveStreamEvent(deltaEvent);
+          yield deltaEvent;
+        }
         if (this.options.conversation) {
           await this.completeStreamingAssistantMessage(
             assistantMessageId,
             {
+              replyProjection: {
+                version: "runtime-text.v1",
+                replyId,
+                lastSequence: replySequence.toString()
+              },
               provider: providerMetadata,
               model: providerMetadata.model,
               tokenUsage: providerMetadata.tokenUsage,
@@ -2776,20 +3060,11 @@ export class RuntimeOrchestrator {
         this.scheduleEmbodiedPresentation(reply);
         finalized = true;
 
-        const deltaEvent = {
-          type: "text-delta" as const,
-          text: accumulatedText,
-          language: resolveCharacterExpressionLanguage(
-            this.outputLanguage(),
-            accumulatedText
-          ).toLowerCase(),
-          messageId: assistantMessageId,
-          sessionId: input.sessionId,
-          traceId
-        };
         const completedEvent = {
           type: "completed" as const,
           messageId: assistantMessageId,
+          replyId,
+          lastSequence: replySequence.toString(),
           sessionId: input.sessionId,
           traceId,
           content: accumulatedText,
@@ -2799,9 +3074,7 @@ export class RuntimeOrchestrator {
           ).toLowerCase(),
           provider: providerMetadata.finalProvider ?? providerMetadata.name
         };
-        this.emitProactiveStreamEvent(deltaEvent);
-        yield deltaEvent;
-        this.emitProactiveStreamEvent(completedEvent);
+        await this.emitProactiveStreamEvent(completedEvent);
         yield completedEvent;
       } catch (error) {
         failure = error;
@@ -2869,6 +3142,15 @@ export class RuntimeOrchestrator {
    * explicit interaction source may admit a transcript as a reactive turn.
    */
   async transcribeSpeechAudio(input: SpeechTranscriptionInput): Promise<STTOutput> {
+    if (currentProviderWorkContext()) return this.executeTranscribeSpeechAudio(input);
+    const scope = `session:${input.sessionId ?? "default"}:capture:${input.captureEpoch ?? crypto.randomUUID()}`;
+    const cause = await this.options.prepareProviderCause?.("capture-preparation", scope);
+    return withProviderWorkContext(
+      { scope, cause, isCurrent: () => this.lifecycleState === "active" && !input.signal?.aborted },
+      () => this.executeTranscribeSpeechAudio(input)
+    );
+  }
+  private async executeTranscribeSpeechAudio(input: SpeechTranscriptionInput): Promise<STTOutput> {
     const sttProvider = this.options.providers.getSTTProvider();
     const output = await this.measureProvider(
       "stt",
@@ -2902,6 +3184,20 @@ export class RuntimeOrchestrator {
   }
 
   async handleImageInput(input: HandleImageInputInput): Promise<PerceptionVisionEvent> {
+    if (currentProviderWorkContext()) return this.executeImageInput(input);
+    const scope = `session:${input.sessionId}`;
+    const cause = await this.options.prepareProviderCause?.("vision-preparation", scope);
+    return withProviderWorkContext(
+      {
+        scope,
+        cause,
+        executionId: input.traceId,
+        isCurrent: () => this.lifecycleState === "active"
+      },
+      () => this.executeImageInput(input)
+    );
+  }
+  private async executeImageInput(input: HandleImageInputInput): Promise<PerceptionVisionEvent> {
     const visionProvider = this.options.providers.getVisionProvider();
     const vision = await this.measureProvider(
       "vision",
@@ -3513,7 +3809,11 @@ export class RuntimeOrchestrator {
 
   private beginCognitionTurn(sessionId: string) {
     this.activeCognitionTurns.get(sessionId)?.controller.abort();
-    const owner = { sessionId, executionId: crypto.randomUUID(), controller: new AbortController() };
+    const owner = {
+      sessionId,
+      executionId: crypto.randomUUID(),
+      controller: new AbortController()
+    };
     this.activeCognitionTurns.set(sessionId, owner);
     return owner;
   }
@@ -3840,7 +4140,12 @@ export class RuntimeOrchestrator {
       signal: cognitionSignal,
       runtimeAuthorizedPath,
       ...(event.payload.sourceJournalRef
-        ? { effectContext: { scope: `session:${event.payload.sessionId}`, cause: event.payload.sourceJournalRef } }
+        ? {
+            effectContext: {
+              scope: `session:${event.payload.sessionId}`,
+              cause: event.payload.sourceJournalRef
+            }
+          }
         : {})
     });
     assertCurrent();
@@ -3898,13 +4203,22 @@ export class RuntimeOrchestrator {
         "tts",
         ttsProvider.name,
         () =>
-          ttsProvider.synthesizeSpeech(
-            {
-              text: reply.payload.content,
-              metadata: { language: outputLanguage.toLowerCase() }
-            },
-            { signal: options.signal }
-          ),
+          this.options.synthesizeWholeSpeech
+            ? this.options.synthesizeWholeSpeech(
+                reply,
+                {
+                  text: reply.payload.content,
+                  metadata: { language: outputLanguage.toLowerCase() }
+                },
+                options.signal
+              )
+            : ttsProvider.synthesizeSpeech(
+                {
+                  text: reply.payload.content,
+                  metadata: { language: outputLanguage.toLowerCase() }
+                },
+                { signal: options.signal }
+              ),
         { traceId: reply.traceId, parentId: reply.id }
       );
 
@@ -4083,7 +4397,9 @@ export class RuntimeOrchestrator {
           sessionId: sourceEvent.payload.sessionId
         });
         if (!admitted || !this.options.finalizedIngestion) {
-          throw new Error("MEMORY_FINALIZED_LEDGER_REQUIRED: finalized Memory requires durable grounded admission.");
+          throw new Error(
+            "MEMORY_FINALIZED_LEDGER_REQUIRED: finalized Memory requires durable grounded admission."
+          );
         }
         if (admitted.turn.status === "skipped") {
           return {
@@ -4274,13 +4590,13 @@ export class RuntimeOrchestrator {
     }
   ): Promise<MemoryExtractionRuntimeDebug> {
     const initialExtractorStatus = this.getMemoryExtractorStatus();
-    const groundingContext: MemoryGroundingContext | undefined =
-      sourceEvent.payload.sourceJournalRef
-        ? {
-            sourceJournalRef: sourceEvent.payload.sourceJournalRef,
-            sourceText: sourceEvent.payload.content
-          }
-        : undefined;
+    const groundingContext: MemoryGroundingContext | undefined = sourceEvent.payload
+      .sourceJournalRef
+      ? {
+          sourceJournalRef: sourceEvent.payload.sourceJournalRef,
+          sourceText: sourceEvent.payload.content
+        }
+      : undefined;
     try {
       // Mem0 path: never run Legacy extract/dedupe/embed/repository write.
       if (this.options.memory.isMem0Backend?.()) {
@@ -4343,10 +4659,14 @@ export class RuntimeOrchestrator {
         const extractorStatus = this.getMemoryExtractorStatus();
         const decisions = await Promise.all(
           candidates.map((candidate) =>
-            this.processCandidateForStorage(candidate, {
-              source: "runtime",
-              tags: [sourceEvent.payload.sessionId]
-            }, groundingContext)
+            this.processCandidateForStorage(
+              candidate,
+              {
+                source: "runtime",
+                tags: [sourceEvent.payload.sessionId]
+              },
+              groundingContext
+            )
           )
         );
         const selected = decisions
@@ -4541,32 +4861,59 @@ export class RuntimeOrchestrator {
     assistantMessageId?: string,
     finalizedTurnId?: string,
     ingestionRequested?: boolean | null,
-    ingestionSkipReason?: string | null
+    ingestionSkipReason?: string | null,
+    replyProjection?: { version: string; replyId: string; lastSequence: string }
   ): Promise<AssistantMessageEvent> {
     this.assertCognitionTurnCurrent(sourceEvent);
     const assistantMessage = this.createAssistantMessageEvent(reply, assistantMessageId);
 
     try {
-      const persistedAssistant = await this.options.conversation?.appendMessage({
-        ...conversationMessageFromEvent(assistantMessage, "assistant", "completed"),
-        ...(this.visuallyGroundedTurns.has(sourceEvent)
-          ? { metadata: { memoryEphemeral: true } }
-          : {}),
-        ...(this.memoryWriteDisabledTurns.has(sourceEvent)
-          ? {
-              metadata: {
-                memoryWriteDisabled: true,
-                ...(this.visuallyGroundedTurns.has(sourceEvent) ? { memoryEphemeral: true } : {})
+      const existingAssistant = replyProjection
+        ? await this.options.conversation?.getMessageById?.(assistantMessage.id)
+        : null;
+      const persistedAssistant =
+        existingAssistant?.status === "streaming"
+          ? await this.options.conversation!.completeMessage(
+              assistantMessage.id,
+              {
+                ...(replyProjection ? { replyProjection } : {}),
+                ...(this.visuallyGroundedTurns.has(sourceEvent) ? { memoryEphemeral: true } : {}),
+                ...(this.memoryWriteDisabledTurns.has(sourceEvent)
+                  ? { memoryWriteDisabled: true }
+                  : {}),
+                provider: reply.payload.provider
+              },
+              {
+                finalizedTurnId: finalizedTurnId ?? null,
+                sourceUserEventId: sourceEvent.id,
+                personaId: sourceEvent.payload.personaId ?? null,
+                subjectUserId: sourceEvent.payload.subjectUserId ?? null,
+                ingestionRequested: ingestionRequested ?? null,
+                ingestionSkipReason: ingestionSkipReason ?? null
               }
-            }
-          : {}),
-        finalizedTurnId: finalizedTurnId ?? null,
-        sourceUserEventId: sourceEvent.id,
-        personaId: sourceEvent.payload.personaId ?? null,
-        subjectUserId: sourceEvent.payload.subjectUserId ?? null,
-        ingestionRequested: ingestionRequested ?? null,
-        ingestionSkipReason: ingestionSkipReason ?? null
-      });
+            )
+          : await this.persistCompletedAssistantReply(reply.id, {
+              ...conversationMessageFromEvent(assistantMessage, "assistant", "completed"),
+              ...(this.visuallyGroundedTurns.has(sourceEvent)
+                ? { metadata: { memoryEphemeral: true } }
+                : {}),
+              ...(this.memoryWriteDisabledTurns.has(sourceEvent)
+                ? {
+                    metadata: {
+                      memoryWriteDisabled: true,
+                      ...(this.visuallyGroundedTurns.has(sourceEvent)
+                        ? { memoryEphemeral: true }
+                        : {})
+                    }
+                  }
+                : {}),
+              finalizedTurnId: finalizedTurnId ?? null,
+              sourceUserEventId: sourceEvent.id,
+              personaId: sourceEvent.payload.personaId ?? null,
+              subjectUserId: sourceEvent.payload.subjectUserId ?? null,
+              ingestionRequested: ingestionRequested ?? null,
+              ingestionSkipReason: ingestionSkipReason ?? null
+            });
       if (persistedAssistant?.finalizedTurnId) {
         finalizedTurnId = persistedAssistant.finalizedTurnId;
       }
@@ -4744,13 +5091,78 @@ export class RuntimeOrchestrator {
     }
   }
 
-  private async appendStreamingAssistantContent(messageId: string, delta: string): Promise<void> {
+  private async persistCompletedAssistantReply(
+    replyId: string,
+    input: ConversationMessageInput
+  ): Promise<ConversationMessage | undefined> {
     const conversation = this.options.conversation;
+    if (!conversation) return undefined;
+    const initial = await conversation.appendMessage({
+      ...input,
+      content: "",
+      status: "streaming",
+      completedAt: null
+    });
+    if (initial.status === "completed") {
+      if (initial.content !== input.content) throw Error("Completed reply payload conflict.");
+      return initial;
+    }
+    if (input.content)
+      await this.appendStreamingAssistantContent(
+        input.id,
+        input.content,
+        replyId,
+        "1",
+        [],
+        (input.metadata?.["provider"] as ProviderMetadata | undefined)?.sourceAttemptId
+      );
+    return conversation.completeMessage(initial.id, input.metadata, {
+      finalizedTurnId: input.finalizedTurnId,
+      sourceUserEventId: input.sourceUserEventId,
+      personaId: input.personaId,
+      subjectUserId: input.subjectUserId,
+      ingestionRequested: input.ingestionRequested,
+      ingestionSkipReason: input.ingestionSkipReason
+    });
+  }
+
+  private async appendStreamingAssistantContent(
+    messageId: string,
+    delta: string,
+    replyId: string,
+    sequence: string,
+    publicationTargets: readonly import("@companion/memory").ReplyPublicationTarget[] = [],
+    sourceAttemptId?: string
+  ): Promise<string> {
+    const conversation = this.options.conversation;
+    const textDigest = createHash("sha256").update(delta, "utf8").digest("hex");
+    const componentId = `rc1_${createHash("sha256")
+      .update(`${replyId}\0${sequence}\0${textDigest}`, "utf8")
+      .digest("hex")}`;
     if (!conversation) {
-      return;
+      return componentId;
     }
     try {
+      if (conversation.appendReplyComponent) {
+        const result = await conversation.appendReplyComponent({
+          replyId,
+          messageId,
+          sequence,
+          text: delta,
+          projectionVersion: "runtime-text.v1",
+          sourceAttemptId,
+          publicationTargets
+        });
+        if (!result.inserted) {
+          throw new Error("A previously committed reply component cannot be yielded again.");
+        }
+        return result.componentId;
+      }
+      if (conversation.kind === "postgres") {
+        throw new Error("PostgreSQL conversation repository lacks A9 reply component support.");
+      }
       await conversation.appendMessageContent(messageId, delta);
+      return componentId;
     } catch (error) {
       await this.publishPersistenceError(
         "assistant_stream_append",
@@ -5563,6 +5975,7 @@ export class RuntimeOrchestrator {
             .routes?.[capability]?.find((route) => route.provider === finalProvider) ?? status);
     const mock = Boolean(finalStatus?.mock);
     return {
+      sourceAttemptId: output.sourceAttemptId,
       name: mock ? "mock" : finalProvider,
       capability,
       model: output.model ?? finalStatus?.model,
@@ -5926,11 +6339,7 @@ function toRuntimeVisualEvidence(
   },
   emptyMessage: string
 ): RuntimeVisualEvidence {
-  const observations = [
-    output.text,
-    output.sceneSummary,
-    ...(output.objects ?? []).slice(0, 32)
-  ]
+  const observations = [output.text, output.sceneSummary, ...(output.objects ?? []).slice(0, 32)]
     .filter((value): value is string => typeof value === "string")
     .map((value) => value.slice(0, 4000))
     .join("\n")
@@ -6854,8 +7263,15 @@ function toP8AcousticObservationReference(
   event: RuntimeUserTurnEvent,
   observationId: string | undefined
 ): P8AcousticObservationReference | undefined {
-  const reference = event.type === "user.voice.transcript" ? event.payload.sourceJournalRef : undefined;
-  if (!reference || reference.kind !== "JOURNAL_EVENT" || !reference.namespace || !reference.eventId || !observationId)
+  const reference =
+    event.type === "user.voice.transcript" ? event.payload.sourceJournalRef : undefined;
+  if (
+    !reference ||
+    reference.kind !== "JOURNAL_EVENT" ||
+    !reference.namespace ||
+    !reference.eventId ||
+    !observationId
+  )
     return undefined;
   return {
     kind: "JOURNAL_EVENT",
@@ -6868,11 +7284,19 @@ function toP8AcousticObservationReference(
 function observedVoiceProfileIds(observation: STTOutput): string[] {
   const segments = observation.segments ?? [];
   const matches = segments.length
-    ? segments.map((segment) => segment.voiceProfileMatch ?? (segments.length === 1 ? observation.voiceProfileMatch : undefined))
+    ? segments.map(
+        (segment) =>
+          segment.voiceProfileMatch ??
+          (segments.length === 1 ? observation.voiceProfileMatch : undefined)
+      )
     : [observation.voiceProfileMatch];
-  return [...new Set(matches.flatMap((match) =>
-    match?.status === "MATCHED" && match.voiceProfileId ? [match.voiceProfileId] : []
-  ))];
+  return [
+    ...new Set(
+      matches.flatMap((match) =>
+        match?.status === "MATCHED" && match.voiceProfileId ? [match.voiceProfileId] : []
+      )
+    )
+  ];
 }
 
 async function readCurrentP8VoiceBindingProjections(
@@ -6881,8 +7305,14 @@ async function readCurrentP8VoiceBindingProjections(
   voiceProfileIds: readonly string[],
   personaId: string,
   acousticObservationReference: P8AcousticObservationReference
-): Promise<{ projections: readonly P8VoiceBindingProjection[]; events: readonly MemoryEvent[] } | null> {
-  const unavailable = (): { projections: readonly P8VoiceBindingProjection[]; events: readonly MemoryEvent[] } => ({
+): Promise<{
+  projections: readonly P8VoiceBindingProjection[];
+  events: readonly MemoryEvent[];
+} | null> {
+  const unavailable = (): {
+    projections: readonly P8VoiceBindingProjection[];
+    events: readonly MemoryEvent[];
+  } => ({
     projections: voiceProfileIds.map((voiceProfileId) => ({
       projectionVersion: "p8-host-voice-binding.v1",
       status: "UNAVAILABLE",
@@ -6907,7 +7337,8 @@ async function readCurrentP8VoiceBindingProjections(
     const byScope: Record<string, readonly string[]> = {};
     for (const binding of first.bindings) {
       if (binding.eventIds.length) {
-        byScope[buildMemoryScope(`voice-profile:${binding.voiceProfileId}`, binding.personaId)] = binding.eventIds;
+        byScope[buildMemoryScope(`voice-profile:${binding.voiceProfileId}`, binding.personaId)] =
+          binding.eventIds;
       }
     }
     if (!references.isCurrent(first.ownerRevision)) {
@@ -6919,14 +7350,23 @@ async function readCurrentP8VoiceBindingProjections(
     const events: MemoryEvent[] = [];
     for (const voiceProfileId of voiceProfileIds) {
       const scopeReference = buildMemoryScope(`voice-profile:${voiceProfileId}`, personaId);
-      const state = first.bindings.find((item) => item.voiceProfileId === voiceProfileId && item.personaId === personaId);
+      const state = first.bindings.find(
+        (item) => item.voiceProfileId === voiceProfileId && item.personaId === personaId
+      );
       const indexedIds = [...references.load(scopeReference)].sort((a, b) => a.localeCompare(b));
       if (!state) {
         if (indexedIds.length) return unavailable();
         projections.push({
-          projectionVersion: "p8-host-voice-binding.v1", status: "UNBOUND", voiceProfileId, personaId,
-          scopeReference, nativeOwnerRevision: first.ownerRevision, bindingRevision: null,
-          issuerPolicy: "LOCAL_EXPLICIT_CONTROLLER", eligibility: "INELIGIBLE", evidenceReferences: [],
+          projectionVersion: "p8-host-voice-binding.v1",
+          status: "UNBOUND",
+          voiceProfileId,
+          personaId,
+          scopeReference,
+          nativeOwnerRevision: first.ownerRevision,
+          bindingRevision: null,
+          issuerPolicy: "LOCAL_EXPLICIT_CONTROLLER",
+          eligibility: "INELIGIBLE",
+          evidenceReferences: [],
           acousticObservationReference
         });
         continue;
@@ -6935,9 +7375,16 @@ async function readCurrentP8VoiceBindingProjections(
       if (JSON.stringify(indexedIds) !== JSON.stringify(stateIds)) return unavailable();
       if (state.status === "CONFLICT") {
         projections.push({
-          projectionVersion: "p8-host-voice-binding.v1", status: "CONFLICT", voiceProfileId, personaId,
-          scopeReference, nativeOwnerRevision: first.ownerRevision, bindingRevision: state.revision,
-          issuerPolicy: "LOCAL_EXPLICIT_CONTROLLER", eligibility: "INELIGIBLE", evidenceReferences: stateIds,
+          projectionVersion: "p8-host-voice-binding.v1",
+          status: "CONFLICT",
+          voiceProfileId,
+          personaId,
+          scopeReference,
+          nativeOwnerRevision: first.ownerRevision,
+          bindingRevision: state.revision,
+          issuerPolicy: "LOCAL_EXPLICIT_CONTROLLER",
+          eligibility: "INELIGIBLE",
+          evidenceReferences: stateIds,
           acousticObservationReference
         });
         continue;
@@ -6945,41 +7392,86 @@ async function readCurrentP8VoiceBindingProjections(
       if (state.status === "UNBOUND") {
         if (stateIds.length) return unavailable();
         projections.push({
-          projectionVersion: "p8-host-voice-binding.v1", status: "UNBOUND", voiceProfileId, personaId,
-          scopeReference, nativeOwnerRevision: first.ownerRevision, bindingRevision: state.revision,
-          issuerPolicy: "LOCAL_EXPLICIT_CONTROLLER", eligibility: "INELIGIBLE", evidenceReferences: [],
+          projectionVersion: "p8-host-voice-binding.v1",
+          status: "UNBOUND",
+          voiceProfileId,
+          personaId,
+          scopeReference,
+          nativeOwnerRevision: first.ownerRevision,
+          bindingRevision: state.revision,
+          issuerPolicy: "LOCAL_EXPLICIT_CONTROLLER",
+          eligibility: "INELIGIBLE",
+          evidenceReferences: [],
           acousticObservationReference
         });
         continue;
       }
       // An old unlineaged binding can remain readable, but it cannot prove a current P8 resolution.
-      if (!first.ownerRevision || !state.revision || state.lineageStatus !== "VERSIONED" || !state.personId || !stateIds.length) {
+      if (
+        !first.ownerRevision ||
+        !state.revision ||
+        state.lineageStatus !== "VERSIONED" ||
+        !state.personId ||
+        !stateIds.length
+      ) {
         projections.push({
-          projectionVersion: "p8-host-voice-binding.v1", status: "UNAVAILABLE", voiceProfileId, personaId,
-          scopeReference, nativeOwnerRevision: first.ownerRevision, bindingRevision: state.revision,
-          issuerPolicy: "LOCAL_EXPLICIT_CONTROLLER", eligibility: "INELIGIBLE", evidenceReferences: stateIds,
+          projectionVersion: "p8-host-voice-binding.v1",
+          status: "UNAVAILABLE",
+          voiceProfileId,
+          personaId,
+          scopeReference,
+          nativeOwnerRevision: first.ownerRevision,
+          bindingRevision: state.revision,
+          issuerPolicy: "LOCAL_EXPLICIT_CONTROLLER",
+          eligibility: "INELIGIBLE",
+          evidenceReferences: stateIds,
           acousticObservationReference
         });
         continue;
       }
-      const loaded = await Promise.all(stateIds.map((id) => owner.getEvent({ id, scope: scopeReference })));
-      if (loaded.some((event) => !event || event.scope !== scopeReference || event.source !== "local-controller-evidence" ||
-          event.claim?.subject.entityId !== state.personId)) return unavailable();
-      events.push(...loaded as MemoryEvent[]);
+      const loaded = await Promise.all(
+        stateIds.map((id) => owner.getEvent({ id, scope: scopeReference }))
+      );
+      if (
+        loaded.some(
+          (event) =>
+            !event ||
+            event.scope !== scopeReference ||
+            event.source !== "local-controller-evidence" ||
+            event.claim?.subject.entityId !== state.personId
+        )
+      )
+        return unavailable();
+      events.push(...(loaded as MemoryEvent[]));
       projections.push({
-        projectionVersion: "p8-host-voice-binding.v1", status: "CURRENT", voiceProfileId, personaId,
-        scopeReference, nativeOwnerRevision: first.ownerRevision, bindingRevision: state.revision,
-        issuerPolicy: "LOCAL_EXPLICIT_CONTROLLER", eligibility: "CURRENT", evidenceReferences: stateIds,
+        projectionVersion: "p8-host-voice-binding.v1",
+        status: "CURRENT",
+        voiceProfileId,
+        personaId,
+        scopeReference,
+        nativeOwnerRevision: first.ownerRevision,
+        bindingRevision: state.revision,
+        issuerPolicy: "LOCAL_EXPLICIT_CONTROLLER",
+        eligibility: "CURRENT",
+        evidenceReferences: stateIds,
         acousticObservationReference
       });
     }
 
     const second = await owner.listBindingStates();
-    if (!second.complete || second.ownerRevision !== first.ownerRevision || !references.isCurrent(second.ownerRevision))
+    if (
+      !second.complete ||
+      second.ownerRevision !== first.ownerRevision ||
+      !references.isCurrent(second.ownerRevision)
+    )
       return unavailable();
     for (const voiceProfileId of voiceProfileIds) {
-      const before = first.bindings.find((item) => item.voiceProfileId === voiceProfileId && item.personaId === personaId);
-      const after = second.bindings.find((item) => item.voiceProfileId === voiceProfileId && item.personaId === personaId);
+      const before = first.bindings.find(
+        (item) => item.voiceProfileId === voiceProfileId && item.personaId === personaId
+      );
+      const after = second.bindings.find(
+        (item) => item.voiceProfileId === voiceProfileId && item.personaId === personaId
+      );
       if (bindingStateFingerprint(before) !== bindingStateFingerprint(after)) return unavailable();
     }
     return { projections, events };
@@ -6989,7 +7481,9 @@ async function readCurrentP8VoiceBindingProjections(
 }
 
 function bindingStateFingerprint(
-  state: Awaited<ReturnType<NativeControllerBindingOwner["listBindingStates"]>>["bindings"][number] | undefined
+  state:
+    | Awaited<ReturnType<NativeControllerBindingOwner["listBindingStates"]>>["bindings"][number]
+    | undefined
 ): string {
   if (!state) return "ABSENT";
   return JSON.stringify({

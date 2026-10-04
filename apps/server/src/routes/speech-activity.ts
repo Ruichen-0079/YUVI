@@ -23,20 +23,6 @@ const SpeechActivityFrameSchema = z
   })
   .strict();
 
-const SpeechPlaybackAdmitSchema = z
-  .object({
-    sessionId: z.string().trim().min(1).default("default"),
-    requestId: z.string().trim().min(1)
-  })
-  .strict();
-
-const SpeechPlaybackOutcomeSchema = z
-  .object({
-    effectId: z.string().trim().min(1),
-    outcome: z.enum(["STARTED", "COMPLETED", "REJECTED", "FAILED", "INTERRUPTED"])
-  })
-  .strict();
-
 export async function registerSpeechActivityRoutes(
   app: FastifyInstance,
   context: AppContext
@@ -59,7 +45,13 @@ export async function registerSpeechActivityRoutes(
     }
     try {
       const snapshot = context.runtime.observeSpeechActivity(parsed.data);
-      return reply.send(toResponse(parsed.data.sessionId, snapshot));
+      const revoked = parsed.data.active
+        ? context.mediaEffects?.interruptSession(parsed.data.sessionId)
+        : undefined;
+      return reply.send({
+        ...toResponse(parsed.data.sessionId, snapshot),
+        ...(revoked ? { revokedSpeechRequestId: revoked } : {})
+      });
     } catch (error) {
       return sendSpeechActivityError(reply, error);
     }
@@ -93,7 +85,13 @@ export async function registerSpeechActivityRoutes(
         captureEpoch: parsed.data.captureEpoch,
         active: classified.active
       });
-      return reply.send(toResponse(parsed.data.sessionId, snapshot));
+      const revoked = classified.active
+        ? context.mediaEffects?.interruptSession(parsed.data.sessionId)
+        : undefined;
+      return reply.send({
+        ...toResponse(parsed.data.sessionId, snapshot),
+        ...(revoked ? { revokedSpeechRequestId: revoked } : {})
+      });
     } catch (error) {
       return sendSpeechActivityError(reply, error);
     } finally {
@@ -101,23 +99,10 @@ export async function registerSpeechActivityRoutes(
     }
   });
 
-  app.post("/v1/speech-playback", async (request, reply) => {
-    const parsed = SpeechPlaybackAdmitSchema.safeParse(request.body);
-    if (!parsed.success) {
-      return reply.status(400).send({ error: "invalid_request", details: parsed.error.flatten() });
-    }
-    const effect = context.runtime.admitSpeechPlayback(parsed.data);
-    return reply.send(effect);
-  });
-
-  app.post("/v1/speech-playback/outcome", async (request, reply) => {
-    const parsed = SpeechPlaybackOutcomeSchema.safeParse(request.body);
-    if (!parsed.success) {
-      return reply.status(400).send({ error: "invalid_request", details: parsed.error.flatten() });
-    }
-    const effect = context.runtime.reportSpeechPlaybackOutcome(parsed.data);
-    return reply.send(effect ?? { effectId: parsed.data.effectId, state: null });
-  });
+  for (const path of ["/v1/speech-playback", "/v1/speech-playback/outcome"])
+    app.post(path, async (_request, reply) =>
+      reply.code(410).send({ error: "canonical_media_permission_required" })
+    );
 }
 
 function hasVoiceActivity(provider: STTProvider): provider is STTProvider & {
