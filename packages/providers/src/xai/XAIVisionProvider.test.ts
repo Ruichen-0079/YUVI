@@ -73,6 +73,22 @@ function expectMalformed(result: Promise<unknown>): Promise<void> {
 }
 
 describe("xAI Vision provider normalization", () => {
+  it("uses official DeepSeek Flash for bounded non-thinking visual evidence", async () => {
+    const { body } = stubFetch();
+    const provider = new XAIVisionProvider({
+      provider: "alice-vision",
+      apiKey: "fixture",
+      baseUrl: "https://api.deepseek.com/v1",
+      model: "deepseek-flash"
+    });
+    await provider.analyzeImage({ imageBase64: "AQID", mimeType: "image/png" });
+    expect(body()).toMatchObject({
+      model: "deepseek-flash",
+      thinking: { type: "disabled" },
+      max_tokens: 1024
+    });
+    expect(provider.name).toBe("alice-vision");
+  });
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();

@@ -42,7 +42,9 @@ const SUPPORTED_IMAGE_MIME_TYPES = new Map([
 ]);
 
 export class XAIVisionProvider implements VisionProvider {
-  get name(): string { return this.options.provider ?? "xai"; }
+  get name(): string {
+    return this.options.provider ?? "xai";
+  }
 
   constructor(private readonly options: XAIProviderOptions) {}
 
@@ -79,7 +81,12 @@ export class XAIVisionProvider implements VisionProvider {
           },
           body: JSON.stringify({
             model: this.options.model,
-            messages: buildVisionMessages(input, imageUrl)
+            messages: buildVisionMessages(input, imageUrl),
+            // The shared OpenAI-compatible adapter also serves official DeepSeek Vision.
+            // Visual grounding supplies bounded observations; Character owns cognition.
+            ...(new URL(this.options.baseUrl).hostname === "api.deepseek.com"
+              ? { thinking: { type: "disabled" }, max_tokens: 1024 }
+              : {})
           })
         },
         transport.signal
