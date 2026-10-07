@@ -12,7 +12,6 @@ The public release README now points to the verified published `v0.1.2-final` re
 
 | Branch | Tip | Decision | Unique / patch-unmatched commits |
 |---|---|---|---|
-| `origin` | `4278eb36b1a0` | delete | 0 / 0 |
 | `agentbus-v2/sol-finish-7d2b` | `7887659afd1f` | retain | 94 / 94 |
 | `agentbus/canary-v1-plugin-compat` | `9d919b9aad58` | retain | 1 / 1 |
 | `agentbus/canary-v1-plugin-compat-judge` | `84dd37c43e1e` | retain | 1 / 1 |
@@ -335,3 +334,5 @@ The public release README now points to the verified published `v0.1.2-final` re
 ## Validation for integration
 
 Workspace `pnpm check` and `NODE_USE_ENV_PROXY=1 pnpm build` passed. Focused Multi-Character Core (4), Memory scope (4), Provider/Registry (38), P8 correction/file persistence (12), and server composition/real PG durable + SIGKILL/restart (6) tests passed: 64 passing tests, one opt-in real-model test skipped in this documentation-only integration run. The prior implementation acceptance ran the actual shared Qwen service and full 3,898 Vitest + 63 Node suite; those results are historical evidence, not a claim of repeating the full suite here. No source-code integration conflict occurred.
+
+Audit totals: 318 actual remote branches (the symbolic origin/HEAD alias is excluded), 213 deletion candidates and 105 retained branches, including main. 101 retained branches contain main-unreachable commits; release/safety purposes and open PRs account for the other retained pointers.
