@@ -21,7 +21,34 @@ A pilot may estimate variance and fix thresholds for a new held-out study; it ca
 | E5 — pulse and recovery | Inject a bounded salient experience; accelerate elapsed time and supply independent later opportunities/counterevidence; compare no pulse and repeated pulse | Measure immediate effect, bounded integration, persistence, decay, saturation and correction/recovery; no clock-dependent hidden refresh. Endless reinforcement from self-generated reminders is failure |
 | E6 — attribution correction | Deliberately bind evidence to the wrong Person/source, derive claims/projections/selections/prospective links, then amend the source/binding | Invalidate/recompute all affected descendants, withdraw stale exposure, preserve unrelated history and obligations; report incomplete/deleted sources. Global reset or lingering affected influence fails |
 
-The numerical E2 floor is a proposed entry criterion, not an established scientific validity claim. A reliable label can still measure the wrong construct. Report class imbalance and per-label precision/recall; an aggregate agreement score cannot hide a rare harmful label. For E1/E3–E5 choose meaningful effect and safety thresholds for the concrete construct before results; an unfilled preregistration blocks the run's promotion, not the documentation task.
+
+## Continuity hypotheses retained from PR #321
+
+Persistent functional continuity is a research claim about history-dependent
+behavior, not a required self component or a representation format. Memory
+provides recoverable evidence; neither retrieval, a durable database, fluent
+self-description nor SFT/DPO alone proves that claim. Authored Character identity,
+Persona and P8 remain current product authorities. Treating Persona as bootstrap
+rather than an exhaustive lifelong personality is a research possibility, not
+permission to demote those authorities or change the current composition contract.
+
+Two additional interventions preserve useful questions from
+[PR #321](https://github.com/Ruichen-0079/YUVI/pull/321) within the current causal-history
+research program:
+
+| Experiment | Design / controls | Gate and failure meaning |
+| --- | --- | --- |
+| E7 — inertia with justified revision | With relevant histories and current task fixed, perturb irrelevant conversational tone/style; separately supply reliable counterevidence. Compare the explicit text/Memory baselines and any eligible learned-state arm under the same budgets | Recognizing a tone or adapting expression must not by itself overwrite history-dependent choices. Reliable evidence must still permit revision; both cue-following overwrite and uncorrectable rigidity fail |
+| E8 — own action and observed consequence | In a synthetic replay environment, pair identical prior observations with different authorized actions and independently observed outcomes, then return to identical decision inputs. Include action-only, outcome-only, copied-self-narrative and passive-observation controls; remove/swap the eligible action/outcome history or candidate state | Attribute any later behavioral difference to the intervention, not scenario IDs, replay leakage or generated claims of success. A9 attempt/UNKNOWN is not a successful outcome. Only eligible evidence under existing lineage/measurement rules may support an interpretation; assistant prose cannot become self-authenticating disposition evidence |
+
+These experiments have no production write authority and add no implementation
+work queue. Apply the existing preregistration, privacy/correction and baseline
+gates; run no real external effects during replay. Slow parameter consolidation
+is not implied by passing them: any later proposal must separately demonstrate
+state/interpreter compatibility, migration, rollback and value beyond the explicit
+baselines under [model replacement](model-replacement.md).
+
+The numerical E2 floor is a proposed entry criterion, not an established scientific validity claim. A reliable label can still measure the wrong construct. Report class imbalance and per-label precision/recall; an aggregate agreement score cannot hide a rare harmful label. For E1/E3–E5/E7–E8 choose meaningful effect and safety thresholds for the concrete construct before results; an unfilled preregistration blocks the run's promotion, not the documentation task.
 
 ## Privacy and correction
 
