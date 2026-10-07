@@ -36,7 +36,7 @@ export const RuntimeSocialContextSchema = z
     originChannelRef: z.string().min(1).max(512).optional(),
     self: speaker.optional(),
     sourceJournalRef: JournalEventRefSchema.optional(),
-    admission: z.enum(["PRIVATE", "MENTION", "REPLY", "CONTINUATION"]),
+    admission: z.enum(["PRIVATE", "MENTION", "REPLY", "CONTINUATION", "ATTENTION"]),
     speaker,
     mentions,
     media: z

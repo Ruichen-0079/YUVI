@@ -2,6 +2,22 @@ import { describe, expect, it } from "vitest";
 import { RuntimeSocialContextSchema } from "@companion/protocol";
 import { renderSurfaceSituation } from "./surface-situation.js";
 describe("generic model-facing surface situation", () => {
+  it("attention admission does not claim a mention or dictate a response", () => {
+    const context = RuntimeSocialContextSchema.parse({
+      surface: "qq",
+      channelRef: "group",
+      conversationKind: "GROUP",
+      speaker: { principalId: "other" },
+      admission: "ATTENTION",
+      mentions: [],
+      observations: []
+    });
+    const rendered = renderSurfaceSituation(context);
+    expect(rendered).toContain("Current admission: ATTENTION");
+    expect(rendered).toContain("does not establish direct addressing");
+    expect(rendered).toContain("silence is allowed");
+    expect(rendered).toContain("Current mentions: []");
+  });
   it("keeps uncertain own drafts distinct from acknowledged speech and compacts repeated transport namespaces", () => {
     const actor = "transport:deployment:" + "x".repeat(160);
     const rendered = renderSurfaceSituation(

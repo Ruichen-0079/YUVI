@@ -386,5 +386,54 @@ describe.skipIf(!databaseUrl)(
       expect(alice.runtime.characterBinding.definition.id).toBe("alice");
       expect(yuvi.runtime.characterBinding.definition.id).toBe("yuvi");
     });
+    it("local attention IGNORE preserves a receipt; ATTEND reaches actual gate and final provider requests without claiming a mention", async () => {
+      let decision: "IGNORE" | "ATTEND" = "IGNORE";
+      const social = new QQSocialAdapter(port(), Date.now, {
+        attention: {
+          evaluate: async () => ({ decision, fallback: false, elapsedMs: 50, completionTokens: 2 })
+        }
+      });
+      const send = vi.fn(async () => {});
+      const before = requests.length;
+      const ignored = decodeQQPacket(
+        wire({
+          message_id: 990,
+          message: [{ type: "text", data: { text: "QQ_PREFILTER_OTHER_CHAT" } }]
+        }),
+        "42",
+        "fixture:42"
+      )!;
+      expect((await social.receive(ignored, connection(send))).outcome).toBe("OBSERVED");
+      expect(requests).toHaveLength(before);
+      expect(send).not.toHaveBeenCalled();
+      const receipt = await pool.query(
+        "select text_content from journal_payloads where payload_namespace='yuvi:surface-text' and text_content='QQ_PREFILTER_OTHER_CHAT'"
+      );
+      expect(receipt.rows).toHaveLength(1);
+      decision = "ATTEND";
+      mode = "RESPOND";
+      const directed = decodeQQPacket(
+        wire({
+          message_id: 991,
+          message: [{ type: "text", data: { text: "Alice QQ_ATTENTION_CURRENT" } }]
+        }),
+        "42",
+        "fixture:42"
+      )!;
+      expect((await social.receive(directed, connection(send))).outcome).toBe("RESPOND");
+      const calls = requests.slice(before) as Array<{
+        stream?: boolean;
+        messages: Array<{ content: string }>;
+      }>;
+      expect(calls.some((call) => !call.stream)).toBe(true);
+      const final = calls.find((call) => call.stream)!;
+      for (const call of calls)
+        expect(call.messages[0]?.content).toMatch(/^This input is a group event;/);
+      expect(final.messages[1]?.content).toBe("Alice QQ_ATTENTION_CURRENT");
+      expect(final.messages[0]?.content).toContain("Current admission: ATTENTION");
+      expect(final.messages[0]?.content).toContain("does not establish direct addressing");
+      expect(final.messages[0]?.content).toContain("Current mentions: []");
+      expect(send).toHaveBeenCalledOnce();
+    });
   }
 );

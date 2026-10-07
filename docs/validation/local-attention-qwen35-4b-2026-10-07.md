@@ -2,7 +2,8 @@
 
 An independent local Qwen3.5-4B service is installed and running on Ruichen's
 workstation. Alice's existing QQ admission and Character path remain active.
-The local service has **not** been wired into those paths. This checkpoint
+At this deployment checkpoint the service had **not** been wired into those paths.
+It was subsequently connected; see [the QQ integration validation](local-attention-qq-integration-2026-10-08.md). This checkpoint
 validates model selection, latency and bounded generation, not a production
 attention classifier's recall or a new QQ routing policy.
 

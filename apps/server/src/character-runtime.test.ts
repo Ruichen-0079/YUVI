@@ -54,6 +54,48 @@ function characterHarness(overrides: { responses: ChatOutput[] }) {
 }
 
 describe("production Character runtime adapter", () => {
+  it("projects validated group input boundaries above semantic data in gate, body and cognition re-entry", async () => {
+    const interactionBoundary = {
+      surface: "qq" as const,
+      conversationKind: "GROUP" as const,
+      admission: "ATTENTION" as const
+    };
+    for (const postCognition of [false, true]) {
+      const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
+      const input = {
+        prompt,
+        userMessage: "Alice, explain this",
+        interactionBoundary,
+        generateChat: calls.generateChat
+      };
+      const port = createServerCharacterPort();
+      const result = postCognition
+        ? await port.generateAfterCognition({ ...input, cognitionRoundTrip: roundTrip() })
+        : await port.generate(input);
+      const reply = result.decision.reply;
+      if (reply.disposition !== "RESPOND" || !("body" in reply)) throw new Error("Missing body");
+      for (const chat of [calls.generateChat.mock.calls[0]![0], reply.body]) {
+        expect(chat.messages[0]!.content).toMatch(/^This input is a group event;/);
+        expect(chat.messages[0]!.content).toContain("SILENCE for no-reply requests");
+        expect(chat.contextProjectionVersions).toContain("character-group-input-boundary.v1");
+        expect(chat.messages[1]!.content).toBe("Alice, explain this");
+      }
+    }
+  });
+
+  it("keeps directly addressed private turns separate from group review", async () => {
+    const calls = characterHarness({ responses: [output('{"disposition":"SILENCE"}')] });
+    await createServerCharacterPort().generate({
+      prompt,
+      userMessage: "No reply please",
+      generateChat: calls.generateChat,
+      interactionBoundary: { surface: "qq", conversationKind: "PRIVATE", admission: "PRIVATE" }
+    });
+    const chat = calls.generateChat.mock.calls[0]![0];
+    expect(chat.messages[0]!.content).not.toContain("This input is a group event");
+    expect(chat.contextProjectionVersions).not.toContain("character-group-input-boundary.v1");
+  });
+
   it("serializes the shared canonical P8 and Memory projection with current input", async () => {
     const canonicalContext = assembleCanonicalContext({
       semanticSections: [
@@ -479,48 +521,62 @@ describe("semantic current-screen grounding", () => {
     expect(JSON.stringify(result.decision.reply)).toContain("CURRENT_GROUP_ACTOR_REPLY");
   });
 
-  it("fits complete perception with a populated private scene and existing history, without dropping either", async () => {
-    const scene =
-      "CURRENT_PRIVATE_SPEAKER_REPLY_AND_IMAGE_SOURCE\n" +
-      'Observed event: speaker said "earlier words".\n'.repeat(60);
-    const observations = 'VISIBLE_POSTER "visible text"\n'.repeat(145).slice(0, 4000);
-    const visualEvidence = { status: "AVAILABLE" as const, observations };
-    const canonicalContext = assembleCanonicalContext({
-      semanticSections: [
-        { kind: "IDENTITY", state: "KNOWN", summary: "Alice" },
-        { kind: "PERSONA", state: "KNOWN", summary: "AUTHORED_PERSONA" },
-        {
-          kind: "RECENT_CONVERSATION",
-          state: "KNOWN",
-          summary: "Earlier assistant wrongly said it could not see images.\n".repeat(24)
-        },
-        { kind: "MEMORY_EVIDENCE", state: "KNOWN", summary: "Old recalled episode.\n".repeat(40) },
-        { kind: "CURRENT_SITUATION", state: "KNOWN", summary: scene },
-        { kind: "TEMPORAL_CONTEXT", state: "KNOWN", summary: "Earlier timestamp.\n".repeat(27) }
-      ],
-      currentInput: "图片里有什么",
-      multimodalEvidence: JSON.stringify(visualEvidence)
-    });
-    const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
-    const result = await createServerCharacterPort()
-      .generate({
-        prompt,
-        canonicalContext,
-        userMessage: "图片里有什么",
-        visualEvidence,
-        generateChat: calls.generateChat
-      })
-      .catch((error: Error) => {
-        throw new Error(error.message);
+  it.each(["PRIVATE", "GROUP"] as const)(
+    "fits complete perception with a populated %s scene and existing history, without dropping either",
+    async (conversationKind) => {
+      const scene =
+        "CURRENT_PRIVATE_SPEAKER_REPLY_AND_IMAGE_SOURCE\n" +
+        'Observed event: speaker said "earlier words".\n'.repeat(60);
+      const observations = 'VISIBLE_POSTER "visible text"\n'.repeat(145).slice(0, 4000);
+      const visualEvidence = { status: "AVAILABLE" as const, observations };
+      const canonicalContext = assembleCanonicalContext({
+        semanticSections: [
+          { kind: "IDENTITY", state: "KNOWN", summary: "Alice" },
+          { kind: "PERSONA", state: "KNOWN", summary: "AUTHORED_PERSONA" },
+          {
+            kind: "RECENT_CONVERSATION",
+            state: "KNOWN",
+            summary: "Earlier assistant wrongly said it could not see images.\n".repeat(24)
+          },
+          {
+            kind: "MEMORY_EVIDENCE",
+            state: "KNOWN",
+            summary: "Old recalled episode.\n".repeat(40)
+          },
+          { kind: "CURRENT_SITUATION", state: "KNOWN", summary: scene },
+          { kind: "TEMPORAL_CONTEXT", state: "KNOWN", summary: "Earlier timestamp.\n".repeat(27) }
+        ],
+        currentInput: "图片里有什么",
+        multimodalEvidence: JSON.stringify(visualEvidence)
       });
-    expect(calls.generateChat).toHaveBeenCalledOnce();
-    const gate = calls.generateChat.mock.calls[0]![0];
-    expect(gate.messages.reduce((n, m) => n + m.content.length + 64, 0)).toBeLessThanOrEqual(10240);
-    expect(gate.messages.some((m) => m.content.includes(observations))).toBe(true);
-    expect(gate.messages[0]!.content).toContain(JSON.stringify(scene).slice(1, -1));
-    expect(gate.messages[0]!.content).toContain("AUTHORED_PERSONA");
-    expect(JSON.stringify(result.decision.reply)).toContain("VISIBLE_POSTER");
-  });
+      const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
+      const result = await createServerCharacterPort()
+        .generate({
+          prompt,
+          canonicalContext,
+          userMessage: "图片里有什么",
+          interactionBoundary: {
+            surface: "qq",
+            conversationKind,
+            admission: conversationKind === "GROUP" ? "MENTION" : "PRIVATE"
+          },
+          visualEvidence,
+          generateChat: calls.generateChat
+        })
+        .catch((error: Error) => {
+          throw new Error(error.message);
+        });
+      expect(calls.generateChat).toHaveBeenCalledOnce();
+      const gate = calls.generateChat.mock.calls[0]![0];
+      expect(gate.messages.reduce((n, m) => n + m.content.length + 64, 0)).toBeLessThanOrEqual(
+        10240
+      );
+      expect(gate.messages.some((m) => m.content.includes(observations))).toBe(true);
+      expect(gate.messages[0]!.content).toContain(JSON.stringify(scene).slice(1, -1));
+      expect(gate.messages[0]!.content).toContain("AUTHORED_PERSONA");
+      expect(JSON.stringify(result.decision.reply)).toContain("VISIBLE_POSTER");
+    }
+  );
 
   it("reserves complete cognition, current addressing and perception before admitting populated history", async () => {
     const scene =

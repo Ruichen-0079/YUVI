@@ -5,6 +5,12 @@ import type {
   SurfaceResult
 } from "../character-surface-host.js";
 import type { QQPacket } from "./qq-codec.js";
+import {
+  renderQQAttentionContext,
+  type QQAttentionDecision,
+  type QQAttentionPort,
+  type QQAttentionTrace
+} from "./qq-attention.js";
 
 type Observed = {
   sender: string;
@@ -25,7 +31,11 @@ export class QQSocialAdapter {
   private readonly duplicates = new Map<string, number>();
   constructor(
     private readonly port: CharacterSurfacePort,
-    private readonly now: () => number = Date.now
+    private readonly now: () => number = Date.now,
+    private readonly options: {
+      attention?: QQAttentionPort;
+      trace?: (event: QQAttentionTrace) => void;
+    } = {}
   ) {}
   async receive(packet: QQPacket, connection: SurfaceConnection): Promise<SurfaceResult> {
     const now = this.now();
@@ -40,7 +50,7 @@ export class QQSocialAdapter {
     c.touched = now;
     const linked = packet.replyTo ? c.handles.get(packet.replyTo) : undefined;
     const duplicate = packet.duplicateKey ? this.duplicates.has(packet.duplicateKey) : false;
-    const admission =
+    let admission: RuntimeSocialContext["admission"] | undefined =
       packet.direction === "SELF" || duplicate
         ? undefined
         : packet.target.kind === "PRIVATE"
@@ -66,6 +76,55 @@ export class QQSocialAdapter {
           ...(linked ? { author: linked.speaker, text: linked.text } : {})
         }
       : undefined;
+    if (this.options.attention) {
+      const trace = {
+        generation: connection.generation,
+        channel: packet.channel,
+        ...(packet.messageId ? { messageId: packet.messageId } : {})
+      };
+      if ((admission && admission !== "CONTINUATION") || packet.direction === "SELF" || duplicate) {
+        this.options.trace?.({
+          ...trace,
+          kind: "ATTENTION_BYPASS",
+          reason: admission ?? (duplicate ? "DUPLICATE" : "SELF"),
+          ...(admission ? { admission } : {})
+        });
+      } else {
+        const context = renderQQAttentionContext(
+          packet,
+          reply,
+          c.observations.slice(-12),
+          admission === "CONTINUATION"
+        );
+        const started = performance.now();
+        let decision: QQAttentionDecision;
+        try {
+          decision = await this.options.attention.evaluate(context, connection.signal);
+        } catch {
+          decision = {
+            decision: "UNCERTAIN" as const,
+            fallback: true,
+            elapsedMs: Math.round(performance.now() - started)
+          };
+        }
+        if (!connection.isCurrent() || connection.signal.aborted)
+          throw Error("QQ attention completed in a stale generation.");
+        admission = decision.fallback || decision.decision !== "IGNORE" ? "ATTENTION" : undefined;
+        this.options.trace?.({
+          ...trace,
+          kind: "ATTENTION_EVALUATED",
+          contextChars: context.length,
+          attentionDecision: decision.decision,
+          fallback: decision.fallback,
+          elapsedMs: decision.elapsedMs,
+          ...(decision.completionTokens !== undefined
+            ? { completionTokens: decision.completionTokens }
+            : {}),
+          ...(decision.policyVersion ? { policyVersion: decision.policyVersion } : {}),
+          ...(admission ? { admission } : {})
+        });
+      }
+    }
     const result = await this.port.receive(
       {
         channelRef: packet.channel,

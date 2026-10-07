@@ -332,6 +332,10 @@ export class RuntimeOrchestrator {
   private readonly options: RuntimeOrchestratorOptions;
   readonly characterBinding: CharacterBinding;
   private readonly socialContexts = new WeakMap<RuntimeUserTurnEvent, string>();
+  private readonly interactionBoundaries = new WeakMap<
+    RuntimeUserTurnEvent,
+    NonNullable<RuntimeCharacterTurnInput["interactionBoundary"]>
+  >();
   private readonly turnVisualSources = new WeakMap<
     RuntimeUserTurnEvent,
     readonly RuntimeVisualSource[]
@@ -2288,11 +2292,15 @@ export class RuntimeOrchestrator {
       this.cognitionTurnOwners.set(userEvent, cognitionOwner);
       this.visualTurnOwners.set(userEvent, this.visualTurnRevision);
       this.bindVisualSources(userEvent, options.visualSources);
-      if (options.socialContext)
-        this.socialContexts.set(
-          userEvent,
-          renderSurfaceSituation(RuntimeSocialContextSchema.parse(options.socialContext))
-        );
+      if (options.socialContext) {
+        const social = RuntimeSocialContextSchema.parse(options.socialContext);
+        this.socialContexts.set(userEvent, renderSurfaceSituation(social));
+        this.interactionBoundaries.set(userEvent, {
+          surface: social.surface,
+          conversationKind: social.conversationKind,
+          admission: social.admission
+        });
+      }
       if (options.imageAttachment) this.visuallyGroundedTurns.add(userEvent);
       const voiceOutput = isRuntimeUserTurnEvent(input)
         ? Boolean(options.voiceOutput)
@@ -2454,11 +2462,15 @@ export class RuntimeOrchestrator {
       this.cognitionTurnOwners.set(userEvent, cognitionOwner);
       this.visualTurnOwners.set(userEvent, this.visualTurnRevision);
       this.bindVisualSources(userEvent, options.visualSources);
-      if (options.socialContext)
-        this.socialContexts.set(
-          userEvent,
-          renderSurfaceSituation(RuntimeSocialContextSchema.parse(options.socialContext))
-        );
+      if (options.socialContext) {
+        const social = RuntimeSocialContextSchema.parse(options.socialContext);
+        this.socialContexts.set(userEvent, renderSurfaceSituation(social));
+        this.interactionBoundaries.set(userEvent, {
+          surface: social.surface,
+          conversationKind: social.conversationKind,
+          admission: social.admission
+        });
+      }
       if (options.imageAttachment) this.visuallyGroundedTurns.add(userEvent);
       let finalizedTurnId = await this.resolveFinalizedTurnId(userEvent, assistantMessageId);
       const voiceOutput = isRuntimeUserTurnEvent(input)
@@ -4638,6 +4650,7 @@ export class RuntimeOrchestrator {
       canonicalContext,
       semanticSections: this.semanticContexts.get(prompt),
       contextWindow: this.options.providers.getChatContextWindow?.(),
+      interactionBoundary: this.interactionBoundaries.get(event),
       userMessage: event.payload.content,
       outputLanguage: this.outputLanguage(),
       ...(signal ? { signal } : {}),
@@ -4723,6 +4736,7 @@ export class RuntimeOrchestrator {
       canonicalContext: cognitionContext,
       semanticSections: this.semanticContexts.get(prompt),
       contextWindow: this.options.providers.getChatContextWindow?.(),
+      interactionBoundary: this.interactionBoundaries.get(event),
       userMessage: event.payload.content,
       outputLanguage: this.outputLanguage(),
       cognitionRoundTrip: roundTrip,

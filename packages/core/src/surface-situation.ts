@@ -38,6 +38,16 @@ export function renderSurfaceSituation(context: RuntimeSocialContext): string {
       : []),
     `Current turn's speaker: ${speaker(context.speaker)}. Product Person binding differs from a nickname; Memory/Relationship are Person-and-Character scoped.`,
     `Current admission: ${context.admission}; response is optional. Current mentions: ${JSON.stringify(context.mentions.map(compact))}.`,
+    ...(context.conversationKind === "GROUP"
+      ? [
+          "This is a multi-speaker group. Prior engagement is not proof that the current message addresses you. Third-person discussion about you, discussion of testing you, independent media shares and talk to other participants do not invite a reply. Judge whether the current speaker is engaging you; choose SILENCE for ambient commentary."
+        ]
+      : []),
+    ...(context.admission === "ATTENTION"
+      ? [
+          "A local attention prefilter admitted this event for your judgement. This does not establish direct addressing, user intent, or a requirement to reply. Decide from the current scene; silence is allowed."
+        ]
+      : []),
     ...(context.reply ? [reply(context.reply)] : []),
     ...(context.media
       ? [

@@ -213,6 +213,15 @@ export type RuntimeVisualSource = Readonly<{
 
 export type RuntimeCharacterTurnInput = Readonly<{
   contextWindow?: number | undefined;
+  /** Validated transport facts; admission permits review, never mandates a reply. */
+  interactionBoundary?:
+    | Readonly<
+        Pick<
+          import("@companion/protocol").RuntimeSocialContext,
+          "surface" | "conversationKind" | "admission"
+        >
+      >
+    | undefined;
   /** Pre-resolved evidence from one explicit user image attachment. */
   visualEvidence?: RuntimeVisualEvidence | undefined;
   visualSources?:

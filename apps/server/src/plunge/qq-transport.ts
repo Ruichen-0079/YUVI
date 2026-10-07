@@ -5,6 +5,7 @@ import type { CharacterSurfacePort } from "../character-surface-host.js";
 import { decodeQQPacket, encodeQQSend, messageHandle, qqId, type QQPacket } from "./qq-codec.js";
 import { readQQImage } from "./qq-image.js";
 import { QQSocialAdapter } from "./qq-social.js";
+import type { QQAttentionPort, QQAttentionTrace } from "./qq-attention.js";
 
 export type QQTransportConfiguration = Readonly<{
   endpoint: string;
@@ -21,17 +22,19 @@ type Pending = {
   resolve(value: Record<string, unknown>): void;
   reject(): void;
 };
-export type QQTrace = Readonly<{
-  kind: string;
-  generation: string;
-  channel?: string;
-  outcome?: string;
-  failureCode?: string;
-  action?: string;
-  retcode?: number;
-}>;
+export type QQTrace = Readonly<
+  Omit<Partial<QQAttentionTrace>, "kind"> & {
+    kind: string;
+    generation: string;
+    channel?: string;
+    outcome?: string;
+    failureCode?: string;
+    action?: string;
+    retcode?: number;
+  }
+>;
 
-/** Plunge knows QQ. No prompt, Memory, P8 or model service is reachable here. */
+/** QQ transport delegates social admission through an injected port; no model SDK or Memory access. */
 export class QQTransport {
   private socket: WebSocket | undefined;
   private generation = "";
@@ -46,7 +49,8 @@ export class QQTransport {
   constructor(
     private readonly config: QQTransportConfiguration,
     port: CharacterSurfacePort,
-    private readonly trace: (event: QQTrace) => void = () => {}
+    private readonly trace: (event: QQTrace) => void = () => {},
+    attention?: QQAttentionPort
   ) {
     const endpoint = new URL(config.endpoint);
     if (
@@ -59,7 +63,10 @@ export class QQTransport {
       throw Error("Invalid OneBot endpoint.");
     if (!config.accessToken || qqId(config.expectedAccount) !== config.expectedAccount)
       throw Error("OneBot requires authenticated expected-account configuration.");
-    this.social = new QQSocialAdapter(port);
+    this.social = new QQSocialAdapter(port, Date.now, {
+      ...(attention ? { attention } : {}),
+      trace: (event) => this.trace(event)
+    });
   }
   source(): ServerPluginSource {
     return {

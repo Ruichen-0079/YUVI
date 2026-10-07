@@ -5,6 +5,7 @@ import { z } from "zod";
 import type { CharacterComposition } from "../character-composition.js";
 import type { HostCharacterSurfaces } from "../character-surface-host.js";
 import { QQTransport, type QQTrace } from "./qq-transport.js";
+import { createLocalQQAttentionPort } from "./qq-attention.js";
 
 const uin = z.string().regex(/^[1-9][0-9]{0,19}$/);
 export const PlungeConfigurationSchema = z
@@ -18,7 +19,11 @@ export const PlungeConfigurationSchema = z
     personBindings: z
       .array(z.object({ sender: uin, personId: z.string().min(1).max(256) }).strict())
       .max(64),
-    mediaRoots: z.array(z.string().min(1)).max(8)
+    mediaRoots: z.array(z.string().min(1)).max(8),
+    attention: z
+      .object({ endpoint: z.string().url(), apiKeyFile: z.string().min(1) })
+      .strict()
+      .optional()
   })
   .strict();
 export type PlungeConfiguration = z.infer<typeof PlungeConfigurationSchema>;
@@ -76,6 +81,14 @@ export function composePlunge(
   const bindingVersion =
     "plunge-binding:" +
     createHash("sha256").update(JSON.stringify(config.personBindings)).digest("hex");
+  if (config.attention && !isAbsolute(config.attention.apiKeyFile))
+    throw Error("QQ attention key file must be absolute.");
+  const attention = config.attention
+    ? createLocalQQAttentionPort(
+        config.attention.endpoint,
+        readFileSync(config.attention.apiKeyFile, "utf8").trim()
+      )
+    : undefined;
   return (host: HostCharacterSurfaces) => {
     const channels = new Set([
       ...config.privatePeers.map((peer) => `${namespace}:private:${peer}`),
@@ -110,7 +123,8 @@ export function composePlunge(
           mediaRoots: config.mediaRoots
         },
         port,
-        trace
+        trace,
+        attention
       ).source()
     ];
   };
