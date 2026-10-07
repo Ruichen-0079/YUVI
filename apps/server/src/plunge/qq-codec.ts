@@ -26,6 +26,7 @@ export type QQTarget = Readonly<{
   temporaryGroup?: string;
 }>;
 export type QQPacket = Readonly<{
+  namespace: string;
   account: string;
   sender: string;
   target: QQTarget;
@@ -152,6 +153,7 @@ export function decodeQQPacket(
           .digest("hex")
       : undefined;
   return Object.freeze({
+    namespace,
     account,
     sender,
     target,

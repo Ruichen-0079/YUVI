@@ -74,7 +74,7 @@ export class QQSocialAdapter {
         content: packet.content,
         transportFacts: packet.transportFacts,
         hasImage: !!(packet.imageFile || packet.imageUrl),
-        mentions: packet.mentions.map((id) => `${packet.account}:${id}`),
+        mentions: packet.mentions,
         observations: c.observations.slice(-12),
         ...(packet.displayName ? { displayName: packet.displayName } : {}),
         ...(admission ? { admission } : {}),
@@ -114,7 +114,7 @@ export class QQSocialAdapter {
     if (c)
       this.record(c, messageId, {
         sender: packet.account,
-        speaker: { principalId: `${packet.account}:${packet.account}`, displayName: "Alice" },
+        speaker: { principalId: `${packet.namespace}:${packet.account}`, displayName: "Alice" },
         text,
         at: this.now()
       });

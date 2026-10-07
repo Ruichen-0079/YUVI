@@ -19,6 +19,10 @@ export const RuntimeSocialContextSchema = z
     admission: z.enum(["PRIVATE", "MENTION", "REPLY", "CONTINUATION"]),
     speaker,
     mentions: z.array(z.string().min(1).max(512)).max(16),
+    media: z
+      .object({ image: z.enum(["ATTACHED", "UNAVAILABLE"]) })
+      .strict()
+      .optional(),
     reply: z
       .object({
         reference: z.string().min(1).max(256),

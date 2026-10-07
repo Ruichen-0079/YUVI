@@ -49,6 +49,9 @@ function env(index: number) {
     OPENAI_COMPATIBLE_API_KEY: "fixture",
     OPENAI_COMPATIBLE_CHAT_MODEL: "fixture-model",
     OPENAI_COMPATIBLE_REASONING_MODEL: "fixture-model",
+    XAI_API_BASEURL: "https://fixture.example/v1",
+    XAI_API_KEY: "fixture",
+    XAI_VISION_MODEL: "fixture-vision",
     EMBEDDING_PROVIDER: "mock",
     EMBEDDING_PROVIDER_CHAIN: "mock",
     DEFAULT_EMBEDDING_PROVIDER: "mock",
@@ -167,7 +170,13 @@ describe.skipIf(!databaseUrl)(
               choices: [
                 {
                   finish_reason: "stop",
-                  message: { role: "assistant", content: JSON.stringify({ disposition: mode }) }
+                  message: {
+                    role: "assistant",
+                    content:
+                      b.model === "fixture-vision"
+                        ? "A red triangle marked VISUAL_FIXTURE_42."
+                        : JSON.stringify({ disposition: mode })
+                  }
                 }
               ],
               usage: { prompt_tokens: 10, completion_tokens: 10 }
@@ -250,6 +259,32 @@ describe.skipIf(!databaseUrl)(
         limit: 10
       });
       expect(messages).toHaveLength(0);
+    });
+    it("QQ image bytes pass through the existing Core Vision provider and enter Character evidence", async () => {
+      mode = "RESPOND";
+      const send = vi.fn(async () => {});
+      const before = requests.length;
+      const imageBase64 = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 1]).toString("base64");
+      expect(
+        (
+          await port().receive(
+            {
+              ...base,
+              hasImage: true,
+              content: "Describe this image",
+              channelRef: base.channelRef + ":image"
+            },
+            {
+              ...connection(send),
+              readImage: async () => ({ imageBase64, mimeType: "image/png" as const })
+            }
+          )
+        ).outcome
+      ).toBe("RESPOND");
+      const calls = requests.slice(before);
+      expect(JSON.stringify(calls)).toContain("data:image/png;base64," + imageBase64);
+      expect(JSON.stringify(calls)).toContain("VISUAL_FIXTURE_42");
+      expect(send).toHaveBeenCalledOnce();
     });
     it("ambiguous send has a canonical UNKNOWN outcome, no blind retry and durable one-attempt state", async () => {
       const send = vi.fn(async () => {

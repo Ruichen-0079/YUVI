@@ -123,7 +123,7 @@ export class HostCharacterSurfaces {
       conversationKind: input.conversationKind,
       admission: input.admission,
       speaker,
-      mentions: input.mentions,
+      mentions: input.mentions.map((actor) => `${grant.principalNamespace}:${actor}`),
       observations: input.observations,
       ...(input.reply ? { reply: input.reply } : {})
     });
@@ -151,6 +151,8 @@ export class HostCharacterSurfaces {
     );
     try {
       const imageAttachment = input.hasImage ? await connection.readImage?.(signal) : undefined;
+      if (input.hasImage)
+        socialContext.media = { image: imageAttachment ? "ATTACHED" : "UNAVAILABLE" };
       if (!current()) return result("STALE");
       const response = await this.context.runtime.handleUserMessage(event, {
         signal,

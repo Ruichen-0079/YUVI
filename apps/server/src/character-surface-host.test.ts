@@ -88,7 +88,11 @@ describe("generic Character surface host", () => {
       readMemory: true,
       writeMemory: true,
       controlAuthority: "UNTRUSTED",
-      socialContext: { admission: "MENTION", speaker: { personId: "person:7" } }
+      socialContext: {
+        admission: "MENTION",
+        speaker: { personId: "person:7" },
+        mentions: ["discord:deployment:account:alice"]
+      }
     });
     expect(f.publish.mock.calls[0]?.[0]).toMatchObject({
       acknowledgementLayer: "EXTERNAL_SERVICE_ACCEPTED",
@@ -142,8 +146,22 @@ describe("generic Character surface host", () => {
       { ...input, hasImage: true },
       { ...f.connection, readImage: async () => imageAttachment }
     );
-    expect(f.handleUserMessage.mock.calls[0]?.[1]).toMatchObject({ imageAttachment });
+    expect(f.handleUserMessage.mock.calls[0]?.[1]).toMatchObject({
+      imageAttachment,
+      socialContext: { media: { image: "ATTACHED" } }
+    });
     await f.host.close();
     await expect(f.port.receive(input, f.connection)).rejects.toThrow("sealed");
+  });
+  it("records unavailable image evidence without pretending the Character received image bytes", async () => {
+    const f = fixture();
+    await f.port.receive(
+      { ...input, hasImage: true },
+      { ...f.connection, readImage: async () => undefined }
+    );
+    expect(f.handleUserMessage.mock.calls[0]?.[1]).toMatchObject({
+      socialContext: { media: { image: "UNAVAILABLE" } }
+    });
+    expect(f.handleUserMessage.mock.calls[0]?.[1]).not.toHaveProperty("imageAttachment");
   });
 });

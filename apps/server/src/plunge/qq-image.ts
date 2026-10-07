@@ -11,13 +11,18 @@ export async function readQQImage(
   let bytes: Buffer;
   if (/^https?:\/\//i.test(reference)) {
     const url = new URL(reference);
+    // SnowLuma can expose legacy QQ CDN http URLs. Fetch the same resource over TLS.
+    if (url.protocol === "http:") url.protocol = "https:";
     if (
       url.protocol !== "https:" ||
       url.username ||
       url.password ||
       (url.port && url.port !== "443") ||
-      !["qpic.cn", "qq.com"].some(
-        (domain) => url.hostname === domain || url.hostname.endsWith("." + domain)
+      !(
+        url.hostname === "multimedia.nt.qq.com.cn" ||
+        ["qpic.cn", "qq.com"].some(
+          (domain) => url.hostname === domain || url.hostname.endsWith("." + domain)
+        )
       )
     )
       throw Error("Unsupported QQ media origin.");
