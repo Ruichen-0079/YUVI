@@ -16,22 +16,24 @@
     "@companion/config": "workspace:*",
     "@companion/core": "workspace:*",
     "@companion/database": "workspace:*",
+    "@companion/effects": "workspace:*",
     "@companion/event-bus": "workspace:*",
     "@companion/host-environment": "workspace:*",
-    "@companion/memory": "workspace:*",
     "@companion/journal": "workspace:*",
+    "@companion/memory": "workspace:*",
+    "@companion/p8": "workspace:*",
     "@companion/prompt-builder": "workspace:*",
     "@companion/protocol": "workspace:*",
     "@companion/providers": "workspace:*",
     "@fastify/websocket": "^11.0.1",
     "@modelcontextprotocol/client": "2.0.0",
     "fastify": "^5.2.1",
-    "zod": "^3.24.1",
-    "@companion/p8": "workspace:*",
-    "@companion/effects": "workspace:*"
+    "ws": "^8.20.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/node": "^22.10.7",
+    "@types/ws": "^8.18.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   }

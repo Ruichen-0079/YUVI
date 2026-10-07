@@ -2,15 +2,15 @@ import { readCharacterComposition, preserveCharacterEnvironment } from "./charac
 import { loadServerConfig } from "./config.js";
 import { applyRuntimeEnv, getLegacyServerLocalEnvWarning, readRuntimeEnvFiles } from "./env.js";
 import { buildServer } from "./server.js";
+import { composePlunge } from "./plunge/qq-composition.js";
 
-const runtimeEnvFiles = await readRuntimeEnvFiles();
 const composition = readCharacterComposition(
   process.env["YUVI_CHARACTER_CONFIG_PATH"],
-  runtimeEnvFiles.env
+  process.env
 );
 const bootFiles = composition
   ? await readRuntimeEnvFiles({ env: composition.env })
-  : runtimeEnvFiles;
+  : await readRuntimeEnvFiles();
 const actorEnv = composition
   ? preserveCharacterEnvironment(composition, bootFiles.env)
   : bootFiles.env;
@@ -27,7 +27,18 @@ const legacyWarning = composition ? null : await getLegacyServerLocalEnvWarning(
 if (legacyWarning) console.warn("[env]", legacyWarning);
 
 const config = loadServerConfig(actorEnv);
-const app = await buildServer(config, composition ? { characterComposition: composition } : {});
+const plungeFile = actorEnv["YUVI_PLUNGE_CONFIG_PATH"];
+if (plungeFile && !composition) throw Error("Plunge requires an independent Alice composition.");
+const surfacePlugins =
+  plungeFile && composition
+    ? composePlunge(plungeFile, composition, (event) =>
+        console.info("[plunge]", JSON.stringify(event))
+      )
+    : undefined;
+const app = await buildServer(config, {
+  ...(composition ? { characterComposition: composition } : {}),
+  ...(surfacePlugins ? { surfacePlugins } : {})
+});
 
 const shutdown = async (signal: string) => {
   app.log.info({ signal }, "shutting down server");
