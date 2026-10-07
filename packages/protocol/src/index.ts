@@ -3,6 +3,7 @@ export * from "./embodied-behavior-correlation.js";
 export * from "./embodied-presentation-outcome.js";
 export * from "./embodied-presentation-request.js";
 export * from "./life-event-journal.js";
+export * from "./social-context.js";
 
 import { z } from "zod";
 import { JournalEventRefSchema } from "./life-event-journal.js";

@@ -9,6 +9,7 @@ import type { ContextSourceUse } from "@companion/protocol";
 import { HostPresentationEffects } from "./presentation-effects.js";
 import { HostMediaEffects } from "./media-effects.js";
 import { HostOutwardEffects } from "./outward-effects.js";
+import { HostSurfaceReceiptAdmission } from "./surface-receipt-admission.js";
 import { HostReadTextEffects } from "./read-text-effect.js";
 import {
   HostProductPersonCommandEffects,
@@ -166,6 +167,7 @@ import { executeProductionCognition } from "./cognition-production.js";
 import type { ServerPluginRuntimeCapabilitySurface } from "./plugin-lifecycle.js";
 
 export type AppContext = {
+  surfaceReceiptAdmission: import("./surface-receipt-admission.js").SurfaceReceiptAdmission;
   effectIntents: EffectIntentAdmissionPort;
   outwardEffects: HostOutwardEffects;
   mediaEffects: HostMediaEffects;
@@ -332,6 +334,7 @@ export async function createAppContext(
     journalNamespace
   );
   const conversationalReceiptAdmission = new HostConversationalReceiptAdmission(journalRepository);
+  const surfaceReceiptAdmission = new HostSurfaceReceiptAdmission(journalRepository);
   const speechReceiptAdmission = new HostSpeechReceiptAdmission(journalRepository);
   const visionReceiptAdmission = new HostVisionReceiptAdmission(journalRepository);
   const productControlReceiptAdmission = new HostProductControlReceiptAdmission(journalRepository);
@@ -769,6 +772,7 @@ export async function createAppContext(
     conversationRepository: conversationRepository!,
     finalizedIngestionRepository: finalizedIngestionRepository!,
     conversationalReceiptAdmission,
+    surfaceReceiptAdmission,
     speechReceiptAdmission,
     visionReceiptAdmission,
     productControlReceiptAdmission,

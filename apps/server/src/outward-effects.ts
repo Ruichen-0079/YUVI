@@ -182,9 +182,11 @@ export class HostOutwardEffects implements ProviderAccountingPort {
   };
   async publish(input: {
     target: ReplyPublicationTarget;
+    /** Host-selected service ACK, never recipient delivery/read confirmation. */
+    acknowledgementLayer?: "EXTERNAL_SERVICE_ACCEPTED" | undefined;
     frameId: string;
     payload: unknown;
-    write: () => Promise<void>;
+    write: (signal?: AbortSignal) => Promise<void>;
     scope?: string | undefined;
     cause?: JournalEventRef | undefined;
     replyId?: string | undefined;
@@ -251,13 +253,13 @@ export class HostOutwardEffects implements ProviderAccountingPort {
       throw Error("Ambiguous target publication cannot be resent.");
     const accepted = await this.execute(
       work,
-      async () => {
+      async (_attempt, signal) => {
         try {
-          await input.write();
+          await input.write(signal);
           return {
             evidence: {
               certainty: "APPLIED",
-              layer: "LOCAL_GATEWAY_WRITE_ACCEPTED",
+              layer: input.acknowledgementLayer ?? "LOCAL_GATEWAY_WRITE_ACCEPTED",
               reason: "RETURNED",
               remoteEffectId: null
             },

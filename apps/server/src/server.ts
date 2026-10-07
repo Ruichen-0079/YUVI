@@ -1,4 +1,6 @@
 import type { CharacterComposition } from "./character-composition.js";
+import { HostCharacterSurfaces } from "./character-surface-host.js";
+import type { ServerPluginSource } from "./plugin-lifecycle.js";
 import { registerConversationHistoryRoutes } from "./routes/conversation-history.js";
 import { registerPeopleVoiceRoutes } from "./routes/people-voices.js";
 import { registerProductRoutes } from "./routes/product.js";
@@ -42,6 +44,8 @@ import type { VoiceControlReceiptAdmission } from "./voice-control-receipt-admis
 import type { ProductPersonCommandPort } from "./product-person-command-effects.js";
 
 export type BuildServerOptions = Readonly<{
+  /** Trusted host composition, deferred until its private Character graph exists. */
+  surfacePlugins?: ((host: HostCharacterSurfaces) => readonly ServerPluginSource[]) | undefined;
   characterComposition?: CharacterComposition;
   /** Composition-time source registration; discovery does not call source loaders. */
   discoverPlugins?: ServerPluginSourceDiscovery | undefined;
@@ -81,8 +85,9 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
     }
   });
 
+  let surfaceSources: readonly ServerPluginSource[] = [];
   const pluginLifecycle = new ServerPluginLifecycle(
-    options.discoverPlugins ?? (() => []),
+    async () => [...((await options.discoverPlugins?.()) ?? []), ...surfaceSources],
     app.log,
     SERVER_PLUGIN_OPERATION_TIMEOUT_MS,
     options.pluginCapabilityGrants ?? []
@@ -140,6 +145,8 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
     pluginLifecycle.runtimeCapabilities,
     options.characterComposition
   );
+  const surfaces = new HostCharacterSurfaces(context);
+  surfaceSources = options.surfacePlugins?.(surfaces) ?? [];
   if (options.productPersonCommands) context.productPersonCommands = options.productPersonCommands;
   if (options.conversationReceiptAdmission) {
     context.conversationalReceiptAdmission = options.conversationReceiptAdmission;
@@ -195,7 +202,9 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   // The dispatch-start marker preserves UNKNOWN even if a caller cannot finish the drain.
   let effectDrain: Promise<{ drained: boolean }> | undefined;
   let runtimeDrain: ReturnType<typeof context.runtime.sealAndDrainMemoryWrites> | undefined;
+  let surfaceDrain: Promise<void> | undefined;
   const drainEffects = () => {
+    surfaceDrain ??= surfaces.close();
     context.runtime.stopProactiveScheduler();
     runtimeDrain ??= context.runtime.sealAndDrainMemoryWrites();
     context.outwardEffects.seal();
@@ -211,6 +220,7 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
     // Await the same drain independently of earlier third-party preClose callbacks.
     await drainEffects();
     await pluginLifecycle.shutdown();
+    await surfaceDrain;
     maintenanceScheduler.close();
     context.embodiedPresentationBridge.close();
     await context.memoryIngestionCoordinator.shutdown({ graceMs: 2_000 });

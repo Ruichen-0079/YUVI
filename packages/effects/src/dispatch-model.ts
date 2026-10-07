@@ -13,7 +13,7 @@ export const EFFECT_DELIVERY_CONTRACTS = Object.freeze({
     adapter: "yuvi.target-publication.v1",
     reconciliation: "UNSUPPORTED",
     retryAfterProvenNotApplied: false,
-    evidenceLayers: ["LOCAL_GATEWAY_WRITE_ACCEPTED"]
+    evidenceLayers: ["LOCAL_GATEWAY_WRITE_ACCEPTED", "EXTERNAL_SERVICE_ACCEPTED"]
   }),
   "yuvi.playback.v1": Object.freeze({
     adapter: "yuvi.playback-permission.v1",
@@ -97,6 +97,7 @@ export const EffectEvidenceSchema = z
       "PROVIDER_RESPONSE",
       "PROVIDER_PRE_TRANSPORT",
       "LOCAL_GATEWAY_WRITE_ACCEPTED",
+      "EXTERNAL_SERVICE_ACCEPTED",
       "DEVICE_REPORTED_PLAYING",
       "BRIDGE_ACCEPTANCE",
       "ADAPTER_RECONCILIATION",
@@ -149,6 +150,7 @@ export const EffectEvidenceSchema = z
                 "BRIDGE_ACCEPTANCE",
                 "PROVIDER_RESPONSE",
                 "LOCAL_GATEWAY_WRITE_ACCEPTED",
+                "EXTERNAL_SERVICE_ACCEPTED",
                 "DEVICE_REPORTED_PLAYING"
               ].includes(e.layer) && e.reason === "RETURNED";
     if (e.certainty === "DEFINITIVE_REJECTION")

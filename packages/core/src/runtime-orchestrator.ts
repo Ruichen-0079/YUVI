@@ -1,5 +1,6 @@
 import { contextUseDigest, semanticMemoryContextRevision } from "@companion/memory";
 import type { ContextSourceUse, PendingContextUse } from "@companion/protocol";
+import { RuntimeSocialContextSchema } from "@companion/protocol";
 import {
   currentProviderWorkContext,
   withProviderWorkContext,
@@ -323,6 +324,7 @@ type SessionTurnsCacheEntry = {
 export class RuntimeOrchestrator {
   private readonly options: RuntimeOrchestratorOptions;
   readonly characterBinding: CharacterBinding;
+  private readonly socialContexts = new WeakMap<RuntimeUserTurnEvent, string>();
   private readonly memoryPersonaId: string | null;
   private latestPromptPreview: RuntimePromptPreview | null = null;
   private readonly memoryCandidateHistory: RuntimeMemoryCandidateReview[] = [];
@@ -2245,6 +2247,11 @@ export class RuntimeOrchestrator {
       userEvent = await this.scopeVoiceTurn(userEvent);
       this.cognitionTurnOwners.set(userEvent, cognitionOwner);
       this.visualTurnOwners.set(userEvent, this.visualTurnRevision);
+      if (options.socialContext)
+        this.socialContexts.set(
+          userEvent,
+          JSON.stringify(RuntimeSocialContextSchema.parse(options.socialContext))
+        );
       if (options.imageAttachment) this.visuallyGroundedTurns.add(userEvent);
       const voiceOutput = isRuntimeUserTurnEvent(input)
         ? Boolean(options.voiceOutput)
@@ -2405,6 +2412,11 @@ export class RuntimeOrchestrator {
       userEvent = await this.scopeVoiceTurn(userEvent);
       this.cognitionTurnOwners.set(userEvent, cognitionOwner);
       this.visualTurnOwners.set(userEvent, this.visualTurnRevision);
+      if (options.socialContext)
+        this.socialContexts.set(
+          userEvent,
+          JSON.stringify(RuntimeSocialContextSchema.parse(options.socialContext))
+        );
       if (options.imageAttachment) this.visuallyGroundedTurns.add(userEvent);
       let finalizedTurnId = await this.resolveFinalizedTurnId(userEvent, assistantMessageId);
       const voiceOutput = isRuntimeUserTurnEvent(input)
@@ -4432,7 +4444,8 @@ export class RuntimeOrchestrator {
       promptSections: prompt.sections,
       currentInput: event.payload.content,
       multimodalEvidence: attachedEvidence ? JSON.stringify(attachedEvidence) : null,
-      currentSpeakerEvidence: this.currentSpeakerEvidence.get(prompt) ?? null
+      currentSpeakerEvidence: this.currentSpeakerEvidence.get(prompt) ?? null,
+      situationEvidence: this.socialContexts.get(event) ?? null
     });
     let visualUsed = attachedEvidence !== undefined;
     const cognitionOwner = this.cognitionTurnOwners.get(event);

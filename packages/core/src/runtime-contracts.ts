@@ -385,6 +385,8 @@ export type RuntimeImageAttachment = Readonly<{
 }>;
 
 export type HandleUserMessageOptions = {
+  /** Host-normalized, bounded surface evidence. Does not compel a Character response. */
+  socialContext?: import("@companion/protocol").RuntimeSocialContext | undefined;
   speechPlan?: "NONE" | "CLIENT_SEGMENTED" | "SERVER_WHOLE" | undefined;
   speechRequestId?: string | undefined;
   voiceOutput?: boolean | undefined;

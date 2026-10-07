@@ -87,7 +87,7 @@ export type ConversationReplyComponentInput = Readonly<{
 }>;
 
 export type ReplyPublicationTarget = Readonly<{
-  surface: "HTTP_SSE" | "HTTP" | "WEBSOCKET" | "EVENTBUS_CLIENT" | "SUBTITLE";
+  surface: "HTTP_SSE" | "HTTP" | "WEBSOCKET" | "EVENTBUS_CLIENT" | "SUBTITLE" | "EXTERNAL_CHANNEL";
   targetId: string;
   targetGeneration: string;
 }>;
@@ -815,7 +815,14 @@ function validateReplyComponent(input: ConversationReplyComponentInput): void {
   }
   for (const target of input.publicationTargets ?? []) {
     if (
-      !["HTTP_SSE", "HTTP", "WEBSOCKET", "EVENTBUS_CLIENT", "SUBTITLE"].includes(target.surface) ||
+      ![
+        "HTTP_SSE",
+        "HTTP",
+        "WEBSOCKET",
+        "EVENTBUS_CLIENT",
+        "SUBTITLE",
+        "EXTERNAL_CHANNEL"
+      ].includes(target.surface) ||
       !target.targetId ||
       target.targetId.length > 512 ||
       !target.targetGeneration ||
