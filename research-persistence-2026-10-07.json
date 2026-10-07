@@ -1,0 +1,44 @@
+{
+  "artifacts": [
+    {
+      "name": "QQ-Alice-research-2026-10-07.md",
+      "originalAbsolutePath": "/workspace/research/QQ-Alice-research-2026-10-07.md",
+      "bytes": 50452,
+      "sha256": "d85385a4a758bfc1e3803736cfe5a608b3c18a413bdd3345b4e4007355f1f7e7",
+      "persistentURL": "https://github.com/Ruichen-0079/YUVI/blob/research/qq-alice-20261007/QQ-Alice-research-2026-10-07.md"
+    },
+    {
+      "name": "QQ-research-evidence-2026-10-07.zip",
+      "originalAbsolutePath": "/workspace/research/QQ-research-evidence-2026-10-07.zip",
+      "bytes": 301751,
+      "sha256": "0e8922e969609367e1478e11232653162f918f69719212c6882bba04a3b33e18",
+      "persistentURL": "https://github.com/Ruichen-0079/YUVI/blob/research/qq-alice-20261007/QQ-research-evidence-2026-10-07.zip"
+    },
+    {
+      "name": "YUVI-Multi-Character-research-2026-10-07.md",
+      "originalAbsolutePath": "/workspace/research/YUVI-Multi-Character-research-2026-10-07.md",
+      "bytes": 64239,
+      "sha256": "82552bd8392bd25fe6dc8b84900e43b142f4541032a38be39899913df7ee6dae",
+      "persistentURL": "https://github.com/Ruichen-0079/YUVI/blob/research/qq-alice-20261007/YUVI-Multi-Character-research-2026-10-07.md"
+    },
+    {
+      "name": "YUVI-Multi-Character-evidence-2026-10-07.zip",
+      "originalAbsolutePath": "/workspace/research/YUVI-Multi-Character-evidence-2026-10-07.zip",
+      "bytes": 185049,
+      "sha256": "91a36ce4cc03608b1e09cf6baade051de09d3c564013155184fec1ca902997b9",
+      "persistentURL": "https://github.com/Ruichen-0079/YUVI/blob/research/qq-alice-20261007/YUVI-Multi-Character-evidence-2026-10-07.zip"
+    }
+  ],
+  "historicalPlungeZip": {
+    "containedIn": "QQ-research-evidence-2026-10-07.zip",
+    "entry": "qq-snowluma.zip",
+    "bytes": 138805,
+    "sha256": "aec0eb58d8bc6f3612e101da23453972532b1de6f60111438269320ac927c570"
+  },
+  "notes": [
+    "Original artifacts preserved byte-for-byte; not rewritten to reflect subsequent Core implementation.",
+    "First-round YUVI_QQ_Adapter_Research_2026-10-07.md already in Library; not copied.",
+    "Multi-Character research archive does not include historical ZIP.",
+    "Dedicated Git research archive tag is persistent remote storage; this manifest is an inventory, not reconstructed evidence."
+  ]
+}
