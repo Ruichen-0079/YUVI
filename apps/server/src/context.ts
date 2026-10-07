@@ -1,3 +1,9 @@
+import {
+  preserveCharacterEnvironment,
+  type CharacterComposition
+} from "./character-composition.js";
+import { claimCharacterFiles, claimCharacterDatabase } from "./character-storage.js";
+import { PRIMARY_CHARACTER, characterPersonaId } from "@companion/core";
 import { PostgresContextUseRepository, contextUseDigest } from "@companion/memory";
 import type { ContextSourceUse } from "@companion/protocol";
 import { HostPresentationEffects } from "./presentation-effects.js";
@@ -219,14 +225,22 @@ export type RuntimeConfigReloadResult = {
 export async function createAppContext(
   logger: FastifyBaseLogger,
   config: ServerConfig,
-  pluginCapabilities?: ServerPluginRuntimeCapabilitySurface
+  pluginCapabilities?: ServerPluginRuntimeCapabilitySurface,
+  composition?: CharacterComposition
 ): Promise<AppContext> {
   if (config.eventBus === "nats") {
     throw new Error("EVENT_BUS=nats is reserved for future NATS support and is not implemented.");
   }
 
-  const bootProductSettings = readProductSettings();
-  const bootEnv = productEnvironment((await readRuntimeEnvFiles()).env, bootProductSettings);
+  const bootstrapEnv = composition?.env ?? process.env;
+  const bootProductSettings = readProductSettings(bootstrapEnv);
+  const productEnv = productEnvironment(
+    (await readRuntimeEnvFiles({ env: bootstrapEnv })).env,
+    bootProductSettings
+  );
+  const bootEnv = composition ? preserveCharacterEnvironment(composition, productEnv) : productEnv;
+  claimCharacterFiles(composition?.binding ?? PRIMARY_CHARACTER, bootEnv, !composition);
+  let releaseDatabaseOwner: () => Promise<void> = async () => {};
   for (const key of [
     "YUVI_PRODUCT_CONFIGURATION",
     "MEMORY_SUBJECT_USER_ID",
@@ -234,7 +248,7 @@ export async function createAppContext(
     "PROACTIVE_SCORE_THRESHOLD",
     "PROACTIVE_EVALUATION_INTERVAL_MS"
   ]) {
-    if (bootEnv[key] !== undefined) process.env[key] = bootEnv[key];
+    if (!composition && bootEnv[key] !== undefined) process.env[key] = bootEnv[key];
   }
   const eventBus = new InMemoryEventBus();
   const proactiveListeners = new Set<(event: RuntimeReplyStreamEvent) => unknown>();
@@ -243,7 +257,7 @@ export async function createAppContext(
   eventBus.subscribe("*", (event) => {
     dashboard.recordEvent(event);
   });
-  const activeMemoryRepository = parseMemoryRepositoryEnv().kind;
+  const activeMemoryRepository = parseMemoryRepositoryEnv(bootEnv).kind;
   const activeRuntimeEnv = {
     ...bootEnv,
     ...snapshotRestartSettings(bootEnv),
@@ -267,15 +281,25 @@ export async function createAppContext(
     SERVER_HOST: config.host,
     SERVER_PORT: String(config.port)
   };
-  const databaseUrl = process.env["DATABASE_URL"]?.trim();
+  const databaseUrl = bootEnv["DATABASE_URL"]?.trim();
   const databasePool = databaseUrl ? createPostgresPool(databaseUrl) : undefined;
+  try {
+    releaseDatabaseOwner = await claimCharacterDatabase(
+      databasePool,
+      composition?.binding ?? PRIMARY_CHARACTER,
+      !composition
+    );
+  } catch (error) {
+    await databasePool?.end();
+    throw error;
+  }
   const profileSnapshotStore: ProfileSnapshotStore = databasePool
     ? new PostgresProfileSnapshotStore(databasePool)
     : new InMemoryProfileSnapshotStore();
   const profileLifecycleStore: ProfileLifecycleStore = databasePool
     ? new PostgresProfileLifecycleStore(databasePool)
     : new InMemoryProfileLifecycleStore();
-  const journalNamespace = process.env["YUVI_JOURNAL_NAMESPACE"] ?? "yuvi:default";
+  const journalNamespace = bootEnv["YUVI_JOURNAL_NAMESPACE"] ?? "yuvi:default";
   const journalRepository = databasePool
     ? new PostgresJournalRepository(databasePool, {
         namespace: journalNamespace,
@@ -317,7 +341,8 @@ export async function createAppContext(
     effectIntents,
     effectDispatchStore,
     readTextEffects.dispatcher,
-    journalNamespace
+    journalNamespace,
+    composition ? ["P8_CORRECTION"] : undefined
   );
   const runtimeControlReceiptAdmission = new HostRuntimeControlReceiptAdmission(journalRepository);
   const proactiveConsentReceiptAdmission = new HostProactiveConsentReceiptAdmission(
@@ -326,22 +351,23 @@ export async function createAppContext(
   const proactiveTurnReceiptAdmission = new HostProactiveTurnReceiptAdmission(journalRepository);
   const ttsReceiptAdmission = new HostTtsReceiptAdmission(journalRepository);
   const voiceControlReceiptAdmission = new HostVoiceControlReceiptAdmission(journalRepository);
-  const memoryRepository = createMemoryRepositoryFromEnv(process.env, databasePool);
+  const memoryRepository = createMemoryRepositoryFromEnv(bootEnv, databasePool);
   let conversationRepository: ConversationRepository | undefined;
   let finalizedIngestionRepository: FinalizedIngestionRepository | undefined;
   try {
     conversationRepository = createConversationRepositoryFromEnv(
-      process.env,
+      bootEnv,
       databasePool ?? memoryRepository.getDatabaseClient?.()
     );
     conversationRepository?.setPublicationAdmission?.(outwardEffects.admitReplyPublications);
     finalizedIngestionRepository = createFinalizedIngestionRepositoryFromEnv(
-      process.env,
+      bootEnv,
       databasePool ?? memoryRepository.getDatabaseClient?.()
     );
   } catch (error) {
     await conversationRepository?.close?.();
     await memoryRepository.close?.();
+    await releaseDatabaseOwner();
     await databasePool?.end();
     throw error;
   }
@@ -361,11 +387,11 @@ export async function createAppContext(
     outwardEffects.captureOperationContext(key, "read_text_file", input);
   const promptBuilder = new PromptBuilder();
   const recentEpisodeStore: RecentEpisodeStore = createRecentEpisodeStoreFromEnv(
-    process.env,
+    bootEnv,
     databasePool
   );
   const dreamJobStore: DreamJobStore =
-    parseMemoryRepositoryEnv().kind === "postgres" && databasePool
+    parseMemoryRepositoryEnv(bootEnv).kind === "postgres" && databasePool
       ? new PostgresDreamJobStore(databasePool)
       : new InMemoryDreamJobStore();
   const finalizedIngestion = new FinalizedIngestionService(
@@ -381,7 +407,7 @@ export async function createAppContext(
   function createMemoryService(
     providers: ProviderRegistry,
     extractorMode = config.memoryExtractor,
-    env: Record<string, string | undefined> = process.env
+    env: Record<string, string | undefined> = bootEnv
   ): MemoryService {
     const reasoningStatus = providers.getStatus().providers.reasoning;
     const memoryExtractor =
@@ -425,7 +451,7 @@ export async function createAppContext(
       });
     }
 
-    return new MemoryService(
+    const service = new MemoryService(
       memoryRepository,
       undefined,
       undefined,
@@ -445,9 +471,11 @@ export async function createAppContext(
         mem0: mem0Backend,
         evidenceAdmissions,
         evidenceAdmissionReady,
-        controllerEvidence: new LocalControllerEvidenceProvider(
-          env["YUVI_RUNTIME_DATA_DIR"] || join(getRuntimeEnvDir(env), "data")
-        ),
+        controllerEvidence:
+          composition?.voiceBindingOwner ??
+          new LocalControllerEvidenceProvider(
+            env["YUVI_RUNTIME_DATA_DIR"] || join(getRuntimeEnvDir(env), "data")
+          ),
         searchTimeoutMs: runtimeConfig.memory.mem0TimeoutMs,
         writeTimeoutMs: 180_000,
         journalEvidenceReader: journalRepository ?? undefined,
@@ -456,6 +484,11 @@ export async function createAppContext(
         logger: runtimeLogger
       }
     );
+    service.bindCharacterOwner({
+      instanceId: composition?.binding.instanceId ?? PRIMARY_CHARACTER.instanceId,
+      personaId: composition ? characterPersonaId(composition.binding) : null
+    });
+    return service;
   }
 
   function createRuntime(
@@ -472,19 +505,24 @@ export async function createAppContext(
     // ABI. Real non-mock construction binds Character and its Cognition
     // callback in one place.
     const character =
-      process.env["NODE_ENV"] === "test" || process.env["PROVIDER_ALLOW_MOCKS"] === "true"
+      runtimeEnv["NODE_ENV"] === "test" || runtimeEnv["PROVIDER_ALLOW_MOCKS"] === "true"
         ? undefined
         : createServerCharacterPort();
     const personId = parseRuntimeConfig(runtimeEnv).memory.subjectUserId;
+    const sharedPerson = personId ? composition?.people?.readPerson(personId) : null;
     const consumedPerson = capturedProduct?.people.find((p) => p.id === personId);
-    const productDependency = consumedPerson
-      ? {
-          person: consumedPerson,
-          revision: capturedProduct?.personRevisionById?.[consumedPerson.id] ?? null,
-          primary: capturedProduct?.primaryPersonId ?? null,
-          primaryRevision: capturedProduct?.primaryPersonRevision ?? null
-        }
-      : null;
+    const productDependency = composition?.people
+      ? sharedPerson
+        ? { ...sharedPerson, primary: null, primaryRevision: null }
+        : null
+      : consumedPerson
+        ? {
+            person: consumedPerson,
+            revision: capturedProduct?.personRevisionById?.[consumedPerson.id] ?? null,
+            primary: capturedProduct?.primaryPersonId ?? null,
+            primaryRevision: capturedProduct?.primaryPersonRevision ?? null
+          }
+        : null;
     const contextOwnerSources: ContextSourceUse[] = [
       {
         owner: "PERSON",
@@ -507,10 +545,19 @@ export async function createAppContext(
       }
     ];
     const nextRuntime = new RuntimeOrchestrator({
+      ...(composition ? { characterBinding: composition.binding } : {}),
       contextOwnerSources,
       verifyContextOwners: async () => {
         if (!productDependency) return true;
-        const current = readProductSettings();
+        if (composition?.people) {
+          const person = personId ? composition.people.readPerson(personId) : null;
+          return (
+            contextUseDigest(
+              person ? { ...person, primary: null, primaryRevision: null } : null
+            ) === contextUseDigest(productDependency)
+          );
+        }
+        const current = readProductSettings(bootEnv);
         const person = current?.people.find((p) => p.id === personId);
         return (
           contextUseDigest({
@@ -527,7 +574,7 @@ export async function createAppContext(
       voiceBindingReferences: createFileVoiceBindingReferences(
         join(getRuntimeEnvDir(bootEnv), "voice-binding-references.json")
       ),
-      voicePersonaId: runtimeEnv["MEMORY_PERSONA_ID"],
+      voicePersonaId: composition?.voiceBindingPersonaId ?? runtimeEnv["MEMORY_PERSONA_ID"],
       p8CorrectionStore: createFileP8CorrectionStore(
         join(getRuntimeEnvDir(bootEnv), "p8-corrections.json")
       ),
@@ -683,6 +730,7 @@ export async function createAppContext(
     await conversationRepository.close?.();
     await finalizedIngestionRepository?.close?.();
     await memoryRepository.close?.();
+    await releaseDatabaseOwner();
     await databasePool?.end();
     throw error;
   }
@@ -737,6 +785,7 @@ export async function createAppContext(
       context.presentationEffects.seal();
       await readTextEffects.shutdown();
       await profileLifecycleCoordinator.shutdown({ graceMs: 2_000 });
+      await releaseDatabaseOwner();
       await databasePool?.end();
     },
     finalizedIngestion,
@@ -760,7 +809,7 @@ export async function createAppContext(
     async reloadRuntimeConfig(env, productSnapshot = null) {
       const previousActiveRuntimeEnv = { ...context.activeRuntimeEnv };
       const notHotReloaded = getPendingRestartKeys(env, previousActiveRuntimeEnv);
-      const reloadEnv = { ...env };
+      const reloadEnv = composition ? preserveCharacterEnvironment(composition, env) : { ...env };
       for (const key of notHotReloaded) {
         if (previousActiveRuntimeEnv[key] === undefined) {
           delete reloadEnv[key];
@@ -820,7 +869,7 @@ export async function createAppContext(
           if (!sameRuntimeSettingValue(key, previousActiveRuntimeEnv[key], env[key])) {
             appliedKeys.push(key);
           }
-          context.activeRuntimeEnv[key] = env[key];
+          context.activeRuntimeEnv[key] = reloadEnv[key];
         }
       }
 
@@ -849,7 +898,7 @@ export async function createAppContext(
       if (!owner) throw new Error("Native voice binding owner is unavailable.");
       const command = controllerBindingCommand(raw, intent, attempt);
       if (raw.operation !== "REMOVE") {
-        const settings = readProductSettings();
+        const settings = readProductSettings(bootEnv);
         if (!settings) throw new Error("Product Person owner is unavailable.");
         if (!settings.people.some((person) => person.id === raw.personId))
           return nativeOwnerEvidence("DEFINITIVE_REJECTION", "OWNER_REJECTED");

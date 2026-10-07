@@ -4,7 +4,6 @@ import { LlmMemoryExtractor } from "./extractor.js";
 import { InMemoryMemoryRepository } from "./repository.js";
 import type { MemoryBackend } from "./backend.js";
 import { detectExplicitForgetRequest, detectExplicitRememberRequest } from "./intent.js";
-import { Mem0MemoryProvider } from "./providers/mem0-memory-provider.js";
 import { buildMemoryScope } from "./scope.js";
 
 function createMockBackend(overrides: Partial<MemoryBackend> = {}): MemoryBackend {
@@ -47,7 +46,11 @@ describe("MemoryService mem0 mode", () => {
       { kind: "mem0", mem0: backend }
     );
 
-    expect(service.getMemoryProvider()).toBeInstanceOf(Mem0MemoryProvider);
+    expect(service.getMemoryProvider()).toMatchObject({
+      retrieveRelevant: expect.any(Function),
+      getEvent: expect.any(Function),
+      writeEvent: expect.any(Function)
+    });
   });
 
   it("searches mem0 and maps prompt-safe memories", async () => {

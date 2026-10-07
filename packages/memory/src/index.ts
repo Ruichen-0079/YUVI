@@ -460,3 +460,4 @@ export {
 } from "./effect-intent-compatibility.js";
 
 export * from "./context-use-repository.js";
+export * from "./character-scope.js";

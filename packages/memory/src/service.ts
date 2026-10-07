@@ -1,6 +1,12 @@
 import { legacyMemoryContextRevision } from "./context-use-repository.js";
 import { sameLegacyMemoryPartition } from "./scope.js";
 import {
+  assertCharacterMemoryPersona,
+  characterMemoryPersonaId,
+  type MemoryCharacterOwner
+} from "./character-scope.js";
+import { characterMemoryProvider, characterProfileSourceReader } from "./character-provider.js";
+import {
   InMemoryEvidenceAdmissionStore,
   PostgresEvidenceAdmissionStore,
   type EvidenceAdmissionStore
@@ -135,7 +141,11 @@ export type MemoryServiceBackendConfig = {
   }) => Promise<void> | void;
 };
 
+const repositoryCharacterOwners = new WeakMap<object, string>();
+
 export class MemoryService {
+  private characterOwner: MemoryCharacterOwner | undefined;
+  private readonly rawMemoryProvider: MemoryProvider | undefined;
   private readonly scorer: MemoryScorer;
   private readonly retriever: MemoryRetriever;
   private readonly embeddingProvider: MemoryEmbeddingProvider | undefined;
@@ -185,12 +195,15 @@ export class MemoryService {
     // Bootstrap errors are observed by the reader and fail closed, without making
     // an offline Mem0 service a boot dependency.
     void this.evidenceAdmissionReady.catch(() => undefined);
-    this.memoryProvider = this.mem0Backend
+    this.rawMemoryProvider = this.mem0Backend
       ? new Mem0MemoryProvider(
           this.mem0Backend,
           backend?.onProfileMutation,
           this.evidenceAdmissions
         )
+      : undefined;
+    this.memoryProvider = this.rawMemoryProvider
+      ? characterMemoryProvider(this.rawMemoryProvider, () => this.characterOwner)
       : undefined;
     this.controllerEvidence = backend?.controllerEvidence;
     this.memoryIngestionPolicy = backend?.ingestionPolicy ?? new MemoryIngestionPolicy();
@@ -199,6 +212,29 @@ export class MemoryService {
       (backend?.journalEvidenceReader
         ? new JournalMemoryGroundingResolver(backend.journalEvidenceReader)
         : undefined);
+  }
+
+  /** Bind one experience owner; repository views cannot be retargeted across Characters. */
+  bindCharacterOwner(owner: MemoryCharacterOwner): void {
+    if (owner.personaId !== null && owner.personaId !== characterMemoryPersonaId(owner.instanceId))
+      throw new Error("Memory owner must use its own stable Character instance scope.");
+    if (
+      this.characterOwner &&
+      (this.characterOwner.instanceId !== owner.instanceId ||
+        this.characterOwner.personaId !== owner.personaId)
+    )
+      throw new Error("Memory service cannot switch Character owner.");
+    const existing = repositoryCharacterOwners.get(this.repository);
+    if (existing !== undefined && existing !== owner.instanceId)
+      throw new Error("Characters require independent Memory repository views.");
+    repositoryCharacterOwners.set(this.repository, owner.instanceId);
+    this.characterOwner = Object.freeze({ ...owner });
+  }
+
+  private scopeCharacterInput<T extends { personaId?: string | null | undefined }>(input: T): T {
+    const owner = this.characterOwner ?? { instanceId: "primary-legacy", personaId: null };
+    assertCharacterMemoryPersona(owner, input.personaId);
+    return owner.personaId === null ? input : { ...input, personaId: owner.personaId };
   }
 
   /** True when formal long-term memory is Mem0 (Legacy write/search path disabled). */
@@ -217,7 +253,7 @@ export class MemoryService {
     const backend = this.mem0Backend as
       | (MemoryBackend & { getProfileNotificationFailureCount?: () => number })
       | undefined;
-    const provider = this.memoryProvider as
+    const provider = this.rawMemoryProvider as
       | (MemoryProvider & { getProfileNotificationFailureCount?: () => number })
       | undefined;
     return {
@@ -250,17 +286,25 @@ export class MemoryService {
   /** Internal f1 reader over this service's active backend instances. */
   getProfileMemorySourceReader(): ProfileMemorySourceReader {
     if (this.backendKind === "mem0" && this.mem0Backend) {
-      return new Mem0ProfileMemorySourceReader(
-        this.mem0Backend,
-        this.evidenceAdmissions,
-        this.evidenceAdmissionReady
+      return characterProfileSourceReader(
+        new Mem0ProfileMemorySourceReader(
+          this.mem0Backend,
+          this.evidenceAdmissions,
+          this.evidenceAdmissionReady
+        ),
+        () => this.characterOwner
       );
     }
-    if (this.backendKind === "legacy") return new LegacyProfileMemorySourceReader(this.repository);
+    if (this.backendKind === "legacy")
+      return characterProfileSourceReader(
+        new LegacyProfileMemorySourceReader(this.repository),
+        () => this.characterOwner
+      );
     return new UnavailableProfileMemorySourceReader();
   }
 
   async createMemory(input: CreateMemoryInput): Promise<Memory> {
+    input = this.scopeCharacterInput(input);
     if (!input.evidenceClassification) {
       throw new Error(
         "Direct legacy Memory creation must be explicitly classified as NON_EVIDENCE; factual writes use grounded candidate admission."
@@ -273,6 +317,11 @@ export class MemoryService {
 
   async getContextMemoryRevision(id: string): Promise<string | null> {
     const row = await this.repository.getMemoryById(id);
+    if (row)
+      assertCharacterMemoryPersona(
+        this.characterOwner ?? { instanceId: "primary-legacy", personaId: null },
+        row.personaId
+      );
     return row ? legacyMemoryContextRevision(row) : null;
   }
 
@@ -280,8 +329,13 @@ export class MemoryService {
     const lifecycleOnly = Object.keys(input).every((key) =>
       ["status", "supersededAt", "supersededBy"].includes(key)
     );
+    input = this.scopeCharacterInput(input);
     const current = await this.repository.getMemoryById(id);
     if (!current) return null;
+    assertCharacterMemoryPersona(
+      this.characterOwner ?? { instanceId: "primary-legacy", personaId: null },
+      current.personaId
+    );
     const relationshipIds = [
       ...(input.supersedes ?? []),
       ...(input.contradicts ?? []),
@@ -403,6 +457,7 @@ export class MemoryService {
   }
 
   async extractCandidates(input: MemoryExtractionInput): Promise<MemoryCandidate[]> {
+    input = this.scopeCharacterInput(input);
     if (this.isMem0Backend()) {
       // Do not run Legacy LLM/rule extraction when Mem0 owns long-term memory.
       return [];
@@ -466,6 +521,7 @@ export class MemoryService {
     } = {},
     groundingContext?: MemoryGroundingContext
   ): Promise<MemoryCandidateStorageResult> {
+    candidate = this.scopeCharacterInput(candidate);
     if (this.isMem0Backend()) {
       return {
         decision: "rejected",
@@ -640,6 +696,7 @@ export class MemoryService {
   async retrieveRelevantMemoriesWithMetadata(
     query: MemorySearchQuery
   ): Promise<MemoryRetrievalResult> {
+    query = this.scopeCharacterInput(query);
     if (this.isMem0Backend() && this.mem0Backend) {
       return this.retrieveFromMem0(query);
     }
@@ -701,6 +758,7 @@ export class MemoryService {
     cancelledOrFailed?: boolean | undefined;
     turnKind?: Mem0TurnKind | undefined;
   }): Promise<MemoryConversationTurnWriteResult & { code?: string }> {
+    input = this.scopeCharacterInput(input);
     if (!this.isMem0Backend() || !this.memoryProvider) {
       return {
         status: "failed",
@@ -887,6 +945,7 @@ export class MemoryService {
     personaId?: string | null | undefined;
     subjectUserId?: string | null | undefined;
   }): Promise<ForgetMemoriesResult & { code?: string }> {
+    input = this.scopeCharacterInput(input);
     if (!this.isMem0Backend() || !this.mem0Backend) {
       return { deleted: 0, notFound: true, memoryIds: [], query: input.userMessage };
     }

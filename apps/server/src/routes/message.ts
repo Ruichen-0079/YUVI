@@ -114,7 +114,7 @@ export async function registerMessageRoutes(
       input.data.voiceOutput ?? input.data.options?.voiceOutput ?? input.data.options?.tts
     );
     const memoryOptions = normalizeMessageMemoryOptions(input.data.options);
-    const identity = resolveMessageIdentity(input.data);
+    const identity = resolveMessageIdentity(input.data, context.activeRuntimeEnv);
     let event;
     let runtimeEventId: string | undefined;
     let sourceJournalRef: JournalEventRef | undefined;
@@ -308,11 +308,14 @@ export function normalizeMessageMemoryOptions(
  * Request fields win; otherwise explicit MEMORY_SUBJECT_USER_ID / MEMORY_PERSONA_ID.
  * Never invents default-user / default-persona.
  */
-export function resolveMessageIdentity(input: {
-  subjectUserId?: string | undefined;
-  personaId?: string | undefined;
-}): { subjectUserId?: string; personaId?: string } {
-  const runtime = parseRuntimeConfig(process.env);
+export function resolveMessageIdentity(
+  input: {
+    subjectUserId?: string | undefined;
+    personaId?: string | undefined;
+  },
+  env: Record<string, string | undefined> = process.env
+): { subjectUserId?: string; personaId?: string } {
+  const runtime = parseRuntimeConfig(env);
   const subjectUserId = input.subjectUserId?.trim() || runtime.memory.subjectUserId?.trim();
   const personaId = input.personaId?.trim() || runtime.memory.personaId?.trim();
   return {

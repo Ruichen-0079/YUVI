@@ -23,3 +23,6 @@ apps/web/public/yuvi-fonts/
 # Python service runtime artifacts
 __pycache__/
 *.py[cod]
+
+# Durable runtime ownership metadata (never source configuration).
+character-owner.json

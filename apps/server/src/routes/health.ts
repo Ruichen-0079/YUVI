@@ -45,6 +45,12 @@ export async function registerHealthRoutes(
             ? "READY"
             : "UNAVAILABLE",
       service: "ai-companion-runtime",
+      character: {
+        instanceId: context.runtime.characterBinding.instanceId,
+        definitionId: context.runtime.characterBinding.definition.id,
+        definitionRevision: context.runtime.characterBinding.definition.revision,
+        name: context.runtime.characterBinding.definition.name
+      },
       runtimeMode: config.runtimeMode,
       uptime: {
         seconds: Math.floor((Date.now() - startedAt) / 1000),

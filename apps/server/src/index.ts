@@ -1,24 +1,33 @@
+import { readCharacterComposition, preserveCharacterEnvironment } from "./character-composition.js";
 import { loadServerConfig } from "./config.js";
 import { applyRuntimeEnv, getLegacyServerLocalEnvWarning, readRuntimeEnvFiles } from "./env.js";
 import { buildServer } from "./server.js";
 
 const runtimeEnvFiles = await readRuntimeEnvFiles();
-applyRuntimeEnv(runtimeEnvFiles.env);
-console.info("[env] runtimeEnvDir:", runtimeEnvFiles.runtimeEnvDir);
-console.info("[env] .env exists:", runtimeEnvFiles.base.exists);
-console.info("[env] .env.local exists:", runtimeEnvFiles.local.exists);
-console.info("[env] DEEPSEEK_API_KEY configured:", Boolean(process.env["DEEPSEEK_API_KEY"]));
-console.info("[env] DEEPSEEK_CHAT_MODEL:", process.env["DEEPSEEK_CHAT_MODEL"] ?? "");
-console.info("[env] MEMORY_REPOSITORY:", process.env["MEMORY_REPOSITORY"] ?? "in-memory");
-console.info("[env] DATABASE_URL configured:", Boolean(process.env["DATABASE_URL"]));
+const composition = readCharacterComposition(
+  process.env["YUVI_CHARACTER_CONFIG_PATH"],
+  runtimeEnvFiles.env
+);
+const bootFiles = composition
+  ? await readRuntimeEnvFiles({ env: composition.env })
+  : runtimeEnvFiles;
+const actorEnv = composition
+  ? preserveCharacterEnvironment(composition, bootFiles.env)
+  : bootFiles.env;
+if (!composition) applyRuntimeEnv(actorEnv);
+console.info("[env] runtimeEnvDir:", bootFiles.runtimeEnvDir);
+console.info("[env] .env exists:", bootFiles.base.exists);
+console.info("[env] .env.local exists:", bootFiles.local.exists);
+console.info("[env] DEEPSEEK_API_KEY configured:", Boolean(actorEnv["DEEPSEEK_API_KEY"]));
+console.info("[env] DEEPSEEK_CHAT_MODEL:", actorEnv["DEEPSEEK_CHAT_MODEL"] ?? "");
+console.info("[env] MEMORY_REPOSITORY:", actorEnv["MEMORY_REPOSITORY"] ?? "in-memory");
+console.info("[env] DATABASE_URL configured:", Boolean(actorEnv["DATABASE_URL"]));
 
-const legacyWarning = await getLegacyServerLocalEnvWarning();
-if (legacyWarning) {
-  console.warn("[env]", legacyWarning);
-}
+const legacyWarning = composition ? null : await getLegacyServerLocalEnvWarning();
+if (legacyWarning) console.warn("[env]", legacyWarning);
 
-const config = loadServerConfig();
-const app = await buildServer(config);
+const config = loadServerConfig(actorEnv);
+const app = await buildServer(config, composition ? { characterComposition: composition } : {});
 
 const shutdown = async (signal: string) => {
   app.log.info({ signal }, "shutting down server");

@@ -1,3 +1,4 @@
+import type { CharacterComposition } from "./character-composition.js";
 import { registerConversationHistoryRoutes } from "./routes/conversation-history.js";
 import { registerPeopleVoiceRoutes } from "./routes/people-voices.js";
 import { registerProductRoutes } from "./routes/product.js";
@@ -41,6 +42,7 @@ import type { VoiceControlReceiptAdmission } from "./voice-control-receipt-admis
 import type { ProductPersonCommandPort } from "./product-person-command-effects.js";
 
 export type BuildServerOptions = Readonly<{
+  characterComposition?: CharacterComposition;
   /** Composition-time source registration; discovery does not call source loaders. */
   discoverPlugins?: ServerPluginSourceDiscovery | undefined;
   /** Host-authored grants; plugin declarations cannot create or alter these. */
@@ -132,7 +134,12 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
     app.log.info("DASHBOARD_DEV_TOKEN is configured for sensitive development endpoints.");
   }
 
-  const context = await createAppContext(app.log, config, pluginLifecycle.runtimeCapabilities);
+  const context = await createAppContext(
+    app.log,
+    config,
+    pluginLifecycle.runtimeCapabilities,
+    options.characterComposition
+  );
   if (options.productPersonCommands) context.productPersonCommands = options.productPersonCommands;
   if (options.conversationReceiptAdmission) {
     context.conversationalReceiptAdmission = options.conversationReceiptAdmission;
@@ -216,13 +223,13 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   });
 
   await registerHealthRoutes(app, context, config);
-  await registerLocalServiceRoutes(app, context, config);
-  await registerLocalConnectionRoutes(app, context, config);
+  if (!options.characterComposition) await registerLocalServiceRoutes(app, context, config);
+  if (!options.characterComposition) await registerLocalConnectionRoutes(app, context, config);
   await registerProviderRoutes(app, context, config);
-  await registerSettingsRoutes(app, context, config);
-  await registerProductRoutes(app, context, config);
-  await registerPeopleVoiceRoutes(app, context, config);
-  await registerSystemRoutes(app, config);
+  if (!options.characterComposition) await registerSettingsRoutes(app, context, config);
+  if (!options.characterComposition) await registerProductRoutes(app, context, config);
+  if (!options.characterComposition) await registerPeopleVoiceRoutes(app, context, config);
+  if (!options.characterComposition) await registerSystemRoutes(app, config);
   await registerMessageRoutes(app, context);
   await registerConversationHistoryRoutes(app, context);
   await registerMessageStreamRoutes(app, context);

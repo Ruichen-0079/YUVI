@@ -266,7 +266,7 @@ export async function registerProactiveTurnStreamRoutes(
         () => !clientDisconnected && !abortController.signal.aborted
       );
 
-      const identity = resolveMessageIdentity({});
+      const identity = resolveMessageIdentity({}, context.activeRuntimeEnv);
       const runtimeStream = context.runtime.streamAssistantInitiatedTurn(
         {
           sessionId: input.data.sessionId,

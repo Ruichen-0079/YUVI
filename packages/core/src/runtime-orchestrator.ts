@@ -16,12 +16,10 @@ import { projectP8ReconstructionToCharacterAbi } from "@companion/character-abi/
 import { projectMemoryVNextToCharacterAbi } from "@companion/character-abi/memory-vnext-projection";
 import type { CharacterAbiSemanticSection } from "@companion/character-abi";
 import {
-  createDefaultP8IdentityAddress,
   createP8CorrectionRecord,
   correctionFromP8CorrectionRecord,
   reconstructP8MainProfile,
   P8_RECONSTRUCTION_VERSIONS,
-  productionAuthoredInvariants,
   serializeP8CorrectionRecord,
   type P8NativeCorrectionCommand,
   type P8ExplicitCorrection,
@@ -29,7 +27,16 @@ import {
   type P8AcousticObservationReference,
   type P8VoiceBindingProjection
 } from "@companion/p8";
-import { buildMemoryScope, type MemoryRetrievalOutcome } from "@companion/memory";
+import {
+  PRIMARY_CHARACTER,
+  normalizeCharacterBinding,
+  characterP8Address,
+  characterPersonaId,
+  claimCharacterResources,
+  type CharacterBinding
+} from "./character-identity.js";
+import { assertCharacterMemoryPersona, assertCharacterMemoryScope } from "@companion/memory";
+import { buildMemoryScope, parseMemoryScope, type MemoryRetrievalOutcome } from "@companion/memory";
 import type { EventBus } from "@companion/event-bus";
 import type {
   ConversationMessage,
@@ -314,6 +321,9 @@ type SessionTurnsCacheEntry = {
 };
 
 export class RuntimeOrchestrator {
+  private readonly options: RuntimeOrchestratorOptions;
+  readonly characterBinding: CharacterBinding;
+  private readonly memoryPersonaId: string | null;
   private latestPromptPreview: RuntimePromptPreview | null = null;
   private readonly memoryCandidateHistory: RuntimeMemoryCandidateReview[] = [];
   /** Private host context is not serialized in review DTOs or candidate metadata. */
@@ -396,7 +406,32 @@ export class RuntimeOrchestrator {
     (event: RuntimeReplyStreamEvent) => unknown
   >();
 
-  constructor(private readonly options: RuntimeOrchestratorOptions) {
+  constructor(options: RuntimeOrchestratorOptions) {
+    this.options = { ...options };
+    this.characterBinding = normalizeCharacterBinding(
+      options.characterBinding ?? PRIMARY_CHARACTER
+    );
+    this.memoryPersonaId = options.characterBinding
+      ? characterPersonaId(this.characterBinding)
+      : null;
+    claimCharacterResources(this.characterBinding.instanceId, [
+      options.memory,
+      options.providers,
+      options.eventBus,
+      options.conversation,
+      options.finalizedIngestion,
+      options.memoryIngestionCoordinator,
+      options.recentEpisodeStore,
+      options.dreamJobStore,
+      options.p8CorrectionStore,
+      options.proactiveStateStore,
+      options.voiceBindingReferences
+    ]);
+    options.memory.bindCharacterOwner?.({
+      instanceId: this.characterBinding.instanceId,
+      personaId: this.memoryPersonaId
+    });
+    options.providers.bindCharacterOwner?.(this.characterBinding.instanceId);
     this.directContextConfig = normalizeDirectContextConfig(options.directContext);
     this.memoryContextBuilder = options.memoryContextBuilder ?? new MemoryContextBuilder();
     this.recentEpisodeStore = options.recentEpisodeStore ?? new InMemoryRecentEpisodeStore();
@@ -426,6 +461,47 @@ export class RuntimeOrchestrator {
           this.proactiveConsentEnabled = parsed.consentEnabled;
         }
       }
+    }
+  }
+
+  private scopeCharacterInput<T extends { personaId?: string | null | undefined }>(input: T): T {
+    assertCharacterMemoryPersona(
+      {
+        instanceId: this.characterBinding.instanceId,
+        personaId: this.memoryPersonaId
+      },
+      input.personaId
+    );
+    return this.memoryPersonaId === null ? input : { ...input, personaId: this.memoryPersonaId };
+  }
+
+  private scopeCharacterTurn(input: RuntimeUserTurnEvent | HandleUserMessageInput) {
+    // Acoustic observations are keyed by the admitted event. Their semantic identity
+    // is resolved separately in scopeVoiceTurn, never from caller-supplied identity.
+    if (isRuntimeUserTurnEvent(input)) {
+      if (input.type === "user.voice.transcript") return input;
+      return { ...input, payload: this.scopeCharacterInput(input.payload) };
+    }
+    return this.scopeCharacterInput(input);
+  }
+
+  private assertCorrectionOwner(record: ReturnType<typeof createP8CorrectionRecord>): void {
+    if (
+      record.address.characterInstanceId !== this.characterBinding.instanceId ||
+      (this.memoryPersonaId !== null &&
+        record.address.personaProfileId !== this.characterBinding.definition.id)
+    )
+      throw new Error("P8 correction belongs to another Character.");
+    const owner = { instanceId: this.characterBinding.instanceId, personaId: this.memoryPersonaId };
+    if (this.memoryPersonaId === null)
+      assertCharacterMemoryPersona(owner, record.address.personaProfileId);
+    if (this.memoryPersonaId !== null || record.scopeReference.reference.startsWith("yuvi:v1:")) {
+      assertCharacterMemoryScope(owner, record.scopeReference.reference);
+      if (
+        record.address.subjectScopeId !== undefined &&
+        parseMemoryScope(record.scopeReference.reference).userId !== record.address.subjectScopeId
+      )
+        throw new Error("P8 correction subject and Memory scope disagree.");
     }
   }
 
@@ -514,6 +590,8 @@ export class RuntimeOrchestrator {
   }
 
   adoptProactiveConsentProjection(previous: RuntimeOrchestrator): void {
+    if (previous.characterBinding.instanceId !== this.characterBinding.instanceId)
+      throw new Error("Proactive authority belongs to another Character.");
     if (!this.proactiveConsentProjectionRequired) return;
     const projection = previous.getProactiveConsentProjection();
     if (!projection) return;
@@ -528,6 +606,7 @@ export class RuntimeOrchestrator {
     personaId?: string | undefined;
     subjectUserId?: string | undefined;
   }): void {
+    input = this.scopeCharacterInput(input);
     const sessionId = input.sessionId.trim();
     if (!sessionId) {
       throw new Error("Proactive scheduler sessionId must not be empty.");
@@ -823,7 +902,7 @@ export class RuntimeOrchestrator {
         }));
         const interpretation = interpretSpeechObservationIdentity({
           observation,
-          address: createDefaultP8IdentityAddress(),
+          address: characterP8Address(this.characterBinding),
           scopeReference: buildMemoryScope("voice-observation", personaId),
           longTermEvents: projectionRead?.events ?? [],
           trustedAssertorEntityIds: ["local-explicit-controller"],
@@ -853,7 +932,7 @@ export class RuntimeOrchestrator {
       payload: {
         ...event.payload,
         subjectUserId: personId ?? null,
-        personaId: personaId ?? null,
+        personaId: this.memoryPersonaId ?? personaId ?? null,
         speakerId: personId ?? null,
         createdByUserId: personId ?? null
       }
@@ -891,6 +970,7 @@ export class RuntimeOrchestrator {
     if (!store?.getNativeRevision) return { status: "UNAVAILABLE" };
     try {
       const candidate = createP8CorrectionRecord(correction);
+      this.assertCorrectionOwner(candidate);
       const revision = await store.getNativeRevision({
         address: candidate.address,
         scopeReference: candidate.scopeReference
@@ -923,6 +1003,7 @@ export class RuntimeOrchestrator {
     let candidateRecord;
     try {
       candidateRecord = createP8CorrectionRecord(correction);
+      this.assertCorrectionOwner(candidateRecord);
     } catch (error) {
       throw error;
     }
@@ -958,6 +1039,7 @@ export class RuntimeOrchestrator {
     correction: P8ExplicitCorrection,
     command: P8NativeCorrectionCommand
   ) {
+    this.assertCorrectionOwner(createP8CorrectionRecord(correction));
     const store = this.options.p8CorrectionStore;
     return store?.reconcileCorrectionCommand
       ? store.reconcileCorrectionCommand(correction, command)
@@ -973,6 +1055,7 @@ export class RuntimeOrchestrator {
     let candidateRecord;
     try {
       candidateRecord = createP8CorrectionRecord(correction);
+      this.assertCorrectionOwner(candidateRecord);
     } catch (error) {
       return { status: "INVALID", error };
     }
@@ -1018,7 +1101,7 @@ export class RuntimeOrchestrator {
       const reconstruction = reconstructP8MainProfile({
         ...lookup,
         expectedScopeReference: lookup.scopeReference,
-        authoredInvariants: productionAuthoredInvariants(),
+        authoredInvariants: this.characterBinding.definition.authoredInvariants,
         longTerm: { status: "empty", events: [], source: "runtime", limited: false },
         referencedInterpretationCandidates: [
           {
@@ -1055,10 +1138,11 @@ export class RuntimeOrchestrator {
     speaker?: P8CharacterSpeakerView,
     voiceSources: ContextSourceUse[] = []
   ): Promise<void> {
-    const address = {
-      ...createDefaultP8IdentityAddress(identity.subjectUserId ?? undefined),
-      ...(identity.personaId ? { personaProfileId: identity.personaId } : {})
-    };
+    const address = characterP8Address(
+      this.characterBinding,
+      identity.subjectUserId ?? undefined,
+      this.memoryPersonaId === null ? (identity.personaId ?? undefined) : undefined
+    );
     const scopeReference = {
       reference:
         identity.subjectUserId && identity.personaId
@@ -1078,7 +1162,7 @@ export class RuntimeOrchestrator {
       reconstructP8MainProfile({
         address,
         expectedScopeReference: scopeReference,
-        authoredInvariants: productionAuthoredInvariants(),
+        authoredInvariants: this.characterBinding.definition.authoredInvariants,
         longTerm: outcome,
         correctionStore: failed ? { status: "ERROR" } : correctionStore,
         referencedInterpretationCandidates: [
@@ -1163,7 +1247,12 @@ export class RuntimeOrchestrator {
         semanticReferences: [
           JSON.stringify(P8_RECONSTRUCTION_VERSIONS),
           JSON.stringify({
-            authoredInvariantsDigest: contextUseDigest(productionAuthoredInvariants()),
+            authoredInvariantsDigest: contextUseDigest(
+              this.characterBinding.definition.authoredInvariants
+            ),
+            characterInstanceId: this.characterBinding.instanceId,
+            definitionId: this.characterBinding.definition.id,
+            definitionRevision: this.characterBinding.definition.revision,
             projectionDigest: contextUseDigest(p8)
           })
         ],
@@ -2107,6 +2196,7 @@ export class RuntimeOrchestrator {
     input: RuntimeUserTurnEvent | HandleUserMessageInput,
     options: HandleUserMessageOptions = {}
   ): Promise<AgentReplyEvent | null> {
+    input = this.scopeCharacterTurn(input);
     const payload = isRuntimeUserTurnEvent(input) ? input.payload : input;
     return withProviderWorkContext(
       {
@@ -2263,6 +2353,7 @@ export class RuntimeOrchestrator {
     input: RuntimeUserTurnEvent | HandleUserMessageInput,
     options: StreamUserMessageOptions = {}
   ): AsyncIterable<RuntimeReplyStreamEvent> {
+    input = this.scopeCharacterTurn(input);
     const payload = isRuntimeUserTurnEvent(input) ? input.payload : input;
     return withProviderWorkStream(
       {
@@ -3081,6 +3172,7 @@ export class RuntimeOrchestrator {
     input: AssistantInitiatedTurnInput,
     options: AssistantInitiatedTurnOptions = {}
   ): AsyncIterable<RuntimeReplyStreamEvent> {
+    input = this.scopeCharacterInput(input);
     const scope = `session:${input.sessionId}`,
       revision = this.proactiveState.activityRevision;
     const cause = input.sourceJournalRef;
@@ -3558,6 +3650,7 @@ export class RuntimeOrchestrator {
   }
 
   async handleImageInput(input: HandleImageInputInput): Promise<PerceptionVisionEvent> {
+    input = this.scopeCharacterInput(input);
     if (currentProviderWorkContext()) return this.executeImageInput(input);
     const scope = `session:${input.sessionId}`;
     const cause = await this.options.prepareProviderCause?.("vision-preparation", scope);
@@ -3681,7 +3774,7 @@ export class RuntimeOrchestrator {
     const prompt = this.options.promptBuilder.buildPrompt({
       maxCharacters: modelContextBudget(this.options.providers.getChatContextWindow?.())
         .maxInputCharacters,
-      systemIdentity: "You are YUVI, a local-first AI companion runtime agent.",
+      systemIdentity: this.characterBinding.definition.systemIdentity,
       characterStyle: `Warm, concise, conversational, and practical. Prefer short replies of about 1-3 sentences in ordinary chat and expand only when the user asks for detail.\n\n${characterOutputLanguageInstruction(this.outputLanguage())}`,
       relationshipContext:
         "Use remembered context only when relevant. Do not pretend to remember details that were not retrieved.",
@@ -3840,7 +3933,7 @@ export class RuntimeOrchestrator {
     const promptInput = {
       maxCharacters: modelContextBudget(this.options.providers.getChatContextWindow?.())
         .maxInputCharacters,
-      systemIdentity: "You are YUVI, a local-first AI companion runtime agent.",
+      systemIdentity: this.characterBinding.definition.systemIdentity,
       characterStyle: `Warm, concise, conversational, and practical. Prefer short replies of about 1-3 sentences in ordinary chat and expand only when the user asks for detail.\n\n${characterOutputLanguageInstruction(this.outputLanguage())}`,
       relationshipContext:
         "Use remembered context only when relevant. Do not pretend to remember details that were not retrieved.",

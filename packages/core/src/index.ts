@@ -245,7 +245,24 @@ export {
 } from "./runtime-embodied-presentation-execution.js";
 
 export { RuntimeOrchestrator } from "./runtime-orchestrator.js";
-export { executeRuntimeCognitionInteraction, DEFAULT_COGNITION_LIMITS, MAX_COGNITION_LIMITS, type RuntimeCognitionExecution, type RuntimeCognitionLimits, type RuntimeCognitionExchange } from "./runtime-cognition-interaction.js";
+export {
+  PRIMARY_CHARACTER,
+  defineCharacter,
+  normalizeCharacterBinding,
+  characterP8Address,
+  characterPersonaId,
+  claimCharacterResources,
+  type CharacterBinding,
+  type CharacterDefinition
+} from "./character-identity.js";
+export {
+  executeRuntimeCognitionInteraction,
+  DEFAULT_COGNITION_LIMITS,
+  MAX_COGNITION_LIMITS,
+  type RuntimeCognitionExecution,
+  type RuntimeCognitionLimits,
+  type RuntimeCognitionExchange
+} from "./runtime-cognition-interaction.js";
 export {
   PostgresP8CorrectionStore,
   type P8PostgresClient,

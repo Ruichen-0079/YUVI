@@ -174,6 +174,8 @@ export type ProviderRegistryConfig = {
 type ProviderEnv = Record<string, string | undefined>;
 
 export interface ProviderResolver {
+  /** Bind a mutable routing/accounting facade, never the underlying serving endpoint. */
+  bindCharacterOwner?(instanceId: string): void;
   getChatProvider(): ChatProvider;
   getChatStreamingMode?(): ChatStreamingMode;
   hasProactiveRoute?(): boolean;
@@ -207,7 +209,26 @@ type ProviderObservation = Omit<LiveProviderVerification, "capability" | "provid
   verifiedAt: string;
 };
 
+const accountingOwners = new WeakMap<ProviderAccountingPort, string>();
+function claimAccountingOwner(port: ProviderAccountingPort | undefined, instanceId: string): void {
+  if (!port) return;
+  const owner = accountingOwners.get(port);
+  if (owner !== undefined && owner !== instanceId)
+    throw new Error("Provider accounting adapter belongs to another Character.");
+  accountingOwners.set(port, instanceId);
+}
+
 export class ProviderRegistry implements ProviderResolver {
+  private characterOwner: string | undefined;
+  bindCharacterOwner(instanceId: string): void {
+    if (this.characterOwner !== undefined && this.characterOwner !== instanceId)
+      throw new Error("Provider Registry is already owned by another Character.");
+    claimAccountingOwner(this.config.accounting, instanceId);
+    this.characterOwner = instanceId;
+  }
+  getCharacterOwner(): string | undefined {
+    return this.characterOwner;
+  }
   private readonly chatProviders = new Map<string, ChatProvider>();
   private readonly reasoningProviders = new Map<string, ReasoningProvider>();
   private readonly ttsProviders = new Map<string, TTSProvider>();
@@ -230,10 +251,27 @@ export class ProviderRegistry implements ProviderResolver {
    */
   private readonly observationCache = new Map<string, ProviderObservation>();
 
-  constructor(private readonly config: ProviderRegistryConfig) {
-    config.accountingConfigurationRef ??= `provider-config:${randomUUID()}`;
+  private readonly config: ProviderRegistryConfig;
+  constructor(
+    config: ProviderRegistryConfig,
+    initialize?: (owned: ProviderRegistryConfig, registry: ProviderRegistry) => void
+  ) {
+    // Preserve ports, but never mutate caller-owned configuration or its owner.
+    this.config = {
+      ...config,
+      accountingConfigurationRef:
+        config.accountingConfigurationRef ?? `provider-config:${randomUUID()}`
+    };
+    initialize?.(this.config, this);
   }
   setAccounting(port: ProviderAccountingPort) {
+    if (
+      this.characterOwner !== undefined &&
+      this.config.accounting !== undefined &&
+      this.config.accounting !== port
+    )
+      throw new Error("A Character-owned Registry cannot switch accounting owner.");
+    if (this.characterOwner !== undefined) claimAccountingOwner(port, this.characterOwner);
     this.config.accounting = port;
   }
   private scopeTask<T>(provider: T, capability: CapabilityRoute): T {
@@ -827,31 +865,31 @@ export function createProviderRegistryFromEnv(env: ProviderEnv = process.env): P
   }
   validateQwen512DurableEmbeddingConfig(config);
 
-  const registry = new ProviderRegistry(config);
-  config.observeProductCall = (cap, id, available) => {
-    if (cap === "proactive") registry.recordProactiveObservation(id, available);
-    else
-      registry.recordLiveVerification({
-        capability: cap,
-        provider: id,
-        observed: available ? "available" : "unavailable"
-      });
-  };
-  registry.registerChatProvider(resolveChatProvider(config));
-  registry.registerReasoningProvider(resolveReasoningProvider(config));
-  registry.registerTTSProvider(resolveTTSProvider(config));
-  registry.registerSTTProvider(resolveSTTProvider(config));
-  registry.registerVisionProvider(resolveVisionProvider(config));
-  registry.registerEmbeddingProvider(resolveEmbeddingProvider(config));
-  registry.registerProactiveDecisionProvider(
-    config.product
-      ? resolveProactiveDecisionProvider(config)
-      : accountLeaf(config, "proactive", resolveProactiveDecisionProvider(config))
-  );
-  registry.registerAssistantContinuationProvider(
-    accountLeaf(config, "chat", resolveAssistantContinuationProvider(config))
-  );
-
+  const registry = new ProviderRegistry(config, (config, registry) => {
+    config.observeProductCall = (cap, id, available) => {
+      if (cap === "proactive") registry.recordProactiveObservation(id, available);
+      else
+        registry.recordLiveVerification({
+          capability: cap,
+          provider: id,
+          observed: available ? "available" : "unavailable"
+        });
+    };
+    registry.registerChatProvider(resolveChatProvider(config));
+    registry.registerReasoningProvider(resolveReasoningProvider(config));
+    registry.registerTTSProvider(resolveTTSProvider(config));
+    registry.registerSTTProvider(resolveSTTProvider(config));
+    registry.registerVisionProvider(resolveVisionProvider(config));
+    registry.registerEmbeddingProvider(resolveEmbeddingProvider(config));
+    registry.registerProactiveDecisionProvider(
+      config.product
+        ? resolveProactiveDecisionProvider(config)
+        : accountLeaf(config, "proactive", resolveProactiveDecisionProvider(config))
+    );
+    registry.registerAssistantContinuationProvider(
+      accountLeaf(config, "chat", resolveAssistantContinuationProvider(config))
+    );
+  });
   return registry;
 }
 

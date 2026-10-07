@@ -61,6 +61,8 @@ export type RuntimeLogger = {
 };
 
 export type RuntimeOrchestratorOptions = {
+  /** Omission preserves the primary Yuvi's exact legacy addresses and Memory scopes. */
+  characterBinding?: import("./character-identity.js").CharacterBinding | undefined;
   /** Host admission port only. Concrete read-text dispatch stays in server composition. */
   effectIntents?: EffectIntentAdmissionPort | undefined;
   contextOwnerSources?: readonly import("@companion/protocol").ContextSourceUse[] | undefined;
@@ -268,6 +270,7 @@ export type DirectContextConfig = {
 };
 
 export type RuntimeMemoryPort = {
+  bindCharacterOwner?(owner: import("@companion/memory").MemoryCharacterOwner): void;
   getContextMemoryRevision?(id: string): Promise<string | null>;
   retrieveRelevantMemories(input: {
     text: string;

@@ -512,7 +512,8 @@ export class HostProductPersonCommandEffects implements ProductPersonCommandPort
     private readonly admission: HostEffectIntentAdmission,
     private readonly dispatchStore: EffectDispatchStore | null,
     private readonly dispatcher: EffectDispatcher | null,
-    private readonly installationNamespace: string
+    private readonly installationNamespace: string,
+    private readonly allowedFamilies?: readonly string[]
   ) {
     if (dispatcher) {
       dispatcher.registerAdapter({
@@ -552,6 +553,8 @@ export class HostProductPersonCommandEffects implements ProductPersonCommandPort
       return { status: "UNAVAILABLE", reason: "DURABLE_NATIVE_CONTROL_UNAVAILABLE" };
     const input = parsed.data;
     const family = familyOf(input);
+    if (this.allowedFamilies && !this.allowedFamilies.includes(family))
+      return { status: "UNAVAILABLE", reason: "NATIVE_OWNER_AUTHORITY_NOT_GRANTED" };
     const semanticDigest = effectDigest(semanticBody(input));
     const workflowChild = parseWorkflowChild(rawWorkflowChild, input, semanticDigest);
     if (workflowChild === false) return { status: "CONFLICT", reason: "INVALID_WORKFLOW_CHILD" };
@@ -785,6 +788,8 @@ export class HostProductPersonCommandEffects implements ProductPersonCommandPort
       return { status: "UNAVAILABLE", reason: "DURABLE_NATIVE_CONTROL_UNAVAILABLE" };
     const input = parsed.data;
     const family = familyOf(input);
+    if (this.allowedFamilies && !this.allowedFamilies.includes(family))
+      return { status: "UNAVAILABLE", reason: "NATIVE_OWNER_AUTHORITY_NOT_GRANTED" };
     const semanticDigest = effectDigest(semanticBody(input));
     const workflowChild = parseWorkflowChild(rawWorkflowChild, input, semanticDigest);
     if (workflowChild === false) return { status: "CONFLICT", reason: "INVALID_WORKFLOW_CHILD" };
@@ -1094,6 +1099,8 @@ export class HostProductPersonCommandEffects implements ProductPersonCommandPort
     return (
       this.accepting &&
       authorized &&
+      (!this.allowedFamilies ||
+        (typeof descriptor?.family === "string" && this.allowedFamilies.includes(descriptor.family))) &&
       intent.decision === "ADMITTED" &&
       (descriptor?.family === "PRODUCT_PERSON" ||
         descriptor?.family === "VOICE_BINDING" ||

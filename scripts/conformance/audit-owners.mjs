@@ -5,6 +5,23 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 const groups = [
   [
+    "Character composition / independent perspective",
+    [
+      "packages/core/src/character-identity.ts",
+      "packages/memory/src/character-scope.ts",
+      "packages/memory/src/character-provider.ts",
+      "apps/server/src/character-composition.ts",
+      "apps/server/src/character-storage.ts"
+    ],
+    [
+      "packages/core/src/multi-character.test.ts",
+      "packages/memory/src/character-scope.test.ts",
+      "packages/providers/src/multi-character.test.ts",
+      "apps/server/src/character-composition.test.ts",
+      "apps/server/src/multi-character.integration.test.ts"
+    ]
+  ],
+  [
     "Journal/ingress",
     ["packages/journal/src/index.ts", "apps/server/src/conversational-receipt-admission.ts"],
     [

@@ -109,9 +109,9 @@ const CHARACTER_RETRY_LIMIT = 1;
 const CHARACTER_NGRAM_CHARACTERS = 64;
 const CHARACTER_MAX_NGRAM_OCCURRENCES = 3;
 
-const CHARACTER_BEHAVIOR_INSTRUCTION = `You are YUVI's Character layer. When the current turn continues or authorizes an unresolved concrete user request from recent conversation, fulfill that request in this response. Do not merely announce, promise, or describe future completion when the work can be completed now.`;
+const CHARACTER_BEHAVIOR_INSTRUCTION = `You are the bound Character's expression layer. Its identity and persona come from the supplied authored semantic context. When the current turn continues or authorizes an unresolved concrete user request from recent conversation, fulfill that request in this response. Do not merely announce, promise, or describe future completion when the work can be completed now.`;
 
-const CHARACTER_GENERATION_INSTRUCTION = `You are YUVI's Character layer. Use the supplied semantic context and the current user turn to express exactly one bounded semantic disposition. Return exactly one JSON object and no Markdown or control text. The allowed shapes are:
+const CHARACTER_GENERATION_INSTRUCTION = `You are the bound Character's expression layer. Its identity and persona come from the supplied authored semantic context. Use the supplied semantic context and the current user turn to express exactly one bounded semantic disposition. Return exactly one JSON object and no Markdown or control text. The allowed shapes are:
 {"disposition":"RESPOND","presentation":{"intent":"soft-smile"}}
 {"disposition":"SILENCE"}
 {"disposition":"TERMINATE"}
@@ -122,7 +122,7 @@ const PROACTIVE_INSTRUCTION = `Every disposition may optionally include proactiv
 
 const PRESENTATION_INSTRUCTION = `RESPOND may optionally include presentation with one semantic intent: neutral, soft-smile, attentive, thinking, amused, excited, or acknowledge-interrupt. Choose only when it fits the current expression; omit it otherwise. No device parameters or animation instructions.`;
 
-const POST_COGNITION_INSTRUCTION = `You are YUVI's Character layer after one bounded Cognition round-trip. Express the supplied normalized COGNITION_RESULT as exactly one final semantic disposition. Return exactly one JSON object and no Markdown or control text. The allowed shapes are RESPOND without text, SILENCE, or TERMINATE. Decide control flow only; do not generate the response body. Preserve uncertainty, caveats, partial, unavailable, unsafe, and error status honestly. Do not claim that an unavailable or unsafe result was resolved. Do not mention providers, models, Runtime, Harness, internal state, or reasoning traces. Do not request another Cognition round-trip.`;
+const POST_COGNITION_INSTRUCTION = `You are the bound Character's expression layer after one bounded Cognition round-trip. Its identity comes from the supplied authored semantic context. Express the supplied normalized COGNITION_RESULT as exactly one final semantic disposition. Return exactly one JSON object and no Markdown or control text. The allowed shapes are RESPOND without text, SILENCE, or TERMINATE. Decide control flow only; do not generate the response body. Preserve uncertainty, caveats, partial, unavailable, unsafe, and error status honestly. Do not claim that an unavailable or unsafe result was resolved. Do not mention providers, models, Runtime, Harness, internal state, or reasoning traces. Do not request another Cognition round-trip.`;
 
 type CharacterAdapterRequest = CharacterHarnessAdapterRequest;
 type AcceptedGeneration = Extract<CharacterHarnessRepetitionSupervision, { status: "ACCEPTED" }>;
