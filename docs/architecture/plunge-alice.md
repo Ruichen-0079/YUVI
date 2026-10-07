@@ -47,7 +47,9 @@ durable receipt and a bounded scene observation, without a Character/user turn.
 Private input, a real mention of the current account, a recently observed reply
 to that account, or a bounded direct continuation can enter the existing Character
 gate. Admission never mandates a reply. Core still chooses RESPOND, SILENCE,
-NEED_COGNITION or another existing disposition. No local 4B router is installed.
+NEED_COGNITION or another existing disposition. A local Qwen3.5-4B service has
+been provisioned and benchmarked independently; it is not connected to this QQ
+admission path. See [local attention validation](../validation/local-attention-qwen35-4b-2026-10-07.md).
 
 Transport scene state is bounded: 64 channels, 120 seconds, 12 observations per
 channel, 128 reply handles and 256 short-lived duplicate fingerprints. Message ID
