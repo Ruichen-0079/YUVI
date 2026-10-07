@@ -219,3 +219,32 @@ image/question, subsequent group image/true mention, and corresponding native
 QQ ACK remain pending user-supplied events. The replay is not fresh live
 acceptance and made no native QQ send. Capture instrumentation stays enabled for
 that pending checkpoint; restore the original endpoint after capture completes.
+
+## Fresh live checkpoint and private repetition feedback
+
+Fresh events in generation `702287a3-6101-49c0-84b7-5492ab3fd9ca` now
+verify the image chain in both private and group QQ. Actual Vision HTTP results
+were successful. Final streaming requests 026, 029 and 032 contain the full
+provider observation exactly once (2651, 3375 and 3623 characters), alongside
+the corresponding current input. Rendered input costs were 8334, 8896 and 8970
+characters, all within 10240. Each resulting response has a native QQ ACK and
+an ACKNOWLEDGED outbound receipt. Group image was ambient; the following true
+mention requested the exact image source and answered normally. The subsequent
+`goodgood` continuation chose SILENCE. Private captures/proof and actual replies
+remain outside Git in `fresh-live-context-proof.json`, the corresponding
+`rendered-chat-*.json`, `private-vision-results.jsonl`,
+`private-model-responses.jsonl` and `live-alice.log`.
+
+The user reports private replies are repetitive while group behavior is normal.
+Wire evidence identifies two separate private inputs: the image, then the
+question about that image. Both are individually admitted private turns and each
+receives one response/ACK. The question was sent while the first image response
+was still being generated; processing it as a later independent turn produces
+another image description. This is not a transport retry or a missing
+self-expression projection. Request 027 already includes the complete prior
+answer in RECENT_CONVERSATION and its ACKNOWLEDGED SELF_EXPRESSION in the current
+scene; request 029 retains the acknowledged self observation too. Alice can see
+her own published reply. Private burst/admission behavior remains a distinct
+unresolved interaction concern; no debounce, automatic SILENCE rule, persona
+rewrite or transport coalescing was introduced as part of the image-context fix.
+Capture remains enabled while that concern is under investigation.
