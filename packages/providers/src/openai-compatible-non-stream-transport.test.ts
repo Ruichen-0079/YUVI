@@ -4,6 +4,7 @@ import type { EmbeddingProvider } from "./types/embedding.js";
 import { ProviderErrorCode } from "./types/errors.js";
 import type { ReasoningProvider } from "./types/reasoning.js";
 import { createProviderRegistryFromEnv } from "./registry.js";
+import { emptyProductConfiguration } from "./product-configuration.js";
 
 const chatInput = { messages: [{ role: "user" as const, content: "hello" }] };
 const reasoningInput = { messages: [{ role: "user" as const, content: "think" }] };
@@ -518,6 +519,48 @@ describe("OpenAI-compatible non-stream transport", () => {
       model: "Qwen3-Embedding-0.6B-Q8_0.gguf",
       dimensions: 512
     });
+  });
+
+  it("retains the Qwen512 embedding contract when Product renames the same local backend", async () => {
+    const native = Array.from({ length: 1024 }, (_, i) => (i === 0 ? 3 : 1));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify(embeddingPayload([native])), {
+            status: 200,
+            headers: { "content-type": "application/json" }
+          })
+      )
+    );
+    const configuration = emptyProductConfiguration();
+    configuration.providers.push({
+      id: "import-local",
+      displayName: "Local",
+      adapter: "openai-compatible",
+      baseUrl: "http://127.0.0.1:8128/v1"
+    });
+    configuration.models.push({
+      id: "import-local-embedding",
+      providerId: "import-local",
+      displayName: "Embedding",
+      modelId: "Qwen3-Embedding-0.6B-Q8_0.gguf",
+      dimensions: 512,
+      contextWindow: null,
+      temperature: 0,
+      capabilities: ["embedding"],
+      enabled: true
+    });
+    configuration.routes.embedding = ["import-local-embedding"];
+    const registry = createProviderRegistryFromEnv({
+      NODE_ENV: "test",
+      PROVIDER_ALLOW_MOCKS: "false",
+      YUVI_PRODUCT_CONFIGURATION: JSON.stringify(configuration)
+    });
+    const output = await registry.getEmbeddingProvider().embedText("hello");
+    expect(output).toHaveLength(512);
+    expect(output[0]).toBeCloseTo(3 / Math.sqrt(9 + 511), 8);
+    expect(Math.hypot(...output)).toBeCloseTo(1, 6);
   });
 
   it("does not apply Qwen MRL to an unrelated local embedding model", async () => {

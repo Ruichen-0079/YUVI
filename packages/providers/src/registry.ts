@@ -2835,9 +2835,10 @@ function transformLocalMrlEmbedding(
 ): number[] {
   // llama-server currently returns the model's native embedding length even
   // when the OpenAI-compatible request includes `dimensions`. Keep the MRL
-  // transform at the existing local-provider boundary so Core and Memory see
-  // only the configured production dimension.
-  if (provider !== "local" || model !== QWEN3_EMBEDDING_MRL_MODEL || dimensions !== 512) {
+  // transform at the provider boundary so Core and Memory see only the
+  // configured production dimension. Product model IDs may rename the same
+  // backend; the concrete model and durable dimension own this contract.
+  if (model !== QWEN3_EMBEDDING_MRL_MODEL || dimensions !== 512) {
     return vector;
   }
 
