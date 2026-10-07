@@ -1,6 +1,10 @@
 import { randomUUID } from "node:crypto";
 import type { JournalRepository } from "@companion/journal";
-import type { JournalEventRef, JournalPayloadDescriptor } from "@companion/protocol";
+import {
+  JournalEventRefSchema,
+  type JournalEventRef,
+  type JournalPayloadDescriptor
+} from "@companion/protocol";
 import { z } from "zod";
 
 export const SurfaceReceiptSchema = z
@@ -8,7 +12,9 @@ export const SurfaceReceiptSchema = z
     namespace: z.string().min(1).max(256),
     actorId: z.string().min(1).max(128),
     channelRef: z.string().min(1).max(512),
-    conversationKind: z.enum(["PRIVATE", "GROUP"]),
+    conversationKind: z.enum(["PRIVATE", "GROUP", "TEMPORARY_PRIVATE"]),
+    direction: z.enum(["INBOUND", "OUTBOUND"]).optional(),
+    causalParents: z.array(JournalEventRefSchema).max(4).optional(),
     sessionId: z.string().min(1).max(512),
     runtimeEventId: z.string().min(1).max(128),
     content: z.string().min(1).max(4096),
@@ -39,7 +45,7 @@ export class HostSurfaceReceiptAdmission implements SurfaceReceiptAdmission {
         ref: text,
         modality: "TEXT",
         retention: "RETAINED",
-        origin: "USER_INPUT",
+        origin: input.direction === "OUTBOUND" ? "ASSISTANT_GENERATED" : "USER_INPUT",
         selectable: true,
         characterCount: [...input.content].length
       },
@@ -47,7 +53,7 @@ export class HostSurfaceReceiptAdmission implements SurfaceReceiptAdmission {
         ref: facts,
         modality: "TEXT",
         retention: "RETAINED",
-        origin: "USER_INPUT",
+        origin: input.direction === "OUTBOUND" ? "EXTERNAL_RESULT" : "USER_INPUT",
         selectable: false,
         characterCount: [...input.transportFacts].length
       }
@@ -66,9 +72,10 @@ export class HostSurfaceReceiptAdmission implements SurfaceReceiptAdmission {
           version: "life-event-command.v1",
           kind: "RECEIPT",
           occurrenceTime: { state: "UNKNOWN" },
-          causalParents: [],
+          causalParents: input.causalParents ?? [],
           data: {
-            receiptClass: "ATTRIBUTED_ASSERTION",
+            receiptClass:
+              input.direction === "OUTBOUND" ? "DIRECT_OBSERVATION" : "ATTRIBUTED_ASSERTION",
             evidenceSelectors: [
               {
                 version: "source-selector.v1",
@@ -110,11 +117,11 @@ export class HostSurfaceReceiptAdmission implements SurfaceReceiptAdmission {
             }
           : { state: "UNRESOLVED", reason: "No host-granted Product Person binding" },
         surface: {
-          kind: input.conversationKind === "PRIVATE" ? "PRIVATE_CHANNEL" : "GROUP_CHANNEL",
+          kind: input.conversationKind === "GROUP" ? "GROUP_CHANNEL" : "PRIVATE_CHANNEL",
           reference: input.channelRef
         },
         audience:
-          input.conversationKind === "PRIVATE"
+          input.conversationKind !== "GROUP"
             ? { kind: "PRIVATE", channelRef: input.channelRef }
             : {
                 kind: "GROUP",

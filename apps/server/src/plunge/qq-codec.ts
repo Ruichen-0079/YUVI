@@ -90,10 +90,25 @@ export function decodeQQPacket(
   const segments = e["message"]
     .map(object)
     .filter((v): v is Record<string, unknown> => v !== undefined);
+  let seenImages = 0;
   const content = segments
-    .filter((s) => s["type"] === "text")
-    .map((s) => object(s["data"])?.["text"])
-    .filter((t): t is string => typeof t === "string")
+    .map((segment) => {
+      const kind = segment["type"];
+      if (kind === "text") {
+        const text = object(segment["data"])?.["text"];
+        return typeof text === "string" ? text : "";
+      }
+      if (kind === "image")
+        return ++seenImages === 1
+          ? "[Image attachment]"
+          : "[Additional image attachment; contents unavailable]";
+      if (kind === "at" || kind === "reply") return "";
+      // Transport recognition is not perception. Unsupported media stays visible
+      // in the conversation, with its contents explicitly unknown.
+      return typeof kind === "string" && /^[a-z_]{1,32}$/.test(kind)
+        ? `[Attachment: ${kind}; contents unavailable]`
+        : "[Unsupported message segment; contents unavailable]";
+    })
     .join("")
     .trim();
   if (content.length > 4096) return;

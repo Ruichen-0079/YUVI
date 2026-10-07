@@ -15,6 +15,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   RuntimeOrchestrator,
   type RuntimeCharacterPort,
+  type RuntimeCharacterCognitionExecutor,
   type RuntimeCharacterTurnResult,
   type RuntimeMemoryPort,
   type RuntimeReplyStreamEvent
@@ -145,7 +146,10 @@ function providersStub(ttsInputs?: TTSInput[]): ProviderResolver {
   };
 }
 
-function setup(generate: RuntimeCharacterPort["generate"]) {
+function setup(
+  generate: RuntimeCharacterPort["generate"],
+  cognition?: RuntimeCharacterCognitionExecutor
+) {
   const captureScreen = vi.fn(async (_signal: AbortSignal) => new Uint8Array([1, 2, 3]));
   const analyzeImage = vi.fn(async () => ({ text: "VISIBLE_ERROR " + "x".repeat(5000) }));
   const eventBus = new InMemoryEventBus({ development: false });
@@ -167,7 +171,8 @@ function setup(generate: RuntimeCharacterPort["generate"]) {
         healthCheck: async () => ({ provider: "vision", status: "healthy", checkedAt: "" })
       })
     },
-    character: { generate, generateAfterCognition: generate }
+    character: { generate, generateAfterCognition: generate },
+    ...(cognition ? { characterCognition: cognition } : {})
   });
   return { runtime, captureScreen, analyzeImage, extractCandidates, published };
 }
@@ -348,8 +353,111 @@ it("keeps non-streaming grounded turns out of automatic Memory too", async () =>
   expect(s.extractCandidates).not.toHaveBeenCalled();
 });
 
-
 describe("explicit user image attachment grounding", () => {
+  it("preserves selected visual evidence and source descriptions through Cognition and Character re-entry", async () => {
+    const sourceJournalRef = {
+      kind: "JOURNAL_EVENT" as const,
+      namespace: "test",
+      eventId: "jev1_0000000000000001"
+    };
+    let calls = 0;
+    const cognition = vi.fn(async (_request, _problem, options) => {
+      expect(options.canonicalContext.multimodalEvidence).toContain("VISIBLE_ERROR");
+      expect(options.canonicalContext.multimodalEvidence).toContain(sourceJournalRef.eventId);
+      return {
+        version: "character-harness-5h.v1",
+        request: {
+          version: "character-harness-5g.v1",
+          kind: "NEED_COGNITION",
+          focus: "verification"
+        },
+        result: {
+          version: "character-cognition-result.v1",
+          status: "SUCCESS",
+          answer: "Reasoned answer"
+        }
+      };
+    });
+    const s = setup(async (input) => {
+      if (++calls === 1) {
+        await input.requestVisualEvidence!({
+          need: "Read the diagram",
+          sourceReference: "image:a"
+        });
+        return decisionFixture({ disposition: "NEED_COGNITION", focus: "verification" });
+      }
+      expect(input.visualEvidence).toMatchObject({ status: "AVAILABLE", sourceJournalRef });
+      expect(input.visualSources).toMatchObject([{ reference: "image:a" }]);
+      return respond();
+    }, cognition);
+    await s.runtime.handleUserMessage(
+      { sessionId: "observed", content: "Read then verify the diagram" },
+      {
+        visualSources: [
+          {
+            reference: "image:a",
+            sourceJournalRef,
+            read: async () => ({ imageBase64: "AQID", mimeType: "image/png" })
+          }
+        ]
+      }
+    );
+    expect(cognition).toHaveBeenCalledOnce();
+    expect(s.analyzeImage).toHaveBeenCalledOnce();
+    expect(s.captureScreen).not.toHaveBeenCalled();
+    expect(calls).toBe(2);
+  });
+  it("reads only the explicitly selected observation source through the existing Vision cycle, with no desktop capture or implicit attachment", async () => {
+    const sourceJournalRef = {
+      kind: "JOURNAL_EVENT" as const,
+      namespace: "test",
+      eventId: "jev1_0000000000000001"
+    };
+    const first = vi.fn(async () => ({ imageBase64: "AQID", mimeType: "image/png" as const }));
+    const second = vi.fn(async () => ({ imageBase64: "BAUG", mimeType: "image/png" as const }));
+    let evidence: unknown;
+    const s = setup(async (input) => {
+      expect(input.visualSources?.map((source) => source.reference)).toEqual([
+        "image:a",
+        "image:b"
+      ]);
+      evidence = await input.requestVisualEvidence!({
+        need: "Describe B's diagram",
+        sourceReference: "image:b"
+      });
+      return respond();
+    });
+    const result = await s.runtime.handleUserMessage(
+      { sessionId: "observed", content: "What is in B's diagram?" },
+      {
+        visualSources: [
+          { reference: "image:a", sourceJournalRef, read: first },
+          { reference: "image:b", sourceJournalRef, read: second }
+        ]
+      }
+    );
+    expect(result?.payload.content).toContain("original-turn answer");
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledOnce();
+    expect(s.captureScreen).not.toHaveBeenCalled();
+    expect(s.analyzeImage).toHaveBeenCalledOnce();
+    expect(evidence).toMatchObject({ status: "AVAILABLE", sourceJournalRef });
+    expect(s.extractCandidates).not.toHaveBeenCalled();
+  });
+  it("never guesses an image source or falls back to desktop capture for a surface with no selected source", async () => {
+    const s = setup(async (input) => {
+      expect(await input.requestVisualEvidence!({ need: "look at it" })).toMatchObject({
+        status: "UNAVAILABLE"
+      });
+      return respond();
+    });
+    await s.runtime.handleUserMessage(
+      { sessionId: "observed", content: "What image?" },
+      { visualSources: [] }
+    );
+    expect(s.captureScreen).not.toHaveBeenCalled();
+    expect(s.analyzeImage).not.toHaveBeenCalled();
+  });
   async function collectAttached(
     runtime: RuntimeOrchestrator,
     options: { signal?: AbortSignal; imageBase64?: string } = {}

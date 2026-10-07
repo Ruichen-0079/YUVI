@@ -390,6 +390,152 @@ describe("semantic current-screen grounding", () => {
     });
   });
 
+  it("lets Character select an exact observed image source and exposes its evidence in the next rendered model request", async () => {
+    const calls = characterHarness({
+      responses: [
+        output('{"visualNeed":"Read the diagram uploaded by B","sourceReference":"image:b"}'),
+        output('{"disposition":"RESPOND"}')
+      ]
+    });
+    const sourceJournalRef = {
+      kind: "JOURNAL_EVENT" as const,
+      namespace: "test",
+      eventId: "jev1_0000000000000001"
+    };
+    const requestVisualEvidence = vi.fn(async () => ({
+      status: "AVAILABLE" as const,
+      observations: "The selected image contains VISION_B_42.",
+      sourceJournalRef
+    }));
+    const result = await createServerCharacterPort().generate({
+      prompt,
+      userMessage: "What is B's diagram?",
+      visualSources: [{ reference: "image:b", sourceJournalRef }],
+      requestVisualEvidence,
+      generateChat: calls.generateChat
+    });
+    expect(requestVisualEvidence).toHaveBeenCalledWith({
+      need: "Read the diagram uploaded by B",
+      sourceReference: "image:b"
+    });
+    expect(JSON.stringify(calls.generateChat.mock.calls[0]?.[0])).toContain(
+      "Available image sources"
+    );
+    expect(JSON.stringify(calls.generateChat.mock.calls[1]?.[0])).toContain("VISION_B_42");
+    expect(JSON.stringify(calls.generateChat.mock.calls[1]?.[0])).toContain(
+      sourceJournalRef.eventId
+    );
+    expect(result.decision.reply.disposition).toBe("RESPOND");
+    expect(JSON.stringify(result.decision.reply)).toContain("VISION_B_42");
+    expect(JSON.stringify(result.decision.reply)).toContain("image:b");
+    expect(JSON.stringify(result.decision.reply)).toContain(sourceJournalRef.eventId);
+  });
+  it("reserves late-added visual evidence in the rendered request budget while preserving current scene and authored identity", async () => {
+    const canonicalContext = assembleCanonicalContext({
+      semanticSections: [
+        { kind: "IDENTITY", state: "KNOWN", summary: "BOUND_IDENTITY" },
+        { kind: "PERSONA", state: "KNOWN", summary: "AUTHORED_PERSONA" },
+        { kind: "MEMORY_EVIDENCE", state: "KNOWN", summary: "old memory ".repeat(340) },
+        { kind: "CURRENT_SITUATION", state: "KNOWN", summary: "CURRENT_GROUP_ACTOR_REPLY" }
+      ],
+      currentInput: "Read the image"
+    });
+    const calls = characterHarness({
+      responses: [
+        output('{"visualNeed":"Read it","sourceReference":"image:a"}'),
+        output('{"disposition":"RESPOND"}')
+      ]
+    });
+    const result = await createServerCharacterPort().generate({
+      prompt,
+      canonicalContext,
+      userMessage: "Read the image",
+      visualSources: [
+        {
+          reference: "image:a",
+          sourceJournalRef: {
+            kind: "JOURNAL_EVENT",
+            namespace: "test",
+            eventId: "jev1_0000000000000001"
+          }
+        }
+      ],
+      requestVisualEvidence: async () => ({
+        status: "AVAILABLE",
+        observations: "VISUAL_REQUIRED_42 " + 'visible "text"\\n'.repeat(240)
+      }),
+      generateChat: calls.generateChat
+    });
+    expect(calls.generateChat).toHaveBeenCalledTimes(2);
+    for (const request of calls.generateChat.mock.calls.map((call) => call[0])) {
+      expect(
+        request.messages.reduce((sum, message) => sum + message.content.length + 64, 0)
+      ).toBeLessThanOrEqual(10240);
+      expect(JSON.stringify(request)).toContain("CURRENT_GROUP_ACTOR_REPLY");
+      expect(JSON.stringify(request)).toContain("BOUND_IDENTITY");
+      expect(JSON.stringify(request)).toContain("AUTHORED_PERSONA");
+    }
+    expect(JSON.stringify(result.decision.reply)).toContain("VISUAL_REQUIRED_42");
+    expect(JSON.stringify(result.decision.reply)).toContain("CURRENT_GROUP_ACTOR_REPLY");
+  });
+
+  it("repairs a mixed perception/reasoning proposal before executing exactly one visual cycle", async () => {
+    const calls = characterHarness({
+      responses: [
+        output(
+          '{"disposition":"NEED_COGNITION","focus":"look","visualNeed":"Read it","sourceReference":"image:a"}'
+        ),
+        output('{"visualNeed":"Read it","sourceReference":"image:a"}'),
+        output('{"disposition":"RESPOND"}')
+      ]
+    });
+    const requestVisualEvidence = vi.fn(async () => ({
+      status: "AVAILABLE" as const,
+      observations: "PERCEPTION_42"
+    }));
+    const result = await createServerCharacterPort().generate({
+      prompt,
+      userMessage: "Read the image",
+      requestVisualEvidence,
+      visualSources: [],
+      generateChat: calls.generateChat
+    });
+    expect(requestVisualEvidence).toHaveBeenCalledOnce();
+    expect(result.cognitionHandoff).toBeUndefined();
+    expect(result.decision.reply.disposition).toBe("RESPOND");
+    expect(calls.generateChat).toHaveBeenCalledTimes(3);
+    expect(JSON.stringify(calls.generateChat.mock.calls[1])).toContain("mutually exclusive");
+  });
+
+  it("carries newly acquired visual evidence in the Character-owned Cognition handoff", async () => {
+    const calls = characterHarness({
+      responses: [
+        output('{"visualNeed":"Read the diagram","sourceReference":"image:a"}'),
+        output('{"disposition":"NEED_COGNITION","focus":"Verify its calculation"}')
+      ]
+    });
+    const result = await createServerCharacterPort().generate({
+      prompt,
+      userMessage: "Verify the diagram",
+      visualSources: [
+        {
+          reference: "image:a",
+          sourceJournalRef: {
+            kind: "JOURNAL_EVENT",
+            namespace: "test",
+            eventId: "jev1_0000000000000001"
+          }
+        }
+      ],
+      requestVisualEvidence: async () => ({
+        status: "AVAILABLE",
+        observations: "EVIDENCE_CALCULATION_42"
+      }),
+      generateChat: calls.generateChat
+    });
+    expect(result.cognitionHandoff?.problem).toContain("EVIDENCE_CALCULATION_42");
+  });
+
   it("rejects a model-authored second visualNeed when attachment evidence is already present", async () => {
     const calls = characterHarness({
       responses: [output('{"visualNeed":"capture another image"}')]

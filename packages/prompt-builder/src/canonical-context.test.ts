@@ -30,6 +30,34 @@ const producers = [
 ] as const;
 
 describe("canonical semantic assembly", () => {
+  it("keeps current surface facts visible when an older situation exceeds the Character ABI budget", () => {
+    const context = assembleCanonicalContext({
+      semanticSections: [
+        ...producers,
+        { kind: "CURRENT_SITUATION", state: "KNOWN", summary: "old situation ".repeat(600) }
+      ],
+      currentSpeakerEvidence: "the current speaker",
+      situationEvidence: "NEW_IMAGE_SOURCE_42 and its current reply relationship"
+    });
+    const situation = context.sharedSections.find(
+      (section) => section.kind === "CURRENT_SITUATION"
+    )!;
+    expect(situation.state).toBe("PARTIAL");
+    expect(situation.summary!.length).toBeLessThanOrEqual(4000);
+    expect(situation.summary).toContain("NEW_IMAGE_SOURCE_42");
+    expect(situation.summary).toContain("the current speaker");
+    expect(situation.summary).toContain("Earlier situation shortened");
+    expect(context.stability.stablePrefix.identity).toBe(
+      assembleCanonicalContext({
+        semanticSections: [
+          ...producers,
+          { kind: "CURRENT_SITUATION", state: "KNOWN", summary: "other old situation" }
+        ],
+        currentSpeakerEvidence: "another speaker",
+        situationEvidence: "another scene"
+      }).stability.stablePrefix.identity
+    );
+  });
   it("orders equivalent producer inputs deterministically and snapshots them", () => {
     const first = assembleCanonicalContext({
       semanticSections: producers,

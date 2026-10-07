@@ -84,6 +84,7 @@ export function composePlunge(
     const port = host.bind({
       surfaceId: "qq",
       principalNamespace: namespace,
+      selfActorId: config.expectedAccount,
       resolvePerson(actor) {
         const id = bindings.get(actor),
           person = id ? composition.people?.readPerson(id) : null;

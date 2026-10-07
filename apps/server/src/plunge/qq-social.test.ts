@@ -77,7 +77,7 @@ describe("bounded QQ social admission", () => {
     );
     expect(f.inputs.at(-1)).toMatchObject({
       admission: "REPLY",
-      reply: { state: "OBSERVED", author: { displayName: "Alice" }, text: "Alice output" }
+      reply: { state: "OBSERVED", author: { principalId: "ns:42" }, text: "Alice output" }
     });
     await f.social.receive(
       packet({

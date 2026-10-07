@@ -81,6 +81,30 @@ describe("QQ codec contract", () => {
       { type: "text", data: { text: "reply" } }
     ]);
   });
+  it("keeps unsupported attachments and additional images visible without claiming their contents", () => {
+    const p = decodeQQPacket(
+      wire({
+        message: [
+          { type: "text", data: { text: "before" } },
+          { type: "image", data: { file: "one" } },
+          { type: "file", data: { file: "private/path", name: "secret-name" } },
+          { type: "image", data: { file: "two" } },
+          { type: "text", data: { text: "after" } }
+        ]
+      }),
+      "42",
+      "ns"
+    )!;
+    expect(p.content).toBe(
+      "before[Image attachment][Attachment: file; contents unavailable][Additional image attachment; contents unavailable]after"
+    );
+    expect(p.imageFile).toBe("one");
+    expect(p.content).not.toContain("private/path");
+    expect(
+      decodeQQPacket(wire({ message: [{ type: "file", data: {} }] }), "42", "ns")?.content
+    ).toContain("contents unavailable");
+  });
+
   it("does not equate collision-prone IDs with durable duplicate identity", () => {
     const a = decodeQQPacket(wire(), "42", "ns")!,
       b = decodeQQPacket(

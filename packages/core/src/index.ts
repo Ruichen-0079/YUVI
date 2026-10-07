@@ -12,6 +12,7 @@ export {
 } from "./memory-context.js";
 
 export type {
+  RuntimeVisualSource,
   AssistantInitiatedTurnInput,
   AssistantInitiatedTurnOptions,
   ConversationPersistenceOperation,

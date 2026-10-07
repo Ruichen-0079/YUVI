@@ -69,7 +69,10 @@ export class QQSocialAdapter {
     const result = await this.port.receive(
       {
         channelRef: packet.channel,
-        conversationKind: packet.target.kind,
+        conversationKind: packet.target.temporaryGroup ? "TEMPORARY_PRIVATE" : packet.target.kind,
+        ...(packet.target.temporaryGroup
+          ? { originChannelRef: `${packet.namespace}:group:${packet.target.temporaryGroup}` }
+          : {}),
         actorId: packet.sender,
         content: packet.content,
         transportFacts: packet.transportFacts,
@@ -91,8 +94,15 @@ export class QQSocialAdapter {
       speaker: result.speaker,
       text: packet.content,
       observedAt: new Date(now).toISOString(),
-      sourceJournalRef: result.sourceJournalRef
+      sourceJournalRef: result.sourceJournalRef,
+      ...(result.media ? { media: result.media } : {}),
+      direction: packet.direction === "SELF" ? "SELF" : "OTHER",
+      interactionKind:
+        packet.direction === "SELF" ? "SELF_EXPRESSION" : admission ? "ADMITTED_TURN" : "AMBIENT",
+      mentions: packet.mentions.map((actor) => `${packet.namespace}:${actor}`),
+      ...(reply ? { reply } : {})
     });
+    if (result.publication) c.observations.push(result.publication);
     c.observations = c.observations.slice(-12);
     this.record(c, packet.messageId, {
       sender: packet.sender,
@@ -114,7 +124,7 @@ export class QQSocialAdapter {
     if (c)
       this.record(c, messageId, {
         sender: packet.account,
-        speaker: { principalId: `${packet.namespace}:${packet.account}`, displayName: "Alice" },
+        speaker: { principalId: `${packet.namespace}:${packet.account}` },
         text,
         at: this.now()
       });

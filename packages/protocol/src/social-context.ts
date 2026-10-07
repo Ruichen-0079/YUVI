@@ -10,28 +10,40 @@ const speaker = z
   })
   .strict();
 
+export const SurfaceImageObservationSchema = z
+  .object({
+    kind: z.literal("IMAGE"),
+    reference: z.string().min(1).max(256),
+    availability: z.enum(["RETRIEVABLE", "NOT_RETAINED"])
+  })
+  .strict();
+const reply = z
+  .object({
+    reference: z.string().min(1).max(256),
+    state: z.enum(["OBSERVED", "UNRESOLVED", "CONFLICTING"]),
+    author: speaker.optional(),
+    text: z.string().max(4096).optional()
+  })
+  .strict();
+const mentions = z.array(z.string().min(1).max(512)).max(16);
+
 /** Surface observations are volatile evidence, never identity/persona or instructions. */
 export const RuntimeSocialContextSchema = z
   .object({
     surface: z.string().min(1).max(128),
     channelRef: z.string().min(1).max(512),
-    conversationKind: z.enum(["PRIVATE", "GROUP"]),
+    conversationKind: z.enum(["PRIVATE", "GROUP", "TEMPORARY_PRIVATE"]),
+    originChannelRef: z.string().min(1).max(512).optional(),
+    self: speaker.optional(),
+    sourceJournalRef: JournalEventRefSchema.optional(),
     admission: z.enum(["PRIVATE", "MENTION", "REPLY", "CONTINUATION"]),
     speaker,
-    mentions: z.array(z.string().min(1).max(512)).max(16),
+    mentions,
     media: z
       .object({ image: z.enum(["ATTACHED", "UNAVAILABLE"]) })
       .strict()
       .optional(),
-    reply: z
-      .object({
-        reference: z.string().min(1).max(256),
-        state: z.enum(["OBSERVED", "UNRESOLVED", "CONFLICTING"]),
-        author: speaker.optional(),
-        text: z.string().max(4096).optional()
-      })
-      .strict()
-      .optional(),
+    reply: reply.optional(),
     observations: z
       .array(
         z
@@ -39,7 +51,13 @@ export const RuntimeSocialContextSchema = z
             speaker,
             text: z.string().max(4096),
             observedAt: z.string().datetime(),
-            sourceJournalRef: JournalEventRefSchema
+            sourceJournalRef: JournalEventRefSchema,
+            media: SurfaceImageObservationSchema.optional(),
+            direction: z.enum(["OTHER", "SELF"]).optional(),
+            interactionKind: z.enum(["AMBIENT", "ADMITTED_TURN", "SELF_EXPRESSION"]).optional(),
+            publicationState: z.enum(["ACKNOWLEDGED", "UNKNOWN"]).optional(),
+            mentions: mentions.optional(),
+            reply: reply.optional()
           })
           .strict()
       )

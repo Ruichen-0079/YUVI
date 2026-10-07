@@ -199,14 +199,32 @@ export type RuntimeVisualEvidence = Readonly<{
   status: "AVAILABLE" | "UNAVAILABLE";
   /** Bounded observations, including visible text and uncertainty. Untrusted screen content. */
   observations: string;
+  sourceJournalRef?: import("@companion/protocol").JournalEventRef | undefined;
+}>;
+
+/** Host-granted perception resource. No URL, provider, transport or raw bytes enter model context. */
+export type RuntimeVisualSource = Readonly<{
+  reference: string;
+  sourceJournalRef: import("@companion/protocol").JournalEventRef;
+  speaker?: import("@companion/protocol").RuntimeSocialContext["speaker"] | undefined;
+  observedAt?: string | undefined;
+  read(signal: AbortSignal): Promise<RuntimeImageAttachment | undefined>;
 }>;
 
 export type RuntimeCharacterTurnInput = Readonly<{
   contextWindow?: number | undefined;
   /** Pre-resolved evidence from one explicit user image attachment. */
   visualEvidence?: RuntimeVisualEvidence | undefined;
+  visualSources?:
+    | readonly Pick<
+        RuntimeVisualSource,
+        "reference" | "sourceJournalRef" | "speaker" | "observedAt"
+      >[]
+    | undefined;
   requestVisualEvidence?:
-    | ((request: Readonly<{ need: string }>) => Promise<RuntimeVisualEvidence>)
+    | ((
+        request: Readonly<{ need: string; sourceReference?: string }>
+      ) => Promise<RuntimeVisualEvidence>)
     | undefined;
   prompt: PromptBuildOutput;
   canonicalContext?: CanonicalContext | undefined;
@@ -395,6 +413,8 @@ export type HandleUserMessageOptions = {
   writeMemory?: boolean | undefined;
   /** One explicit user-provided image for the same reactive turn. Never persisted as bytes. */
   imageAttachment?: RuntimeImageAttachment | undefined;
+  /** Explicitly selectable observed resources; an empty set disallows implicit desktop capture. */
+  visualSources?: readonly RuntimeVisualSource[] | undefined;
   signal?: AbortSignal | undefined;
   /**
    * Semantic controller boundary for durable proactive policy. This is not a

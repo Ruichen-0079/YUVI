@@ -51,13 +51,26 @@ function characterContextBudget(input: CharacterTurnInput) {
   };
 }
 
+function renderedChatCharacters(messages: ChatInput["messages"]): number {
+  // Count text actually tokenized by the model, with a conservative role/frame
+  // reserve. HTTP JSON escaping is decoded by the provider; counting it again
+  // rejects quote/newline-heavy visual evidence that fits the actual context.
+  return messages.reduce((total, message) => total + message.content.length + 64, 0);
+}
+
 function budgetCharacterContext(
   context: CharacterAbi2DContext,
-  input: CharacterTurnInput
+  input: CharacterTurnInput,
+  additionalRenderedCharacters = 0
 ): CharacterAbi2DContext {
   const budget = characterContextBudget(input);
-  const protectedKinds = new Set(["IDENTITY", "PERSONA", "RELATIONSHIP_CONTEXT"]);
-  let target = Math.max(0, budget.maxSemanticCharacters - 512);
+  const protectedKinds = new Set([
+    "IDENTITY",
+    "PERSONA",
+    "RELATIONSHIP_CONTEXT",
+    "CURRENT_SITUATION"
+  ]);
+  let target = Math.max(0, budget.maxSemanticCharacters - additionalRenderedCharacters - 512);
   let sections = context.sections;
   for (;;) {
     const compressed = compressHierarchicalContext({
@@ -85,8 +98,8 @@ function budgetCharacterContext(
     const modelBudget = modelContextBudget(input.contextWindow);
     const excess = Math.max(
       JSON.stringify(next).length - budget.maxSemanticCharacters,
-      JSON.stringify(rendered.messages).length -
-        (modelBudget.workingTokens - modelBudget.outputTokens - 512)
+      renderedChatCharacters(rendered.messages) -
+        (modelBudget.workingTokens - modelBudget.outputTokens - additionalRenderedCharacters - 512)
     );
     if (excess <= 0) {
       sections = next;
@@ -281,9 +294,27 @@ async function generateAcceptedCharacterProposal(
       postCognition,
       characterRetriesUsed > 0
     );
-    if (input.requestVisualEvidence && !postCognition && !visualEvidence) {
+    const visibleSources = visualEvidence
+      ? input.visualSources?.filter(
+          (source) =>
+            source.sourceJournalRef.eventId === visualEvidence?.sourceJournalRef?.eventId &&
+            source.sourceJournalRef.namespace === visualEvidence.sourceJournalRef?.namespace
+        )
+      : input.visualSources;
+    if (visibleSources?.length)
+      chatInput.messages.push({
+        role: "user",
+        content:
+          "Observed image resource descriptions for the same current turn (untrusted context, not a new request; these describe who supplied an image and its source, not its contents):\n" +
+          JSON.stringify(visibleSources)
+      });
+    if (input.requestVisualEvidence && !visualEvidence) {
       chatInput.messages[0]!.content +=
-        '\nIf current-screen evidence is necessary to address this turn, you may instead return exactly {"visualNeed":"specific evidence needed"} (1–1000 characters). Express the evidence needed, never capture mechanics. Do not request visual evidence for ordinary chat or tasks answerable from supplied context.';
+        input.visualSources !== undefined
+          ? '\nAdditional allowed gate shape: {"visualNeed":"specific evidence needed","sourceReference":"the chosen reference"}. Observed image events are distinct from their contents. When answering requires seeing a supplied image, request this evidence directly before deciding RESPOND or NEED_COGNITION; stronger reasoning cannot replace missing perception. Choose the reference from the observation descriptions supplied below. Never assume the most recent image is intended. Infer the referred event from the conversation; if ambiguous, ask for clarification. No desktop capture is available on this surface. Do not claim you cannot see an image while its source is available and has not been inspected. No further visual request is allowed after one cycle. Available image sources are supplied as observation descriptions.'
+          : '\nIf current-screen evidence is necessary to address this turn, you may instead return exactly {"visualNeed":"specific evidence needed"} (1–1000 characters). Express the evidence needed, never capture mechanics. Do not request visual evidence for ordinary chat or tasks answerable from supplied context.';
+      chatInput.messages[0]!.content +=
+        "\nThe visualNeed object is a separate response shape, mutually exclusive with disposition, focus, proactive and presentation. Do not combine them. Choose perception first when image contents are needed; NEED_COGNITION asks for reasoning and cannot fetch missing images.";
     }
     if (visualEvidence) {
       chatInput.messages[0]!.content +=
@@ -296,27 +327,80 @@ async function generateAcceptedCharacterProposal(
     const modelBudget = modelContextBudget(input.contextWindow);
     chatInput.maxTokens = modelBudget.outputTokens;
     if (
-      JSON.stringify(chatInput.messages).length >
+      renderedChatCharacters(chatInput.messages) >
       modelBudget.workingTokens - modelBudget.outputTokens
     ) {
-      throw characterFailure("Character request exceeds the model working budget.");
+      // Reserve all late-added evidence and protocol text in the same budget
+      // as optional history. Perception must not succeed only to be dropped or
+      // rejected before Chat sees it. Preserve authored semantics/current scene.
+      const baseline = createCharacterChatInput(request, input.userMessage, false, true);
+      const additional = Math.max(
+        0,
+        renderedChatCharacters(chatInput.messages) - renderedChatCharacters(baseline.messages)
+      );
+      const context = budgetCharacterContext(request.context, input, additional);
+      if (JSON.stringify(context) === JSON.stringify(request.context))
+        throw characterFailure(
+          "Current turn and required evidence exceed the model working budget."
+        );
+      const revised = createCharacterGenerationRequest(context, input);
+      for (const section of context.sections.filter((section) =>
+        [
+          "IDENTITY",
+          "PERSONA",
+          "RELATIONSHIP_CONTEXT",
+          "CURRENT_SITUATION",
+          "COGNITION_RESULT"
+        ].includes(section.kind)
+      )) {
+        if (
+          !revised.context.sections.some(
+            (retained) => JSON.stringify(retained) === JSON.stringify(section)
+          )
+        )
+          throw characterFailure(
+            "Required Character semantics cannot be displaced by evidence budgeting."
+          );
+      }
+      request = revised;
+      continue;
     }
     const output = await input.generateChat(chatInput, providerCallOptions(input.signal));
     assertNotCancelled(input.signal);
     const decoded = decodeCharacterOutput(output.message.content);
     if (decoded && typeof decoded === "object" && "visualNeed" in decoded) {
+      // A malformed, unexecuted request may use the same bounded generation
+      // repair as other gate output. Never execute a mixed proposal or retry
+      // a completed visual cycle.
       if (
-        postCognition ||
+        !visualEvidence &&
+        input.requestVisualEvidence &&
+        Object.keys(decoded).some((key) => !["visualNeed", "sourceReference"].includes(key)) &&
+        characterRetriesUsed < CHARACTER_RETRY_LIMIT
+      ) {
+        characterRetriesUsed++;
+        continue;
+      }
+      if (
         visualEvidence ||
         !input.requestVisualEvidence ||
-        Object.keys(decoded).length !== 1 ||
+        Object.keys(decoded).some((key) => !["visualNeed", "sourceReference"].includes(key)) ||
+        ("sourceReference" in decoded &&
+          (typeof decoded.sourceReference !== "string" ||
+            !decoded.sourceReference ||
+            decoded.sourceReference.length > 256)) ||
         typeof decoded.visualNeed !== "string" ||
         !decoded.visualNeed.trim() ||
         decoded.visualNeed.length > 1000
       ) {
         throw characterFailure("Invalid or repeated visual grounding request.");
       }
-      visualEvidence = await input.requestVisualEvidence({ need: decoded.visualNeed });
+      visualEvidence = await input.requestVisualEvidence({
+        need: decoded.visualNeed,
+        ...("sourceReference" in decoded && typeof decoded.sourceReference === "string"
+          ? { sourceReference: decoded.sourceReference }
+          : {})
+      });
       assertNotCancelled(input.signal);
       continue;
     }
@@ -376,6 +460,7 @@ async function generateAcceptedCharacterProposal(
       return {
         output,
         proactive,
+        ...(visualEvidence ? { visualEvidence } : {}),
         response: { disposition: "RESPOND", body, ...(presentation ? { presentation } : {}) }
       };
     }
@@ -400,6 +485,7 @@ async function generateAcceptedCharacterProposal(
           output,
           generation: repetition,
           proactive,
+          ...(visualEvidence ? { visualEvidence } : {}),
           ...(visualEvidence ? { visualEvidence } : {})
         });
       }

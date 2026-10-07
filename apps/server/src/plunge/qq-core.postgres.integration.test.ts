@@ -24,6 +24,7 @@ let root: string,
   pool: PostgresPool,
   host: HostCharacterSurfaces;
 let mode = "RESPOND";
+let selectedReference = "";
 const requests: unknown[] = [];
 const contexts: AppContext[] = [];
 function env(index: number) {
@@ -175,7 +176,15 @@ describe.skipIf(!databaseUrl)(
                     content:
                       b.model === "fixture-vision"
                         ? "A red triangle marked VISUAL_FIXTURE_42."
-                        : JSON.stringify({ disposition: mode })
+                        : mode === "SELECT_IMAGE" &&
+                            !JSON.stringify(b.messages).includes("VISUAL_FIXTURE_42")
+                          ? JSON.stringify({
+                              visualNeed: "Describe the explicitly requested first image",
+                              sourceReference: selectedReference
+                            })
+                          : JSON.stringify({
+                              disposition: mode === "SELECT_IMAGE" ? "RESPOND" : mode
+                            })
                   }
                 }
               ],
@@ -286,7 +295,65 @@ describe.skipIf(!databaseUrl)(
       expect(JSON.stringify(calls)).toContain("VISUAL_FIXTURE_42");
       expect(send).toHaveBeenCalledOnce();
     });
+    it("selects the explicitly requested earlier image rather than automatically carrying the most recent one, and preserves evidence through the final response body", async () => {
+      const social = new QQSocialAdapter(port());
+      const send = vi.fn(async () => {});
+      const first = vi.fn(async () => ({ imageBase64: "AQID", mimeType: "image/png" as const }));
+      const second = vi.fn(async () => ({ imageBase64: "BAUG", mimeType: "image/png" as const }));
+      const a = decodeQQPacket(
+        wire({
+          message_id: 90,
+          message_seq: 90,
+          message: [{ type: "image", data: { file: "first.png" } }]
+        }),
+        "42",
+        "fixture:42"
+      )!;
+      const b = decodeQQPacket(
+        wire({
+          message_id: 91,
+          message_seq: 91,
+          message: [{ type: "image", data: { file: "second.png" } }]
+        }),
+        "42",
+        "fixture:42"
+      )!;
+      const observed = await social.receive(a, { ...connection(send), readImage: first });
+      await social.receive(b, { ...connection(send), readImage: second });
+      expect(first).not.toHaveBeenCalled();
+      expect(second).not.toHaveBeenCalled();
+      selectedReference = observed.media!.reference;
+      mode = "SELECT_IMAGE";
+      const before = requests.length;
+      const question = decodeQQPacket(
+        wire({
+          message_id: 92,
+          message_seq: 92,
+          message: [
+            { type: "at", data: { qq: 42 } },
+            {
+              type: "text",
+              data: { text: "Describe the FIRST image, rather than the newer second image" }
+            }
+          ]
+        }),
+        "42",
+        "fixture:42"
+      )!;
+      expect((await social.receive(question, connection(send))).outcome).toBe("RESPOND");
+      expect(first).toHaveBeenCalledOnce();
+      expect(second).not.toHaveBeenCalled();
+      const calls = requests.slice(before) as Array<{ stream?: boolean; messages: unknown[] }>;
+      expect(JSON.stringify(calls.find((call) => call.stream)?.messages)).toContain(
+        "VISUAL_FIXTURE_42"
+      );
+      expect(JSON.stringify(calls.find((call) => call.stream)?.messages)).toContain(
+        observed.sourceJournalRef.eventId
+      );
+      mode = "RESPOND";
+    });
     it("ambiguous send has a canonical UNKNOWN outcome, no blind retry and durable one-attempt state", async () => {
+      mode = "RESPOND";
       const send = vi.fn(async () => {
         throw Error("lost native ACK");
       });

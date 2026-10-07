@@ -15,12 +15,20 @@ export type QQTransportConfiguration = Readonly<{
   groups: readonly string[];
   mediaRoots: readonly string[];
 }>;
-type Pending = { socket: WebSocket; resolve(value: Record<string, unknown>): void; reject(): void };
+type Pending = {
+  socket: WebSocket;
+  action: string;
+  resolve(value: Record<string, unknown>): void;
+  reject(): void;
+};
 export type QQTrace = Readonly<{
   kind: string;
   generation: string;
   channel?: string;
   outcome?: string;
+  failureCode?: string;
+  action?: string;
+  retcode?: number;
 }>;
 
 /** Plunge knows QQ. No prompt, Memory, P8 or model service is reachable here. */
@@ -151,7 +159,17 @@ export class QQTransport {
           !Array.isArray(event["data"])
         )
           pending.resolve(event["data"] as Record<string, unknown>);
-        else pending.reject();
+        else {
+          this.trace({
+            kind: "ACTION_REJECTED",
+            generation,
+            action: pending.action,
+            ...(typeof event["retcode"] === "number" && Number.isSafeInteger(event["retcode"])
+              ? { retcode: event["retcode"] }
+              : {})
+          });
+          pending.reject();
+        }
         return;
       }
       if (!this.ready) return;
@@ -209,7 +227,8 @@ export class QQTransport {
             kind: "RECEIPT",
             generation,
             channel: packet.channel,
-            outcome: result.outcome
+            outcome: result.outcome,
+            ...(result.failureCode ? { failureCode: result.failureCode } : {})
           });
         })
         .catch(() => {
@@ -296,8 +315,11 @@ export class QQTransport {
         value ? resolve(value) : reject(Error("OneBot action outcome is uncertain."));
       };
       const abort = () => finish();
-      const timer = setTimeout(abort, timeoutMs);
-      this.pending.set(echo, { socket, resolve: (value) => finish(value), reject: abort });
+      const timer = setTimeout(() => {
+        this.trace({ kind: "ACTION_TIMEOUT", generation: this.generation, action });
+        abort();
+      }, timeoutMs);
+      this.pending.set(echo, { socket, action, resolve: (value) => finish(value), reject: abort });
       signal.addEventListener("abort", abort, { once: true });
       try {
         socket.send(JSON.stringify({ action, params, echo }), (error) => {

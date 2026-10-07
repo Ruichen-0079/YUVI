@@ -12,7 +12,8 @@ const input: SurfaceInput = {
   mentions: ["alice"],
   observations: []
 };
-function fixture(bound = true) {
+function fixture(bound = true, selfActorId?: string) {
+  let receiptCount = 0;
   const handleUserMessage = vi.fn(async (_event: unknown, _options: unknown) => ({
     id: "reply",
     payload: { content: "Alice reply" }
@@ -20,7 +21,7 @@ function fixture(bound = true) {
   const admit = vi.fn(async (_input: unknown) => ({
     kind: "JOURNAL_EVENT" as const,
     namespace: "test",
-    eventId: "jev1_0000000000000001"
+    eventId: "jev1_" + String(++receiptCount).padStart(16, "0")
   }));
   const write = vi.fn(async () => {}),
     publish = vi.fn(async (arg: { write: () => Promise<void> }) => {
@@ -37,6 +38,7 @@ function fixture(bound = true) {
   const port = host.bind({
     surfaceId: "discord",
     principalNamespace: "discord:deployment:account",
+    ...(selfActorId ? { selfActorId } : {}),
     resolvePerson: () =>
       bound
         ? { personId: "person:7", displayName: "Shared Person", bindingVersion: "binding:1" }
@@ -67,6 +69,111 @@ function fixture(bound = true) {
   };
 }
 describe("generic Character surface host", () => {
+  it("preserves a received image observation when its admitted Character turn fails", async () => {
+    const f = fixture();
+    f.handleUserMessage.mockRejectedValueOnce(Error("generation failed"));
+    const image = await f.port.receive(
+      { ...input, hasImage: true },
+      { ...f.connection, readImage: async () => ({ imageBase64: "AQID", mimeType: "image/png" }) }
+    );
+    expect(image).toMatchObject({ outcome: "FAILED", media: { availability: "RETRIEVABLE" } });
+    expect(f.write).not.toHaveBeenCalled();
+    await f.port.receive(
+      {
+        ...input,
+        observations: [
+          {
+            text: "[Image attachment]",
+            speaker: image.speaker,
+            sourceJournalRef: image.sourceJournalRef,
+            observedAt: new Date().toISOString(),
+            media: image.media!
+          }
+        ]
+      },
+      f.connection
+    );
+    expect(f.handleUserMessage.mock.calls[1]?.[1]).toMatchObject({
+      visualSources: [{ reference: image.media!.reference }]
+    });
+  });
+  it("exposes a named observed image resource without attaching it or reading it until explicitly selected", async () => {
+    const f = fixture();
+    const read = vi.fn(async () => ({ imageBase64: "AQID", mimeType: "image/png" as const }));
+    const { admission: _, ...ambient } = input;
+    const observed = await f.port.receive(
+      { ...ambient, hasImage: true, content: "[Image attachment]" },
+      { ...f.connection, readImage: read }
+    );
+    expect(observed.outcome).toBe("OBSERVED");
+    expect(read).not.toHaveBeenCalled();
+    await f.port.receive(
+      {
+        ...input,
+        observations: [
+          {
+            speaker: observed.speaker,
+            text: "[Image attachment]",
+            observedAt: new Date().toISOString(),
+            sourceJournalRef: observed.sourceJournalRef,
+            media: observed.media!
+          }
+        ]
+      },
+      f.connection
+    );
+    const options = f.handleUserMessage.mock.calls[0]![1] as {
+      visualSources: Array<{ reference: string; read(signal: AbortSignal): Promise<unknown> }>;
+      imageAttachment?: unknown;
+    };
+    expect(options.imageAttachment).toBeUndefined();
+    expect(read).not.toHaveBeenCalled();
+    expect(options.visualSources[0]?.reference).toBe(observed.media?.reference);
+    await options.visualSources[0]!.read(new AbortController().signal);
+    expect(read).toHaveBeenCalledOnce();
+  });
+  it("does not expose a stale generation's observed image as a readable source", async () => {
+    const f = fixture();
+    const { admission: _, ...ambient } = input;
+    const observed = await f.port.receive(
+      { ...ambient, hasImage: true },
+      { ...f.connection, readImage: async () => ({ imageBase64: "AQID", mimeType: "image/png" }) }
+    );
+    f.stale();
+    await f.port.receive(
+      {
+        ...input,
+        observations: [
+          {
+            speaker: observed.speaker,
+            text: "old image",
+            observedAt: new Date().toISOString(),
+            sourceJournalRef: observed.sourceJournalRef,
+            media: observed.media!
+          }
+        ]
+      },
+      { ...f.connection, signal: new AbortController().signal, isCurrent: () => true }
+    );
+    expect(f.handleUserMessage.mock.calls[0]?.[1]).toMatchObject({
+      visualSources: [],
+      socialContext: { observations: [{ media: { availability: "NOT_RETAINED" } }] }
+    });
+  });
+  it("projects its actual ACK-confirmed publication as SELF with the originating turn, even without transport self echo", async () => {
+    const f = fixture(true, "alice");
+    const result = await f.port.receive(input, f.connection);
+    expect(result.publication).toMatchObject({
+      direction: "SELF",
+      speaker: { principalId: "discord:deployment:account:alice" },
+      text: "Alice reply",
+      reply: { author: { personId: "person:7" }, text: "hello" }
+    });
+    expect(f.admit.mock.calls[1]?.[0]).toMatchObject({
+      direction: "OUTBOUND",
+      causalParents: [result.sourceJournalRef]
+    });
+  });
   it("observes ambient messages without model execution, conversation persistence or publication", async () => {
     const f = fixture();
     const { admission: _, ...ambient } = input;
@@ -139,6 +246,21 @@ describe("generic Character surface host", () => {
     expect(f.write).toHaveBeenCalledOnce();
     expect(f.publish).toHaveBeenCalledOnce();
   });
+  it("projects uncertain generated text as UNKNOWN without treating it as an acknowledged expression or retrying", async () => {
+    const f = fixture(true, "alice");
+    f.publish.mockRejectedValueOnce(Error("ACK missing"));
+    const result = await f.port.receive(input, f.connection);
+    expect(result).toMatchObject({
+      outcome: "UNKNOWN",
+      publication: { direction: "SELF", publicationState: "UNKNOWN", text: "Alice reply" }
+    });
+    expect(f.publish).toHaveBeenCalledOnce();
+    expect(f.admit.mock.calls[1]?.[0]).toMatchObject({
+      transportFacts: expect.stringContaining('"publicationState":"UNKNOWN"')
+    });
+    expect(JSON.stringify(f.admit.mock.calls[1])).not.toContain("EXTERNAL_SERVICE_ACCEPTED");
+  });
+
   it("passes image bytes through the existing Runtime visual API and seals ingress on close", async () => {
     const f = fixture();
     const imageAttachment = { imageBase64: "AA==", mimeType: "image/png" as const };
