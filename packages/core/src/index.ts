@@ -278,3 +278,5 @@ export {
   createFileVoiceBindingReferences,
   type VoiceBindingReferences
 } from "./voice-binding-references.js";
+
+export { renderSurfaceSpeaker, renderSurfaceSituation } from "./surface-situation.js";

@@ -237,7 +237,7 @@ describe.skipIf(!databaseUrl)(
       );
       expect(effects.rows).toHaveLength(0);
       const serialized = JSON.stringify(requests);
-      expect(serialized).toContain("Surface observations");
+      expect(serialized).toContain("Earlier channel messages");
       expect(serialized).toContain("Alice listen silently");
       expect(serialized).toContain("observed card");
       const messages = await alice.conversationRepository.listRecentMessages(mentioned.channel, {
@@ -429,10 +429,13 @@ describe.skipIf(!databaseUrl)(
       const final = calls.find((call) => call.stream)!;
       for (const call of calls)
         expect(call.messages[0]?.content).toMatch(/^This input is a group event;/);
-      expect(final.messages[1]?.content).toBe("Alice QQ_ATTENTION_CURRENT");
-      expect(final.messages[0]?.content).toContain("Current admission: ATTENTION");
-      expect(final.messages[0]?.content).toContain("does not establish direct addressing");
-      expect(final.messages[0]?.content).toContain("Current mentions: []");
+      expect(final.messages[1]?.content).toMatch(
+        /Current participant message:\nAlice QQ_ATTENTION_CURRENT$/
+      );
+      expect(final.messages[1]?.content).not.toContain("Admission:");
+      expect(final.messages[1]?.content).toContain("Mentions: none");
+      expect(final.messages[0]?.content).not.toContain('"abiVersion"');
+      expect(final.messages[0]?.content).toContain("Admission isn't a request");
       expect(send).toHaveBeenCalledOnce();
     });
   }

@@ -80,9 +80,10 @@ async function run(durableConversation: boolean) {
   });
   expect(reply?.payload.content).toBe("SCREEN_FACT: permission denied.");
   expect(generateReply).toHaveBeenCalledTimes(2);
-  expect(generateReply.mock.calls[1]![0].messages[1]?.content).toBe(
-    "Read the current error dialog"
-  );
+  const current = generateReply.mock.calls[1]![0].messages[1]!.content;
+  expect(current).toMatch(/^Read the current error dialog\n/);
+  expect(current.split("Read the current error dialog")).toHaveLength(2);
+  expect(current).toContain("[PERCEPTION:");
   expect(captureScreen).toHaveBeenCalledTimes(1);
   expect(analyzeImage).toHaveBeenCalledTimes(1);
   expect(extract).not.toHaveBeenCalled();

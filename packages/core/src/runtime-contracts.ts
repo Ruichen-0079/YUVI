@@ -222,6 +222,8 @@ export type RuntimeCharacterTurnInput = Readonly<{
         >
       >
     | undefined;
+  /** Validated channel observations, kept typed until the model-facing projection. */
+  surfaceContext?: import("@companion/protocol").RuntimeSocialContext | undefined;
   /** Pre-resolved evidence from one explicit user image attachment. */
   visualEvidence?: RuntimeVisualEvidence | undefined;
   visualSources?:

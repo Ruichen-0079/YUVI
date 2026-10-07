@@ -133,18 +133,32 @@ export function rankRecentEpisodesForQuery(
     .map((item) => item.episode);
 }
 
-export function formatRecentEpisodeForPrompt(episode: RecentEpisode, timezone?: string): string {
+export function formatRecentEpisodeForPrompt(
+  episode: RecentEpisode,
+  timezone?: string,
+  options: { includeAssistantContext?: boolean } = {}
+): string {
   const age = formatEpisodePosition(episode, timezone);
   const hints = [
     `L1`,
     age,
     episode.temporalConfidence === "unknown" ? "time-unknown" : null
   ].filter(Boolean);
+  // These fields are also embedded by the legacy prose builder. Project each
+  // semantic state once and keep its historical scope explicit.
+  let happened = episode.whatHappened;
+  if (episode.unresolved)
+    happened = happened.replace(`Still unresolved: ${episode.unresolved}.`, "");
+  if (episode.taskState)
+    happened = happened.replace(`Current task/context: ${episode.taskState}.`, "");
+  happened = happened.trim();
   const details = [
-    episode.whatHappened,
-    episode.unresolved ? `Unresolved: ${episode.unresolved}` : null,
-    episode.taskState ? `Task state: ${episode.taskState}` : null,
-    episode.assistantContext ? `${ASSISTANT_CONTEXT_DISCLAIMER}: ${episode.assistantContext}` : null
+    happened,
+    episode.unresolved ? `Unresolved then: ${episode.unresolved}` : null,
+    episode.taskState ? `Task state then: ${episode.taskState}` : null,
+    options.includeAssistantContext !== false && episode.assistantContext
+      ? `${ASSISTANT_CONTEXT_DISCLAIMER}: ${episode.assistantContext}`
+      : null
   ].filter(Boolean);
   return `- [${hints.join("][")}] ${details.join(" ")}`;
 }

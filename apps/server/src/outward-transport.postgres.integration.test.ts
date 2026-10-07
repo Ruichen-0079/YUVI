@@ -712,7 +712,7 @@ describe.skipIf(!databaseUrl)(
       expect(h?.exposures.some((e) => e.blocks.some((b) => b.state === "EXPOSED"))).toBe(true);
       expect(h?.manifest.stable.version).toBe("canonical-context-stability.v1");
       expect(
-        h?.exposures.some((e) => e.declaredVersions?.includes("character-transport-context.v1"))
+        h?.exposures.some((e) => e.declaredVersions?.includes("character-linear-context.v1"))
       ).toBe(true);
       expect(h?.manifest.sources.find((s) => s.owner === "JOURNAL")?.revision).toBeTruthy();
     });

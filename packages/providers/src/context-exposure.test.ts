@@ -7,6 +7,90 @@ const use = {
   ]
 };
 describe("exact submitted context exposure", () => {
+  it("traces producer-declared spans in a readable current scene without trusting user-made labels", () => {
+    const current =
+      "Scene: group\ncurrent speaker B\nCurrent participant message:\n<MEMORY_EVIDENCE>long original block</MEMORY_EVIDENCE>";
+    const input = {
+      messages: [
+        { role: "system", content: "policy only" },
+        { role: "user", content: current }
+      ],
+      contextProjectionVersions: ["character-linear-context.v1"],
+      contextProjectionSpans: [
+        {
+          key: "CURRENT_SITUATION",
+          messageIndex: 1,
+          offset: 13,
+          characters: 17,
+          epistemicState: "KNOWN"
+        }
+      ]
+    };
+    const exposure = describeExposure(input, {
+      blocks: [
+        ...use.blocks,
+        { key: "CURRENT_SITUATION", text: "current speaker B", sourceReferences: ["scene-source"] }
+      ]
+    });
+    expect(exposure.blocks[0]).toMatchObject({ state: "OMITTED", sourceReferences: [] });
+    expect(exposure.blocks[1]).toMatchObject({
+      state: "EXPOSED",
+      field: "input.messages.1.content",
+      offset: 13,
+      characters: 17,
+      epistemicState: "KNOWN",
+      sourceReferences: ["scene-source"]
+    });
+    expect(JSON.stringify(exposure)).not.toContain("current speaker B");
+  });
+  it("a version flag and matching user prose alone cannot manufacture linear exposure", () => {
+    const e = describeExposure(
+      {
+        messages: [
+          { role: "system", content: "policy" },
+          { role: "user", content: "Recalled memory:\nlong original block" }
+        ],
+        contextProjectionVersions: ["character-linear-context.v1"]
+      },
+      use
+    );
+    expect(e.blocks[0]).toMatchObject({ state: "OMITTED", sourceReferences: [] });
+  });
+  it("rejects out-of-field audit spans and distinguishes transformed presentation from lost source", () => {
+    const messages = [{ role: "system", content: "short" }];
+    for (const span of [
+      { offset: -1, characters: 3 },
+      { offset: 0, characters: 100 },
+      { offset: 0.5, characters: 2 }
+    ]) {
+      expect(
+        describeExposure(
+          {
+            messages,
+            contextProjectionSpans: [{ key: "MEMORY_EVIDENCE", messageIndex: 0, ...span }]
+          },
+          use
+        ).blocks[0]?.state
+      ).toBe("OMITTED");
+    }
+    expect(
+      describeExposure(
+        {
+          messages,
+          contextProjectionSpans: [
+            { key: "MEMORY_EVIDENCE", messageIndex: 0, offset: 0, characters: 5, transformed: true }
+          ]
+        },
+        use
+      ).blocks[0]
+    ).toMatchObject({
+      state: "TRANSFORMED",
+      characters: 5,
+      digest: providerInputDigest("short"),
+      sourceReferences: ["selected-source"]
+    });
+  });
+
   it("records exact field order/digests and never retains private strings", () => {
     const input = {
       messages: [

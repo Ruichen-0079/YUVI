@@ -13,10 +13,9 @@ describe("generic model-facing surface situation", () => {
       observations: []
     });
     const rendered = renderSurfaceSituation(context);
-    expect(rendered).toContain("Current admission: ATTENTION");
-    expect(rendered).toContain("does not establish direct addressing");
-    expect(rendered).toContain("silence is allowed");
-    expect(rendered).toContain("Current mentions: []");
+    expect(rendered).not.toContain("ATTENTION");
+    expect(rendered).toContain("Mentions: none");
+    expect(rendered).not.toContain("MENTION");
   });
   it("keeps uncertain own drafts distinct from acknowledged speech and compacts repeated transport namespaces", () => {
     const actor = "transport:deployment:" + "x".repeat(160);
@@ -46,11 +45,12 @@ describe("generic model-facing surface situation", () => {
         ]
       })
     );
-    expect(rendered).toContain("publication UNKNOWN, do not assume others heard");
+    expect(rendered).toContain("SELF_DRAFT: publication UNKNOWN");
+    expect(rendered).not.toContain("SELF_SENT");
     expect(rendered).not.toContain('said "unconfirmed answer"');
     expect(rendered).not.toContain("x".repeat(160));
-    const selfRef = JSON.parse(rendered.split("Your identity: ")[1]!.split(". SELF")[0]!).principal;
-    expect(rendered).toContain('Current mentions: ["' + selfRef + '"]');
+    const selfRef = rendered.match(/Self: Alice \[([^\]]+)\]/)![1];
+    expect(rendered).toContain(`Mentions: Alice [${selfRef}]`);
   });
   it("budgets whole observation events, retaining the newest image and marking omitted older events", () => {
     const context = RuntimeSocialContextSchema.parse({
@@ -140,15 +140,15 @@ describe("generic model-facing surface situation", () => {
       "replies are private",
       "not the reply destination",
       "SELF",
-      "ambient context",
+      "Earlier channel messages",
       "matrix:b",
-      "Mentions in this event",
-      "Referenced speaker",
+      "Mentions:",
+      "[QUOTE: OBSERVED] Alice",
       "image:b",
       "RETRIEVABLE",
-      "not a text description"
+      "contents not analyzed here"
     ])
       expect(text).toContain(expected);
-    expect(text.indexOf("0000000000000001")).toBeLessThan(text.indexOf("0000000000000002"));
+    expect(text.indexOf("2026-10-07T00:00:00Z")).toBeLessThan(text.indexOf("2026-10-07T00:00:01Z"));
   });
 });

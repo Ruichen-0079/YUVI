@@ -228,6 +228,7 @@ export function describeExposure(
     messages?: Array<{ role?: string; content?: string }>;
     prompt?: string;
     contextProjectionVersions?: readonly string[];
+    contextProjectionSpans?: import("./types/chat.js").ChatInput["contextProjectionSpans"];
   } | null;
   const firstRole = inputObject?.messages?.[0]?.role;
   const declaredFields = strings.filter(
@@ -243,6 +244,39 @@ export function describeExposure(
         f.text.startsWith("<UserMessage>"))
   );
   const blocks = (use?.blocks ?? []).map((block) => {
+    const span = inputObject?.contextProjectionSpans?.find((s) => s.key === block.key);
+    const field = span && inputObject?.messages?.[span.messageIndex]?.content;
+    if (
+      span &&
+      typeof field === "string" &&
+      Number.isInteger(span.messageIndex) &&
+      span.messageIndex >= 0 &&
+      Number.isInteger(span.offset) &&
+      span.offset >= 0 &&
+      Number.isInteger(span.characters) &&
+      span.characters >= 0 &&
+      span.offset + span.characters <= field.length
+    ) {
+      const value = field.slice(span.offset, span.offset + span.characters);
+      const exact = value === block.text || value === block.text.trim();
+      return {
+        key: block.key,
+        ...(span.epistemicState ? { epistemicState: span.epistemicState } : {}),
+        state: span.transformed
+          ? ("TRANSFORMED" as const)
+          : exact
+            ? ("EXPOSED" as const)
+            : value.length < block.text.length
+              ? ("TRUNCATED" as const)
+              : ("TRANSFORMED" as const),
+        digest: providerInputDigest(value),
+        characters: value.length,
+        field: `input.messages.${span.messageIndex}.content`,
+        offset: span.offset,
+        sourceReferences: block.sourceReferences
+      };
+    }
+
     for (const f of declaredFields) {
       if (f.path === "input.messages.1.content" && block.key !== "UserMessage") continue;
       let value: string | undefined,

@@ -1,5 +1,10 @@
 # Local attention and group Character input, 2026-10-08
 
+The subsequent user-requested linear input projection and current attachment
+availability changes are documented in
+[Character linear context validation](character-linear-context-2026-10-08.md).
+The generation and acceptance status below describe this integration checkpoint.
+
 The bounded Qwen3.5-4B gateway is connected to Alice's real QQ group admission
 path. The model selects review or observation only; the main Character retains
 RESPOND/SILENCE authority. Its selected artifact, CUDA runner, MTP comparison
@@ -95,15 +100,15 @@ It retains the original image-resource descriptions, current scene, identity,
 Persona and optional history subject to the production budget. No QQ sends or
 live conversation writes occur in this diagnostic replay.
 
-| Original capture | Current input | Actual final gate |
-| --- | --- | --- |
-| 042 | 测试看看她能不能区分 | SILENCE |
-| 044 | 得对比一下 | SILENCE |
-| 047 | ok 问题很大 | SILENCE |
-| 034 | Alice 你在吗 | RESPOND |
-| 036 | 在吗 (real mention) | RESPOND |
-| 073 | ciallo (real mention) | RESPOND |
-| 076 | 你人呢 (real mention) | RESPOND |
+| Original capture | Current input         | Actual final gate |
+| ---------------- | --------------------- | ----------------- |
+| 042              | 测试看看她能不能区分  | SILENCE           |
+| 044              | 得对比一下            | SILENCE           |
+| 047              | ok 问题很大           | SILENCE           |
+| 034              | Alice 你在吗          | RESPOND           |
+| 036              | 在吗 (real mention)   | RESPOND           |
+| 073              | ciallo (real mention) | RESPOND           |
+| 076              | 你人呢 (real mention) | RESPOND           |
 
 Each replay made one real provider call; rendered inputs were 8944–10102
 characters. Earlier incomplete-resource and verbose/compact instruction replay
@@ -181,4 +186,3 @@ content truncation:
   semantic JSON for inspection; raw wire JSON remains in `rendered-chat-*.json`.
 
 These exports live in the private model audit directory and are not committed.
-

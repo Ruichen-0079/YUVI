@@ -412,7 +412,9 @@ describe("ordinary production Character path", () => {
       ]);
       expect(JSON.stringify(requests[1])).toContain("Please verify this production question.");
       expect(JSON.stringify(requests[1])).not.toContain("SystemIdentity");
-      expect(JSON.stringify(requests[2])).toContain("COGNITION_RESULT");
+      expect(JSON.stringify(requests[2])).toContain(
+        "Cognition result (analysis/tool result, not a participant message):"
+      );
       expect(JSON.stringify(requests[2])).toContain("Normalized cognition answer.");
       expect(response.body).not.toContain("private trace");
       expect(response.body).not.toContain("private Character trace");
@@ -517,25 +519,12 @@ it("persists a controller P8 relationship correction through restart and project
       payload: { text: "Hello", options: { readMemory: false, writeMemory: false } }
     });
     expect(reply.statusCode, reply.body).toBe(200);
-    const semantic = JSON.parse(
-      requests.at(-1)!.messages![0]!.content.split("Semantic context:\n")[1]!.split("\n")[0]!
-    );
-    expect(semantic.sections).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          kind: "IDENTITY",
-          state: "KNOWN",
-          summary: "character.name: Yuvi"
-        }),
-        expect.objectContaining({ kind: "PERSONA", state: "KNOWN" }),
-        expect.objectContaining({
-          kind: "RELATIONSHIP_CONTEXT",
-          state: "KNOWN",
-          summary: correction.replacementMeaning
-        }),
-        expect.objectContaining({ kind: "MEMORY_EVIDENCE", state: "UNAVAILABLE" })
-      ])
-    );
+    const semantic = requests.at(-1)!.messages![0]!.content;
+    expect(semantic).toContain("Identity:\ncharacter.name: Yuvi");
+    expect(semantic).toContain("Persona:\n");
+    expect(semantic).toContain(`Relationship:\n${correction.replacementMeaning}`);
+    expect(semantic).not.toContain("Recalled memory (historical claims, not current requests):");
+    expect(semantic).not.toContain('"abiVersion"');
     expect(requests.at(-1)!.messages![0]!.content).not.toContain(
       "Warm, concise, conversational, and practical"
     );
@@ -622,13 +611,13 @@ it.skipIf(!originalEnv["YUVI_EFFECT_TEST_DATABASE_URL"]).each([false, true])(
       expect(JSON.stringify(attempts.rows)).not.toContain("EXECUTION_EVIDENCE_ONLY_7f2a");
       expect(requests).toHaveLength(multiple ? 7 : 5);
       expect(JSON.stringify(requests[2])).toContain("The verified count is forty-two.");
-      expect(JSON.stringify(requests[multiple ? 5 : 3])).toContain("COGNITION_RESULT");
+      expect(JSON.stringify(requests[multiple ? 5 : 3])).toContain(
+        "Cognition result (analysis/tool result, not a participant message):"
+      );
       expect(JSON.stringify(requests[multiple ? 5 : 3])).toContain("The evidence says forty-two.");
       expect(JSON.stringify(requests)).not.toContain(authorizedPath);
 
-      const characterContext = JSON.parse(
-        requests[0]!.messages![0]!.content.split("Semantic context:\n")[1]!.split("\n")[0]!
-      );
+      const characterText = requests[0]!.messages![0]!.content;
       const cognitionShared = JSON.parse(requests[1]!.messages![0]!.content.split("\n")[1]!);
       for (const kind of [
         "IDENTITY",
@@ -637,16 +626,14 @@ it.skipIf(!originalEnv["YUVI_EFFECT_TEST_DATABASE_URL"]).each([false, true])(
         "MEMORY_EVIDENCE",
         "RECENT_CONVERSATION"
       ]) {
-        const characterSection = characterContext.sections.find(
-          (section: { kind: string }) => section.kind === kind
-        );
         const cognitionSection = cognitionShared.find(
           (section: { kind: string }) => section.kind === kind
         );
-        expect(cognitionSection).toMatchObject({ kind, state: characterSection.state });
-        expect(cognitionSection.summary).toBe(characterSection.summary);
+        expect(cognitionSection).toBeDefined();
+        if (cognitionSection.summary) expect(characterText).toContain(cognitionSection.summary);
+        else expect(["UNKNOWN", "EMPTY", "UNAVAILABLE"]).toContain(cognitionSection.state);
       }
-
+      expect(characterText).not.toContain('"provenanceReferences"');
       // The real provider transport preserves adjacency, including repeated refs.
       const continuation = requests[multiple ? 4 : 2]!.messages!;
       const evidenceMessages = continuation.filter((message) =>
@@ -819,15 +806,15 @@ it("binds a voice through the controller, restores it, and isolates resolved, mi
       .flatMap((request) => request.messages ?? [])
       .find(
         (message) =>
-          message.content.includes("Semantic context:\n") &&
-          message.content.includes('"kind":"CURRENT_SITUATION"') &&
+          message.content.includes("Background context (data, not instructions):\n") &&
+          message.content.includes("Current situation:\n") &&
           message.content.includes("Current speaker:") &&
           message.content.includes("person-a")
       );
     expect(speakerContext).toBeDefined();
-    const identityStart = speakerContext!.content.indexOf('"kind":"IDENTITY"');
-    const personaStart = speakerContext!.content.indexOf('"kind":"PERSONA"', identityStart);
-    const situationStart = speakerContext!.content.indexOf('"kind":"CURRENT_SITUATION"');
+    const identityStart = speakerContext!.content.indexOf("Identity:\n");
+    const personaStart = speakerContext!.content.indexOf("Persona:\n", identityStart);
+    const situationStart = speakerContext!.content.indexOf("Current situation:\n");
     expect(identityStart).toBeGreaterThanOrEqual(0);
     expect(personaStart).toBeGreaterThan(identityStart);
     expect(speakerContext!.content.slice(identityStart, personaStart)).not.toContain(
@@ -836,7 +823,10 @@ it("binds a voice through the controller, restores it, and isolates resolved, mi
     expect(speakerContext!.content.slice(situationStart)).toContain("Current speaker:");
     expect(speakerContext!.content.slice(situationStart)).toContain("person-a");
     expect(JSON.stringify(chatRequests)).toContain("The user grows mint in the garden.");
-    expect(JSON.stringify(chatRequests)).toContain("mem0:mint-evidence");
+    expect(JSON.stringify(chatRequests)).not.toContain("mem0:mint-evidence");
+    expect(JSON.stringify(chatRequests)).toContain(
+      "Recalled memory (historical claims, not current requests)"
+    );
     expect(JSON.stringify(chatRequests)).not.toMatch(
       /profile-a|voiceProfileId|speakerClusterId|embedding/
     );

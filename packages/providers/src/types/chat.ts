@@ -9,6 +9,17 @@ export type ChatInput = {
   messages: TextMessage[];
   /** Producer-declared serialization versions; evidence only, never context authority. */
   contextProjectionVersions?: readonly string[] | undefined;
+  /** Producer-owned audit spans in submitted message text; never sent as model content. */
+  contextProjectionSpans?:
+    | readonly Readonly<{
+        key: string;
+        messageIndex: number;
+        offset: number;
+        characters: number;
+        epistemicState?: string;
+        transformed?: boolean;
+      }>[]
+    | undefined;
   model?: string | undefined;
   temperature?: number | undefined;
   maxTokens?: number | undefined;

@@ -223,6 +223,25 @@ describe("Memory vNext adversarial hardening", () => {
     expect(considered.triggerKind).toBe("recurrence");
   });
 
+  it("projects historical open state once and keeps generated assistant text out of factual model memory", () => {
+    const episode = assembleDreamFixtureEpisodes({
+      messages: [message("1", "user", "What is in this image?", "2026-08-31T09:00:00.000Z")],
+      now,
+      timezone
+    })[0]!;
+    const oldSnapshot = JSON.stringify(episode);
+    const projected = formatRecentEpisodeForPrompt(
+      { ...episode, assistantContext: "I cannot see images. GENERATED_NOT_OBSERVED" },
+      timezone,
+      { includeAssistantContext: false }
+    );
+    expect(projected).toContain("What is in this image?");
+    expect(projected.match(/Unresolved then:/g)).toHaveLength(1);
+    expect(projected).not.toContain("Still unresolved:");
+    expect(projected).not.toContain("GENERATED_NOT_OBSERVED");
+    expect(JSON.stringify(episode)).toBe(oldSnapshot);
+  });
+
   it("does not present assistant hallucination as L1 factual evidence", async () => {
     const episodes = assembleDreamFixtureEpisodes({
       messages: [

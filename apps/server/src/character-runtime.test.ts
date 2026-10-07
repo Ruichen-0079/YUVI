@@ -1,3 +1,5 @@
+import { RuntimeSocialContextSchema } from "@companion/protocol";
+import { renderSurfaceSituation } from "@companion/core";
 import { PromptBuilder, assembleCanonicalContext } from "@companion/prompt-builder";
 import type { ChatInput, ChatOutput } from "@companion/providers";
 import { describe, expect, it, vi } from "vitest";
@@ -54,6 +56,189 @@ function characterHarness(overrides: { responses: ChatOutput[] }) {
 }
 
 describe("production Character runtime adapter", () => {
+  it("renders one attributed timeline and current message with distinct speech, image, perception and draft types", async () => {
+    const source = {
+      kind: "JOURNAL_EVENT" as const,
+      namespace: "test",
+      eventId: "jev1_0000000000000003"
+    };
+    const surfaceContext = RuntimeSocialContextSchema.parse({
+      surface: "matrix",
+      channelRef: "room",
+      conversationKind: "GROUP",
+      admission: "MENTION",
+      self: { principalId: "self", displayName: "Alice" },
+      speaker: { principalId: "b", observedDisplayName: "B" },
+      mentions: ["self"],
+      sourceJournalRef: source,
+      media: { image: "ATTACHED" },
+      observations: [
+        {
+          speaker: { principalId: "a", observedDisplayName: "A" },
+          direction: "OTHER",
+          text: "SPEECH_FROM_A",
+          observedAt: "2026-10-08T00:00:00Z",
+          sourceJournalRef: { ...source, eventId: "jev1_0000000000000001" }
+        },
+        {
+          speaker: { principalId: "self", displayName: "Alice" },
+          direction: "SELF",
+          publicationState: "ACKNOWLEDGED",
+          text: "OWN_SENT",
+          observedAt: "2026-10-08T00:00:01Z",
+          sourceJournalRef: { ...source, eventId: "jev1_0000000000000002" }
+        },
+        {
+          speaker: { principalId: "self", displayName: "Alice" },
+          direction: "SELF",
+          publicationState: "UNKNOWN",
+          text: "OWN_UNCONFIRMED",
+          observedAt: "2026-10-08T00:00:02Z",
+          sourceJournalRef: { ...source, eventId: "jev1_0000000000000004" }
+        }
+      ],
+      reply: {
+        reference: "reply:2",
+        state: "OBSERVED",
+        author: { principalId: "self", displayName: "Alice" },
+        text: "OWN_SENT"
+      }
+    });
+    const canonicalContext = assembleCanonicalContext({
+      semanticSections: [
+        {
+          kind: "IDENTITY",
+          state: "KNOWN",
+          summary: "Alice",
+          provenanceReferences: ["INTERNAL_AUDIT_REF"]
+        },
+        { kind: "PERSONA", state: "KNOWN", summary: "AUTHORED_PERSONA" },
+        { kind: "RECENT_CONVERSATION", state: "KNOWN", summary: "FLAT_DUPLICATE_HISTORY" }
+      ],
+      currentInput: "CURRENT_QUESTION",
+      situationEvidence: renderSurfaceSituation(surfaceContext)
+    });
+    const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
+    const result = await createServerCharacterPort().generate({
+      prompt,
+      canonicalContext,
+      userMessage: "Legacy input",
+      interactionBoundary: surfaceContext,
+      surfaceContext,
+      visualSources: [
+        {
+          reference: `image:${source.eventId}`,
+          sourceJournalRef: source,
+          speaker: surfaceContext.speaker
+        }
+      ],
+      visualEvidence: {
+        status: "AVAILABLE",
+        observations: "OBSERVATION_ONCE; uncertain lower label",
+        sourceJournalRef: source
+      },
+      generateChat: calls.generateChat
+    });
+    if (result.decision.reply.disposition !== "RESPOND" || !("body" in result.decision.reply))
+      throw Error("Missing body");
+    const gate = calls.generateChat.mock.calls[0]![0];
+    for (const chat of [gate, result.decision.reply.body]) {
+      expect(chat.messages).toHaveLength(2);
+      expect(chat.contextProjectionVersions).toContain("character-linear-context.v1");
+      expect(chat.messages[0]!.content).toContain("AUTHORED_PERSONA");
+      expect(JSON.stringify(chat.messages)).not.toContain("INTERNAL_AUDIT_REF");
+      expect(JSON.stringify(chat.messages)).not.toContain("FLAT_DUPLICATE_HISTORY");
+      const current = chat.messages[1]!.content;
+      expect(current).toContain('A [a] [TEXT]: "SPEECH_FROM_A"');
+      expect(current).toContain("Alice [self] [SELF_SENT: ACKNOWLEDGED]");
+      expect(current).toContain("[SELF_DRAFT: publication UNKNOWN]");
+      expect(current).toContain("[QUOTE: OBSERVED] Alice [self]");
+      expect(current).toContain("Speaker: B [b]");
+      expect(current).toContain("Mentions: Alice [self]");
+      expect(current).toContain("[IMAGE: ATTACHED]");
+      expect(current.indexOf("SPEECH_FROM_A")).toBeLessThan(current.indexOf("OWN_SENT"));
+      expect(current.indexOf("OWN_UNCONFIRMED")).toBeLessThan(current.indexOf("CURRENT_QUESTION"));
+      expect(current.indexOf("CURRENT_QUESTION")).toBeLessThan(current.indexOf("[PERCEPTION:"));
+      expect(current.split("CURRENT_QUESTION")).toHaveLength(2);
+      expect(current.split("OBSERVATION_ONCE")).toHaveLength(2);
+      expect(current.split(`image:${source.eventId}`)).toHaveLength(2);
+      expect(current).toContain("uncertain lower label");
+    }
+    expect(result.decision.reply.body.messages[1]!.content).toBe(gate.messages[1]!.content);
+  });
+
+  it("preserves a complete current quote beyond the legacy canonical scene cap", async () => {
+    const quote = "Q".repeat(4084) + "CURRENT_TAIL";
+    const source = {
+      kind: "JOURNAL_EVENT" as const,
+      namespace: "test",
+      eventId: "jev1_0000000000000001"
+    };
+    const surfaceContext = RuntimeSocialContextSchema.parse({
+      surface: "matrix",
+      channelRef: "room",
+      conversationKind: "GROUP",
+      admission: "REPLY",
+      speaker: { principalId: "b" },
+      mentions: [],
+      observations: [
+        {
+          speaker: { principalId: "a" },
+          direction: "OTHER",
+          text: "OLDER_IMAGE",
+          observedAt: "2026-10-08T00:00:00Z",
+          sourceJournalRef: source,
+          media: { kind: "IMAGE", reference: "image:older", availability: "RETRIEVABLE" }
+        }
+      ],
+      reply: {
+        reference: "quote:1",
+        state: "OBSERVED",
+        author: { principalId: "self" },
+        text: quote
+      }
+    });
+    const canonicalContext = assembleCanonicalContext({
+      currentInput: "Read the quote",
+      situationEvidence: renderSurfaceSituation(surfaceContext)
+    });
+    expect(
+      canonicalContext.sharedSections.find((s) => s.kind === "CURRENT_SITUATION")!.summary
+    ).not.toContain("CURRENT_TAIL");
+    const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
+    const result = await createServerCharacterPort().generate({
+      prompt,
+      canonicalContext,
+      userMessage: "Read the quote",
+      interactionBoundary: surfaceContext,
+      surfaceContext,
+      visualSources: [
+        { reference: "image:older", sourceJournalRef: source, speaker: { principalId: "a" } }
+      ],
+      visualEvidence: {
+        status: "AVAILABLE",
+        observations: "CURRENT_ATTACHMENT_CONTENT",
+        sourceJournalRef: source
+      },
+      generateChat: calls.generateChat
+    });
+    if (result.decision.reply.disposition !== "RESPOND" || !("body" in result.decision.reply))
+      throw Error("Missing body");
+    for (const chat of [calls.generateChat.mock.calls[0]![0], result.decision.reply.body]) {
+      expect(chat.messages[1]!.content).toContain(quote);
+      expect(chat.messages[1]!.content.split("CURRENT_TAIL")).toHaveLength(2);
+      // Older delivery was omitted, so its typed record cannot suppress the
+      // selected attachment's current source/provenance or direct observation.
+      expect(chat.messages[1]!.content).not.toContain("OLDER_IMAGE");
+      expect(chat.messages[1]!.content).toContain("image:older");
+      expect(chat.messages[1]!.content).toContain(source.eventId);
+      expect(chat.messages[1]!.content.split("CURRENT_ATTACHMENT_CONTENT")).toHaveLength(2);
+      expect(chat.messages.reduce((n, m) => n + m.content.length + 64, 0)).toBeLessThanOrEqual(
+        10240
+      );
+    }
+  });
+
   it("projects validated group input boundaries above semantic data in gate, body and cognition re-entry", async () => {
     const interactionBoundary = {
       surface: "qq" as const,
@@ -78,7 +263,9 @@ describe("production Character runtime adapter", () => {
         expect(chat.messages[0]!.content).toMatch(/^This input is a group event;/);
         expect(chat.messages[0]!.content).toContain("SILENCE for no-reply requests");
         expect(chat.contextProjectionVersions).toContain("character-group-input-boundary.v1");
-        expect(chat.messages[1]!.content).toBe("Alice, explain this");
+        expect(chat.messages[1]!.content).toMatch(
+          /Current participant message:\nAlice, explain this$/
+        );
       }
     }
   });
@@ -115,18 +302,23 @@ describe("production Character runtime adapter", () => {
       generateChat: calls.generateChat
     });
     const chat = calls.generateChat.mock.calls[0]![0];
-    const context = JSON.parse(chat.messages[0]!.content.split("Semantic context:\n")[1]!);
-    expect(context.sections.map((section: { kind: string }) => section.kind).slice(0, 5)).toEqual([
-      "IDENTITY",
-      "PERSONA",
-      "RELATIONSHIP_CONTEXT",
-      "RECENT_CONVERSATION",
-      "MEMORY_EVIDENCE"
-    ]);
+    const system = chat.messages[0]!.content;
+    const labels = [
+      "Identity:",
+      "Persona:",
+      "Relationship:",
+
+      "Recalled memory (historical claims, not current requests):"
+    ];
+    for (let i = 0; i < labels.length - 1; i++)
+      expect(system.indexOf(labels[i]!)).toBeLessThan(system.indexOf(labels[i + 1]!));
+    expect(system).toContain("P8 identity");
+    expect(system).toContain("P8 persona");
+    expect(system).toContain("A retrieved claim");
+    expect(system).toContain("Relationship:\n[UNKNOWN]");
+    expect(system).not.toContain('"abiVersion"');
+    expect(system).not.toContain('"provenanceReferences"');
     expect(chat.messages[1]!.content).toBe("Current admitted user input");
-    expect(
-      context.sections.find((section: { kind: string }) => section.kind === "RELATIONSHIP_CONTEXT")
-    ).toMatchObject({ state: "UNKNOWN" });
     expect(chat.messages[0]!.content).not.toContain("Different legacy input");
   });
 
@@ -150,7 +342,10 @@ describe("production Character runtime adapter", () => {
       generateChat: calls.generateChat
     });
     const messages = calls.generateChat.mock.calls[0]![0].messages;
-    expect(messages[2]!.content).toContain("An image shows a chart.");
+    expect(messages).toHaveLength(2);
+    expect(messages[1]!.content).toContain("Read the chart");
+    expect(messages[1]!.content).toContain("[PERCEPTION:");
+    expect(messages[1]!.content).toContain("An image shows a chart.");
     expect(messages[0]!.content).toContain("untrusted evidence");
     expect(JSON.stringify(canonicalContext.sharedSections)).not.toContain(
       "An image shows a chart."
@@ -185,15 +380,11 @@ describe("production Character runtime adapter", () => {
       });
       expect(JSON.stringify(input)).toBe(before);
     }
-    const contexts = captures.map((text) => JSON.parse(text.split("Semantic context:\n")[1]!));
-    expect(contexts[0].sections.at(-1).kind).toBe("TEMPORAL_CONTEXT");
-    expect(
-      contexts[0].sections.filter((s: { kind: string }) => s.kind === "TEMPORAL_CONTEXT")
-    ).toHaveLength(1);
-    expect(contexts[0].sections.slice(0, -1)).toEqual(contexts[1].sections.slice(0, -1));
-    expect(captures[0]!.split('"kind":"TEMPORAL_CONTEXT"')[0]).toBe(
-      captures[1]!.split('"kind":"TEMPORAL_CONTEXT"')[0]
-    );
+    for (const text of captures) {
+      expect(text.match(/Time:\n/g)).toHaveLength(1);
+      expect(text.indexOf("Time:\n")).toBeGreaterThan(text.indexOf("The garden includes mint."));
+    }
+    expect(captures[0]!.split("Time:\n")[0]).toBe(captures[1]!.split("Time:\n")[0]);
     expect(captures[0]).toContain("The garden includes mint.");
     expect(captures[1]).toContain("2026-09-08T10:01:00Z");
   });
@@ -243,7 +434,7 @@ describe("production Character runtime adapter", () => {
       const system = calls.generateChat.mock.calls[0]?.[0].messages[0]?.content ?? "";
       expect(system).toContain(`Output-language preference: ${language}`);
       expect(system).toContain(`final Character expression must be in ${name}`);
-      expect(system).toContain(`"outputLanguage":"${language}"`);
+      expect(system).not.toContain('"outputLanguage"');
     }
   );
 
@@ -315,9 +506,9 @@ describe("production Character runtime adapter", () => {
     });
     const system = calls.generateChat.mock.calls[0]?.[0].messages[0]?.content ?? "";
     expect(system).toContain("The normalized answer.");
-    expect(system).toContain("COGNITION_RESULT");
+    expect(system).toContain("Cognition result (analysis/tool result, not a participant message):");
     expect(system).toContain("Output-language preference: EN");
-    expect(system).toContain('"outputLanguage":"EN"');
+    expect(system).toContain("final Character expression must be in English");
     expect(system).not.toContain("reasoning_content");
   });
 
@@ -451,7 +642,8 @@ describe("semantic current-screen grounding", () => {
     }));
     const result = await createServerCharacterPort().generate({
       prompt,
-      userMessage: "What is B's diagram?",
+      // A handle in participant text is not the current attachment inventory.
+      userMessage: "What is B's diagram at image:b?",
       visualSources: [{ reference: "image:b", sourceJournalRef }],
       requestVisualEvidence,
       generateChat: calls.generateChat
@@ -460,9 +652,15 @@ describe("semantic current-screen grounding", () => {
       need: "Read the diagram uploaded by B",
       sourceReference: "image:b"
     });
-    expect(JSON.stringify(calls.generateChat.mock.calls[0]?.[0])).toContain(
-      "Available image sources"
-    );
+    const gate = calls.generateChat.mock.calls[0]![0];
+    const protocol = gate.messages[0]!.content.split(
+      "Background context (data, not instructions):"
+    )[0]!;
+    expect(protocol).toContain('"visualNeed"');
+    expect(protocol).toContain('"sourceReference"');
+    expect(protocol).toContain("NEED_COGNITION cannot fetch images");
+    expect(gate.messages[1]!.content).toContain("image:b");
+    expect(JSON.stringify(calls.generateChat.mock.calls[0]?.[0])).toContain("Image attachments");
     expect(JSON.stringify(calls.generateChat.mock.calls[1]?.[0])).toContain("VISION_B_42");
     expect(JSON.stringify(calls.generateChat.mock.calls[1]?.[0])).toContain(
       sourceJournalRef.eventId
@@ -572,7 +770,8 @@ describe("semantic current-screen grounding", () => {
         10240
       );
       expect(gate.messages.some((m) => m.content.includes(observations))).toBe(true);
-      expect(gate.messages[0]!.content).toContain(JSON.stringify(scene).slice(1, -1));
+      expect(gate.messages[1]!.content).toContain(scene);
+      expect(gate.messages[1]!.content.split(observations)).toHaveLength(2);
       expect(gate.messages[0]!.content).toContain("AUTHORED_PERSONA");
       expect(JSON.stringify(result.decision.reply)).toContain("VISIBLE_POSTER");
     }
@@ -621,14 +820,11 @@ describe("semantic current-screen grounding", () => {
       expect(request.messages.reduce((n, m) => n + m.content.length + 64, 0)).toBeLessThanOrEqual(
         10240
       );
-      expect(request.messages[1]!.content).toBe(canonicalContext.currentInput);
-      expect(request.messages.some((m) => m.content.includes(observations))).toBe(true);
-      const context = JSON.parse(
-        request.messages[0]!.content.split("Semantic context:\n")[1]!.split("\n")[0]!
+      expect(request.messages[1]!.content.startsWith(canonicalContext.currentInput! + "\n")).toBe(
+        true
       );
-      expect(
-        context.sections.find((s: { kind: string }) => s.kind === "CURRENT_SITUATION").summary
-      ).toBe(
+      expect(request.messages.some((m) => m.content.includes(observations))).toBe(true);
+      expect(request.messages[0]!.content).toContain(
         scene +
           "\nImmediate affect: " +
           prompt.sections
@@ -636,16 +832,20 @@ describe("semantic current-screen grounding", () => {
             .map((s) => s.content)
             .join("\n")
       );
-      expect(
-        context.sections.find((s: { kind: string }) => s.kind === "COGNITION_RESULT").result
-      ).toEqual(cognitionRoundTrip.result);
+      const cognition = JSON.parse(
+        request.messages[0]!.content.split(
+          "Cognition result (analysis/tool result, not a participant message):\n"
+        )[1]!.split("\n")[0]!
+      );
+      const { version: _version, ...expectedCognition } = cognitionRoundTrip.result;
+      expect(cognition).toEqual(expectedCognition);
       expect(request.messages[0]!.content).toContain("AUTHORED_PERSONA");
       expect(request.messages[0]!.content).toContain("Past assistant text is fallible");
     }
   });
 
   it.each(["KNOWN", "CONFLICTING", "UNAVAILABLE"] as const)(
-    "omits %s optional history and its unused provenance when the compressor floor cannot fit",
+    "compresses %s optional history without projecting unused provenance or displacing current facts",
     async (state) => {
       const scene = "CURRENT_SPEAKER_REPLY_MENTION " + "scene ".repeat(475);
       const observations = "CURRENT_PERCEPTION " + "visual ".repeat(495);
@@ -656,7 +856,7 @@ describe("semantic current-screen grounding", () => {
           {
             kind: "MEMORY_EVIDENCE",
             state,
-            ...(state === "UNAVAILABLE" ? {} : { summary: "Older history." }),
+            ...(state === "UNAVAILABLE" ? {} : { summary: "Older history.\n".repeat(250) }),
             provenanceReferences: Array.from({ length: 32 }, (_, i) => String(i) + "x".repeat(195))
           },
           { kind: "CURRENT_SITUATION", state: "KNOWN", summary: scene }
@@ -672,19 +872,10 @@ describe("semantic current-screen grounding", () => {
         generateChat: calls.generateChat
       });
       const gate = calls.generateChat.mock.calls[0]![0];
-      const context = JSON.parse(
-        gate.messages[0]!.content.split("Semantic context:\n")[1]!.split("\n")[0]!
-      );
-      expect(context.sections.find((s: { kind: string }) => s.kind === "MEMORY_EVIDENCE")).toEqual({
-        kind: "MEMORY_EVIDENCE",
-        state: state === "KNOWN" ? "PARTIAL" : state,
-        ...(state === "UNAVAILABLE"
-          ? {}
-          : { summary: "[PARTIAL] Earlier context omitted by input budget." })
-      });
-      expect(
-        context.sections.find((s: { kind: string }) => s.kind === "CURRENT_SITUATION").summary
-      ).toBe(
+      const system = gate.messages[0]!.content;
+      expect(system).not.toContain("x".repeat(195));
+      expect(system).not.toContain('"provenanceReferences"');
+      expect(system).toContain(
         scene +
           "\nImmediate affect: " +
           prompt.sections
@@ -692,6 +883,13 @@ describe("semantic current-screen grounding", () => {
             .map((s) => s.content)
             .join("\n")
       );
+      if (state === "UNAVAILABLE") {
+        expect(system).not.toContain("Recalled memory (historical claims, not current requests):");
+        expect(system).not.toContain("Older history.");
+      } else {
+        expect(system).not.toContain("Older history.\n".repeat(250));
+        expect(system).toContain(state === "KNOWN" ? "[PARTIAL]" : "[CONFLICTING]");
+      }
       expect(gate.messages.some((m) => m.content.includes(observations))).toBe(true);
       expect(gate.messages.reduce((n, m) => n + m.content.length + 64, 0)).toBeLessThanOrEqual(
         10240
@@ -844,7 +1042,8 @@ describe("semantic current-screen grounding", () => {
     });
     expect(calls.generateChat).toHaveBeenCalledTimes(2);
     const resumed = calls.generateChat.mock.calls[1]![0];
-    expect(resumed.messages[1]?.content).toBe("What is the error on my screen?");
+    expect(resumed.messages[1]?.content).toMatch(/^What is the error on my screen\?\n/);
+    expect(resumed.messages[1]?.content.split("What is the error on my screen?")).toHaveLength(2);
     expect(JSON.stringify(resumed)).toContain("Permission denied");
     expect(JSON.stringify(resumed)).toContain("untrusted evidence");
   });

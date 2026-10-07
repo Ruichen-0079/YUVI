@@ -334,7 +334,7 @@ export class RuntimeOrchestrator {
   private readonly socialContexts = new WeakMap<RuntimeUserTurnEvent, string>();
   private readonly interactionBoundaries = new WeakMap<
     RuntimeUserTurnEvent,
-    NonNullable<RuntimeCharacterTurnInput["interactionBoundary"]>
+    NonNullable<RuntimeCharacterTurnInput["surfaceContext"]>
   >();
   private readonly turnVisualSources = new WeakMap<
     RuntimeUserTurnEvent,
@@ -2295,11 +2295,7 @@ export class RuntimeOrchestrator {
       if (options.socialContext) {
         const social = RuntimeSocialContextSchema.parse(options.socialContext);
         this.socialContexts.set(userEvent, renderSurfaceSituation(social));
-        this.interactionBoundaries.set(userEvent, {
-          surface: social.surface,
-          conversationKind: social.conversationKind,
-          admission: social.admission
-        });
+        this.interactionBoundaries.set(userEvent, social);
       }
       if (options.imageAttachment) this.visuallyGroundedTurns.add(userEvent);
       const voiceOutput = isRuntimeUserTurnEvent(input)
@@ -2465,11 +2461,7 @@ export class RuntimeOrchestrator {
       if (options.socialContext) {
         const social = RuntimeSocialContextSchema.parse(options.socialContext);
         this.socialContexts.set(userEvent, renderSurfaceSituation(social));
-        this.interactionBoundaries.set(userEvent, {
-          surface: social.surface,
-          conversationKind: social.conversationKind,
-          admission: social.admission
-        });
+        this.interactionBoundaries.set(userEvent, social);
       }
       if (options.imageAttachment) this.visuallyGroundedTurns.add(userEvent);
       let finalizedTurnId = await this.resolveFinalizedTurnId(userEvent, assistantMessageId);
@@ -4651,6 +4643,7 @@ export class RuntimeOrchestrator {
       semanticSections: this.semanticContexts.get(prompt),
       contextWindow: this.options.providers.getChatContextWindow?.(),
       interactionBoundary: this.interactionBoundaries.get(event),
+      surfaceContext: this.interactionBoundaries.get(event),
       userMessage: event.payload.content,
       outputLanguage: this.outputLanguage(),
       ...(signal ? { signal } : {}),
@@ -4737,6 +4730,7 @@ export class RuntimeOrchestrator {
       semanticSections: this.semanticContexts.get(prompt),
       contextWindow: this.options.providers.getChatContextWindow?.(),
       interactionBoundary: this.interactionBoundaries.get(event),
+      surfaceContext: this.interactionBoundaries.get(event),
       userMessage: event.payload.content,
       outputLanguage: this.outputLanguage(),
       cognitionRoundTrip: roundTrip,

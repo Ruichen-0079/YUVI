@@ -158,7 +158,11 @@ export async function assembleMemoryVNextContext(
     promptEpisodes.length === 0
       ? "No recent episodic memory available."
       : promptEpisodes
-          .map((episode) => formatRecentEpisodeForPrompt(episode, input.timezone))
+          .map((episode) =>
+            formatRecentEpisodeForPrompt(episode, input.timezone, {
+              includeAssistantContext: false
+            })
+          )
           .join("\n");
   if (recentEpisodicText.length > budgets.l1PromptChars) {
     recentEpisodicText = `${recentEpisodicText.slice(0, budgets.l1PromptChars - 3).trimEnd()}...`;
