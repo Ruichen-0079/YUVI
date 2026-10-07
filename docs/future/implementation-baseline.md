@@ -1,5 +1,41 @@
 # Implementation baseline for the Future architecture
 
+## Current development trunk — 2026-10-07
+
+`main` is the authoritative development trunk. The former platform-completion
+and Multi-Character branches are historical work pointers, not instructions to
+select another long-lived development branch. Historical validation records
+retain their original branch names and dates; they do not prescribe today's checkout.
+Public release versions remain governed by release tags and published releases,
+not by the development trunk's feature inventory.
+
+[Multi-Character Core](../architecture/multi-character.md) is implemented using
+stable Character binding and independent existing Runtime compositions, without
+a large CharacterInstance container. Product Person can be shared through an
+explicit read view; Memory, Relationship, Profile, recent conversation, P8
+corrections, proactive and execution state are isolated. Memory has no cross-Character
+read-through. Primary Yuvi preserves legacy data compatibility. Independent
+Registries can share one model service: separate mutable coordination does not
+require duplicate model processes.
+
+[Acceptance](../validation/multi-character-2026-10-07.md) includes real PostgreSQL
+durable isolation, SIGKILL/restart and two Registries calling one real local
+Qwen service. The configured built-server bootstrap is reachable; desktop Character
+selection, a unified roster/supervisor, shared voice-binding administration and
+physical presentation scheduling remain future work.
+
+Alice is a future Character composition; Plunge should supply QQ transport and
+social context bound to that composition. Historical persona-overlay prototypes
+are not the new isolation mechanism. Plunge migration, QQ social attention and
+multi-message handling remain future work; no real QQ acceptance has run.
+
+The complete Linux packaged conformance gate has **not passed** in this environment.
+It lacks the required native PG16 packaged distribution (`YUVI_POSTGRES_HOME`);
+Docker PostgreSQL acceptance cannot substitute for that gate. Other packaged
+prerequisites (including the pinned Node version and Mem0 environment) also need
+validation. This is a release-conformance prerequisite blocker, not a failed
+Multi-Character isolation test, and no formal v0.1.3 release is claimed.
+
 A10.2 is CLOSED / IMPLEMENTED REALITY; see [validation](../validation/v0.1.3-a10.2-controller-person-voice-p8-lineage.md) for owner revisions, current gates, the source audit, the old A8.2f1 harness disposition and explicit legacy lineage gaps.
 
 Status: **IMPLEMENTED REALITY**. A8.1 and A8.2a–A8.2f6 source and verification are recorded in [their validation records](../validation/v0.1.3-a8.1-journal-contract.md), [A8.2a](../validation/v0.1.3-a8.2a-journal-store.md), [A8.2b](../validation/v0.1.3-a8.2b-conversational-ingress.md), [A8.2c](../validation/v0.1.3-a8.2c-speech-ingress.md), [A8.2d](../validation/v0.1.3-a8.2d-vision-ingress.md), [A8.2e1](../validation/v0.1.3-a8.2e1-product-controls.md), [A8.2e2](../validation/v0.1.3-a8.2e2-runtime-controls.md), [A8.2e3](../validation/v0.1.3-a8.2e3-proactive-consent.md), [A8.2f3](../validation/v0.1.3-a8.2f3-proactive-turn-request.md), [A8.2f4](../validation/v0.1.3-a8.2f4-tts-input.md), [A8.2f5](../validation/v0.1.3-a8.2f5-memory-authority.md) and [A8.2f6 aggregate closure](../validation/v0.1.3-a8.2f6-aggregate-closure.md). A10.1a fails closed on optional legacy LLM Memory extraction, A10.1b carries exact committed receipt ancestry into durable conversation rows, A10.1c grounds new legacy Memory writes, A10.1d grounds finalized Mem0 children and modernizes the local sidecar to 2.2.1, and A10.1e preserves pre-compression episode ancestry and frozen multi-parent DERIVED Dream lineage. A10.1f1 now supplies the local `ProfileProvider`, grounded source readers, deterministic materializer and immutable snapshot store; see the [A10.1a](../validation/v0.1.3-a10.1a-llm-memory-grounding.md), [A10.1b](../validation/v0.1.3-a10.1b-journal-ancestry.md), [A10.1c](../validation/v0.1.3-a10.1c-grounded-legacy-memory.md) and [A10.1f1](../validation/v0.1.3-a10.1f1-local-profile-materializer.md) validation records. Aggregate A8.2 is implemented for the documented semantic/control receipt family and explicit applicability/privacy exceptions; aggregate A10.1 is IMPLEMENTED REALITY. This is the only Future document that states what exists today. Every other Future document states decisions, planned engineering or hypotheses and must defer to this record and to source. When source changes, the atom that changes it updates this file.

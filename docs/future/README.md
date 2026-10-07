@@ -2,7 +2,7 @@
 
 > **Status:** CURRENT FUTURE AUTHORITY
 >
-> This index supersedes the older numbered 00–08 Future sequence as the authority for long-term architecture and roadmap decisions on `codex/v0.1.3-platform-completion-20260922`.
+> This index supersedes the older numbered 00–08 Future sequence as the authority for long-term architecture and roadmap decisions on `main`.
 >
 > Implemented behavior is still defined by source, tests, closure/validation records, and [`implementation-baseline.md`](implementation-baseline.md). Future documents must never override working source merely because the new conceptual model is cleaner.
 
@@ -29,7 +29,7 @@ A research hypothesis never overrides a production authority boundary.
 
 For roadmap interpretation, [`version-roadmap.md`](version-roadmap.md) is the **release/version sequencing authority**. Detailed atom contracts remain in each version plan and in [`post-v0.1.3-roadmap.md`](post-v0.1.3-roadmap.md). Version grouping may delay technically independent work for product sequencing, but it does not erase technical dependencies or research stop gates.
 
-For A8.2 specifically, [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) is the **current authority**. Source audits found separate conversational, speech, standalone-vision, Product, Runtime-governed, proactive-consent, voice-control, external proactive-turn and standalone-TTS admission owners. A8.2e1–e3 and A8.2f1–f6 are implemented. F6 completed aggregate applicability and regression closure: Live2D asset administration and diagnostic/transient/internal surfaces are explicitly outside this semantic/control receipt family, while privacy withdrawal remains Journal-independent. Aggregate A8.2e, A8.2f and A8.2 are implemented; A9.1/A9.2 effect admission and bounded dispatch accounting are implemented with active local read-text only; A9.3 remains planned and aggregate A9 remains incomplete; aggregate A10.1 lineage and A10.2 are IMPLEMENTED REALITY. A10.2's controller/Person/voice/P8 implementation and validation are recorded in [its closure record](../validation/v0.1.3-a10.2-controller-person-voice-p8-lineage.md).
+For A8.2 specifically, [`a8.2-ingress-closure.md`](a8.2-ingress-closure.md) is the **current authority**. Source audits found separate conversational, speech, standalone-vision, Product, Runtime-governed, proactive-consent, voice-control, external proactive-turn and standalone-TTS admission owners. A8.2e1–e3 and A8.2f1–f6 are implemented. F6 completed aggregate applicability and regression closure: Live2D asset administration and diagnostic/transient/internal surfaces are explicitly outside this semantic/control receipt family, while privacy withdrawal remains Journal-independent. Aggregate A8.2e, A8.2f and A8.2 are implemented; A9.1/A9.2 effect admission and bounded dispatch accounting are implemented with active local read-text only; A9.3 and aggregate A9 are IMPLEMENTED REALITY; aggregate A10.1 lineage and A10.2 are IMPLEMENTED REALITY. A10.2's controller/Person/voice/P8 implementation and validation are recorded in [its closure record](../validation/v0.1.3-a10.2-controller-person-voice-p8-lineage.md).
 
 For A10.1 specifically, [`a10.1-grounded-memory-roadmap.md`](a10.1-grounded-memory-roadmap.md) is the **current leaf execution authority**. A10.1a–f3 and aggregate A10.1 are IMPLEMENTED REALITY; see [aggregate validation](../validation/v0.1.3-a10.1f3-aggregate-memory-profile-closure.md). A10.1b carries the exact committed Journal receipt reference through Runtime into durable user conversation rows. A10.1c resolves the committed receipt and exact retained TEXT selector before new evidence-backed legacy Memory writes, persisting typed lineage and a stable consumer key; A10.1d validates the same source before finalized child admission and carries frozen lineage through local Mem0 2.2.1. A10.1f1 provides the YUVI-owned `ProfileProvider`, bounded source readers, deterministic local materializer and immutable snapshot store. A10.1f2 bridges the derived snapshot into `People.Model` with dirty/stale/regeneration semantics, and A10.1f3 closes aggregate Memory/Profile lineage. This does not move Person identity or authored Person/control authority into Mem0 or Profile; those remain governed elsewhere.
 
@@ -145,12 +145,7 @@ The split does not create new competing semantic owners. All receipt leaves shar
 
 A12.1 now also has a pinned source-level SnowLuma contract at [`a12.1-snowluma-contract.md`](a12.1-snowluma-contract.md), validated in [`v0.1.3-a12.1-snowluma-source-contract.md`](../validation/v0.1.3-a12.1-snowluma-source-contract.md). The source phase establishes that SnowLuma's public OneBot `message_id` is a locally generated 32-bit hash rather than a globally unique QQ identity; ordinary inbound chat has no general source-backed dedup guarantee; ordinary private/group send has no effective remote idempotency and no authoritative lost-response reconciliation. Therefore ambiguous send failure remains `ATTEMPT → OUTCOME=UNKNOWN → NO AUTOMATIC RESEND`. A12.1 remains open for narrowly targeted live probes; A12.2 remains planned.
 
-The remaining v0.1.3 work is planned around:
-
-- full provider, publication and presentation effect coverage plus the complete outbound audit (A9.3);
-- exact context-use manifests and historical reconstruction (A10.3);
-- a fault-injectable synthetic surface conformance harness;
-- QQ/Snowluma as a real external architecture probe.
+A9.3 effect coverage, A10.3 historical context reconstruction and the A11 synthetic conformance harness are implemented. Remaining v0.1.3 closure concerns QQ/SnowLuma external probing (A12.1) and current-HEAD Linux packaged conformance (A12.2). See [the current baseline](implementation-baseline.md) for Multi-Character Core and the unresolved packaged prerequisite blocker.
 
 Windows/macOS bring-up, three-platform parity, prospective state, measured dispositions, learned selection, autonomous exploration, post-training, broad P8 migration, Life Layer/hormone systems, People product UI and full privacy-deletion machinery are not v0.1.3 closure requirements. The reusable Profile substrate/materializer is inside A10.1; People productization remains v0.1.4.
 

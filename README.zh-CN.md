@@ -12,11 +12,11 @@ YUVI 不追求成为功能最多的 AI 角色平台，也不把自己定位成�
 
 ## 当前版本
 
-**YUVI v0.1.1** 是当前公开版本。
+**YUVI v0.1.2** 是当前公开版本。
 
-- Linux x86-64 安装包：`yuvi-v0.1.1-linux-x64-installer.run`
-- Linux x86-64 Portable：`yuvi-v0.1.1-linux-x64-portable.tar.zst`
-- Release notes 与校验文件：https://github.com/Ruichen-0079/YUVI/releases/tag/v0.1.1
+- Linux x86-64 安装包：`yuvi-v0.1.2-linux-x64-installer.run`
+- Linux x86-64 Portable：`yuvi-v0.1.2-linux-x64-portable.tar.zst`
+- Release notes 与校验文件：https://github.com/Ruichen-0079/YUVI/releases/tag/v0.1.2-final
 
 Linux 是当前主要发布和验证目标。Windows 仍然是支持的开发与后续打包目标，但目前还没有与 Linux 对等的公开 release 路径。
 
@@ -104,9 +104,9 @@ Runtime 状态、本地配置与受支持的个人数据路径以用户可控为
 
 ### 使用 Linux 发布版
 
-下载 **v0.1.1**：
+下载 **v0.1.2**：
 
-https://github.com/Ruichen-0079/YUVI/releases/tag/v0.1.1
+https://github.com/Ruichen-0079/YUVI/releases/tag/v0.1.2-final
 
 当前 Linux x86-64 版本以 Debian 12 / glibc 2.36 为目标环境，并依赖系统 GTK/WebKitGTK 4.1 与 AppIndicator runtime。部分 Provider 密钥、模型与本地服务仍需要用户自行配置。
 
@@ -192,6 +192,8 @@ reliability
 ```
 
 未来架构文档位于 [docs/future](docs/future/)。它们只代表规划，不代表当前实现状态。
+
+当前开发主线为 `main`，不等同于新增正式 release。A9、A10 和 A11 的已验证 Core 能力已实现，A12 仍未闭环。[Multi-Character Core](docs/architecture/multi-character.md) 采用稳定 Character binding 与独立 Runtime composition；共享 Product Person 和模型服务，隔离 Memory、Relationship、Profile、近期对话、P8 corrections、proactive 和执行状态。默认 Yuvi 兼容旧数据。[验收](docs/validation/multi-character-2026-10-07.md) 已覆盖真实 PG 持久化及 SIGKILL/restart；完整 Linux packaged conformance 尚未通过，缺少原生 PG16 packaged distribution，Docker PostgreSQL 不能替代该 gate。桌面选择器与 QQ 接入仍是后续工作。
 
 ## Inspirations
 

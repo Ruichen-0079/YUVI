@@ -1,5 +1,41 @@
 # Production reachability closure
 
+## Current development trunk — 2026-10-07
+
+`main` is the authoritative development trunk. The former platform-completion
+and Multi-Character branches are historical work pointers, not instructions to
+select another long-lived development branch. Historical validation records
+retain their original branch names and dates; they do not prescribe today's checkout.
+Public release versions remain governed by release tags and published releases,
+not by the development trunk's feature inventory.
+
+[Multi-Character Core](../architecture/multi-character.md) is implemented using
+stable Character binding and independent existing Runtime compositions, without
+a large CharacterInstance container. Product Person can be shared through an
+explicit read view; Memory, Relationship, Profile, recent conversation, P8
+corrections, proactive and execution state are isolated. Memory has no cross-Character
+read-through. Primary Yuvi preserves legacy data compatibility. Independent
+Registries can share one model service: separate mutable coordination does not
+require duplicate model processes.
+
+[Acceptance](../validation/multi-character-2026-10-07.md) includes real PostgreSQL
+durable isolation, SIGKILL/restart and two Registries calling one real local
+Qwen service. The configured built-server bootstrap is reachable; desktop Character
+selection, a unified roster/supervisor, shared voice-binding administration and
+physical presentation scheduling remain future work.
+
+Alice is a future Character composition; Plunge should supply QQ transport and
+social context bound to that composition. Historical persona-overlay prototypes
+are not the new isolation mechanism. Plunge migration, QQ social attention and
+multi-message handling remain future work; no real QQ acceptance has run.
+
+The complete Linux packaged conformance gate has **not passed** in this environment.
+It lacks the required native PG16 packaged distribution (`YUVI_POSTGRES_HOME`);
+Docker PostgreSQL acceptance cannot substitute for that gate. Other packaged
+prerequisites (including the pinned Node version and Mem0 environment) also need
+validation. This is a release-conformance prerequisite blocker, not a failed
+Multi-Character isolation test, and no formal v0.1.3 release is claimed.
+
 Audit baseline: GitHub `main` at `a0a277068e466a2908f0c0b2191e3ecf921e257c` (fresh fetch). This audit covers current claims in the roadmap, Campaigns A–I, and the subsequent Linux release gate. Historical atom plans do not extend the production scope. `LIVE` means there is a real product caller and observable result; configured provider credentials, local weights, and device availability remain prerequisites. Tests alone are not the reachability evidence.
 
 ## Defects corrected

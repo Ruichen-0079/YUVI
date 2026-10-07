@@ -12,11 +12,11 @@ Its focus is not to become the largest AI character platform or a general-purpos
 
 ## Current Release
 
-**YUVI v0.1.1** is the current public release.
+**YUVI v0.1.2** is the current public release.
 
-- Linux x86-64 installer: `yuvi-v0.1.1-linux-x64-installer.run`
-- Linux x86-64 portable build: `yuvi-v0.1.1-linux-x64-portable.tar.zst`
-- Release notes and checksums: https://github.com/Ruichen-0079/YUVI/releases/tag/v0.1.1
+- Linux x86-64 installer: `yuvi-v0.1.2-linux-x64-installer.run`
+- Linux x86-64 portable build: `yuvi-v0.1.2-linux-x64-portable.tar.zst`
+- Release notes and checksums: https://github.com/Ruichen-0079/YUVI/releases/tag/v0.1.2-final
 
 Linux is the current primary release and validation target. Windows remains a supported development and packaging target, but does not yet have the same public release path.
 
@@ -104,9 +104,9 @@ Secrets must stay in local configuration and must not be committed to the reposi
 
 ### Use the released Linux build
 
-Download **v0.1.1** from:
+Download **v0.1.2** from:
 
-https://github.com/Ruichen-0079/YUVI/releases/tag/v0.1.1
+https://github.com/Ruichen-0079/YUVI/releases/tag/v0.1.2-final
 
 The Linux x86-64 release currently targets Debian 12 / glibc 2.36 and expects the system GTK/WebKitGTK 4.1 and AppIndicator runtime libraries. Some provider credentials, models and local services still require configuration.
 
@@ -191,7 +191,9 @@ reliability
   -> deeper companion intelligence
 ```
 
-Future architecture documents live under [docs/future](docs/future/). Their decisions do not by themselves imply implementation; [the implementation baseline](docs/future/implementation-baseline.md) records accepted reality. [A10.1 aggregate Memory/Profile closure](docs/validation/v0.1.3-a10.1f3-aggregate-memory-profile-closure.md), [A9.1 atomic intent/outbox admission](docs/validation/v0.1.3-a9.1-atomic-effect-intent-outbox.md) and [A9.2 durable dispatch accounting](docs/validation/v0.1.3-a9.2-dispatch-reconciliation-crash-ambiguity.md) are implemented. A9.2 activates bounded local read-text only; unsupported reconciliation remains UNKNOWN. A9.3 remains planned and aggregate A9 remains incomplete. A10.2/A10.3, A11 and A12 remain open.
+Future architecture documents live under [docs/future](docs/future/). Their decisions do not by themselves imply implementation; [the implementation baseline](docs/future/implementation-baseline.md) records accepted reality. [A10.1 aggregate Memory/Profile closure](docs/validation/v0.1.3-a10.1f3-aggregate-memory-profile-closure.md), [A9.1 atomic intent/outbox admission](docs/validation/v0.1.3-a9.1-atomic-effect-intent-outbox.md) and [A9.2 durable dispatch accounting](docs/validation/v0.1.3-a9.2-dispatch-reconciliation-crash-ambiguity.md) are implemented. A9.2 activates bounded local read-text only; unsupported reconciliation remains UNKNOWN. A9.3/aggregate A9, A10.2/A10.3/aggregate A10 and A11.1/A11.2 are implemented within their validated boundaries. A12 remains open. `main` is the authoritative development trunk; this does not announce a new public release.
+
+Current development on `main` includes [Multi-Character Core](docs/architecture/multi-character.md): independent Character compositions share Product Person and model services while isolating Memory and perspective. [Validation](docs/validation/multi-character-2026-10-07.md) records durable/restart acceptance; complete Linux packaged conformance remains blocked by native PG16 packaging prerequisites. Desktop selection and QQ integration remain future work.
 
 ## Inspirations
 

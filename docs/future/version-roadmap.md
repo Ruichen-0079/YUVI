@@ -135,7 +135,7 @@ The local/private profile materializer is the required baseline. A hosted Mem0 U
 
 ### Milestone 2 — Action and attribution foundation
 
-A9.1/A9.2 and A10.2 are implemented within their validated boundaries. A9.3 remains planned; aggregate A9 is incomplete. A11.1 and A10.3 remain open.
+A9.1/A9.2 and A10.2 are implemented within their validated boundaries. A9.3/aggregate A9, A10.3/aggregate A10 and A11.1/A11.2 are implemented within the boundaries recorded in their validation documents. A12 and release-level packaged closure remain open.
 
 The [remaining-core architecture freeze](v0.1.3-authority-effect-context-architecture-freeze.md) fixes the implementation decisions for these remaining atoms. A9.3 includes full outbound source audit and closes aggregate A9 if its gates pass; no A9.4 follows.
 
