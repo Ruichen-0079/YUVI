@@ -202,7 +202,7 @@ describe("on-demand visual grounding in the original Runtime turn", () => {
     expect(s.captureScreen).not.toHaveBeenCalled();
     expect(s.analyzeImage).not.toHaveBeenCalled();
   });
-  it("captures once, calls routed Vision once, bounds evidence and resumes the same turn without Memory", async () => {
+  it("captures once, calls routed Vision once, preserves complete evidence and resumes the same turn without Memory", async () => {
     let evidence: unknown;
     const s = setup(async (input) => {
       expect(input.userMessage).toBe("What error is on screen?");
@@ -216,7 +216,10 @@ describe("on-demand visual grounding in the original Runtime turn", () => {
       status: "AVAILABLE",
       observations: expect.stringMatching(/^VISIBLE_ERROR/)
     });
-    expect(JSON.stringify(evidence).length).toBeLessThan(4100);
+    expect(evidence).toEqual({
+      status: "AVAILABLE",
+      observations: "VISIBLE_ERROR " + "x".repeat(5000)
+    });
     expect(s.analyzeImage.mock.calls[0]).toEqual([
       expect.objectContaining({
         image: new Uint8Array([1, 2, 3]),
@@ -479,7 +482,7 @@ describe("explicit user image attachment grounding", () => {
     return events;
   }
 
-  it("uses routed Vision once and hands bounded evidence to the same Character turn", async () => {
+  it("uses routed Vision once and hands complete evidence to the same Character turn", async () => {
     let attachedEvidence: unknown;
     const s = setup(async (input) => {
       attachedEvidence = input.visualEvidence;
@@ -487,7 +490,10 @@ describe("explicit user image attachment grounding", () => {
     });
     s.analyzeImage.mockImplementationOnce(async () => {
       expect(s.published.some((event) => event.type === "user.message")).toBe(true);
-      return { text: "VISIBLE_ERROR " + "x".repeat(5000) };
+      return {
+        text: "VISIBLE_ERROR " + "x".repeat(5000),
+        sceneSummary: "VISIBLE_ERROR " + "x".repeat(5000)
+      };
     });
 
     const events = await collectAttached(s.runtime);
@@ -509,7 +515,10 @@ describe("explicit user image attachment grounding", () => {
       status: "AVAILABLE",
       observations: expect.stringMatching(/^VISIBLE_ERROR/)
     });
-    expect(JSON.stringify(attachedEvidence).length).toBeLessThan(4100);
+    expect(attachedEvidence).toEqual({
+      status: "AVAILABLE",
+      observations: "VISIBLE_ERROR " + "x".repeat(5000)
+    });
     expect(events.at(-1)).toMatchObject({
       type: "completed",
       sessionId: "attached",

@@ -149,3 +149,73 @@ state are reported with the final handoff rather than treating pending rows as
 complete. Private forwarding/capture instrumentation remains enabled while that
 live checkpoint is pending; it must be removed and the original model endpoint
 restored after capture is complete.
+
+## Continuation: current scene and perception before optional history
+
+The resumed worktree started at `16d372e` on `feat/plunge-alice-20261007`,
+with four tracked modifications and two new visual-evidence files. All were
+retained. The implementation and tests were extended without reset or checkout.
+
+The failure was downstream of successful Vision: Character's rendered-request
+budget could not shrink optional history below the generic compressor's
+160-character floor, including historical provenance costs. Prefix admission
+could also omit CURRENT_SITUATION when cognition was appended after budgeting.
+Provider aliases `text` and `sceneSummary` unnecessarily inflated the observation.
+
+Character now measures the complete candidate before Harness prefix admission,
+using the canonical current input and actual gate/response protocol costs.
+Identity, persona, relationship, current situation and normalized cognition remain
+protected. Only RECENT_CONVERSATION, MEMORY_EVIDENCE and TEMPORAL_CONTEXT are
+compressed. When the compressor floor cannot fit, a whole historical section
+records the omission explicitly and its unused provenance is removed;
+existing CONFLICTING/UNAVAILABLE epistemic states are preserved. The canonical
+section order and semantic authorities are unchanged. Cognition is projected
+before optional history is budgeted, and actual admission must omit no sections.
+The final response request has an independent size check.
+
+Both attached-image and selected-image/screen Vision paths reuse the same
+normalizer and renderer. Exact provider aliases are deduplicated; distinct
+observations, confidence/uncertainty and source-event semantics remain. Provider
+observations are rendered literally, without another JSON escaping layer or
+silent 4000-character slicing. Vision still requests a concise response; if the
+complete required context itself cannot fit after history is exhausted, the
+turn fails explicitly with required/limit diagnostics. CURRENT_SITUATION no
+longer gets silently sliced at this projection boundary; existing ABI validity
+limits remain enforced.
+
+QQ speaker/reply/mention and attachment-source metadata are part of the protected
+current situation/resource projection. Direct capability observations reach
+Character through normalized COGNITION_RESULT, now reserved in full. Cognition's
+adjacent request/observation protocol is separate from this Character history
+compressor; no prompt architecture or provider routing redesign was made.
+
+Validation for this continuation:
+
+- Three requested targeted files: 58 passed. Regressions inspect both the gate
+  and response body, populated private scenes/history, mandatory cognition,
+  speaker/reply/mention/attachment facts, compressor-floor provenance omission,
+  observations beyond 4000 characters, and explicit required-context overflow.
+- Server/core: 995 passed, 221 skipped. Database skips were separately
+  addressed for the relevant durable acceptance paths below.
+- Real PostgreSQL Plunge, multi-Character and outward transport: 25 passed,
+  zero skipped, each using its own disposable schemas.
+- `pnpm check` and `pnpm build`: passed (`resume-check-final.log`,
+  `resume-build-final.log` in the private audit directory).
+
+A zero-send real-provider replay reused the prior failing QQ image/current
+question and production semantic history. Actual provider-wire captures
+`rendered-chat-023.json` (gate) and `rendered-chat-024.json` (streaming final
+answer request) contain the complete 2696-character observation exactly once,
+together with the original current question and source event. Input accounting
+was 10064 and 8944 characters, respectively, under the 10240 working input limit.
+The old assistant inability claim remained in Recent Conversation; the real
+ChatModel nevertheless answered from the new image observations. Private proof
+and response are in `history-replay-result.json` and `resume-context-proof.json`.
+These files contain private conversation evidence and are not committed.
+
+Alice was restarted and is READY with a new generation. Fixture tests verify
+stale-generation image-resource rejection and publication fencing. Fresh private
+image/question, subsequent group image/true mention, and corresponding native
+QQ ACK remain pending user-supplied events. The replay is not fresh live
+acceptance and made no native QQ send. Capture instrumentation stays enabled for
+that pending checkpoint; restore the original endpoint after capture completes.

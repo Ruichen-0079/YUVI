@@ -479,6 +479,207 @@ describe("semantic current-screen grounding", () => {
     expect(JSON.stringify(result.decision.reply)).toContain("CURRENT_GROUP_ACTOR_REPLY");
   });
 
+  it("fits complete perception with a populated private scene and existing history, without dropping either", async () => {
+    const scene =
+      "CURRENT_PRIVATE_SPEAKER_REPLY_AND_IMAGE_SOURCE\n" +
+      'Observed event: speaker said "earlier words".\n'.repeat(60);
+    const observations = 'VISIBLE_POSTER "visible text"\n'.repeat(145).slice(0, 4000);
+    const visualEvidence = { status: "AVAILABLE" as const, observations };
+    const canonicalContext = assembleCanonicalContext({
+      semanticSections: [
+        { kind: "IDENTITY", state: "KNOWN", summary: "Alice" },
+        { kind: "PERSONA", state: "KNOWN", summary: "AUTHORED_PERSONA" },
+        {
+          kind: "RECENT_CONVERSATION",
+          state: "KNOWN",
+          summary: "Earlier assistant wrongly said it could not see images.\n".repeat(24)
+        },
+        { kind: "MEMORY_EVIDENCE", state: "KNOWN", summary: "Old recalled episode.\n".repeat(40) },
+        { kind: "CURRENT_SITUATION", state: "KNOWN", summary: scene },
+        { kind: "TEMPORAL_CONTEXT", state: "KNOWN", summary: "Earlier timestamp.\n".repeat(27) }
+      ],
+      currentInput: "图片里有什么",
+      multimodalEvidence: JSON.stringify(visualEvidence)
+    });
+    const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
+    const result = await createServerCharacterPort()
+      .generate({
+        prompt,
+        canonicalContext,
+        userMessage: "图片里有什么",
+        visualEvidence,
+        generateChat: calls.generateChat
+      })
+      .catch((error: Error) => {
+        throw new Error(error.message);
+      });
+    expect(calls.generateChat).toHaveBeenCalledOnce();
+    const gate = calls.generateChat.mock.calls[0]![0];
+    expect(gate.messages.reduce((n, m) => n + m.content.length + 64, 0)).toBeLessThanOrEqual(10240);
+    expect(gate.messages.some((m) => m.content.includes(observations))).toBe(true);
+    expect(gate.messages[0]!.content).toContain(JSON.stringify(scene).slice(1, -1));
+    expect(gate.messages[0]!.content).toContain("AUTHORED_PERSONA");
+    expect(JSON.stringify(result.decision.reply)).toContain("VISIBLE_POSTER");
+  });
+
+  it("reserves complete cognition, current addressing and perception before admitting populated history", async () => {
+    const scene =
+      "Current speaker B; reply to A; mention Alice; attachment source image:b.\n" +
+      "Current scene. ".repeat(125);
+    const answer = "DIRECT_TOOL_OBSERVATION_42 " + "supported result. ".repeat(125);
+    const observations = "CURRENT_ATTACHMENT_CONTENT_42 " + "Visible contents. ".repeat(110);
+    const canonicalContext = assembleCanonicalContext({
+      semanticSections: [
+        { kind: "IDENTITY", state: "KNOWN", summary: "Alice" },
+        { kind: "PERSONA", state: "KNOWN", summary: "AUTHORED_PERSONA" },
+        {
+          kind: "RECENT_CONVERSATION",
+          state: "KNOWN",
+          summary: "Assistant wrongly said it could not see images.\n".repeat(70)
+        },
+        {
+          kind: "MEMORY_EVIDENCE",
+          state: "KNOWN",
+          summary: "Older recalled episode.\n".repeat(110)
+        },
+        { kind: "TEMPORAL_CONTEXT", state: "KNOWN", summary: "Older timestamp.\n".repeat(70) },
+        { kind: "CURRENT_SITUATION", state: "KNOWN", summary: scene }
+      ],
+      currentInput: "What does the current attachment show?"
+    });
+    const cognitionRoundTrip = { ...roundTrip(), result: { ...roundTrip().result, answer } };
+    const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
+    const result = await createServerCharacterPort().generateAfterCognition({
+      prompt,
+      canonicalContext,
+      userMessage: "Legacy input must not displace canonical input.",
+      cognitionRoundTrip,
+      visualEvidence: { status: "AVAILABLE", observations },
+      generateChat: calls.generateChat
+    });
+    expect(calls.generateChat).toHaveBeenCalledOnce();
+    expect(result.decision.reply.disposition).toBe("RESPOND");
+    if (result.decision.reply.disposition !== "RESPOND" || !("body" in result.decision.reply))
+      throw Error("Expected response body");
+    for (const request of [calls.generateChat.mock.calls[0]![0], result.decision.reply.body]) {
+      expect(request.messages.reduce((n, m) => n + m.content.length + 64, 0)).toBeLessThanOrEqual(
+        10240
+      );
+      expect(request.messages[1]!.content).toBe(canonicalContext.currentInput);
+      expect(request.messages.some((m) => m.content.includes(observations))).toBe(true);
+      const context = JSON.parse(
+        request.messages[0]!.content.split("Semantic context:\n")[1]!.split("\n")[0]!
+      );
+      expect(
+        context.sections.find((s: { kind: string }) => s.kind === "CURRENT_SITUATION").summary
+      ).toBe(
+        scene +
+          "\nImmediate affect: " +
+          prompt.sections
+            .filter((s) => s.name === "CurrentAffect")
+            .map((s) => s.content)
+            .join("\n")
+      );
+      expect(
+        context.sections.find((s: { kind: string }) => s.kind === "COGNITION_RESULT").result
+      ).toEqual(cognitionRoundTrip.result);
+      expect(request.messages[0]!.content).toContain("AUTHORED_PERSONA");
+      expect(request.messages[0]!.content).toContain("Past assistant text is fallible");
+    }
+  });
+
+  it.each(["KNOWN", "CONFLICTING", "UNAVAILABLE"] as const)(
+    "omits %s optional history and its unused provenance when the compressor floor cannot fit",
+    async (state) => {
+      const scene = "CURRENT_SPEAKER_REPLY_MENTION " + "scene ".repeat(475);
+      const observations = "CURRENT_PERCEPTION " + "visual ".repeat(495);
+      const canonicalContext = assembleCanonicalContext({
+        semanticSections: [
+          { kind: "IDENTITY", state: "KNOWN", summary: "Alice" },
+          { kind: "PERSONA", state: "KNOWN", summary: "Authored persona" },
+          {
+            kind: "MEMORY_EVIDENCE",
+            state,
+            ...(state === "UNAVAILABLE" ? {} : { summary: "Older history." }),
+            provenanceReferences: Array.from({ length: 32 }, (_, i) => String(i) + "x".repeat(195))
+          },
+          { kind: "CURRENT_SITUATION", state: "KNOWN", summary: scene }
+        ],
+        currentInput: "Read this image"
+      });
+      const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
+      const result = await createServerCharacterPort().generate({
+        prompt,
+        canonicalContext,
+        userMessage: "Read this image",
+        visualEvidence: { status: "AVAILABLE", observations },
+        generateChat: calls.generateChat
+      });
+      const gate = calls.generateChat.mock.calls[0]![0];
+      const context = JSON.parse(
+        gate.messages[0]!.content.split("Semantic context:\n")[1]!.split("\n")[0]!
+      );
+      expect(context.sections.find((s: { kind: string }) => s.kind === "MEMORY_EVIDENCE")).toEqual({
+        kind: "MEMORY_EVIDENCE",
+        state: state === "KNOWN" ? "PARTIAL" : state,
+        ...(state === "UNAVAILABLE"
+          ? {}
+          : { summary: "[PARTIAL] Earlier context omitted by input budget." })
+      });
+      expect(
+        context.sections.find((s: { kind: string }) => s.kind === "CURRENT_SITUATION").summary
+      ).toBe(
+        scene +
+          "\nImmediate affect: " +
+          prompt.sections
+            .filter((s) => s.name === "CurrentAffect")
+            .map((s) => s.content)
+            .join("\n")
+      );
+      expect(gate.messages.some((m) => m.content.includes(observations))).toBe(true);
+      expect(gate.messages.reduce((n, m) => n + m.content.length + 64, 0)).toBeLessThanOrEqual(
+        10240
+      );
+      expect(JSON.stringify(result.decision.reply)).toContain("CURRENT_PERCEPTION");
+    }
+  );
+
+  it("keeps a complete observation beyond 4000 characters in the final response request", async () => {
+    const observations = "Visible text and uncertainty.\n".repeat(170) + "FINAL_VISIBLE_DETAIL";
+    const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
+    const result = await createServerCharacterPort().generate({
+      prompt,
+      userMessage: "Read every visible detail",
+      visualEvidence: { status: "AVAILABLE", observations },
+      generateChat: calls.generateChat
+    });
+    expect(observations.length).toBeGreaterThan(4000);
+    if (result.decision.reply.disposition !== "RESPOND" || !("body" in result.decision.reply))
+      throw Error("Expected response body");
+    for (const request of [calls.generateChat.mock.calls[0]![0], result.decision.reply.body]) {
+      expect(request.messages.some((m) => m.content.includes(observations))).toBe(true);
+      expect(request.messages.reduce((n, m) => n + m.content.length + 64, 0)).toBeLessThanOrEqual(
+        10240
+      );
+    }
+  });
+
+  it("rejects only after required perception itself exceeds the budget, without truncating or calling Chat", async () => {
+    const observations = "x".repeat(11000) + "REQUIRED_FINAL_DETAIL";
+    const visualEvidence = Object.freeze({ status: "AVAILABLE" as const, observations });
+    const calls = characterHarness({ responses: [] });
+    await expect(
+      createServerCharacterPort().generate({
+        prompt,
+        userMessage: "Read this",
+        visualEvidence,
+        generateChat: calls.generateChat
+      })
+    ).rejects.toThrow(/required=\d+, limit=10240/);
+    expect(calls.generateChat).not.toHaveBeenCalled();
+    expect(visualEvidence.observations).toBe(observations);
+  });
+
   it("repairs a mixed perception/reasoning proposal before executing exactly one visual cycle", async () => {
     const calls = characterHarness({
       responses: [

@@ -1,3 +1,5 @@
+export { normalizeRuntimeVisualEvidence, renderRuntimeVisualEvidence } from "./visual-evidence.js";
+
 export {
   MemoryContextBuilder,
   type MemoryContext,

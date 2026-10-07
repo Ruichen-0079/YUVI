@@ -162,6 +162,11 @@ import type {
   StreamUserMessageOptions
 } from "./runtime-contracts.js";
 
+import {
+  normalizeRuntimeVisualEvidence as toRuntimeVisualEvidence,
+  renderRuntimeVisualEvidence
+} from "./visual-evidence.js";
+
 export type P8CorrectionPreflightStatus =
   | "READY"
   | "CONFLICT"
@@ -4481,7 +4486,7 @@ export class RuntimeOrchestrator {
       semanticSections: this.semanticContexts.get(prompt),
       promptSections: prompt.sections,
       currentInput: event.payload.content,
-      multimodalEvidence: attachedEvidence ? JSON.stringify(attachedEvidence) : null,
+      multimodalEvidence: attachedEvidence ? renderRuntimeVisualEvidence(attachedEvidence) : null,
       currentSpeakerEvidence: this.currentSpeakerEvidence.get(prompt) ?? null,
       situationEvidence: this.socialContexts.get(event) ?? null
     });
@@ -4584,25 +4589,8 @@ export class RuntimeOrchestrator {
         );
         assertCurrent();
         controller.signal.throwIfAborted();
-        const observations = [
-          evidence.text,
-          evidence.sceneSummary,
-          ...(evidence.objects ?? []).slice(0, 32)
-        ]
-          .filter((value): value is string => typeof value === "string")
-          .map((value) => value.slice(0, 4000))
-          .join("\n")
-          .slice(0, 4000)
-          .trim();
-        if (!observations)
-          return { status: "UNAVAILABLE", observations: "No usable screen evidence was returned." };
-        const confidence =
-          typeof evidence.confidence === "number" && Number.isFinite(evidence.confidence)
-            ? `Observation confidence: ${Math.max(0, Math.min(1, evidence.confidence))}. Preserve this uncertainty.\n`
-            : "";
         return {
-          status: "AVAILABLE",
-          observations: (confidence + observations).slice(0, 4000),
+          ...toRuntimeVisualEvidence(evidence, "No usable visual evidence was returned."),
           ...(source ? { sourceJournalRef: source.sourceJournalRef } : {})
         };
       } catch {
@@ -4705,7 +4693,9 @@ export class RuntimeOrchestrator {
             semanticSections: this.semanticContexts.get(prompt),
             promptSections: prompt.sections,
             currentInput: event.payload.content,
-            multimodalEvidence: turnVisualEvidence ? JSON.stringify(turnVisualEvidence) : null,
+            multimodalEvidence: turnVisualEvidence
+              ? renderRuntimeVisualEvidence(turnVisualEvidence)
+              : null,
             currentSpeakerEvidence: this.currentSpeakerEvidence.get(prompt) ?? null,
             situationEvidence: this.socialContexts.get(event) ?? null
           });
@@ -6963,34 +6953,6 @@ function isValidRuntimeImageAttachment(attachment: RuntimeImageAttachment): bool
   const padding = value.endsWith("==") ? 2 : value.endsWith("=") ? 1 : 0;
   const estimatedBytes = Math.floor((value.length * 3) / 4) - padding;
   return estimatedBytes > 0 && estimatedBytes <= 20 * 1024 * 1024;
-}
-
-function toRuntimeVisualEvidence(
-  output: {
-    text?: string | undefined;
-    sceneSummary?: string | undefined;
-    objects?: string[] | undefined;
-    confidence?: number | undefined;
-  },
-  emptyMessage: string
-): RuntimeVisualEvidence {
-  const observations = [output.text, output.sceneSummary, ...(output.objects ?? []).slice(0, 32)]
-    .filter((value): value is string => typeof value === "string")
-    .map((value) => value.slice(0, 4000))
-    .join("\n")
-    .slice(0, 4000)
-    .trim();
-  if (!observations) {
-    return Object.freeze({ status: "UNAVAILABLE" as const, observations: emptyMessage });
-  }
-  const confidence =
-    typeof output.confidence === "number" && Number.isFinite(output.confidence)
-      ? `Observation confidence: ${Math.max(0, Math.min(1, output.confidence))}. Preserve this uncertainty.\n`
-      : "";
-  return Object.freeze({
-    status: "AVAILABLE" as const,
-    observations: (confidence + observations).slice(0, 4000)
-  });
 }
 
 function createRuntimeCancelledError(provider = "chat", cause?: unknown): ProviderError {
