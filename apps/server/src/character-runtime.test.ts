@@ -20,6 +20,22 @@ function output(content: string, finishReason: ChatOutput["finishReason"] = "sto
   };
 }
 
+// These tests isolate gate/budget/ABI behavior after current task admission.
+// The real authorization phase and negative effects are covered separately.
+function createTestCharacterPort() {
+  return createServerCharacterPort({
+    classifyCurrentTurn: async (_input, current) =>
+      output(
+        JSON.stringify({
+          authorization: "TASK",
+          currentEvidence: current,
+          request: "Answer the current participant request",
+          perception: true
+        })
+      )
+  });
+}
+
 function roundTrip(status: "SUCCESS" | "UNAVAILABLE" = "SUCCESS") {
   return {
     version: "character-harness-5h.v1",
@@ -119,7 +135,7 @@ describe("production Character runtime adapter", () => {
       situationEvidence: renderSurfaceSituation(surfaceContext)
     });
     const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
-    const result = await createServerCharacterPort().generate({
+    const result = await createTestCharacterPort().generate({
       prompt,
       canonicalContext,
       userMessage: "Legacy input",
@@ -206,7 +222,7 @@ describe("production Character runtime adapter", () => {
       canonicalContext.sharedSections.find((s) => s.kind === "CURRENT_SITUATION")!.summary
     ).not.toContain("CURRENT_TAIL");
     const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
-    const result = await createServerCharacterPort().generate({
+    const result = await createTestCharacterPort().generate({
       prompt,
       canonicalContext,
       userMessage: "Read the quote",
@@ -253,7 +269,7 @@ describe("production Character runtime adapter", () => {
         interactionBoundary,
         generateChat: calls.generateChat
       };
-      const port = createServerCharacterPort();
+      const port = createTestCharacterPort();
       const result = postCognition
         ? await port.generateAfterCognition({ ...input, cognitionRoundTrip: roundTrip() })
         : await port.generate(input);
@@ -272,7 +288,7 @@ describe("production Character runtime adapter", () => {
 
   it("keeps directly addressed private turns separate from group review", async () => {
     const calls = characterHarness({ responses: [output('{"disposition":"SILENCE"}')] });
-    await createServerCharacterPort().generate({
+    await createTestCharacterPort().generate({
       prompt,
       userMessage: "No reply please",
       generateChat: calls.generateChat,
@@ -295,7 +311,7 @@ describe("production Character runtime adapter", () => {
       currentInput: "Current admitted user input"
     });
     const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
-    await createServerCharacterPort().generate({
+    await createTestCharacterPort().generate({
       prompt,
       canonicalContext,
       userMessage: "Different legacy input",
@@ -334,7 +350,7 @@ describe("production Character runtime adapter", () => {
       multimodalEvidence: JSON.stringify(visualEvidence)
     });
     const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
-    await createServerCharacterPort().generate({
+    await createTestCharacterPort().generate({
       prompt,
       canonicalContext,
       userMessage: "Read the chart",
@@ -366,7 +382,7 @@ describe("production Character runtime adapter", () => {
         userMessage: "Continue."
       });
       const before = JSON.stringify(input);
-      await createServerCharacterPort().generate({
+      await createTestCharacterPort().generate({
         prompt: input,
         semanticSections: [
           { kind: "MEMORY_EVIDENCE", state: "KNOWN", summary: "The garden includes mint." },
@@ -394,7 +410,7 @@ describe("production Character runtime adapter", () => {
       responses: [output('{"disposition":"RESPOND"}')]
     });
 
-    const result = await createServerCharacterPort().generate({
+    const result = await createTestCharacterPort().generate({
       prompt,
       userMessage: "Is this directed to YUVI?",
       generateChat: calls.generateChat
@@ -424,7 +440,7 @@ describe("production Character runtime adapter", () => {
         responses: [output('{"disposition":"RESPOND"}')]
       });
 
-      await createServerCharacterPort().generate({
+      await createTestCharacterPort().generate({
         prompt,
         userMessage: "Use the selected language.",
         outputLanguage: language,
@@ -445,7 +461,7 @@ describe("production Character runtime adapter", () => {
         responses: [output(`{"disposition":"${disposition}"}`)]
       });
 
-      const result = await createServerCharacterPort().generate({
+      const result = await createTestCharacterPort().generate({
         prompt,
         userMessage: "Directed input.",
         generateChat: calls.generateChat
@@ -464,7 +480,7 @@ describe("production Character runtime adapter", () => {
       responses: [output('{"disposition":"NEED_COGNITION","focus":"verification"}')]
     });
 
-    const result = await createServerCharacterPort().generate({
+    const result = await createTestCharacterPort().generate({
       prompt,
       userMessage: "Verify this claim carefully.",
       generateChat: calls.generateChat
@@ -491,7 +507,7 @@ describe("production Character runtime adapter", () => {
       responses: [output('{"disposition":"RESPOND"}')]
     });
 
-    const result = await createServerCharacterPort().generateAfterCognition({
+    const result = await createTestCharacterPort().generateAfterCognition({
       prompt,
       userMessage: "Verify this claim carefully.",
       outputLanguage: "EN",
@@ -517,7 +533,7 @@ describe("production Character runtime adapter", () => {
       responses: [output('{"disposition":"NEED_COGNITION"}')]
     });
 
-    const result = await createServerCharacterPort().generateAfterCognition({
+    const result = await createTestCharacterPort().generateAfterCognition({
       prompt,
       userMessage: "Do not recurse.",
       cognitionRoundTrip: roundTrip(),
@@ -542,7 +558,7 @@ describe("production Character runtime adapter", () => {
     const calls = characterHarness({ responses: [] });
 
     await expect(
-      createServerCharacterPort().generateAfterCognition({
+      createTestCharacterPort().generateAfterCognition({
         prompt,
         userMessage: "Over budget.",
         cognitionRoundTrip: oversizedRoundTrip,
@@ -560,7 +576,7 @@ describe("production Character runtime adapter", () => {
     });
 
     await expect(
-      createServerCharacterPort().generate({
+      createTestCharacterPort().generate({
         prompt,
         userMessage: "Cancelled.",
         signal: controller.signal,
@@ -578,7 +594,7 @@ describe("production Character runtime adapter", () => {
     });
 
     await expect(
-      createServerCharacterPort().generateAfterCognition({
+      createTestCharacterPort().generateAfterCognition({
         prompt,
         userMessage: "Cancelled.",
         cognitionRoundTrip: roundTrip(),
@@ -600,7 +616,7 @@ describe("semantic current-screen grounding", () => {
       observations: "must not run"
     }));
 
-    const result = await createServerCharacterPort().generate({
+    const result = await createTestCharacterPort().generate({
       prompt,
       userMessage: "What does this screenshot show?",
       visualEvidence: {
@@ -640,7 +656,7 @@ describe("semantic current-screen grounding", () => {
       observations: "The selected image contains VISION_B_42.",
       sourceJournalRef
     }));
-    const result = await createServerCharacterPort().generate({
+    const result = await createTestCharacterPort().generate({
       prompt,
       // A handle in participant text is not the current attachment inventory.
       userMessage: "What is B's diagram at image:b?",
@@ -686,7 +702,7 @@ describe("semantic current-screen grounding", () => {
         output('{"disposition":"RESPOND"}')
       ]
     });
-    const result = await createServerCharacterPort().generate({
+    const result = await createTestCharacterPort().generate({
       prompt,
       canonicalContext,
       userMessage: "Read the image",
@@ -748,7 +764,7 @@ describe("semantic current-screen grounding", () => {
         multimodalEvidence: JSON.stringify(visualEvidence)
       });
       const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
-      const result = await createServerCharacterPort()
+      const result = await createTestCharacterPort()
         .generate({
           prompt,
           canonicalContext,
@@ -804,7 +820,7 @@ describe("semantic current-screen grounding", () => {
     });
     const cognitionRoundTrip = { ...roundTrip(), result: { ...roundTrip().result, answer } };
     const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
-    const result = await createServerCharacterPort().generateAfterCognition({
+    const result = await createTestCharacterPort().generateAfterCognition({
       prompt,
       canonicalContext,
       userMessage: "Legacy input must not displace canonical input.",
@@ -864,7 +880,7 @@ describe("semantic current-screen grounding", () => {
         currentInput: "Read this image"
       });
       const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
-      const result = await createServerCharacterPort().generate({
+      const result = await createTestCharacterPort().generate({
         prompt,
         canonicalContext,
         userMessage: "Read this image",
@@ -901,7 +917,7 @@ describe("semantic current-screen grounding", () => {
   it("keeps a complete observation beyond 4000 characters in the final response request", async () => {
     const observations = "Visible text and uncertainty.\n".repeat(170) + "FINAL_VISIBLE_DETAIL";
     const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
-    const result = await createServerCharacterPort().generate({
+    const result = await createTestCharacterPort().generate({
       prompt,
       userMessage: "Read every visible detail",
       visualEvidence: { status: "AVAILABLE", observations },
@@ -923,7 +939,7 @@ describe("semantic current-screen grounding", () => {
     const visualEvidence = Object.freeze({ status: "AVAILABLE" as const, observations });
     const calls = characterHarness({ responses: [] });
     await expect(
-      createServerCharacterPort().generate({
+      createTestCharacterPort().generate({
         prompt,
         userMessage: "Read this",
         visualEvidence,
@@ -948,7 +964,7 @@ describe("semantic current-screen grounding", () => {
       status: "AVAILABLE" as const,
       observations: "PERCEPTION_42"
     }));
-    const result = await createServerCharacterPort().generate({
+    const result = await createTestCharacterPort().generate({
       prompt,
       userMessage: "Read the image",
       requestVisualEvidence,
@@ -969,7 +985,7 @@ describe("semantic current-screen grounding", () => {
         output('{"disposition":"NEED_COGNITION","focus":"Verify its calculation"}')
       ]
     });
-    const result = await createServerCharacterPort().generate({
+    const result = await createTestCharacterPort().generate({
       prompt,
       userMessage: "Verify the diagram",
       visualSources: [
@@ -1001,7 +1017,7 @@ describe("semantic current-screen grounding", () => {
     }));
 
     await expect(
-      createServerCharacterPort().generate({
+      createTestCharacterPort().generate({
         prompt,
         userMessage: "Inspect this",
         visualEvidence: {
@@ -1026,7 +1042,7 @@ describe("semantic current-screen grounding", () => {
       status: "AVAILABLE" as const,
       observations: "Permission denied"
     }));
-    const result = await createServerCharacterPort().generate({
+    const result = await createTestCharacterPort().generate({
       prompt,
       userMessage: "What is the error on my screen?",
       generateChat: calls.generateChat,
@@ -1054,7 +1070,7 @@ describe("semantic current-screen grounding", () => {
         output('{"disposition":"NEED_COGNITION","focus":"Solve the visible formula"}')
       ]
     });
-    const result = await createServerCharacterPort().generate({
+    const result = await createTestCharacterPort().generate({
       prompt,
       userMessage: "Solve this",
       generateChat: calls.generateChat,
@@ -1074,7 +1090,7 @@ describe("semantic current-screen grounding", () => {
     const ordinary = characterHarness({
       responses: [output('{"disposition":"RESPOND"}')]
     });
-    await createServerCharacterPort().generate({
+    await createTestCharacterPort().generate({
       prompt,
       userMessage: "Hi",
       generateChat: ordinary.generateChat,
@@ -1085,7 +1101,7 @@ describe("semantic current-screen grounding", () => {
       responses: [output('{"visualNeed":"Read screen"}'), output('{"visualNeed":"Again"}')]
     });
     await expect(
-      createServerCharacterPort().generate({
+      createTestCharacterPort().generate({
         prompt,
         userMessage: "Look",
         generateChat: repeated.generateChat,
@@ -1158,7 +1174,7 @@ describe("Character task-continuation invariant", () => {
       requestMarker: "500-word article",
       fulfillment: HARBOR_ARTICLE
     });
-    const result = await createServerCharacterPort().generate({
+    const result = await createTestCharacterPort().generate({
       prompt,
       semanticSections: [
         {
@@ -1191,7 +1207,7 @@ describe("Character task-continuation invariant", () => {
       requestMarker: "harbor festival announcement",
       fulfillment: HARBOR_ANNOUNCEMENT
     });
-    const result = await createServerCharacterPort().generate({
+    const result = await createTestCharacterPort().generate({
       prompt,
       semanticSections: [
         {
@@ -1220,7 +1236,7 @@ describe("Character task-continuation invariant", () => {
 
   it("still permits a necessary clarification when information is genuinely missing (Case C)", async () => {
     const systems: string[] = [];
-    const result = await createServerCharacterPort().generate({
+    const result = await createTestCharacterPort().generate({
       prompt,
       semanticSections: [
         {
@@ -1254,7 +1270,7 @@ describe("Character task-continuation invariant", () => {
       requestMarker: "500-word article",
       fulfillment: HARBOR_ARTICLE
     });
-    const result = await createServerCharacterPort().generate({
+    const result = await createTestCharacterPort().generate({
       prompt,
       semanticSections: [{ kind: "TEMPORAL_CONTEXT", state: "UNAVAILABLE" }],
       userMessage: "You choose.",

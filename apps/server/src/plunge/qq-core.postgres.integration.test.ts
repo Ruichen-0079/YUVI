@@ -160,6 +160,17 @@ describe.skipIf(!databaseUrl)(
             messages: unknown[];
           };
           requests.push(b);
+          const messages = b.messages as Array<{ content: string }>;
+          const authorityPhase =
+            typeof messages[0]?.content === "string" &&
+            messages[0].content.startsWith(
+              "Decide ONLY what the current participant turn authorizes."
+            );
+          const current =
+            typeof messages[1]?.content === "string"
+              ? (messages[1].content.split("Current participant message:\n")[1] ??
+                messages[1].content)
+              : "";
           if (b.stream)
             return new Response(
               `data: ${JSON.stringify({ model: b.model, choices: [{ delta: { content: "Alice fixture reply" }, finish_reason: "stop" }] })}\n\ndata: [DONE]\n\n`,
@@ -176,15 +187,32 @@ describe.skipIf(!databaseUrl)(
                     content:
                       b.model === "fixture-vision"
                         ? "A red triangle marked VISUAL_FIXTURE_42."
-                        : mode === "SELECT_IMAGE" &&
-                            !JSON.stringify(b.messages).includes("VISUAL_FIXTURE_42")
-                          ? JSON.stringify({
-                              visualNeed: "Describe the explicitly requested first image",
-                              sourceReference: selectedReference
-                            })
-                          : JSON.stringify({
-                              disposition: mode === "SELECT_IMAGE" ? "RESPOND" : mode
-                            })
+                        : authorityPhase
+                          ? JSON.stringify(
+                              mode === "SILENCE"
+                                ? { authorization: "NONE" }
+                                : {
+                                    authorization: "TASK",
+                                    currentEvidence: current,
+                                    request: "Answer the current participant request",
+                                    perception: true
+                                  }
+                            )
+                          : (mode === "SELECT_IMAGE" ||
+                                current.startsWith("Describe this image")) &&
+                              !JSON.stringify(b.messages).includes("VISUAL_FIXTURE_42")
+                            ? JSON.stringify({
+                                visualNeed: "Describe the explicitly requested first image",
+                                sourceReference:
+                                  mode === "SELECT_IMAGE"
+                                    ? selectedReference
+                                    : (JSON.stringify(b.messages).match(
+                                        /image:jev1_[A-Za-z0-9_-]+/
+                                      )?.[0] ?? "")
+                              })
+                            : JSON.stringify({
+                                disposition: mode === "SELECT_IMAGE" ? "RESPOND" : mode
+                              })
                   }
                 }
               ],
@@ -268,6 +296,43 @@ describe.skipIf(!databaseUrl)(
         limit: 10
       });
       expect(messages).toHaveLength(0);
+    });
+    it("native admitted image observation with no current authorization performs zero image reads, Vision, body generation or publication", async () => {
+      mode = "SILENCE";
+      const before = requests.length;
+      const readImage = vi.fn(async () => ({
+        imageBase64: "AQID",
+        mimeType: "image/png" as const
+      }));
+      const send = vi.fn(async () => {});
+      try {
+        const received = await port().receive(
+          {
+            ...base,
+            hasImage: true,
+            content: "这张图里有什么？先不要处理，也不用回复。",
+            admission: "ATTENTION"
+          },
+          { ...connection(send), readImage }
+        );
+        expect(received.outcome).toBe("SILENCE");
+        expect(received.media?.availability).toBe("RETRIEVABLE");
+        expect(readImage).not.toHaveBeenCalled();
+        expect(send).not.toHaveBeenCalled();
+        const calls = requests.slice(before) as Array<{
+          model: string;
+          stream?: boolean;
+          messages: Array<{ content: string }>;
+        }>;
+        expect(calls).toHaveLength(1);
+        expect(calls[0]!.model).toBe("fixture-model");
+        expect(calls[0]!.stream).toBe(false);
+        expect(calls[0]!.messages[0]!.content).toContain(
+          "Decide ONLY what the current participant turn authorizes."
+        );
+      } finally {
+        mode = "RESPOND";
+      }
     });
     it("QQ image bytes pass through the existing Core Vision provider and enter Character evidence", async () => {
       mode = "RESPOND";
@@ -427,7 +492,19 @@ describe.skipIf(!databaseUrl)(
       }>;
       expect(calls.some((call) => !call.stream)).toBe(true);
       const final = calls.find((call) => call.stream)!;
-      for (const call of calls)
+      expect(
+        calls.some((call) =>
+          call.messages[0]?.content.startsWith(
+            "Decide ONLY what the current participant turn authorizes."
+          )
+        )
+      ).toBe(true);
+      for (const call of calls.filter(
+        (call) =>
+          !call.messages[0]?.content.startsWith(
+            "Decide ONLY what the current participant turn authorizes."
+          )
+      ))
         expect(call.messages[0]?.content).toMatch(/^This input is a group event;/);
       expect(final.messages[1]?.content).toMatch(
         /Current participant message:\nAlice QQ_ATTENTION_CURRENT$/

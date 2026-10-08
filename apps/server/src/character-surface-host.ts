@@ -170,6 +170,8 @@ export class HostCharacterSurfaces {
     if (!current()) return result("STALE");
     if (!input.admission) return result("OBSERVED");
     const visualSources: RuntimeVisualSource[] = [];
+    const currentImage = this.images.get(imageKey(sourceJournalRef));
+    if (currentImage?.isCurrent()) visualSources.push(currentImage.source);
     const observations = input.observations.map((observation) => {
       if (!observation.media) return observation;
       const resource = this.images.get(imageKey(observation.sourceJournalRef));
@@ -222,9 +224,11 @@ export class HostCharacterSurfaces {
       current
     );
     try {
-      const imageAttachment = input.hasImage ? await connection.readImage?.(signal) : undefined;
+      // Admission allows Character review, not perception. Current images use
+      // the same generation-bound lazy source as earlier image observations.
+      // Do not invoke Runtime's eager attachment Vision path before authorization.
       if (input.hasImage)
-        socialContext.media = { image: imageAttachment ? "ATTACHED" : "UNAVAILABLE" };
+        socialContext.media = { image: currentImage ? "ATTACHED" : "UNAVAILABLE" };
       if (!current()) return result("STALE");
       const response = await this.context.runtime.handleUserMessage(event, {
         signal,
@@ -234,8 +238,7 @@ export class HostCharacterSurfaces {
         speechPlan: "NONE",
         controlAuthority: "UNTRUSTED",
         readMemory: person !== null,
-        writeMemory: person !== null,
-        ...(imageAttachment ? { imageAttachment } : {})
+        writeMemory: person !== null
       });
       if (!current()) return result("STALE");
       if (response === null) return result("SILENCE");

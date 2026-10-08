@@ -261,29 +261,50 @@ describe("generic Character surface host", () => {
     expect(JSON.stringify(f.admit.mock.calls[1])).not.toContain("EXTERNAL_SERVICE_ACCEPTED");
   });
 
-  it("passes image bytes through the existing Runtime visual API and seals ingress on close", async () => {
+  it("defers current image bytes through the Runtime source API until selected and seals ingress on close", async () => {
     const f = fixture();
     const imageAttachment = { imageBase64: "AA==", mimeType: "image/png" as const };
-    await f.port.receive(
+    const read = vi.fn(async () => imageAttachment);
+    const image = await f.port.receive(
       { ...input, hasImage: true },
-      { ...f.connection, readImage: async () => imageAttachment }
+      { ...f.connection, readImage: read }
     );
-    expect(f.handleUserMessage.mock.calls[0]?.[1]).toMatchObject({
-      imageAttachment,
-      socialContext: { media: { image: "ATTACHED" } }
-    });
+    const options = f.handleUserMessage.mock.calls[0]![1] as {
+      visualSources: Array<{ reference: string; read(signal: AbortSignal): Promise<unknown> }>;
+    };
+    expect(options).toMatchObject({ socialContext: { media: { image: "ATTACHED" } } });
+    expect(options).not.toHaveProperty("imageAttachment");
+    expect(read).not.toHaveBeenCalled();
+    expect(options.visualSources[0]!.reference).toBe(image.media!.reference);
+    expect(await options.visualSources[0]!.read(new AbortController().signal)).toEqual(
+      imageAttachment
+    );
+    expect(read).toHaveBeenCalledOnce();
     await f.host.close();
     await expect(f.port.receive(input, f.connection)).rejects.toThrow("sealed");
   });
   it("records unavailable image evidence without pretending the Character received image bytes", async () => {
     const f = fixture();
-    await f.port.receive(
-      { ...input, hasImage: true },
-      { ...f.connection, readImage: async () => undefined }
-    );
+    await f.port.receive({ ...input, hasImage: true }, f.connection);
     expect(f.handleUserMessage.mock.calls[0]?.[1]).toMatchObject({
       socialContext: { media: { image: "UNAVAILABLE" } }
     });
     expect(f.handleUserMessage.mock.calls[0]?.[1]).not.toHaveProperty("imageAttachment");
+  });
+  it("does not read a current admitted image when Character chooses SILENCE", async () => {
+    const f = fixture(),
+      read = vi.fn(async () => ({ imageBase64: "AQID", mimeType: "image/png" as const }));
+    f.handleUserMessage.mockResolvedValueOnce(null as never);
+    expect(
+      (
+        await f.port.receive(
+          { ...input, hasImage: true, admission: "ATTENTION" },
+          { ...f.connection, readImage: read }
+        )
+      ).outcome
+    ).toBe("SILENCE");
+    expect(read).not.toHaveBeenCalled();
+    expect(f.write).not.toHaveBeenCalled();
+    expect(f.handleUserMessage.mock.calls[0]![1]).not.toHaveProperty("imageAttachment");
   });
 });
