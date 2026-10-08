@@ -13,7 +13,26 @@ describe("Plunge management access boundary", () => {
       app.get(url, async () => ({ ok: true }));
     app.post("/memory", async () => ({ bypass: true }));
     app.post("/memory/search", async () => ({ ok: true }));
+    app.post("/plunge/api/apps/qq/open", async () => ({ opened: true }));
     const headers = { host: "127.0.0.1:6135", authorization: `Bearer ${token}` };
+    expect(
+      (
+        await app.inject({
+          method: "POST",
+          url: "/plunge/api/apps/qq/open",
+          headers: { host: headers.host }
+        })
+      ).statusCode
+    ).toBe(401);
+    expect(
+      (
+        await app.inject({
+          method: "POST",
+          url: "/plunge/api/apps/qq/open",
+          headers: { ...headers, origin: "https://attacker.example" }
+        })
+      ).statusCode
+    ).toBe(403);
     expect(
       (await app.inject({ url: "/memory/recent", headers: { host: headers.host } })).statusCode
     ).toBe(401);

@@ -18,8 +18,14 @@ import type { ServerConfig } from "../config.js";
 import { registerProductRoutes } from "../routes/product.js";
 import { registerP8CorrectionRoutes } from "../routes/local-services.js";
 import { redactValue } from "../services/dashboard.js";
+import type { PlungeDesktopApps } from "./desktop-apps.js";
 
-export type PlungeWebUI = { directory: string; management: PlungeManagement; token: string };
+export type PlungeWebUI = {
+  directory: string;
+  management: PlungeManagement;
+  token: string;
+  desktop?: PlungeDesktopApps;
+};
 /** Applies to the independent Alice server only. Protects legacy read routes too. */
 export function protectPlunge(app: FastifyInstance, token: string) {
   if (token.length < 32)
@@ -76,6 +82,35 @@ export async function registerPlungeWebUI(
     applyAtBoundary: options.management.atBoundary
   });
   await registerP8CorrectionRoutes(app, context, config);
+  app.get(
+    "/plunge/api/apps",
+    async () =>
+      options.desktop?.snapshot() ?? {
+        qq: { configured: false },
+        snowluma: { configured: false, url: null }
+      }
+  );
+  app.post("/plunge/api/apps/:app/open", async (req, reply) => {
+    const appName = (req.params as { app: string }).app;
+    if (appName !== "qq" && appName !== "snowluma")
+      return reply.code(404).send({ error: "UNKNOWN_APPLICATION" });
+    if (!options.desktop) return reply.code(409).send({ error: "DESKTOP_LAUNCHER_REQUIRED" });
+    try {
+      return await options.desktop.open(appName);
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "APPLICATION_OPEN_FAILED";
+      const messages: Record<string, string> = {
+        QQ_PATH_REQUIRED: "没有可用的 QQ 启动路径。请用启动脚本的 --qq 参数指定。",
+        SNOWLUMA_DIRECTORY_REQUIRED: "没有可用的 SnowLuma 目录。请用 --snowluma 参数指定。",
+        SNOWLUMA_RUNNING_UI_UNAVAILABLE: "SnowLuma 已在运行，但控制台暂不可访问；未启动重复进程。",
+        SNOWLUMA_START_FAILED_CHECK_LOG: "SnowLuma 启动失败，请检查 state/snowluma.log。",
+        SNOWLUMA_STARTING_CHECK_LOG:
+          "SnowLuma 已启动，控制台尚未就绪；请稍后刷新或检查 state/snowluma.log。",
+        APPLICATION_START_FAILED_CHECK_LOG: "本机应用启动失败，请检查 state 中对应应用日志。"
+      };
+      return reply.code(409).send({ error: code, message: messages[code] ?? "无法打开本机应用。" });
+    }
+  });
   app.get("/plunge/api/status", async () => ({
     character: context.runtime.characterBinding,
     providers: redactValue(context.providers.getStatus()),

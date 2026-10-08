@@ -675,12 +675,33 @@ async function prompts() {
 }
 async function diagnostics() {
   const s = await api("/plunge/api/status"),
+    apps = await api("/plunge/api/apps"),
     root = el("div"),
     p = panel(
       "QQ / SnowLuma",
       "NATIVE_ACK 表示外部服务接受；UNKNOWN 不代表发送失败，也不会自动重发。SILENCE 保持零发送。"
     );
   p.append(
+    button("打开 QQ", async () => {
+      await api("/plunge/api/apps/qq/open", "POST", {});
+      feedback("已请求打开 QQ；客户端已运行时将由 QQ 唤起现有窗口。");
+    }),
+    button("打开 SnowLuma", async () => {
+      const popup = window.open("about:blank", "_blank");
+      if (popup) popup.opener = null;
+      try {
+        const result = await api("/plunge/api/apps/snowluma/open", "POST", {});
+        if (popup) popup.location.href = result.url;
+        else feedback("SnowLuma 已就绪，请刷新后点击控制台链接。");
+        if (popup)
+          feedback(
+            result.started ? "SnowLuma 已启动并打开控制台。" : "已打开现有 SnowLuma 控制台。"
+          );
+      } catch (error) {
+        popup?.close();
+        throw error;
+      }
+    }),
     button("重新连接 QQ", async () => {
       await api("/plunge/api/reconnect", "POST", {});
       feedback("QQ 正在重连；不会重发历史消息或 UNKNOWN 发送。");
@@ -696,6 +717,19 @@ async function diagnostics() {
       ])
     )
   );
+  p.append(
+    el(
+      "p",
+      `QQ 启动路径：${apps.qq.configured ? "已配置" : "未找到；启动脚本可用 --qq 指定"} · SnowLuma：${apps.snowluma.configured ? "已配置" : "未找到；可用 --snowluma 指定"}`
+    )
+  );
+  if (apps.snowluma.url) {
+    const link = el("a", "打开现有 SnowLuma 控制台");
+    link.href = apps.snowluma.url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    p.append(link);
+  }
   root.append(p);
   const e = panel(
     "Runtime 事件 · 最近消息 / Vision / 错误",

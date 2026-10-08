@@ -3,6 +3,8 @@ import { loadServerConfig } from "./config.js";
 import { applyRuntimeEnv, getLegacyServerLocalEnvWarning, readRuntimeEnvFiles } from "./env.js";
 import { buildServer } from "./server.js";
 import { composePlunge } from "./plunge/qq-composition.js";
+import { PlungeDesktopApps } from "./plunge/desktop-apps.js";
+import { dirname, join } from "node:path";
 
 const composition = readCharacterComposition(
   process.env["YUVI_CHARACTER_CONFIG_PATH"],
@@ -50,6 +52,12 @@ const app = await buildServer(config, {
         plungeWebUI: {
           directory: actorEnv["YUVI_PLUNGE_WEBUI_DIR"]!,
           management: surfacePlugins.management,
+          desktop: new PlungeDesktopApps({
+            qqPath: process.env["YUVI_PLUNGE_QQ_PATH"],
+            snowlumaDirectory: process.env["YUVI_PLUNGE_SNOWLUMA_DIR"],
+            stateDirectory: join(dirname(actorEnv["YUVI_PLUNGE_WEBUI_DIR"]!), "state"),
+            isConnected: () => surfacePlugins.management.snapshot().connection?.ready ?? false
+          }),
           token: actorEnv["DASHBOARD_DEV_TOKEN"] ?? ""
         }
       }

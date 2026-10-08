@@ -11,6 +11,17 @@ cd Plunge-WebUI-linux-x64
 ./start.sh --character /absolute/path/alice.json --plunge /absolute/path/plunge.json --port 6135
 ```
 
+需要自动打开浏览器时，使用同目录的 `./start-webui.sh`，首次启动参数与 `start.sh` 相同。已经启动时再次运行 `./start-webui.sh` 会打开现有 WebUI，不启动第二个 Alice。
+
+“插件与诊断”页面提供“打开 QQ”和“打开 SnowLuma”。启动器从既有 OneBot 配置定位 SnowLuma；QQ 可识别唯一的系统安装或 SnowLuma 同级/桌面的 QQ AppImage。有多个 QQ 安装时需明确选择。也可以首次启动时指定并保存：
+
+```sh
+./start-webui.sh --character /absolute/path/alice.json --plunge /absolute/path/plunge.json \
+  --qq /absolute/path/QQ.AppImage --snowluma /absolute/path/SnowLuma
+```
+
+QQ 使用客户端的原生单实例唤起。SnowLuma 已运行时直接打开实际控制台端口（支持默认端口被占用后的相邻端口）；未运行时使用 ZIP 自带 Node 启动该目录的 `index.mjs`。SnowLuma 保持自己的登录认证，控制台 URL 不附带密码/令牌。Alice 已连接但控制台不可访问时不启动重复实例。应用不随 Alice 关闭而退出；应用私有日志为 `state/qq.log`、`state/snowluma.log`。只调用启动器固定的路径，管理 API 不接受任意命令，也不把 Alice 管理令牌或 Node 调试 preload 传给应用。
+
 首次切换应先正常关闭旧 Alice 进程，保留 SnowLuma 与其他 Character。不要同时运行同一个 QQ adapter 的两个实例。已有 Character/database ownership 校验保持启用。启动器记住部署路径，此后直接 `./start.sh`；Ctrl+C 正常关闭。只重启 Alice，使用同一 ZIP 启动命令即可应用待重启配置。
 
 打开 `http://127.0.0.1:6135/plunge`，输入 `state/admin-token` 文件中的令牌。令牌和日志权限 0600；令牌只驻留页面内存，刷新后重新解锁。所有 Alice API（包括历史 legacy 读取入口）要求本机、Bearer 管理令牌及同源请求，校验 Host 防止 DNS rebinding。监听强制 127.0.0.1，CSP 禁止远程资源和嵌入。不要共享令牌。

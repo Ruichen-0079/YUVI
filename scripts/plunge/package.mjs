@@ -65,6 +65,8 @@ await writeFile(
   '#!/bin/sh\nset -eu\nPLUNGE_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nexec "$PLUNGE_ROOT/runtime/node" "$PLUNGE_ROOT/launch.mjs" "$@"\n'
 );
 await chmod(join(stage, "start.sh"), 0o755);
+await cp(join(repo, "scripts/plunge/start-webui.sh"), join(stage, "start-webui.sh"));
+await chmod(join(stage, "start-webui.sh"), 0o755);
 await cp(join(repo, "docs/plunge-webui.md"), join(stage, "README.md"));
 await writeFile(
   join(stage, "THIRD-PARTY-NOTICES.txt"),
