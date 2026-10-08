@@ -1,3 +1,4 @@
+import { DEFAULT_PARTICIPATION, type Participation } from "./participation.js";
 import type { RuntimeSocialContext } from "@companion/protocol";
 import type {
   CharacterSurfacePort,
@@ -24,6 +25,7 @@ type Channel = {
   continuation?: { sender: string; until: number } | undefined;
   lastSender?: string | undefined;
   touched: number;
+  lastOpportunity?: number;
 };
 /** Bounded transport context, never a second Memory/Relationship or cognition loop. */
 export class QQSocialAdapter {
@@ -34,14 +36,15 @@ export class QQSocialAdapter {
     private readonly now: () => number = Date.now,
     private readonly options: {
       attention?: QQAttentionPort;
+      participation?: () => Participation;
       aliases?: readonly string[];
       trace?: (event: QQAttentionTrace) => void;
     } = {}
   ) {}
   async receive(packet: QQPacket, connection: SurfaceConnection): Promise<SurfaceResult> {
     const now = this.now();
+    const policy = this.options.participation?.() ?? DEFAULT_PARTICIPATION;
     for (const [key, c] of this.channels) if (c.touched < now - 120_000) this.channels.delete(key);
-    for (const [key, t] of this.duplicates) if (t < now - 60_000) this.duplicates.delete(key);
     let c = this.channels.get(packet.channel);
     if (!c) {
       if (this.channels.size >= 64) this.channels.delete(this.channels.keys().next().value!);
@@ -64,9 +67,16 @@ export class QQSocialAdapter {
                   c.continuation.until > now &&
                   c.lastSender === packet.sender
                 ? "CONTINUATION"
-                : this.options.aliases?.some((alias) => containsAlias(packet.content, alias))
+                : policy.alias &&
+                    this.options.aliases?.some((alias) => containsAlias(packet.content, alias))
                   ? "ATTENTION"
                   : undefined;
+    // Reserve reliable native fingerprints before any asynchronous gate/send.
+    // Keep a bounded replay guard across reconnect; UNKNOWN must never earn another send.
+    if (packet.duplicateKey && !duplicate) {
+      this.duplicates.set(packet.duplicateKey, now);
+      if (this.duplicates.size > 256) this.duplicates.delete(this.duplicates.keys().next().value!);
+    }
     const reply = packet.replyTo
       ? {
           reference: packet.replyTo,
@@ -79,7 +89,7 @@ export class QQSocialAdapter {
           ...(linked ? { author: linked.speaker, text: linked.text } : {})
         }
       : undefined;
-    if (this.options.attention) {
+    if (this.options.attention && policy.ambientAttention) {
       const trace = {
         generation: connection.generation,
         channel: packet.channel,
@@ -128,6 +138,33 @@ export class QQSocialAdapter {
         });
       }
     }
+    const disabled =
+      admission === "PRIVATE"
+        ? !policy.private
+        : admission === "MENTION"
+          ? !policy.mention
+          : admission === "REPLY"
+            ? !policy.reply
+            : admission === "CONTINUATION"
+              ? policy.continuationMs === 0
+              : admission === "ATTENTION"
+                ? !(policy.alias || (this.options.attention && policy.ambientAttention))
+                : false;
+    const cooldown =
+      packet.target.kind === "PRIVATE" ? policy.privateCooldownMs : policy.groupCooldownMs;
+    if (
+      admission &&
+      (disabled || (c.lastOpportunity !== undefined && now - c.lastOpportunity < cooldown))
+    ) {
+      this.options.trace?.({
+        kind: "ATTENTION_BYPASS",
+        generation: connection.generation,
+        channel: packet.channel,
+        reason: disabled ? "TRIGGER_DISABLED" : "OPPORTUNITY_COOLDOWN"
+      });
+      admission = undefined;
+    }
+    if (admission) c.lastOpportunity = now;
     const result = await this.port.receive(
       {
         channelRef: packet.channel,
@@ -148,10 +185,6 @@ export class QQSocialAdapter {
       connection
     );
     if (result.outcome === "STALE" || !connection.isCurrent()) return result;
-    if (packet.duplicateKey) {
-      this.duplicates.set(packet.duplicateKey, now);
-      if (this.duplicates.size > 256) this.duplicates.delete(this.duplicates.keys().next().value!);
-    }
     c.observations.push({
       speaker: result.speaker,
       text: packet.content,
@@ -175,7 +208,7 @@ export class QQSocialAdapter {
     if (packet.direction !== "SELF" && !duplicate) {
       c.lastSender = packet.sender;
       if (result.outcome === "RESPOND")
-        c.continuation = { sender: packet.sender, until: now + 60_000 };
+        c.continuation = { sender: packet.sender, until: now + policy.continuationMs };
       else c.continuation = undefined;
     }
     return result;
@@ -205,7 +238,7 @@ export class QQSocialAdapter {
   resetGeneration() {
     // Reconnection grants no replay/continuation/link guarantee.
     this.channels.clear();
-    this.duplicates.clear();
+    // Replay fingerprints stay bounded and survive generation changes.
   }
 }
 

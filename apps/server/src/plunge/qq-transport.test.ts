@@ -17,7 +17,11 @@ afterEach(async () => {
     await new Promise<void>((r) => s.close(() => r()));
   }
 });
-async function fixture(mode: "RESPOND" | "SILENCE" = "RESPOND", loseAck = false) {
+async function fixture(
+  mode: "RESPOND" | "SILENCE" = "RESPOND",
+  loseAck = false,
+  initiallyOffline = false
+) {
   const server = new WebSocketServer({ port: 0 });
   servers.push(server);
   await new Promise<void>((r) => server.once("listening", r));
@@ -45,7 +49,7 @@ async function fixture(mode: "RESPOND" | "SILENCE" = "RESPOND", loseAck = false)
           : e.action === "get_login_info"
             ? { user_id: 42 }
             : e.action === "get_status"
-              ? { online: true, good: true }
+              ? { online: !(initiallyOffline && sockets.length === 1), good: true }
               : { message_id: -102 };
       s.send(JSON.stringify({ status: "ok", retcode: 0, echo: e.echo, data }));
     });
@@ -183,4 +187,40 @@ describe("SnowLuma transport contract over actual fixture sockets", () => {
     expect(f.sends).toHaveLength(1);
     expect(f.transport.snapshot().pending).toBe(0);
   });
+});
+
+it("recovers an unavailable initial connection without disabling the plugin or sending any action", async () => {
+  const f = await fixture("SILENCE", false, true);
+  expect(f.transport.snapshot().ready).toBe(false);
+  await vi.waitFor(() => expect(f.transport.snapshot().ready).toBe(true), { timeout: 2500 });
+  expect(f.sends).toHaveLength(0);
+  expect(f.transport.snapshot().reconnectAttempts).toBe(0);
+});
+it("never sends again when a completed or UNKNOWN native input is replayed after reconnect", async () => {
+  const f = await fixture("RESPOND", true),
+    input = wire({ message_type: "private" });
+  f.send(input);
+  await vi.waitFor(() => expect(f.sends).toHaveLength(1));
+  await vi.waitFor(() => expect(f.transport.snapshot().ready).toBe(true), { timeout: 2500 });
+  await vi.waitFor(() => expect(f.socket().readyState).toBe(1), { timeout: 2500 });
+  f.send(input);
+  await vi.waitFor(() => expect(f.inputs).toHaveLength(2), { timeout: 2500 });
+  expect(f.inputs[1]?.admission).toBeUndefined();
+  expect(f.sends).toHaveLength(1);
+});
+it("applies configuration only between received turns", async () => {
+  const f = await fixture();
+  let release!: () => void;
+  f.hold(new Promise<void>((resolve) => (release = resolve)));
+  f.send(wire({ message_type: "private" }));
+  await vi.waitFor(() => expect(f.receive).toHaveBeenCalledOnce());
+  let applied = false;
+  const reconfigure = f.transport.atBoundary(async () => {
+    applied = true;
+  });
+  expect(applied).toBe(false);
+  release();
+  await reconfigure;
+  expect(f.sends).toHaveLength(1);
+  expect(applied).toBe(true);
 });

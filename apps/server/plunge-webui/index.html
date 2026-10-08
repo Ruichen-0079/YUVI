@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Plunge · Alice</title>
+    <link rel="stylesheet" href="/plunge/style.css" />
+  </head>
+  <body>
+    <aside>
+      <div class="brand">P<span>PLUNGE</span></div>
+      <div class="character">ALICE<span>轻量管理界面</span></div>
+      <nav>
+        <button data-page="overview">运行概况</button><button data-page="models">模型与路由</button
+        ><button data-page="memory">长期记忆</button
+        ><button data-page="participation">QQ 参与策略</button
+        ><button data-page="prompts">Prompt Inspector</button
+        ><button data-page="diagnostics">插件与诊断</button>
+      </nav>
+      <div class="aside-note">独立 Character<br />本机管理 · 受治理写入</div>
+      <button id="logout">锁定界面</button>
+    </aside>
+    <main>
+      <header>
+        <div>
+          <div class="eyebrow">PLUNGE / MANAGEMENT</div>
+          <h1 id="title">运行概况</h1>
+        </div>
+        <div class="actions">
+          <span id="connection" class="pill">未解锁</span><button id="refresh">刷新</button>
+        </div>
+      </header>
+      <div id="feedback" role="status" aria-live="polite"></div>
+      <section id="login" class="panel">
+        <h2>解锁 Alice 管理界面</h2>
+        <p>
+          输入启动目录中
+          <code>state/admin-token</code> 的管理令牌。令牌仅保存在当前页面内存，刷新后重新解锁。
+        </p>
+        <form id="unlock">
+          <label>管理令牌<input id="token" type="password" required autocomplete="off" /></label
+          ><button type="submit" class="primary">解锁</button>
+        </form>
+      </section>
+      <div id="content" hidden></div>
+    </main>
+    <script type="module" src="/plunge/app.js"></script>
+  </body>
+</html>

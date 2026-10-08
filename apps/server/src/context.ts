@@ -1,3 +1,4 @@
+import { PlungeInspector } from "./plunge/inspector.js";
 import {
   preserveCharacterEnvironment,
   type CharacterComposition
@@ -167,6 +168,7 @@ import { executeProductionCognition } from "./cognition-production.js";
 import type { ServerPluginRuntimeCapabilitySurface } from "./plugin-lifecycle.js";
 
 export type AppContext = {
+  plungeInspector?: PlungeInspector | undefined;
   surfaceReceiptAdmission: import("./surface-receipt-admission.js").SurfaceReceiptAdmission;
   effectIntents: EffectIntentAdmissionPort;
   outwardEffects: HostOutwardEffects;
@@ -182,6 +184,7 @@ export type AppContext = {
   eventBus: InMemoryEventBus;
   dashboard: DashboardStateService;
   memoryRepository: MemoryRepository;
+  dreamJobStore: DreamJobStore;
   conversationRepository: ConversationRepository;
   finalizedIngestionRepository: FinalizedIngestionRepository;
   conversationalReceiptAdmission: ConversationalReceiptAdmission;
@@ -234,6 +237,8 @@ export async function createAppContext(
     throw new Error("EVENT_BUS=nats is reserved for future NATS support and is not implemented.");
   }
 
+  const plungeInspector =
+    composition?.binding.definition.id === "alice" ? new PlungeInspector() : undefined;
   const bootstrapEnv = composition?.env ?? process.env;
   const bootProductSettings = readProductSettings(bootstrapEnv);
   const productEnv = productEnvironment(
@@ -501,6 +506,7 @@ export async function createAppContext(
     runtimeEnv: Record<string, string | undefined> = bootEnv,
     capturedProduct: ProductSettings | null = bootProductSettings
   ): RuntimeOrchestrator {
+    plungeInspector?.observe(providers);
     const provider = memory.getMemoryProvider?.();
     const outputLanguage = parseRuntimeConfig(runtimeEnv).outputLanguage;
     // Existing test doubles and explicit offline/mock runs intentionally
@@ -805,7 +811,9 @@ export async function createAppContext(
     runtime,
     embodiedPresentationBridge,
     activeMemoryRepository,
+    dreamJobStore,
     activeRuntimeEnv,
+    plungeInspector,
     subscribeProactiveStream(listener) {
       proactiveListeners.add(listener);
       return () => {

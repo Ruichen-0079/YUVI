@@ -42,8 +42,15 @@ const ProductConfigurationRequestSchema = z
 export async function registerProductRoutes(
   app: FastifyInstance,
   context: AppContext,
-  config: ServerConfig
+  config: ServerConfig,
+  options: {
+    env?: Record<string, string | undefined>;
+    configurationOnly?: boolean;
+    applyAtBoundary?: <T>(operation: () => Promise<T>) => Promise<T>;
+  } = {}
 ) {
+  const env = options.env ?? process.env;
+  const readSettings = () => readProductSettings(env);
   let queue = Promise.resolve();
   const locked = <T>(fn: () => Promise<T>): Promise<T> => {
     const next = queue.then(fn);
@@ -54,8 +61,15 @@ export async function registerProductRoutes(
     return next;
   };
   let applyFailure = false;
-  const desired = () =>
-    readProductSettings() ?? importLegacyConfiguration(context.activeRuntimeEnv);
+  const desired = () => {
+    const saved = readSettings();
+    if (saved) return saved;
+    const imported = importLegacyConfiguration(context.activeRuntimeEnv);
+    const active = context.activeRuntimeEnv["YUVI_PRODUCT_CONFIGURATION"];
+    if (options.configurationOnly && active)
+      imported.configuration = parseProductConfiguration(JSON.parse(active));
+    return imported;
+  };
   function snapshot() {
     const saved = desired();
     const {
@@ -105,7 +119,9 @@ export async function registerProductRoutes(
       })
     );
     return {
-      ...visibleSaved,
+      ...(options.configurationOnly
+        ? { revision: saved.revision, proactive: saved.proactive }
+        : visibleSaved),
       configuration: {
         ...saved.configuration,
         providers: saved.configuration.providers.map(({ apiKey, ...p }) => ({
@@ -134,18 +150,21 @@ export async function registerProductRoutes(
       return snapshot();
     try {
       const env = productEnvironment(context.activeRuntimeEnv, committed);
-      await context.reloadRuntimeConfig(env, committed);
+      if (options.applyAtBoundary)
+        await options.applyAtBoundary(() => context.reloadRuntimeConfig(env, committed));
+      else await context.reloadRuntimeConfig(env, committed);
       await applyPackagedSpeechRoute(context);
-      for (const key of [
-        "YUVI_PRODUCT_CONFIGURATION",
-        "MEMORY_SUBJECT_USER_ID",
-        "MEMORY_PERSONA_ID",
-        "PROACTIVE_SCORE_THRESHOLD",
-        "PROACTIVE_EVALUATION_INTERVAL_MS"
-      ]) {
-        if (env[key] === undefined) delete process.env[key];
-        else process.env[key] = env[key];
-      }
+      if (!options.configurationOnly)
+        for (const key of [
+          "YUVI_PRODUCT_CONFIGURATION",
+          "MEMORY_SUBJECT_USER_ID",
+          "MEMORY_PERSONA_ID",
+          "PROACTIVE_SCORE_THRESHOLD",
+          "PROACTIVE_EVALUATION_INTERVAL_MS"
+        ]) {
+          if (env[key] === undefined) delete process.env[key];
+          else process.env[key] = env[key];
+        }
       applyFailure = false;
     } catch {
       applyFailure = true;
@@ -154,12 +173,12 @@ export async function registerProductRoutes(
   }
   async function persistApply(saved: ProductSettings) {
     const committed = await withProductSettingsOwner(() => {
-      const latest = readProductSettings();
+      const latest = readSettings();
       const rebased: ProductSettings = latest
         ? { ...saved, people: latest.people, primaryPersonId: latest.primaryPersonId }
         : saved;
       const next = commitProductSettings(rebased, latest);
-      writeProductSettings(next);
+      writeProductSettings(next, env);
       return next;
     });
     return applyRuntime(committed);
@@ -267,6 +286,7 @@ export async function registerProductRoutes(
       };
     }
   });
+  if (options.configurationOnly) return;
   app.post("/product/people", async (req, reply) => {
     if (!requireLocalDashboardAccess(config, req, reply)) return;
     const body = z
@@ -313,23 +333,19 @@ export async function registerProductRoutes(
         () => hasLocalDashboardAccess(config, req)
       );
       if (command.status === "PROVEN_NOT_APPLIED" || command.status === "CONFLICT")
-        return reply
-          .code(409)
-          .send({
-            error: command.reason ?? command.status,
-            message: "Product Person state changed. Reload before saving."
-          });
+        return reply.code(409).send({
+          error: command.reason ?? command.status,
+          message: "Product Person state changed. Reload before saving."
+        });
       if (command.status === "DENIED")
         return reply.code(403).send({ error: command.reason ?? "CONTROL_DENIED" });
       if (command.status !== "APPLIED")
-        return reply
-          .code(503)
-          .send({
-            error: command.reason ?? command.status,
-            message:
-              "Person command outcome is not yet known. Retry the same command or reload its state."
-          });
-      const updated = readProductSettings();
+        return reply.code(503).send({
+          error: command.reason ?? command.status,
+          message:
+            "Person command outcome is not yet known. Retry the same command or reload its state."
+        });
+      const updated = readSettings();
       const person = updated?.people.find((entry) => entry.id === command.personId);
       if (!person || !updated)
         return reply.code(503).send({ error: "NATIVE_OWNER_RECEIPT_UNAVAILABLE" });

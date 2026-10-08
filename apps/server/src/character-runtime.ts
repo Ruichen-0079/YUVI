@@ -942,6 +942,18 @@ function createCharacterChatInput(
       ...(groupInput ? ["character-group-input-boundary.v1"] : [])
     ],
     contextProjectionSpans: [
+      ...(responseRequirementsText
+        ? [
+            {
+              key: "RESPONSE_REQUIREMENTS",
+              messageIndex: 0,
+              offset:
+                systemPrefix.indexOf("Response requirements (authored, for this surface):\n") +
+                "Response requirements (authored, for this surface):\n".length,
+              characters: responseRequirementsText.length
+            }
+          ]
+        : []),
       ...modelContext.spans.map((span) => ({
         key: span.key,
         messageIndex: span.part === "background" ? 0 : 1,

@@ -1,3 +1,5 @@
+import { ParticipationSchema, DEFAULT_PARTICIPATION } from "./participation.js";
+import { writePrivateJson } from "../services/product-store.js";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { isAbsolute } from "node:path";
@@ -20,6 +22,7 @@ export const PlungeConfigurationSchema = z
       .array(z.object({ sender: uin, personId: z.string().min(1).max(256) }).strict())
       .max(64),
     mediaRoots: z.array(z.string().min(1)).max(8),
+    participation: ParticipationSchema.optional(),
     attention: z
       .object({ endpoint: z.string().url(), apiKeyFile: z.string().min(1) })
       .strict()
@@ -89,7 +92,10 @@ export function composePlunge(
         readFileSync(config.attention.apiKeyFile, "utf8").trim()
       )
     : undefined;
-  return (host: HostCharacterSurfaces) => {
+  let policy = config.participation ?? DEFAULT_PARTICIPATION;
+  let transport: QQTransport | undefined;
+  const events: Array<QQTrace & { at: string }> = [];
+  const factory = (host: HostCharacterSurfaces) => {
     const channels = new Set([
       ...config.privatePeers.map((peer) => `${namespace}:private:${peer}`),
       ...config.groups.map((group) => `${namespace}:group:${group}`)
@@ -111,22 +117,89 @@ export function composePlunge(
         return !!match && channels.has(match[1]!) && config.groups.includes(match[2]!);
       }
     });
-    return [
-      new QQTransport(
-        {
-          endpoint,
-          accessToken: server.accessToken!,
-          expectedAccount: config.expectedAccount,
-          namespace,
-          privatePeers: config.privatePeers,
-          groups: config.groups,
-          mediaRoots: config.mediaRoots,
-          aliases: composition.binding.definition.aliases
-        },
-        port,
-        trace,
-        attention
-      ).source()
-    ];
+    transport = new QQTransport(
+      {
+        endpoint,
+        accessToken: server.accessToken!,
+        expectedAccount: config.expectedAccount,
+        namespace,
+        privatePeers: config.privatePeers,
+        groups: config.groups,
+        mediaRoots: config.mediaRoots,
+        aliases: composition.binding.definition.aliases,
+        participation: () => policy
+      },
+      port,
+      (event) => {
+        events.unshift({ ...event, at: new Date().toISOString() });
+        events.splice(200);
+        trace?.(event);
+      },
+      attention
+    );
+    return [transport.source()];
   };
+  const read = () => PlungeConfigurationSchema.parse(JSON.parse(readFileSync(file, "utf8")));
+  const revision = (value: PlungeConfiguration) =>
+    createHash("sha256").update(JSON.stringify(value)).digest("hex");
+  const snapshot = () => {
+    const saved = read();
+    return {
+      people: config.personBindings.map((b) => ({
+        id: b.personId,
+        name: composition.people?.readPerson(b.personId)?.person.displayName ?? b.personId
+      })),
+      revision: revision(saved),
+      expectedAccount: config.expectedAccount,
+      deployment: config.deployment,
+      saved: {
+        groups: saved.groups,
+        privatePeers: saved.privatePeers,
+        participation: saved.participation ?? DEFAULT_PARTICIPATION
+      },
+      active: { groups: config.groups, privatePeers: config.privatePeers, participation: policy },
+      restartRequired:
+        JSON.stringify([saved.groups, saved.privatePeers]) !==
+        JSON.stringify([config.groups, config.privatePeers]),
+      attentionConfigured: !!attention,
+      connection: transport?.snapshot() ?? null,
+      events
+    };
+  };
+  return Object.assign(factory, {
+    management: {
+      snapshot,
+      reconnect() {
+        return transport
+          ? transport.atBoundary(async () => {
+              transport!.reconnectNow();
+              return { reconnecting: true };
+            })
+          : Promise.reject(Error("QQ transport unavailable"));
+      },
+      atBoundary<T>(operation: () => Promise<T>) {
+        return transport ? transport.atBoundary(operation) : operation();
+      },
+      save(input: {
+        revision: string;
+        groups: string[];
+        privatePeers: string[];
+        participation: unknown;
+      }) {
+        const saved = read();
+        if (input.revision !== revision(saved)) throw Error("CONFIGURATION_CONFLICT");
+        const next = PlungeConfigurationSchema.parse({
+          ...saved,
+          groups: input.groups,
+          privatePeers: input.privatePeers,
+          participation: input.participation
+        });
+        writePrivateJson(file, next);
+        policy = next.participation ?? DEFAULT_PARTICIPATION;
+        return snapshot();
+      }
+    }
+  });
 }
+
+export type PlungeManagement = ReturnType<typeof composePlunge>["management"];

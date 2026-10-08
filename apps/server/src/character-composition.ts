@@ -94,7 +94,8 @@ export function preserveCharacterEnvironment(
     "YUVI_RUNTIME_ENV_DIR",
     "YUVI_RUNTIME_DATA_DIR",
     "YUVI_JOURNAL_NAMESPACE",
-    "MEMORY_PERSONA_ID"
+    "MEMORY_PERSONA_ID",
+    "MEMORY_SUBJECT_USER_ID"
   ])
     result[key] = composition.env[key];
   return result;

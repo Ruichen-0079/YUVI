@@ -1,3 +1,4 @@
+import { protectPlunge, registerPlungeWebUI, type PlungeWebUI } from "./plunge/webui.js";
 import type { CharacterComposition } from "./character-composition.js";
 import { HostCharacterSurfaces } from "./character-surface-host.js";
 import type { ServerPluginSource } from "./plugin-lifecycle.js";
@@ -44,6 +45,7 @@ import type { VoiceControlReceiptAdmission } from "./voice-control-receipt-admis
 import type { ProductPersonCommandPort } from "./product-person-command-effects.js";
 
 export type BuildServerOptions = Readonly<{
+  plungeWebUI?: PlungeWebUI | undefined;
   /** Trusted host composition, deferred until its private Character graph exists. */
   surfacePlugins?: ((host: HostCharacterSurfaces) => readonly ServerPluginSource[]) | undefined;
   characterComposition?: CharacterComposition;
@@ -85,6 +87,14 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
     }
   });
 
+  if (options.plungeWebUI) {
+    if (
+      options.characterComposition?.binding.definition.id !== "alice" ||
+      !["127.0.0.1", "::1"].includes(config.host)
+    )
+      throw Error("Plunge WebUI requires loopback independent Alice.");
+    protectPlunge(app, options.plungeWebUI.token);
+  }
   let surfaceSources: readonly ServerPluginSource[] = [];
   const pluginLifecycle = new ServerPluginLifecycle(
     async () => [...((await options.discoverPlugins?.()) ?? []), ...surfaceSources],
@@ -232,6 +242,7 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
     await context.closeDatabasePool();
   });
 
+  if (options.plungeWebUI) await registerPlungeWebUI(app, context, config, options.plungeWebUI);
   await registerHealthRoutes(app, context, config);
   if (!options.characterComposition) await registerLocalServiceRoutes(app, context, config);
   if (!options.characterComposition) await registerLocalConnectionRoutes(app, context, config);

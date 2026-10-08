@@ -26,6 +26,13 @@ console.info("[env] DATABASE_URL configured:", Boolean(actorEnv["DATABASE_URL"])
 const legacyWarning = composition ? null : await getLegacyServerLocalEnvWarning();
 if (legacyWarning) console.warn("[env]", legacyWarning);
 
+// ZIP startup owns the management listener/token; private env files cannot widen its bind.
+if (process.env["YUVI_PLUNGE_WEBUI_DIR"] && composition) {
+  actorEnv["YUVI_PLUNGE_WEBUI_DIR"] = process.env["YUVI_PLUNGE_WEBUI_DIR"];
+  actorEnv["DASHBOARD_DEV_TOKEN"] = process.env["DASHBOARD_DEV_TOKEN"];
+  actorEnv["SERVER_HOST"] = "127.0.0.1";
+  actorEnv["SERVER_PORT"] = process.env["YUVI_PLUNGE_WEBUI_PORT"] ?? "6135";
+}
 const config = loadServerConfig(actorEnv);
 const plungeFile = actorEnv["YUVI_PLUNGE_CONFIG_PATH"];
 if (plungeFile && !composition) throw Error("Plunge requires an independent Alice composition.");
@@ -37,7 +44,16 @@ const surfacePlugins =
     : undefined;
 const app = await buildServer(config, {
   ...(composition ? { characterComposition: composition } : {}),
-  ...(surfacePlugins ? { surfacePlugins } : {})
+  ...(surfacePlugins ? { surfacePlugins } : {}),
+  ...(surfacePlugins && actorEnv["YUVI_PLUNGE_WEBUI_DIR"]
+    ? {
+        plungeWebUI: {
+          directory: actorEnv["YUVI_PLUNGE_WEBUI_DIR"]!,
+          management: surfacePlugins.management,
+          token: actorEnv["DASHBOARD_DEV_TOKEN"] ?? ""
+        }
+      }
+    : {})
 });
 
 const shutdown = async (signal: string) => {

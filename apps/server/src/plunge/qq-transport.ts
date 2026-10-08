@@ -1,3 +1,4 @@
+import type { Participation } from "./participation.js";
 import { randomUUID } from "node:crypto";
 import WebSocket from "ws";
 import type { ServerPluginSource } from "../plugin-lifecycle.js";
@@ -16,6 +17,7 @@ export type QQTransportConfiguration = Readonly<{
   groups: readonly string[];
   mediaRoots: readonly string[];
   aliases?: readonly string[] | undefined;
+  participation?: (() => Participation) | undefined;
 }>;
 type Pending = {
   socket: WebSocket;
@@ -43,6 +45,8 @@ export class QQTransport {
   private stopped = true;
   private ready = false;
   private reconnect: ReturnType<typeof setTimeout> | undefined;
+  private reconnectAttempts = 0;
+  private reconnectAt: string | null = null;
   private readonly pending = new Map<string, Pending>();
   private readonly social: QQSocialAdapter;
   private queued = 0;
@@ -67,6 +71,7 @@ export class QQTransport {
     this.social = new QQSocialAdapter(port, Date.now, {
       ...(attention ? { attention } : {}),
       ...(config.aliases ? { aliases: config.aliases } : {}),
+      ...(config.participation ? { participation: config.participation } : {}),
       trace: (event) => this.trace(event)
     });
   }
@@ -85,8 +90,12 @@ export class QQTransport {
           try {
             await this.connect(context.signal);
           } catch (error) {
-            this.stop();
-            throw error;
+            if (context.signal.aborted) {
+              this.stop();
+              throw error;
+            }
+            // Startup offline is a degraded connection, not a permanent disabled plugin.
+            this.trace({ kind: "CONNECT_FAILED", generation: this.generation });
           }
         },
         stop: () => this.stop(),
@@ -94,18 +103,35 @@ export class QQTransport {
       })
     };
   }
+  /** Reconfiguration shares the ingress queue, so admitted QQ turns finish first. */
+  atBoundary<T>(operation: () => Promise<T>): Promise<T> {
+    const next = this.chain.then(operation);
+    this.chain = next.then(
+      () => {},
+      () => {}
+    );
+    return next;
+  }
+  reconnectNow() {
+    if (this.stopped) throw Error("QQ transport is stopped.");
+    this.ready = false;
+    this.socket?.close();
+  }
   snapshot() {
     return {
       ready: this.ready,
       generation: this.generation,
       pending: this.pending.size,
-      queued: this.queued
+      queued: this.queued,
+      reconnectAttempts: this.reconnectAttempts,
+      reconnectAt: this.reconnectAt
     };
   }
   private stop() {
     this.stopped = true;
     this.ready = false;
     clearTimeout(this.reconnect);
+    this.reconnectAt = null;
     this.controller.abort();
     this.rejectPending();
     this.socket?.terminate();
@@ -142,10 +168,16 @@ export class QQTransport {
       this.rejectPending();
       this.social.resetGeneration();
       this.trace({ kind: "DISCONNECTED", generation });
-      if (!this.stopped)
+      if (!this.stopped) {
+        const delay = Math.min(30_000, 500 * 2 ** Math.min(this.reconnectAttempts++, 6));
+        this.reconnectAt = new Date(Date.now() + delay).toISOString();
         this.reconnect = setTimeout(() => {
-          void this.connect().catch(() => {});
-        }, 500);
+          this.reconnectAt = null;
+          void this.connect().catch(() =>
+            this.trace({ kind: "CONNECT_FAILED", generation: this.generation })
+          );
+        }, delay);
+      }
     });
     socket.on("message", (bytes) => {
       if (!current()) return;
@@ -198,7 +230,11 @@ export class QQTransport {
             isCurrent: current,
             write: async (text, signal) => {
               if (!current() || !this.ready) throw Error("QQ generation is stale.");
-              const send = encodeQQSend(packet.target, text, packet.messageId);
+              const send = encodeQQSend(
+                packet.target,
+                text,
+                this.config.participation?.().quoteReply === false ? undefined : packet.messageId
+              );
               const data = await this.action(socket, send.action, send.params, signal, 15_000);
               const id = messageHandle(data["message_id"]);
               if (!id || !current()) throw Error("QQ send acknowledgement is unavailable.");
@@ -290,6 +326,8 @@ export class QQTransport {
       )
         throw Error("Expected QQ account is not ready.");
       this.ready = true;
+      this.reconnectAttempts = 0;
+      this.reconnectAt = null;
       this.trace({ kind: "READY", generation });
     } catch (error) {
       socket.terminate();

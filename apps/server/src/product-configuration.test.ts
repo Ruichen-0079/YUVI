@@ -1,3 +1,5 @@
+import { defineCharacter } from "@companion/core";
+import { characterComposition } from "./character-composition.js";
 vi.mock("./outward-effects.js", () => import("./test-support/offline-outward-effects.js"));
 vi.mock("./media-effects.js", () => import("./test-support/offline-media-effects.js"));
 vi.mock("./presentation-effects.js", () => import("./test-support/offline-media-effects.js"));
@@ -33,7 +35,11 @@ afterEach(async () => {
   process.env = { ...oldEnv };
   vi.unstubAllGlobals();
 });
-async function setup(existing?: string) {
+async function setup(
+  existing?: string,
+  scoped = false,
+  activeConfiguration?: ProductConfiguration
+) {
   const dir = existing ?? (await mkdtemp(join(tmpdir(), "astra3-")));
   if (!existing) cleanups.push(() => rm(dir, { recursive: true, force: true }));
   process.env = {
@@ -49,7 +55,25 @@ async function setup(existing?: string) {
   };
   const config = loadServerConfig(process.env);
   const app = Fastify({ logger: false });
-  const context = await createAppContext(app.log, config);
+  if (activeConfiguration)
+    process.env["YUVI_PRODUCT_CONFIGURATION"] = JSON.stringify(activeConfiguration);
+  const composition = scoped
+    ? characterComposition({
+        binding: {
+          instanceId: "alice.webui.test",
+          definition: defineCharacter({
+            id: "alice",
+            revision: "1",
+            name: "Alice",
+            persona: "Authored."
+          })
+        },
+        envDirectory: join(dir, "alice"),
+        subjectUserId: "granted-person",
+        env: process.env
+      })
+    : undefined;
+  const context = await createAppContext(app.log, config, undefined, composition);
   context.conversationalReceiptAdmission = {
     admit: async () => ({
       status: "APPENDED",
@@ -62,7 +86,12 @@ async function setup(existing?: string) {
   context.productControlReceiptAdmission = createTestProductControlReceiptAdmission();
   context.productPersonCommands = createTestProductPersonCommandPort();
   context.voiceControlReceiptAdmission = createTestVoiceControlReceiptAdmission();
-  await registerProductRoutes(app, context, config);
+  await registerProductRoutes(
+    app,
+    context,
+    config,
+    scoped ? { env: context.activeRuntimeEnv, configurationOnly: true } : {}
+  );
   await registerPeopleVoiceRoutes(app, context, config);
   await registerProviderRoutes(app, context, config);
   await registerMessageRoutes(app, context);
@@ -714,4 +743,31 @@ it("samples are local, bounded, single-speaker excerpts and never continuous", a
   });
   expect(voiceReviews()).toHaveLength(prior);
   expect(fetch).not.toHaveBeenCalled();
+});
+
+it("Plunge configuration projects actual adopted routes, saves only Alice settings and preserves Character and Person across reload", async () => {
+  const configured = catalog();
+  const f = await setup(undefined, true, configured);
+  expect((await f.get()).configuration.models).toEqual(configured.models);
+  expect((await f.get()).people).toBeUndefined();
+  configured.models[0]!.temperature = 0.31;
+  const response = await f.save(configured);
+  expect(response.statusCode).toBe(200);
+  expect(response.json().applyState).toBe("ACTIVE");
+  expect(readProductSettings({ YUVI_RUNTIME_ENV_DIR: f.dir })).toBeNull();
+  expect(
+    readProductSettings({ YUVI_RUNTIME_ENV_DIR: join(f.dir, "alice") })?.configuration.models[0]
+      ?.temperature
+  ).toBe(0.31);
+  expect(f.context.activeRuntimeEnv["MEMORY_SUBJECT_USER_ID"]).toBe("granted-person");
+  expect(f.context.runtime.characterBinding.instanceId).toBe("alice.webui.test");
+  expect(
+    (await f.app.inject({ method: "POST", url: "/product/people", payload: {} })).statusCode
+  ).toBe(404);
+  const stale = await f.app.inject({
+    method: "PUT",
+    url: "/product/configuration",
+    payload: { configuration: configured, revision: 0 }
+  });
+  expect(stale.statusCode).toBe(409);
 });

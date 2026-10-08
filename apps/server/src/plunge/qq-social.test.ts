@@ -1,3 +1,4 @@
+import { DEFAULT_PARTICIPATION, type Participation } from "./participation.js";
 import { describe, expect, it, vi } from "vitest";
 import type { SurfaceInput, SurfaceResult } from "../character-surface-host.js";
 import { QQSocialAdapter } from "./qq-social.js";
@@ -11,7 +12,11 @@ const connection = {
   write: async () => {}
 };
 const packet = (extra: Record<string, unknown> = {}) => decodeQQPacket(wire(extra), "42", "ns")!;
-function fixture(attention?: QQAttentionPort, aliases?: readonly string[]) {
+function fixture(
+  attention?: QQAttentionPort,
+  aliases?: readonly string[],
+  participation?: () => Participation
+) {
   let now = Date.now(),
     outcome: SurfaceResult["outcome"] = "SILENCE";
   const inputs: SurfaceInput[] = [];
@@ -29,6 +34,7 @@ function fixture(attention?: QQAttentionPort, aliases?: readonly string[]) {
   });
   const traces: QQAttentionTrace[] = [];
   const social = new QQSocialAdapter({ receive }, () => now, {
+    ...(participation ? { participation } : {}),
     ...(attention ? { attention } : {}),
     ...(aliases ? { aliases } : {}),
     trace: (event) => traces.push(event)
@@ -314,4 +320,83 @@ describe("bounded QQ social admission", () => {
       expect(f.inputs[0]?.admission).toBeUndefined();
     }
   );
+});
+
+describe("live participation policy", () => {
+  it("hot-applies triggers and cooldown to opportunities while preserving ambient receipts and Character SILENCE", async () => {
+    let policy = { ...DEFAULT_PARTICIPATION, groupCooldownMs: 1000 };
+    const f = fixture(undefined, ["Alice"], () => policy);
+    const message = (id: number) =>
+      packet({
+        message_id: id,
+        message: [
+          { type: "at", data: { qq: 42 } },
+          { type: "text", data: { text: "hello" } }
+        ]
+      });
+    expect((await f.social.receive(message(1), connection)).outcome).toBe("SILENCE");
+    expect((await f.social.receive(message(2), connection)).outcome).toBe("OBSERVED");
+    f.advance(1001);
+    expect((await f.social.receive(message(3), connection)).outcome).toBe("SILENCE");
+    policy = { ...policy, mention: false, alias: false, private: false };
+    f.advance(1001);
+    await f.social.receive(message(4), connection);
+    await f.social.receive(packet({ message_id: 5, message_type: "private" }), connection);
+    await f.social.receive(
+      packet({ message_id: 6, message: [{ type: "text", data: { text: "Alice hello" } }] }),
+      connection
+    );
+    expect(f.inputs.map((i) => i.admission)).toEqual([
+      "MENTION",
+      undefined,
+      "MENTION",
+      undefined,
+      undefined,
+      undefined
+    ]);
+    expect(f.receive).toHaveBeenCalledTimes(6);
+    expect(f.traces.some((t) => t.reason === "OPPORTUNITY_COOLDOWN")).toBe(true);
+  });
+  it("disabling ambient attention stops prefilter calls; continuation uses configured duration", async () => {
+    const evaluate = vi.fn(async () => ({
+      decision: "ATTEND" as const,
+      fallback: false,
+      elapsedMs: 1
+    }));
+    const policy = { ...DEFAULT_PARTICIPATION, ambientAttention: false, continuationMs: 10 };
+    const f = fixture({ evaluate }, undefined, () => policy);
+    f.set("RESPOND");
+    await f.social.receive(
+      packet({
+        message_id: 1,
+        message: [
+          { type: "at", data: { qq: 42 } },
+          { type: "text", data: { text: "hello" } }
+        ]
+      }),
+      connection
+    );
+    f.advance(11);
+    await f.social.receive(packet({ message_id: 2 }), connection);
+    expect(f.inputs[1]?.admission).toBeUndefined();
+    expect(evaluate).not.toHaveBeenCalled();
+  });
+});
+
+it("retains a bounded reliable replay guard across connection generations and longer offline periods", async () => {
+  const f = fixture();
+  const native = packet({ message_type: "private" });
+  await f.social.receive(native, connection);
+  f.social.resetGeneration();
+  f.advance(300000);
+  await f.social.receive(native, connection);
+  expect(f.inputs.at(-1)?.admission).toBeUndefined();
+  await f.social.receive(
+    packet({
+      message_type: "private",
+      message: [{ type: "text", data: { text: "different content, same native handle" } }]
+    }),
+    connection
+  );
+  expect(f.inputs.at(-1)?.admission).toBe("PRIVATE");
 });

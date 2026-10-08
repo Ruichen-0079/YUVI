@@ -33,52 +33,7 @@ export async function registerLocalServiceRoutes(
   context: AppContext,
   config: ServerConfig
 ) {
-  app.post("/p8/corrections", async (request, reply) => {
-    if (!requireLocalDashboardAccess(config, request, reply)) return;
-    let correction: P8ExplicitCorrection;
-    try {
-      correction = correctionFromP8CorrectionRecord(parseP8CorrectionRecord(request.body));
-    } catch {
-      return reply.code(400).send({ error: "invalid_p8_correction" });
-    }
-
-    // Keep the existing P8 validator in front of A9 admission. The native owner
-    // repeats this inspection immediately before its write, so a concurrent
-    // correction is still resolved by the authoritative store.
-    const preflight = await context.runtime.preflightP8Correction(correction);
-    if (preflight === "INVALID") return reply.code(400).send({ error: "invalid_p8_correction" });
-    if (preflight === "CONFLICT") return reply.code(409).send({ error: "p8_correction_conflict" });
-    if (preflight !== "READY") return reply.code(503).send({ error: "p8_correction_unavailable" });
-
-    const owner = await context.runtime.getP8CorrectionOwnerRevision(correction);
-    if (owner.status !== "AVAILABLE")
-      return reply.code(503).send({ error: "p8_correction_unavailable" });
-    const result = await context.productPersonCommands.execute(
-      {
-        family: "P8_CORRECTION",
-        commandHandle: correction.correctionReference,
-        operation: correction.action,
-        correctionReference: correction.correctionReference,
-        expectedRevision: owner.revision,
-        correction: structuredClone(correction) as unknown as Record<string, unknown>
-      },
-      () => hasLocalDashboardAccess(config, request)
-    );
-    if (result.status === "APPLIED")
-      return {
-        status: "STORED",
-        correctionReference: correction.correctionReference,
-        controlReceiptRef: result.receiptRef,
-        intentId: result.intentId
-      };
-    if (result.status === "PROVEN_NOT_APPLIED" || result.status === "CONFLICT")
-      return reply.code(409).send({ status: result.status, error: result.reason ?? result.status });
-    if (result.status === "DENIED")
-      return reply.code(403).send({ error: result.reason ?? "CONTROL_DENIED" });
-    return reply
-      .code(503)
-      .send({ status: "UNKNOWN", error: result.reason ?? "P8_CORRECTION_OUTCOME_UNKNOWN" });
-  });
+  await registerP8CorrectionRoutes(app, context, config);
   app.post("/voice-profiles/:id/person", async (request, reply) => {
     if (!requireLocalDashboardAccess(config, request, reply)) return;
     const parsed = z
@@ -255,7 +210,9 @@ export async function registerLocalServiceRoutes(
     const bindings = await context.runtime.getVoiceProfileBindingAuthorityState();
     if (bindings.status !== "AVAILABLE")
       return reply.code(503).send({ error: "profile_delete_failed" });
-    const profileBindings = bindings.bindings.filter((binding) => binding.voiceProfileId === params.data.id);
+    const profileBindings = bindings.bindings.filter(
+      (binding) => binding.voiceProfileId === params.data.id
+    );
     if (profileBindings.some((binding) => binding.status === "ACTIVE"))
       return reply
         .code(409)
@@ -278,5 +235,58 @@ export async function registerLocalServiceRoutes(
     for (const sample of voiceReviews().filter((r) => r.voiceProfileId === params.data.id))
       updateVoiceReview(sample.id, null);
     return { ok: true };
+  });
+}
+
+export async function registerP8CorrectionRoutes(
+  app: FastifyInstance,
+  context: AppContext,
+  config: ServerConfig
+) {
+  app.post("/p8/corrections", async (request, reply) => {
+    if (!requireLocalDashboardAccess(config, request, reply)) return;
+    let correction: P8ExplicitCorrection;
+    try {
+      correction = correctionFromP8CorrectionRecord(parseP8CorrectionRecord(request.body));
+    } catch {
+      return reply.code(400).send({ error: "invalid_p8_correction" });
+    }
+
+    // Keep the existing P8 validator in front of A9 admission. The native owner
+    // repeats this inspection immediately before its write, so a concurrent
+    // correction is still resolved by the authoritative store.
+    const preflight = await context.runtime.preflightP8Correction(correction);
+    if (preflight === "INVALID") return reply.code(400).send({ error: "invalid_p8_correction" });
+    if (preflight === "CONFLICT") return reply.code(409).send({ error: "p8_correction_conflict" });
+    if (preflight !== "READY") return reply.code(503).send({ error: "p8_correction_unavailable" });
+
+    const owner = await context.runtime.getP8CorrectionOwnerRevision(correction);
+    if (owner.status !== "AVAILABLE")
+      return reply.code(503).send({ error: "p8_correction_unavailable" });
+    const result = await context.productPersonCommands.execute(
+      {
+        family: "P8_CORRECTION",
+        commandHandle: correction.correctionReference,
+        operation: correction.action,
+        correctionReference: correction.correctionReference,
+        expectedRevision: owner.revision,
+        correction: structuredClone(correction) as unknown as Record<string, unknown>
+      },
+      () => hasLocalDashboardAccess(config, request)
+    );
+    if (result.status === "APPLIED")
+      return {
+        status: "STORED",
+        correctionReference: correction.correctionReference,
+        controlReceiptRef: result.receiptRef,
+        intentId: result.intentId
+      };
+    if (result.status === "PROVEN_NOT_APPLIED" || result.status === "CONFLICT")
+      return reply.code(409).send({ status: result.status, error: result.reason ?? result.status });
+    if (result.status === "DENIED")
+      return reply.code(403).send({ error: result.reason ?? "CONTROL_DENIED" });
+    return reply
+      .code(503)
+      .send({ status: "UNKNOWN", error: result.reason ?? "P8_CORRECTION_OUTCOME_UNKNOWN" });
   });
 }
