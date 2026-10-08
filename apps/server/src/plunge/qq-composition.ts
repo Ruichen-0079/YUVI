@@ -120,7 +120,8 @@ export function composePlunge(
           namespace,
           privatePeers: config.privatePeers,
           groups: config.groups,
-          mediaRoots: config.mediaRoots
+          mediaRoots: config.mediaRoots,
+          aliases: composition.binding.definition.aliases
         },
         port,
         trace,

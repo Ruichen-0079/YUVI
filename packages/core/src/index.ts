@@ -256,7 +256,8 @@ export {
   characterPersonaId,
   claimCharacterResources,
   type CharacterBinding,
-  type CharacterDefinition
+  type CharacterDefinition,
+  type CharacterResponseRequirements
 } from "./character-identity.js";
 export {
   executeRuntimeCognitionInteraction,

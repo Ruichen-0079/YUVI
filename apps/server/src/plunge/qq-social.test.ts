@@ -11,7 +11,7 @@ const connection = {
   write: async () => {}
 };
 const packet = (extra: Record<string, unknown> = {}) => decodeQQPacket(wire(extra), "42", "ns")!;
-function fixture(attention?: QQAttentionPort) {
+function fixture(attention?: QQAttentionPort, aliases?: readonly string[]) {
   let now = Date.now(),
     outcome: SurfaceResult["outcome"] = "SILENCE";
   const inputs: SurfaceInput[] = [];
@@ -30,6 +30,7 @@ function fixture(attention?: QQAttentionPort) {
   const traces: QQAttentionTrace[] = [];
   const social = new QQSocialAdapter({ receive }, () => now, {
     ...(attention ? { attention } : {}),
+    ...(aliases ? { aliases } : {}),
     trace: (event) => traces.push(event)
   });
   return {
@@ -272,4 +273,45 @@ describe("bounded QQ social admission", () => {
     await f.social.receive(packet({ message_id: 99 }), connection);
     expect(f.inputs.at(-1)?.observations).toHaveLength(0);
   });
+  it.each([
+    "爱丽丝",
+    "小爱",
+    "Alice",
+    "alice",
+    "爱丽丝·玛格特洛依德",
+    "爱丽丝·玛格特罗依德",
+    "A.l[ice]"
+  ])(
+    "authored alias %s grants review without inventing a native mention or requiring response",
+    async (alias) => {
+      const evaluate = vi.fn(async () => ({
+        decision: "IGNORE" as const,
+        fallback: false,
+        elapsedMs: 0
+      }));
+      const f = fixture({ evaluate }, [alias]);
+      const result = await f.social.receive(
+        packet({ message: [{ type: "text", data: { text: `嗨，${alias}你在吗` } }] }),
+        connection
+      );
+      expect(f.inputs[0]).toMatchObject({ admission: "ATTENTION", mentions: [] });
+      expect(evaluate).not.toHaveBeenCalled();
+      expect(result.outcome).toBe("SILENCE");
+    }
+  );
+  it.each(["Malice", "AliceBuilder", "calice"])(
+    "does not treat an alias substring inside %s as a named call",
+    async (text) => {
+      const f = fixture(undefined, ["Alice"]);
+      expect(
+        (
+          await f.social.receive(
+            packet({ message: [{ type: "text", data: { text } }] }),
+            connection
+          )
+        ).outcome
+      ).toBe("OBSERVED");
+      expect(f.inputs[0]?.admission).toBeUndefined();
+    }
+  );
 });

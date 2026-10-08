@@ -15,6 +15,7 @@ export type QQTransportConfiguration = Readonly<{
   privatePeers: readonly string[];
   groups: readonly string[];
   mediaRoots: readonly string[];
+  aliases?: readonly string[] | undefined;
 }>;
 type Pending = {
   socket: WebSocket;
@@ -65,6 +66,7 @@ export class QQTransport {
       throw Error("OneBot requires authenticated expected-account configuration.");
     this.social = new QQSocialAdapter(port, Date.now, {
       ...(attention ? { attention } : {}),
+      ...(config.aliases ? { aliases: config.aliases } : {}),
       trace: (event) => this.trace(event)
     });
   }

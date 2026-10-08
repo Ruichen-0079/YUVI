@@ -112,7 +112,7 @@ export function readCharacterComposition(
   const input = JSON.parse(readFileSync(file, "utf8")) as {
     version: number;
     instanceId: string;
-    definition: { id: string; revision: string; name: string; persona: string };
+    definition: Parameters<typeof defineCharacter>[0];
     envDirectory: string;
     dataDirectory?: string;
     peopleDirectory?: string;

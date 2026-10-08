@@ -15,6 +15,15 @@ export type CharacterDefinition = Readonly<{
   name: string;
   authoredInvariants: readonly P8AuthoredInvariant[];
   systemIdentity: string;
+  aliases?: readonly string[];
+  /** Authored expression/surface instructions, not P8 identity or relationship facts. */
+  responseRequirements?: CharacterResponseRequirements;
+}>;
+
+export type CharacterResponseRequirements = Readonly<{
+  general: string;
+  group?: string;
+  private?: string;
 }>;
 
 /** A stable experience owner. Several surfaces may bind to this same instance. */
@@ -39,6 +48,9 @@ export function defineCharacter(input: {
   revision: string;
   name: string;
   persona: string;
+  identity?: string;
+  aliases?: readonly string[];
+  responseRequirements?: CharacterResponseRequirements;
 }): CharacterDefinition {
   if (!input.persona.trim() || input.persona.length > 32_000)
     throw new Error("Character persona must contain between 1 and 32000 characters.");
@@ -46,6 +58,19 @@ export function defineCharacter(input: {
   const provenance = { source: "authored" as const, reference, revision: input.revision };
   const authoredInvariants: P8AuthoredInvariant[] = [
     { key: "character.name", target: "identity", statement: input.name, provenance },
+    ...(input.identity === undefined
+      ? []
+      : authoredChunks(input.identity, "character.identity", "identity", provenance)),
+    ...(input.aliases?.length
+      ? [
+          {
+            key: "character.aliases",
+            target: "identity" as const,
+            statement: input.aliases.join("、"),
+            provenance
+          }
+        ]
+      : []),
     ...(input.persona.match(/[\s\S]{1,480}/g) ?? []).map((statement, index) => ({
       key: "persona.authored." + String(index).padStart(4, "0"),
       target: "persona" as const,
@@ -60,10 +85,12 @@ export function defineCharacter(input: {
       revision: input.revision,
       name: input.name,
       authoredInvariants,
+      ...(input.aliases ? { aliases: input.aliases } : {}),
+      ...(input.responseRequirements ? { responseRequirements: input.responseRequirements } : {}),
       systemIdentity:
         "You are " +
         input.name +
-        ", a persistent AI companion. Use the supplied authored identity, persona and this Character's own experience."
+        ". Use the supplied authored identity, persona and this Character's own experience."
     }
   }).definition;
 }
@@ -73,6 +100,24 @@ export function normalizeCharacterBinding(binding: CharacterBinding): CharacterB
   if (!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,79}$/.test(binding.instanceId))
     throw new Error("Character instanceId must be a stable bounded identifier.");
   const definition = binding.definition;
+  const aliases = definition.aliases;
+  if (
+    aliases &&
+    (aliases.length > 16 ||
+      aliases.some((alias) => typeof alias !== "string" || !alias.trim() || alias.length > 80) ||
+      new Set(aliases).size !== aliases.length)
+  )
+    throw new Error("Character aliases must be distinct bounded names.");
+  const requirements = definition.responseRequirements;
+  if (
+    requirements &&
+    (!requirements.general?.trim() ||
+      Object.keys(requirements).some((key) => !["general", "group", "private"].includes(key)) ||
+      Object.values(requirements).some(
+        (value) => typeof value !== "string" || !value.trim() || value.length > 4000
+      ))
+  )
+    throw new Error("Invalid authored Character response requirements.");
   if (
     !definition.name.trim() ||
     definition.name.length > 80 ||
@@ -103,9 +148,27 @@ export function normalizeCharacterBinding(binding: CharacterBinding): CharacterB
         ...projection.identity.invariants,
         ...projection.persona.invariants
       ]),
-      systemIdentity: definition.systemIdentity
+      systemIdentity: definition.systemIdentity,
+      ...(aliases ? { aliases: Object.freeze([...aliases]) } : {}),
+      ...(requirements ? { responseRequirements: Object.freeze({ ...requirements }) } : {})
     })
   });
+}
+
+function authoredChunks(
+  text: string,
+  key: string,
+  target: "identity" | "persona",
+  provenance: P8AuthoredInvariant["provenance"]
+): P8AuthoredInvariant[] {
+  if (!text.trim() || text.length > 32000)
+    throw new Error("Authored Character text must contain between 1 and 32000 characters.");
+  return (text.match(/[\s\S]{1,480}/g) ?? []).map((statement, index) => ({
+    key: key + "." + String(index).padStart(4, "0"),
+    target,
+    statement,
+    provenance
+  }));
 }
 
 export function characterP8Address(

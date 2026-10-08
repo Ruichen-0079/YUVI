@@ -93,6 +93,23 @@ schema first; all harness tables, including `character_runtime_owner`, must be
 created there. A database per Character is the simpler operational choice.
 Do not point a new Character at the primary's database or data root.
 
+An authored definition may also include `identity`, `aliases` and
+`responseRequirements: { general, group?, private? }`. Identity and aliases
+project through P8 authored IDENTITY; behavioral Persona remains authored
+PERSONA. Response requirements are immutable expression instructions selected
+by the server for the current surface, including Cognition re-entry, and count
+toward the rendered request budget. They do not add an ABI section or another
+personality authority. QQ aliases grant review without manufacturing a mention
+or requiring a response. The complete Alice example and MaiBot migration mapping
+are in [Alice authoring](../personas/alice.md).
+
+Specific relationships belong to Person-scoped P8 corrections, never the global
+definition or Product Person notes. Apply them through the existing protected
+host command and revision fence, with confirmed identity binding. A worker
+definition revision preserves its experience owner; it cannot adopt another
+Character's storage. An offline host maintenance composition must release its
+writer before restarting the worker.
+
 Launch the same built server entry twice with different config paths, ports and
 private database views. Point both `LOCAL_MODEL_BASEURL` (or existing product
 routes) at **one** model server. There is no automatic second model-stack launch.

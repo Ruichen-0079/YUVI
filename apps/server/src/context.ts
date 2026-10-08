@@ -510,7 +510,9 @@ export async function createAppContext(
     const character =
       runtimeEnv["NODE_ENV"] === "test" || runtimeEnv["PROVIDER_ALLOW_MOCKS"] === "true"
         ? undefined
-        : createServerCharacterPort();
+        : createServerCharacterPort({
+            responseRequirements: composition?.binding.definition.responseRequirements
+          });
     const personId = parseRuntimeConfig(runtimeEnv).memory.subjectUserId;
     const sharedPerson = personId ? composition?.people?.readPerson(personId) : null;
     const consumedPerson = capturedProduct?.people.find((p) => p.id === personId);

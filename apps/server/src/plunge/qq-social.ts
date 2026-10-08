@@ -34,6 +34,7 @@ export class QQSocialAdapter {
     private readonly now: () => number = Date.now,
     private readonly options: {
       attention?: QQAttentionPort;
+      aliases?: readonly string[];
       trace?: (event: QQAttentionTrace) => void;
     } = {}
   ) {}
@@ -63,7 +64,9 @@ export class QQSocialAdapter {
                   c.continuation.until > now &&
                   c.lastSender === packet.sender
                 ? "CONTINUATION"
-                : undefined;
+                : this.options.aliases?.some((alias) => containsAlias(packet.content, alias))
+                  ? "ATTENTION"
+                  : undefined;
     const reply = packet.replyTo
       ? {
           reference: packet.replyTo,
@@ -204,4 +207,13 @@ export class QQSocialAdapter {
     this.channels.clear();
     this.duplicates.clear();
   }
+}
+
+/** Names grant review only; transport mentions remain unchanged and Character decides intent. */
+function containsAlias(text: string, alias: string): boolean {
+  const escaped = alias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = /^[\x00-\x7f]+$/.test(alias)
+    ? String.raw`(?<![A-Za-z0-9_])${escaped}(?![A-Za-z0-9_])`
+    : escaped;
+  return new RegExp(pattern, "iu").test(text);
 }

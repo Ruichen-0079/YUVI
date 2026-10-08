@@ -100,4 +100,38 @@ describe("Character bootstrap and durable file ownership", () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
+  it("loads the complete versioned Alice authoring through the production bootstrap", () => {
+    const root = mkdtempSync(join(tmpdir(), "yuvi-alice-authoring-"));
+    const authored = JSON.parse(
+      readFileSync(
+        new URL("../../../config/characters/alice.definition.json", import.meta.url),
+        "utf8"
+      )
+    );
+    try {
+      const file = join(root, "alice.json");
+      writeFileSync(
+        file,
+        JSON.stringify({
+          version: 1,
+          instanceId: "alice.test",
+          definition: authored,
+          envDirectory: join(root, "state")
+        })
+      );
+      const loaded = readCharacterComposition(file, {})!.binding.definition;
+      expect(loaded.aliases).toEqual(authored.aliases);
+      expect(loaded.responseRequirements).toEqual(authored.responseRequirements);
+      expect(
+        loaded.authoredInvariants
+          .filter((v) => v.target === "persona")
+          .map((v) => v.statement)
+          .join("")
+      ).toBe(authored.persona);
+      expect(loaded.authoredInvariants.some((v) => v.statement === authored.identity)).toBe(true);
+      expect(JSON.stringify(loaded)).not.toContain("主人");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
 });

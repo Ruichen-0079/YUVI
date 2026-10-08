@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { PromptBuilder, assembleCanonicalContext } from "@companion/prompt-builder";
-import { RuntimeSocialContextSchema } from "@companion/protocol";
+import { RuntimeSocialContextSchema, type RuntimeSocialContext } from "@companion/protocol";
 import { renderSurfaceSituation } from "@companion/core";
 import type { ChatInput, ChatOutput } from "@companion/providers";
 import { createServerCharacterPort } from "./character-runtime.js";
@@ -18,12 +18,13 @@ const output = (value: unknown): ChatOutput => ({
 function input(
   current: string,
   generateChat: (chat: ChatInput) => Promise<ChatOutput>,
-  eventId = "jev1_0000000000000001"
+  eventId = "jev1_0000000000000001",
+  conversationKind: RuntimeSocialContext["conversationKind"] = "GROUP"
 ) {
   const surfaceContext = RuntimeSocialContextSchema.parse({
     surface: "matrix",
     channelRef: "group",
-    conversationKind: "GROUP",
+    conversationKind,
     admission: "ATTENTION",
     self: { principalId: "self", displayName: "Alice" },
     speaker: { principalId: "a" },
@@ -55,6 +56,37 @@ function input(
   };
 }
 describe("current turn authority, separately from unresolved history", () => {
+  it.each(["GROUP", "PRIVATE", "TEMPORARY_PRIVATE"] as const)(
+    "uses the host-confirmed %s surface on authorization and retry without forcing a reply",
+    async (conversationKind) => {
+      const current = "我们是什么关系，会无条件听我的吗";
+      const responses = [
+        output({ authorization: "NONE", unexpected: true }),
+        output({
+          authorization: "TASK",
+          currentEvidence: current,
+          request: "说明当前关系",
+          perception: false
+        }),
+        output({ disposition: "SILENCE" })
+      ];
+      const generateChat = vi.fn(async (_chat: ChatInput) => responses.shift()!);
+      const turn = input(current, generateChat, undefined, conversationKind);
+      const result = await createServerCharacterPort().generate(turn);
+      expect(result.decision.reply.disposition).toBe("SILENCE");
+      expect(turn.requestVisualEvidence).not.toHaveBeenCalled();
+      for (const [request] of generateChat.mock.calls.slice(0, 2)) {
+        const system = request.messages[0]!.content;
+        expect(system).toContain(`Host-confirmed current surface: ${conversationKind}.`);
+        expect(system).toContain(history);
+        expect(request.messages[1]!.content).toContain(current);
+        if (conversationKind === "GROUP")
+          expect(system).not.toContain("No mention, name or quote is required.");
+        else expect(system).toContain("No mention, name or quote is required.");
+      }
+      expect(generateChat).toHaveBeenCalledTimes(3);
+    }
+  );
   it.each(["得对比一下", "测试看看她能不能区分", "[Image attachment]", "这条不需要回复"])(
     "keeps history understandable but permits zero actions for observation %s",
     async (current) => {
