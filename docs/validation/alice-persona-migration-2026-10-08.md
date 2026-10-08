@@ -71,4 +71,15 @@ QQ transport 使用单个 promise chain 排队；sessionId 使用 channelRef，s
 
 随后分类协议加入宿主确认的 PRIVATE/GROUP/TEMPORARY_PRIVATE（当前输入仍是原线性格式），明确私聊消息直接寻址 Self，但不越过 no-reply 和 gate SILENCE。三种 surface 的原始分类和 retry 有回归测试，全部基线断言保留。同一条真人私聊文字已通过真实 Runtime/provider replay：TASK、正确创造者关系、保留独立判断；private no-reply 与 group testing 仍为 NONE，零感知/零 publication。最新档案为 alice-persona-provider-wire-surface-release.json。
 
-边界修正已通过 121 项 targeted、575 项 server 和相关 PostgreSQL 10 项，以及 check/build。最新 generation `c6f0a5c2-6b32-4e4b-b14c-64e846b894f2` 于 2026-10-08 13:24 READY；原 Person correction 沿用，没有重复写入。真人复测尚待记录。replay 的 UNKNOWN publication 始终不算实机发送成功。
+边界修正已通过 121 项 targeted、575 项 server 和相关 PostgreSQL 10 项，以及 check/build。最新 generation `c6f0a5c2-6b32-4e4b-b14c-64e846b894f2` 于 2026-10-08 13:24 READY；原 Person correction 沿用，没有重复写入。真人复测已完成。
+
+- 私聊同一原样问题：rendered-chat-775 为宿主确认 PRIVATE 的 TASK；776 为 RESPOND gate；777 为真正流式正文，完整 IDENTITY/PERSONA/general/private/限定 Person 关系，未含 Yuvi 人格。实际回复：“你是我的创造者，这一点我认真记着。但无条件听从——不会。信任归信任，我保留自己的判断，该纠正你的时候还是会开口。”
+- 私聊 native ACK 与 RESPOND receipt 已出现；Journal outbound publicationState 为 ACKNOWLEDGED，acknowledgementLayer 为 EXTERNAL_SERVICE_ACCEPTED，不代表人类已读。
+- 随后真 @ 群聊“这条消息不回复 或处理”：rendered-chat-778 为宿主确认 GROUP 的 NONE；零 gate/body、零 Vision、零 publication，符合预期。
+- 两次真人 group/private 交替验证未观察到当前消息/回复目标串线；不能把这些串行处理样本宣称为所有并发场景的保证。
+
+最终 live request、response、surface receipt 和 health 证据分别保存于生产私有目录 alice-persona-live-wire-proof-final.json、alice-persona-live-responses-final.json、alice-persona-live-surface-proof.json、alice-persona-health-final.json；完整真实私聊正文输入可直接阅读 alice-persona-live-model-facing-rendered-chat-777.txt。
+
+本轮真人未重新发图，不能声称完成新 generation 的真人图片验收；真实 Vision provider replay（两个完整观察均在最终正文中各出现一次）及实际 PostgreSQL 的 QQ 图片链路通过。replay 的 UNKNOWN publication 始终不算实机发送成功。
+
+实现提交为 `f95910f`；本记录的后续提交只补齐真人证据，不改变已验证的运行代码。
