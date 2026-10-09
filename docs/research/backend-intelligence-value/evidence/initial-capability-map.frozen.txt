@@ -1,0 +1,36 @@
+# 第一阶段能力地图（专题深挖前冻结）
+
+基线 main：b307704a0c798fe092966766ad4422a9aaa31262；QQ：adff0c70648b42a3a15ea45609adae1c45b31fc5。
+
+形成顺序：扫描生产 boot/context/server、状态构造、模型/效果接口、入口消费者和其他分支，再保存本地图；之后才选择深入对象与读取旧审计。由于是同一会话的续审，已有上轮知识，不声称双盲。地图从本轮生产扫描组织，不以上轮八项缺陷为目录。后续修正写在主报告，不覆盖此文件。
+
+系统输入：当前文字、有限会话历史、接收 Journal、STT 文本/声学观察、用户附件/可用屏幕图像、渠道短现场、controller 的身份/配置/同意命令。系统输出：文字/语音/呈现/QQ 发布（分支）、单文件读取、记忆与多类运行状态。没有看到生产任意 shell/浏览器，也没有生产在线训练更新。
+
+| 能力/状态 | Implemented | Wired（main） | Reachable | Consumed（初查） | Effective / Counterproductive 待查 |
+|---|---|---|---|---|---|
+| 当前文字、会话 | 是 | HTTP/SSE/WS + Runtime | 配置及接收准入正常时 | 当前输入、有限 DirectContext | 理解改善需模型证据；历史投影边界需复核 |
+| 时间、间隔、L1 场景 | 是 | Runtime MemoryContext/episode | 正常轮和相关场景 | Character 背景、主动提示 | 提供时间信息；规则摘要不是语义理解 |
+| legacy LTM + 向量 | 是 | MemoryService + configured embedding | 显式配置与有效 scope | 有界召回与提示 | 能保存事实；广义经验覆盖待查 |
+| Mem0 LTM | 是 | backend 选择与 MemoryProvider | sidecar、scope、source 与写入准入 | Recall；typed events 支持 P8 | 是否完整利用 Mem0 语义能力待查 |
+| finalized ingestion | 是 | repository/coordinator + server lifecycle | Mem0 正常已完成轮、恢复扫描 | Memory 写入/重试状态 | 可靠性资产；是否改善提取本身不能混同 |
+| Dream | 是 | Runtime consider/runDue + job/episode store | 调度触发与 writer/provider 条件 | 写入 LTM、episode 状态 | 是否有独立定时/跨重启推进与新理解待查 |
+| Profile lifecycle | 是 | mutation invalidation、coordinator/store | source 可用；管理读取 | snapshots / PeopleModel 管理端；Chat 消费待查 | 证据集合完整不等于理解 |
+| authored 个体 / P8 | 是 | Character binding、reconstruction/corrections | 正式身份、有效证据/修正 | identity/persona/relationship sections | authored 连续性有价值；经验影响人格的范围待查 |
+| Person | 是 | product/shared store 与 scope 来源 | 显式维护/绑定 | scope、voice、来源凭证；字段语义消费待查 | 身份与关系应分别评价 |
+| voice profile / Person binding | 是 | STT/本地 owner/P8/治理 effects | local STT、显式 controller 绑定 | 当前 speaker、memory attribution | 隐私保障有价值；多人逐段理解待查 |
+| Chat 路由/fallback | 是 | ProviderRegistry + Runtime | credentials、route readiness | gate/body 与 proactive prose | 连续服务有价值；模型身份/预算切换待查 |
+| Cognition | 是 | Character 升级 + production callback | gate、reasoning route、预算 | normalized result → Character | 更强推理机会；模型链增益需实测 |
+| Capability / 插件 | 是 | explicit discovery/grants；默认空 | 单文件授权 / 自定义 host 注入 | Cognition inventory/observations | 实现不等于产品授权入口 |
+| 附件视觉 / 屏幕视觉 | 是 | Vision route + Runtime；screen 条件装配 | MIME/大小、显式触发、平台支持 | 临时 evidence → Character/Cognition | 原图/回源/跨轮观察待查 |
+| VAD/PTT/hands-free | 是 | Frontend capture + speech/media routes | 浏览器权限、local STT/VAD | 已准入 transcript / speech state | 非文字身份/语义保留待查 |
+| TTS/播放/打断 | 是 | media effects + 前端反馈 | route、本地模型/远端依赖、许可 | 声音、播放运行控制 | 用户可见价值；反馈是否成为未来理解待查 |
+| embodied presentation | 是 | bridge、presentation effects、routes/UI | 支持的前端设备与 intent | Live2D/字幕/运行控制 | 身体反馈不是工具任务结果 |
+| 主动行为/quiet/consent | 是 | Runtime scheduler、model scorer、SSE/UI | 当前 consent + 调度条件 | bounded prose、proactive policy | 后台行动与任务持续性待查 |
+| Journal/context-use/provider/effect receipts | 是 | Postgres 条件装配；无 DB 部分 fail-closed | 合法输入/已准入操作 | 回源、校验、恢复、诊断 | 运行保障；实际成本/模型回馈需分别评价 |
+| Publication/UNKNOWN recovery | 是 | outward/media/presentation/read-text effects | Journal/store 与已授权效果 | 执行治理、Conversation status | 防重发资产；后续模型是否看见任务结果待查 |
+| Config hot reload / storage / supervisor | 是 | desktop packaging/server 配置与 drain | 发布平台与环境依赖 | 模型选择、进程、状态恢复 | 可靠存在；不能以打包状态代替智能消费 |
+| 研究/AgentBus 脚本 | 有 | 部分工程工作流；未见 Alice Runtime 学习接线 | 工程操作人员 | CI/开发工具 | 不计入个体工具、训练或多 Agent 生产能力 |
+
+入口差异初查：main 桌面 Main 有图片/语音/主动 UI；Dashboard 主要是文字与管理；HTTP/SSE/WS 的 schema 和 authority 不完全相同；QQ 仅分支存在且是 surfacePlugins 装配；历史 release 与 agentbus 分支不能当作 main 缺失能力的证据，非 ancestor 常因 squash/演变，需检查代码而非仅看分支名。
+
+专题选择原则：优先追踪“输入/输出/长期状态的消费者”和“运行保障是否转成新信息”，而非再次深挖单一截断。候选：语义状态的实际消费者、Dream 的推进时钟、主动路由/会话、行动结果的后续消费、多模态身份与内容保留、配置/预算/fallback 的真实选择。

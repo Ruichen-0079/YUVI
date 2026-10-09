@@ -1,0 +1,45 @@
+{
+  "verifiedAtUTC": "2026-10-09T16:58:40.102081+00:00",
+  "productionSourceSHA": "b307704a0c798fe092966766ad4422a9aaa31262",
+  "remoteRefsBeforeDelivery": [
+    "adff0c70648b42a3a15ea45609adae1c45b31fc5\trefs/heads/feat/plunge-webui-20261008",
+    "b307704a0c798fe092966766ad4422a9aaa31262\trefs/heads/main"
+  ],
+  "probeGroupsPassed": [
+    "affect",
+    "relationship",
+    "dream",
+    "voice",
+    "proactive",
+    "memory",
+    "capability"
+  ],
+  "actualModelCalls": 0,
+  "limitations": [
+    "No live model quality or production deployment evidence",
+    "No production code changes",
+    "QQ checked as distinct pinned branch; not imported by main probes"
+  ],
+  "checks": [
+    "Delivered probe runner completed",
+    "Pinned code and relative links validated",
+    "Frozen original capability map hash matches",
+    "Documentation formatting checked",
+    "git diff --check"
+  ],
+  "artifactSHA256": {
+    "README.md": "f37fb16acd2bfe8fd336e778f1532c1fe632e257ead0c523c86f22e905fadf77",
+    "YUVI-Backend-Intelligence-Value-Audit.zh.md": "e4a1050bd705dbccf9182e372db94cb5c3d47ce78cc2eb1369243067e5c89dff",
+    "evidence/initial-capability-map.frozen.txt": "125e6f287de3e71cee1b5db20ff6beecfa87baa1b84492f8c76b939fd3c8e618",
+    "evidence/production-consumer-search.json": "bb45166f900b126946b07d10abcfb5325845ad5d67f23d4f06000fe54b0fbc9a",
+    "evidence/production-source-comparison.json": "1fa7ec1bce3b05e30da06c481ae0260a64a1eb95aa30049180cdfb090641ab4a",
+    "evidence/remote-refs.txt": "f3375b89bb7a668b6d1f308947d1737f2e0317c8bfe78c6c6e8cbff9c608e0a2",
+    "evidence/research-order.json": "cda9cb97ab3f0dadadd884e60c0a925d9112554f5e0340a96783539a1e9fec63",
+    "evidence/selected-branches.json": "2f8e88415216379814003e8512f49abd4490fc355bc98c28190e367de5a954b5",
+    "experiments/.gitignore": "9485b69ce74620836256b411cbba17e85d0a26ace332717d39cd247808853d4a",
+    "experiments/README.md": "72206aa723318ba4eed95515e9ade5332cbf097d79f058759071abe8689cd77f",
+    "experiments/backend-results.json": "2583b5620a26fdb38577b7cee301126c717a524e5bcd290d905bb311f1f04da2",
+    "experiments/backend.ts": "85acaf930322b3cd4b78adb0afbd2bcb75c347ed21a91cfce07616657543ef57",
+    "experiments/run.mjs": "893d13dfb584f751f51168ac8bf3d8444176f8569068237323a1175c2c63c81b"
+  }
+}

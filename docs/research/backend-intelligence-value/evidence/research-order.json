@@ -1,0 +1,12 @@
+{
+  "frozenMapSHA256": "125e6f287de3e71cee1b5db20ff6beecfa87baa1b84492f8c76b939fd3c8e618",
+  "order": [
+    "production breadth and branch inventory",
+    "freeze initial map",
+    "cross-system source tracing and seven probe groups",
+    "late comparison with previous reports",
+    "value report"
+  ],
+  "priorConversationKnowledge": "inherited; not a blind audit",
+  "frozenMapArchive": "initial-capability-map.frozen.txt"
+}

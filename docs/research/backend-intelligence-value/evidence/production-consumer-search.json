@@ -1,0 +1,65 @@
+{
+  "scope": "apps/packages/services non-test source; textual index plus manually traced assembly, not a proof against every dynamic caller",
+  "hits": [
+    {
+      "term": "ScopePeopleModelReader",
+      "path": "apps/server/src/context.ts",
+      "line": 120,
+      "text": "ScopePeopleModelReader,"
+    },
+    {
+      "term": "scopePeopleModelReader",
+      "path": "apps/server/src/context.ts",
+      "line": 202,
+      "text": "scopePeopleModelReader: ScopePeopleModelReader;"
+    },
+    {
+      "term": "ScopePeopleModelReader",
+      "path": "apps/server/src/context.ts",
+      "line": 202,
+      "text": "scopePeopleModelReader: ScopePeopleModelReader;"
+    },
+    {
+      "term": "Product snapshot consumed for Runtime scope selection",
+      "path": "apps/server/src/context.ts",
+      "line": 543,
+      "text": "reason: \"Product snapshot consumed for Runtime scope selection\","
+    },
+    {
+      "term": "scopePeopleModelReader",
+      "path": "apps/server/src/context.ts",
+      "line": 797,
+      "text": "scopePeopleModelReader: new ScopePeopleModelReader(profileLifecycleCoordinator),"
+    },
+    {
+      "term": "ScopePeopleModelReader",
+      "path": "apps/server/src/context.ts",
+      "line": 797,
+      "text": "scopePeopleModelReader: new ScopePeopleModelReader(profileLifecycleCoordinator),"
+    },
+    {
+      "term": "ScopePeopleModelReader",
+      "path": "packages/memory/src/profile-lifecycle.ts",
+      "line": 752,
+      "text": "export class ScopePeopleModelReader {"
+    },
+    {
+      "term": "A4 does not consume synthesized Profile",
+      "path": "packages/core/src/runtime-orchestrator.ts",
+      "line": 1226,
+      "text": "reason: \"A4 does not consume synthesized Profile\","
+    },
+    {
+      "term": "dreamEngine.consider",
+      "path": "packages/core/src/runtime-orchestrator.ts",
+      "line": 6196,
+      "text": "await this.dreamEngine.consider({"
+    },
+    {
+      "term": "dreamEngine.runDue",
+      "path": "packages/core/src/runtime-orchestrator.ts",
+      "line": 6201,
+      "text": "await this.dreamEngine.runDue(new Date(), `runtime:${sessionId}`, 2);"
+    }
+  ]
+}
