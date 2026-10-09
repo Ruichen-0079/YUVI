@@ -1,0 +1,137 @@
+{
+  "note": "仅为本地已获取原始资料的元数据；取得全文不等于逐页通读，阅读范围见 sources-and-scope.zh.md。PDF与原文不发布。",
+  "sources": [
+    {
+      "id": "causal-states",
+      "url": "https://csc.ucdavis.edu/~cmg/papers/cmppss.pdf",
+      "downloaded": true,
+      "sha256": "77a76d8c5140ab8449d440fe91a523fcf85b10c68124da6bde3de764b3942a6b",
+      "text_lines": 2284
+    },
+    {
+      "id": "predictive-state",
+      "url": "https://proceedings.neurips.cc/paper/2001/file/1e4d36177d71bbb3558e43af9577d70e-Paper.pdf",
+      "downloaded": true,
+      "sha256": "0d9199d40bab3dc468fb95e52d5e4bf9a78e07c6a63250397d336bda215d17b8",
+      "text_lines": 368
+    },
+    {
+      "id": "adaptivity",
+      "url": "https://yannickprie.net/archives/ENACTION-SCHOOLS/docs/documents2006/autopoiesis_teleology_2005.pdf",
+      "downloaded": true,
+      "sha256": "ec65af45dc2f3eb9eede303f3b3d643dad4b01b54c90dad355167bfcb5f12bd7",
+      "text_lines": 992
+    },
+    {
+      "id": "learning-progress",
+      "url": "https://www.pyoudeyer.com/ims.pdf",
+      "downloaded": true,
+      "sha256": "58100a5bbae5f119778951724bae0f15e7167b7c3bfb5fd5041a864d03cffb53",
+      "text_lines": 1477
+    },
+    {
+      "id": "active-inference",
+      "url": "https://www.fil.ion.ucl.ac.uk/~karl/Active%20inference%20and%20epistemic%20value.pdf",
+      "downloaded": true,
+      "sha256": "28bf550c335a24b454689dd476d773ef8c24d830c917783990baf16949b8a226",
+      "text_lines": 8493
+    },
+    {
+      "id": "social-enaction",
+      "url": "https://lifecognitionschool.ias-research.net/files/2010/06/dejaegherdipaolo07participatorysensemaking.pdf",
+      "downloaded": true,
+      "sha256": "a125b60fc9ee4cffcdd3d56e6a3353f95d9dcd0155eca5d18d840aad84d791ff",
+      "text_lines": 1161
+    },
+    {
+      "id": "causal-abstraction",
+      "url": "https://arxiv.org/pdf/2106.02997",
+      "downloaded": true,
+      "sha256": "32bb7dea66595065c54b4f8d210d76e6b5fc7d53f8b211c6495b657903e8f219",
+      "text_lines": 1529
+    },
+    {
+      "id": "intervention-training",
+      "url": "https://proceedings.mlr.press/v162/geiger22a/geiger22a.pdf",
+      "downloaded": true,
+      "sha256": "f97e0d0d4b3285af9a2727b26442131f906cc6ff358755b39906d652f4ef665d",
+      "text_lines": 992
+    },
+    {
+      "id": "poet",
+      "url": "https://arxiv.org/pdf/1901.01753",
+      "downloaded": true,
+      "sha256": "dd47d961249b0328d8d9e88801cdb7a74da6a8224dc08f0d23da7d6f79fa766c",
+      "text_lines": 1463
+    },
+    {
+      "id": "rmt",
+      "url": "https://proceedings.neurips.cc/paper_files/paper/2022/file/47e288629a6996a17ce50b90a056a0e1-Paper-Conference.pdf",
+      "downloaded": true,
+      "sha256": "9aa43978d79b91849e5f3b736b728f7b08a089ec96cb5fae0488dcfcf2d9992a",
+      "text_lines": 765
+    },
+    {
+      "id": "titans",
+      "url": "https://papers.nips.cc/paper_files/paper/2025/file/a4ca07aa108036f80cbb5b82285fd4b1-Paper-Conference.pdf",
+      "downloaded": true,
+      "sha256": "9b0f0c4a0163abab6bc2f8acb105ae3c95f3fff25573aa71a252b0b9c040bf78",
+      "text_lines": 2106
+    },
+    {
+      "id": "nested-learning",
+      "url": "https://arxiv.org/pdf/2512.24695",
+      "downloaded": true,
+      "text_lines": 3087,
+      "sha256": "e87a9ce82ff24e96f55b83fb9713a5d6fc9e4a1a232c12d42da49c10022ed891"
+    },
+    {
+      "id": "ewc",
+      "url": "https://arxiv.org/pdf/1612.00796",
+      "downloaded": true,
+      "sha256": "5e181839191ab4582da2b5ff9666f5222e40b8b8d2f1cdf4fa7100b3a58d7a29",
+      "text_lines": 780
+    },
+    {
+      "id": "meta-rl",
+      "url": "https://arxiv.org/pdf/1611.05763",
+      "downloaded": true,
+      "sha256": "02801a8681281b6e1f129709b730533e7e899994ad111934cf028d61db31b8c6",
+      "text_lines": 978
+    },
+    {
+      "id": "fep-critique",
+      "url": "https://mdpi-res.com/d_attachment/entropy/entropy-23-00293/article_deploy/entropy-23-00293-v2.pdf",
+      "downloaded": true,
+      "sha256": "c67a883144da0e97de9458181094ecebaba7899011baae9fc19b996c229dc744",
+      "text_lines": 1577
+    },
+    {
+      "id": "dreamer",
+      "url": "https://www.nature.com/articles/s41586-025-08744-2.pdf",
+      "downloaded": true,
+      "sha256": "b34e999951cb5b8b84594f3936b1c395e9d51e563e0932273e9197cee66e37ef",
+      "text_lines": 1021
+    },
+    {
+      "id": "rnnpb",
+      "url": "https://www.oist.jp/sites/default/files/2024-03/cnru_nn03_0.pdf",
+      "downloaded": false,
+      "error": ""
+    },
+    {
+      "id": "perceptual-crossing",
+      "url": "https://cepa.info/fulltexts/478.pdf",
+      "downloaded": true,
+      "text_lines": 779,
+      "sha256": "510583d2cd95a35affa3b79a979eae87f01fe2cc6f452d2461d894159dfb1f7a"
+    },
+    {
+      "id": "plasticity",
+      "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC11338828/fullTextXML",
+      "downloaded": true,
+      "text_sha256": "baeeef5f78b27cfdc5c6e5a8d49667a268e1c0aa83dc312f913fc3df424200c6",
+      "format": "原始全文 XML 的段落提取"
+    }
+  ]
+}

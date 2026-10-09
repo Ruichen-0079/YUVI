@@ -1,0 +1,37 @@
+{
+  "kind": "formal_counterexamples_only_no_model_experience_claim",
+  "recurrence_vs_complete_replay": {
+    "events": 200,
+    "initial_state_and_transition_shared": true,
+    "max_absolute_state_error": 0.0,
+    "scope": "已知转移、完整事件与初态；不证明实际长上下文 LLM 会正确重放。"
+  },
+  "whole_state_swap_does_not_prove_unity": {
+    "two_domain_outputs_before": [
+      0.2,
+      -0.7
+    ],
+    "two_domain_outputs_after_swap": [
+      0.9,
+      0.4
+    ],
+    "domain_1_event_effect_on_domain_2_state": 0.0,
+    "rotated_before": [
+      0.6363961030678926,
+      -0.3535533905932737
+    ],
+    "rotated_after": [
+      0.35355339059327373,
+      0.9192388155425117
+    ],
+    "scope": "两个独立控制器拼接；混合坐标和全交换不能证明统一因果机制。"
+  },
+  "elapsed_time_partition": {
+    "one_interval": 0.1353352832366127,
+    "two_intervals": 0.1353352832366127,
+    "absolute_difference": 0.0,
+    "arbitrary_per_wakeup_one_step": 0.8,
+    "arbitrary_per_wakeup_two_steps": 0.6400000000000001,
+    "scope": "说明时间分段伪差异；不声称所有内部状态应指数衰减。"
+  }
+}

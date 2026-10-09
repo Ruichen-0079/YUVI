@@ -1,0 +1,85 @@
+{
+  "verified_at": "2026-10-09T05:00:44.023346+00:00",
+  "research_main_sha": "c28e5901f4ef3578a85ab8fd9513652ddaab5866",
+  "publication_base_sha": "c28e5901f4ef3578a85ab8fd9513652ddaab5866",
+  "pr321": {
+    "head_sha": "0b0f1366b341adcf9662b7e0c2d0ab5cd64c2ce9",
+    "github_state": "closed",
+    "merged": false
+  },
+  "scope": {
+    "production_code_modified": false,
+    "production_implementation_reaudited": false,
+    "api_designed": false,
+    "version_implementation_plan_created": false,
+    "model_training_or_credentialed_inference_run": false,
+    "paper_fulltexts_published": false
+  },
+  "checks": {
+    "required_A_to_H_sections_present": true,
+    "relative_links_checked_before_self_record": 8,
+    "pinned_repository_source_links_exist": true,
+    "formal_counterexamples_completed": true,
+    "git_diff_check_passed": true,
+    "changed_paths_restricted_to_docs_research": true,
+    "previous_frozen_reports_unchanged": true
+  },
+  "formal_results": {
+    "kind": "formal_counterexamples_only_no_model_experience_claim",
+    "recurrence_vs_complete_replay": {
+      "events": 200,
+      "initial_state_and_transition_shared": true,
+      "max_absolute_state_error": 0.0,
+      "scope": "已知转移、完整事件与初态；不证明实际长上下文 LLM 会正确重放。"
+    },
+    "whole_state_swap_does_not_prove_unity": {
+      "two_domain_outputs_before": [
+        0.2,
+        -0.7
+      ],
+      "two_domain_outputs_after_swap": [
+        0.9,
+        0.4
+      ],
+      "domain_1_event_effect_on_domain_2_state": 0.0,
+      "rotated_before": [
+        0.6363961030678926,
+        -0.3535533905932737
+      ],
+      "rotated_after": [
+        0.35355339059327373,
+        0.9192388155425117
+      ],
+      "scope": "两个独立控制器拼接；混合坐标和全交换不能证明统一因果机制。"
+    },
+    "elapsed_time_partition": {
+      "one_interval": 0.1353352832366127,
+      "two_intervals": 0.1353352832366127,
+      "absolute_difference": 0.0,
+      "arbitrary_per_wakeup_one_step": 0.8,
+      "arbitrary_per_wakeup_two_steps": 0.6400000000000001,
+      "scope": "说明时间分段伪差异；不声称所有内部状态应指数衰减。"
+    }
+  },
+  "unchanged_previous_frozen_sha256": {
+    "YUVI-Vision-Reconstruction.zh.md": "8f09eed2cc0152f48f0b198d5ab721b483ac42c6b934b03e2c7abd897ba385af",
+    "YUVI-Clean-Sheet-Architecture.zh.md": "5f5cd3a5547f4e88da4e7eef2b995772499c28cea20ed505763cdf5f88c927e0"
+  },
+  "production_tree_ids_at_base": {
+    "apps": "afd567239c5ea729e910d727f8d23a5d38046070",
+    "packages": "2c55064c7ce75b0d4ddc6c9480c0721aad0c9ceb"
+  },
+  "files_sha256": {
+    "README.md": "87a111ed0d1c00d410ae2108d8d358d86d0be41290d0167cf943fa9b462bc6b3",
+    "YUVI-Persistent-Internal-State-Foundations.zh.md": "10bbe4bf448fd99e2484c0327065bfc8b0546fcae8765837b35323fcb4575e57",
+    "evidence/source-cache-manifest.json": "c24aed3fcd771e1e0f63e97a58a048fffaff5dc1fad557a2aeb8bbf4d7c33306",
+    "experiments/formal_counterexamples.py": "71a4ae4082348923ef5a72e1f332d80b26f2a64c1fd7e7edc42de1bb016e8ba4",
+    "experiments/results.json": "760ad5fc63dbea2ec563a0ba88dac6872d6b8cb544301244a14bfac3d1558b7d",
+    "sources-and-scope.zh.md": "5a7cf307dff91d7d04be8273f70531888e6c308e0f515512512660af34145b36"
+  },
+  "limits": [
+    "形式反例不证明持续个体或体验改善",
+    "九项行为实验是设计，尚未执行",
+    "全文可得不等于全部附录逐页阅读，详见来源说明"
+  ]
+}
