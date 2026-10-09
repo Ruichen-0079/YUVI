@@ -1,0 +1,58 @@
+{
+  "history": {
+    "marker": "HISTORY_ONLY_verified_result_7c924",
+    "ordinaryRetains": true,
+    "surfaceRetains": false,
+    "olderSceneExcerptRetains": false,
+    "olderExcerptCharacters": 512,
+    "observationsWithin1Second": 1,
+    "observationsAfter121Seconds": 0
+  },
+  "qqMedia": {
+    "firstImage": "first.png",
+    "content": "Compare these two images[Image attachment][Additional image attachment; contents unavailable]",
+    "long4097Accepted": false
+  },
+  "authorizationFailure": {
+    "calls": 2,
+    "disposition": "SILENCE",
+    "throws": false
+  },
+  "inputComparators": {
+    "note": "Projection-only comparison; not complete model requests or quality evaluation",
+    "A": "Alice\nuser: previous question\nassistant: HISTORY_ONLY_verified_result_7c924\nuser: repeat the result",
+    "B": {
+      "background": "",
+      "situation": "Current situation:\nPrivate conversation",
+      "spans": [
+        {
+          "key": "CURRENT_SITUATION",
+          "part": "situation",
+          "offset": 19,
+          "characters": 20,
+          "epistemicState": "KNOWN"
+        }
+      ]
+    },
+    "C": {
+      "background": "Earlier conversation (history):\nassistant: HISTORY_ONLY_verified_result_7c924\n\nCurrent situation:\nPrivate conversation",
+      "situation": "",
+      "spans": [
+        {
+          "key": "RECENT_CONVERSATION",
+          "part": "background",
+          "offset": 32,
+          "characters": 45,
+          "epistemicState": "KNOWN"
+        },
+        {
+          "key": "CURRENT_SITUATION",
+          "part": "background",
+          "offset": 98,
+          "characters": 20,
+          "epistemicState": "KNOWN"
+        }
+      ]
+    }
+  }
+}

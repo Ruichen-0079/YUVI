@@ -1,0 +1,85 @@
+{
+  "cognition": {
+    "calls": 3,
+    "identicalInputs": true,
+    "capabilityInventoryEmpty": true,
+    "outcome": {
+      "version": "character-harness-5h.v1",
+      "request": {
+        "version": "character-harness-5g.v1",
+        "kind": "NEED_COGNITION",
+        "focus": "solve"
+      },
+      "result": {
+        "version": "character-cognition-result.v1",
+        "status": "SUCCESS",
+        "answer": "The answer is 42."
+      }
+    }
+  },
+  "negatedForget": {
+    "sentence": "Don't forget that my project codename is Blue Heron.",
+    "remember": true,
+    "forget": true,
+    "deletedBeforeGate": ["existing-fact"],
+    "gateCalls": 1
+  },
+  "forgetFailure": {
+    "serviceResult": {
+      "deleted": 0,
+      "notFound": true,
+      "memoryIds": [],
+      "query": "Blue Heron"
+    },
+    "runtimePromptClaimsNotFound": true
+  },
+  "outputFinish": {
+    "stop": {
+      "reply": "A useful partial answer with a verified calculation: 6 × 7 = 42.",
+      "error": null,
+      "calls": [
+        {
+          "kind": "gate",
+          "maxTokens": 2048
+        },
+        {
+          "kind": "body",
+          "maxTokens": 2048
+        }
+      ],
+      "history": [
+        {
+          "role": "user",
+          "status": "completed"
+        },
+        {
+          "role": "assistant",
+          "status": "completed"
+        }
+      ]
+    },
+    "length": {
+      "reply": null,
+      "error": {
+        "name": "ProviderError",
+        "message": "Invalid Character stream completion."
+      },
+      "calls": [
+        {
+          "kind": "gate",
+          "maxTokens": 2048
+        },
+        {
+          "kind": "body",
+          "maxTokens": 2048
+        }
+      ],
+      "history": [
+        {
+          "role": "user",
+          "status": "completed"
+        }
+      ]
+    }
+  }
+}
