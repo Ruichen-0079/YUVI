@@ -1,0 +1,70 @@
+{
+  "verified_at": "2026-10-09T01:49:09.421765+00:00",
+  "main_sha": "46a24878536d537021c49d50c5ce004d93489628",
+  "remote_main_sha": "46a24878536d537021c49d50c5ce004d93489628",
+  "repository_status_porcelain": "",
+  "repository_code_modified": false,
+  "frozen_artifacts": {
+    "YUVI-Vision-Reconstruction.zh.md": {
+      "sha256": "8f09eed2cc0152f48f0b198d5ab721b483ac42c6b934b03e2c7abd897ba385af",
+      "unchanged": true
+    },
+    "YUVI-Clean-Sheet-Architecture.zh.md": {
+      "sha256": "5f5cd3a5547f4e88da4e7eef2b995772499c28cea20ed505763cdf5f88c927e0",
+      "unchanged": true
+    }
+  },
+  "final_artifacts": {
+    "YUVI-Clean-Sheet-Architecture.zh.md": {
+      "sha256": "5f5cd3a5547f4e88da4e7eef2b995772499c28cea20ed505763cdf5f88c927e0",
+      "bytes": 22120
+    },
+    "YUVI-Next-Generation-Architecture-Review.zh.md": {
+      "sha256": "997a8196952e47abd2e55941e2161653205251edbedb54d4dc86082e037efc48",
+      "bytes": 66193
+    },
+    "YUVI-Vision-Reconstruction.zh.md": {
+      "sha256": "8f09eed2cc0152f48f0b198d5ab721b483ac42c6b934b03e2c7abd897ba385af",
+      "bytes": 12094
+    }
+  },
+  "markdown_checks": {
+    "balanced_fences": true,
+    "local_links_exist": true,
+    "pinned_source_link_paths_exist": true,
+    "pinned_source_links_checked": 53
+  },
+  "validation": {
+    "workspace_check": "passed",
+    "workspace_vitest": {
+      "passed": 3586,
+      "skipped": 368,
+      "failed": 0
+    },
+    "root_node_tests": {
+      "passed": 63,
+      "skipped": 0,
+      "failed": 0
+    },
+    "dots_tts_python": {
+      "passed": 13
+    },
+    "offline_architecture_probe": "passed",
+    "probe_baseline": "46a24878536d537021c49d50c5ce004d93489628",
+    "probe_source_dirty": false
+  },
+  "versions": {
+    "node": "v24.19.0",
+    "pnpm": "11.19.0",
+    "repository_pnpm": "9.15.4"
+  },
+  "not_executed": [
+    "real model evaluation",
+    "PostgreSQL/Mem0 persistence acceptance",
+    "Rust/Tauri desktop field tests",
+    "real STT/TTS/vision or QQ",
+    "training",
+    "full packaged conformance"
+  ],
+  "independence_limit": "Future documents themselves contain implementation names and embedded audit descriptions; no blind-study claim."
+}

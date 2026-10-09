@@ -1,0 +1,4 @@
+apps/web/src/cubism-framework.ts(53,12): error TS2307: Cannot find module '../vendor/cubism-framework/dist/live2dcubismframework.js' or its corresponding type declarations.
+apps/web/src/cubism-framework.ts(54,12): error TS2307: Cannot find module '../vendor/cubism-framework/dist/model/cubismusermodel.js' or its corresponding type declarations.
+apps/web/src/cubism-framework.ts(55,12): error TS2307: Cannot find module '../vendor/cubism-framework/dist/cubismmodelsettingjson.js' or its corresponding type declarations.
+apps/web/src/cubism-framework.ts(56,12): error TS2307: Cannot find module '../vendor/cubism-framework/dist/math/cubismmatrix44.js' or its corresponding type declarations.

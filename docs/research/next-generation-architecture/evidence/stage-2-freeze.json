@@ -1,0 +1,17 @@
+{
+  "frozen_at": "2026-10-09T01:18:51.719055+00:00",
+  "main_sha": "46a24878536d537021c49d50c5ce004d93489628",
+  "production_source_read": false,
+  "standalone_prior_audits_read": false,
+  "known_contamination": "Future index and design contracts contain existing module names and embedded implementation/audit descriptions; no blind-study claim",
+  "files": {
+    "YUVI-Vision-Reconstruction.zh.md": {
+      "sha256": "8f09eed2cc0152f48f0b198d5ab721b483ac42c6b934b03e2c7abd897ba385af",
+      "bytes": 12094
+    },
+    "YUVI-Clean-Sheet-Architecture.zh.md": {
+      "sha256": "5f5cd3a5547f4e88da4e7eef2b995772499c28cea20ed505763cdf5f88c927e0",
+      "bytes": 22120
+    }
+  }
+}

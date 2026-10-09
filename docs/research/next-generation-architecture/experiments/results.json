@@ -1,0 +1,199 @@
+{
+  "baseline": "46a24878536d537021c49d50c5ce004d93489628",
+  "sourceDirty": false,
+  "mode": "offline production control flow / contract inputs / parametric arithmetic",
+  "traces": [
+    {
+      "escalation": false,
+      "calls": [
+        {
+          "kind": "gate",
+          "after": false,
+          "characters": 3850
+        },
+        {
+          "kind": "body",
+          "after": false,
+          "characters": 2010
+        }
+      ],
+      "cognitionExecutorCalls": 0,
+      "note": "Executor is scripted; actual Cognition may issue several provider/capability calls."
+    },
+    {
+      "escalation": true,
+      "calls": [
+        {
+          "kind": "gate",
+          "after": false,
+          "characters": 3850
+        },
+        {
+          "kind": "gate",
+          "after": true,
+          "characters": 3598
+        },
+        {
+          "kind": "body",
+          "after": false,
+          "characters": 2409
+        }
+      ],
+      "cognitionExecutorCalls": 1,
+      "note": "Executor is scripted; actual Cognition may issue several provider/capability calls."
+    }
+  ],
+  "profile": {
+    "generationState": "COMPLETE",
+    "narrative": null,
+    "entries": [
+      {
+        "content": "我喜欢黑咖啡。",
+        "status": "EVIDENCE",
+        "epistemicStatus": "UNVERIFIED",
+        "semanticConflictAssessment": "NOT_ASSESSED"
+      },
+      {
+        "content": "我讨厌黑咖啡。",
+        "status": "EVIDENCE",
+        "epistemicStatus": "UNVERIFIED",
+        "semanticConflictAssessment": "NOT_ASSESSED"
+      }
+    ]
+  },
+  "boundResults": [
+    {
+      "rawRecords": 4096,
+      "state": "COMPLETE",
+      "reasons": [],
+      "eligible": 4096
+    },
+    {
+      "rawRecords": 4097,
+      "state": "PARTIAL",
+      "reasons": [
+        "ROW_BOUND"
+      ],
+      "eligible": 4096
+    }
+  ],
+  "extractor": {
+    "reasonerCalls": 0,
+    "status": {
+      "mode": "llm",
+      "active": "fallback-rule-based",
+      "enabled": true,
+      "provider": "offline",
+      "fallbackUsed": true,
+      "skippedReason": "unsupported-grounding: LLM evidence admission is unavailable until committed grounding is supported; using rule-based extraction.",
+      "candidateCount": 1
+    },
+    "candidateCount": 1
+  },
+  "budgets": [
+    {
+      "windowTokens": 16384,
+      "workingTokens": 12288,
+      "outputTokens": 2048,
+      "safetyTokens": 2048,
+      "maxInputCharacters": 8192
+    },
+    {
+      "windowTokens": 32768,
+      "workingTokens": 24576,
+      "outputTokens": 2048,
+      "safetyTokens": 2048,
+      "maxInputCharacters": 20480
+    },
+    {
+      "windowTokens": 131072,
+      "workingTokens": 24576,
+      "outputTokens": 2048,
+      "safetyTokens": 2048,
+      "maxInputCharacters": 20480
+    },
+    {
+      "windowTokens": 1048576,
+      "workingTokens": 24576,
+      "outputTokens": 2048,
+      "safetyTokens": 2048,
+      "maxInputCharacters": 20480
+    }
+  ],
+  "compression": [
+    {
+      "name": "three-lines",
+      "before": 5045,
+      "after": 295,
+      "retractionRetained": false,
+      "unknownMarkerRetained": true,
+      "epistemicMarkersPreserved": true,
+      "note": "Only newline placement differs; illustrative bounded evidence text, not a prevalence estimate."
+    },
+    {
+      "name": "four-lines",
+      "before": 5045,
+      "after": 88,
+      "retractionRetained": true,
+      "unknownMarkerRetained": true,
+      "epistemicMarkersPreserved": true,
+      "note": "Only newline placement differs; illustrative bounded evidence text, not a prevalence estimate."
+    }
+  ],
+  "costs": [
+    {
+      "promptTokens": 2000,
+      "cacheHitFraction": 0,
+      "turns": 100,
+      "currentSimpleInputTokens": 400000,
+      "onePassInputTokens": 200000,
+      "currentOutputTokens": 23000,
+      "onePassOutputTokens": 20000
+    },
+    {
+      "promptTokens": 2000,
+      "cacheHitFraction": 0.9,
+      "turns": 100,
+      "currentSimpleInputTokens": 76000,
+      "onePassInputTokens": 38000,
+      "currentOutputTokens": 23000,
+      "onePassOutputTokens": 20000
+    },
+    {
+      "promptTokens": 8000,
+      "cacheHitFraction": 0,
+      "turns": 100,
+      "currentSimpleInputTokens": 1600000,
+      "onePassInputTokens": 800000,
+      "currentOutputTokens": 23000,
+      "onePassOutputTokens": 20000
+    },
+    {
+      "promptTokens": 8000,
+      "cacheHitFraction": 0.9,
+      "turns": 100,
+      "currentSimpleInputTokens": 304000,
+      "onePassInputTokens": 152000,
+      "currentOutputTokens": 23000,
+      "onePassOutputTokens": 20000
+    },
+    {
+      "promptTokens": 20000,
+      "cacheHitFraction": 0,
+      "turns": 100,
+      "currentSimpleInputTokens": 4000000,
+      "onePassInputTokens": 2000000,
+      "currentOutputTokens": 23000,
+      "onePassOutputTokens": 20000
+    },
+    {
+      "promptTokens": 20000,
+      "cacheHitFraction": 0.9,
+      "turns": 100,
+      "currentSimpleInputTokens": 760000,
+      "onePassInputTokens": 380000,
+      "currentOutputTokens": 23000,
+      "onePassOutputTokens": 20000
+    }
+  ]
+}

@@ -1,0 +1,1491 @@
+Scope: 19 of 20 workspace projects
+packages/character-abi test$ vitest run --passWithNoTests
+packages/database test$ vitest run --passWithNoTests
+packages/database test:  RUN  v2.1.9 /workspace/YUVI-source/packages/database
+packages/character-abi test:  RUN  v2.1.9 /workspace/YUVI-source/packages/character-abi
+packages/database test:  ✓ src/index.test.ts (2 tests) 5ms
+packages/database test:  Test Files  1 passed (1)
+packages/database test:       Tests  2 passed (2)
+packages/database test:    Start at  01:24:02
+packages/database test:    Duration  283ms (transform 50ms, setup 0ms, collect 53ms, tests 5ms, environment 0ms, prepare 69ms)
+packages/database test: Done
+packages/desktop-supervisor test$ vitest run --passWithNoTests
+packages/character-abi test:  ✓ src/adapter-conformance.test.ts (9 tests) 10ms
+packages/desktop-supervisor test:  RUN  v2.1.9 /workspace/YUVI-source/packages/desktop-supervisor
+packages/character-abi test:  ✓ src/p8-projection.test.ts (9 tests) 18ms
+packages/character-abi test:  ✓ src/decision.test.ts (17 tests) 11ms
+packages/character-abi test:  ✓ src/index.test.ts (16 tests) 10ms
+packages/character-abi test:  ✓ src/v2d.test.ts (13 tests) 6ms
+packages/character-abi test:  ✓ src/output-language.test.ts (17 tests) 4ms
+packages/character-abi test:  ✓ src/memory-vnext-projection.test.ts (2 tests) 4ms
+packages/character-abi test:  Test Files  7 passed (7)
+packages/character-abi test:       Tests  83 passed (83)
+packages/character-abi test:    Start at  01:24:02
+packages/character-abi test:    Duration  2.50s (transform 932ms, setup 0ms, collect 1.29s, tests 63ms, environment 1ms, prepare 361ms)
+packages/character-abi test: Done
+packages/host-environment test$ vitest run --passWithNoTests
+packages/host-environment test:  RUN  v2.1.9 /workspace/YUVI-source/packages/host-environment
+packages/host-environment test:  ✓ src/index.test.ts (16 tests) 206ms
+packages/host-environment test:  Test Files  1 passed (1)
+packages/host-environment test:       Tests  16 passed (16)
+packages/host-environment test:    Start at  01:24:05
+packages/host-environment test:    Duration  473ms (transform 81ms, setup 0ms, collect 94ms, tests 206ms, environment 0ms, prepare 53ms)
+packages/host-environment test: Done
+packages/prompt-builder test$ vitest run --passWithNoTests
+packages/prompt-builder test:  RUN  v2.1.9 /workspace/YUVI-source/packages/prompt-builder
+packages/prompt-builder test:  ✓ src/canonical-context-stability.test.ts (24 tests) 14ms
+packages/prompt-builder test:  ✓ src/index.test.ts (11 tests) 32ms
+packages/prompt-builder test:  ✓ src/canonical-context.test.ts (5 tests) 25ms
+packages/prompt-builder test:  Test Files  3 passed (3)
+packages/prompt-builder test:       Tests  40 passed (40)
+packages/prompt-builder test:    Start at  01:24:05
+packages/prompt-builder test:    Duration  639ms (transform 85ms, setup 0ms, collect 109ms, tests 70ms, environment 0ms, prepare 135ms)
+packages/prompt-builder test: Done
+packages/protocol test$ vitest run --passWithNoTests
+packages/protocol test:  RUN  v2.1.9 /workspace/YUVI-source/packages/protocol
+packages/protocol test:  ✓ src/life-event-journal.test.ts (16 tests) 40ms
+packages/protocol test:  ✓ src/embodied-behavior-correlation.test.ts (7 tests) 6ms
+packages/protocol test:  ✓ src/embodied-behavior.test.ts (5 tests) 7ms
+packages/protocol test:  ✓ src/embodied-presentation-request.test.ts (11 tests) 7ms
+packages/protocol test:  ✓ src/embodied-presentation-outcome.test.ts (12 tests) 5ms
+packages/protocol test:  ✓ src/index.test.ts (4 tests) 7ms
+packages/protocol test:  Test Files  6 passed (6)
+packages/protocol test:       Tests  55 passed (55)
+packages/protocol test:    Start at  01:24:06
+packages/protocol test:    Duration  1.25s (transform 172ms, setup 0ms, collect 307ms, tests 73ms, environment 1ms, prepare 269ms)
+packages/protocol test: Done
+packages/desktop-supervisor test:  ✓ src/supervisor.test.ts (53 tests) 6108ms
+packages/desktop-supervisor test:    ✓ DesktopSupervisor exec-stable Runtime ownership > refresh keeps a spawned Runtime owned after the runner argv marker disappears 1656ms
+packages/desktop-supervisor test:    ✓ DesktopSupervisor packaged Mem0 reconcile > ignores a stale exit callback from a previous managed generation 407ms
+packages/desktop-supervisor test:    ✓ DesktopSupervisor packaged Mem0 reconcile > restarts an owned Mem0 once when its managed port changes 405ms
+packages/desktop-supervisor test:    ✓ DesktopSupervisor packaged Mem0 reconcile > serializes rapid config updates and does not run parallel reconcile 406ms
+packages/desktop-supervisor test:    ✓ DesktopSupervisor bounded Local STT suspend > stops an owned STT, resists route autostart reapply, and explicit start clears suspend 405ms
+packages/desktop-supervisor test:  ✓ src/packaged-layout.test.ts (22 tests) 33ms
+packages/desktop-supervisor test:  ↓ src/postgres-lifecycle.pg.test.ts (5 tests | 5 skipped)
+packages/desktop-supervisor test:  ✓ src/ownership.test.ts (17 tests) 10ms
+packages/desktop-supervisor test:  ✓ src/http-server.test.ts (10 tests) 45ms
+packages/desktop-supervisor test:  ✓ src/postgres-supervisor.test.ts (8 tests) 10ms
+packages/desktop-supervisor test:  ✓ src/postgres-ownership.test.ts (4 tests) 6ms
+packages/desktop-supervisor test:  ✓ src/mem0-dev-env.lifecycle.test.ts (3 tests) 214ms
+packages/desktop-supervisor test:  ✓ src/postgres-distribution.test.ts (5 tests) 5ms
+packages/desktop-supervisor test:  ✓ src/mem0-start.resolve.test.ts (8 tests) 6ms
+packages/desktop-supervisor test:  ✓ src/paths.test.ts (12 tests) 5ms
+packages/desktop-supervisor test:  ✓ src/app-roots.test.ts (10 tests) 6ms
+packages/desktop-supervisor test:  ✓ src/postgres-layout.test.ts (6 tests) 9ms
+packages/desktop-supervisor test:  ✓ src/mem0-manifest.test.ts (25 tests) 13ms
+packages/desktop-supervisor test:  ✓ src/process-windows.test.ts (8 tests) 92ms
+packages/desktop-supervisor test:  ✓ src/postgres-cluster.test.ts (4 tests) 7ms
+packages/desktop-supervisor test:  ✓ src/instance-lock.test.ts (3 tests) 48ms
+packages/desktop-supervisor test:  ✓ src/health.test.ts (7 tests) 7ms
+packages/desktop-supervisor test:  ✓ src/postgres-port.test.ts (4 tests) 4ms
+packages/desktop-supervisor test:  ✓ src/bounded-log.test.ts (3 tests) 7ms
+packages/desktop-supervisor test:  ✓ src/postgres-acl.test.ts (4 tests) 3ms
+packages/desktop-supervisor test:  ✓ src/local-stt-manifest.test.ts (4 tests) 5ms
+packages/desktop-supervisor test:  ✓ src/postgres-secret.test.ts (2 tests) 4ms
+packages/desktop-supervisor test:  ✓ src/env.test.ts (1 test) 4ms
+packages/desktop-supervisor test:  Test Files  23 passed | 1 skipped (24)
+packages/desktop-supervisor test:       Tests  223 passed | 5 skipped (228)
+packages/desktop-supervisor test:    Start at  01:24:02
+packages/desktop-supervisor test:    Duration  11.02s (transform 483ms, setup 0ms, collect 966ms, tests 6.65s, environment 3ms, prepare 1.03s)
+packages/desktop-supervisor test: Done
+apps/web test$ vitest run --passWithNoTests --exclude **/dist-types/**
+packages/character-harness test$ vitest run --passWithNoTests && pnpm run test:runtime-import
+packages/character-harness test:  RUN  v2.1.9 /workspace/YUVI-source/packages/character-harness
+apps/web test:  RUN  v2.1.9 /workspace/YUVI-source/apps/web
+packages/character-harness test:  ✓ src/post-cognition-assembly.test.ts (9 tests) 7ms
+apps/web test:  ✓ src/behavior-policy.test.ts (40 tests) 24ms
+packages/character-harness test:  ✓ src/recovery-supervisor.test.ts (14 tests) 10ms
+packages/character-harness test:  ✓ src/adapter-request.test.ts (7 tests) 6ms
+apps/web test:  ✓ src/speech-segmenter.test.ts (67 tests) 46ms
+packages/character-harness test:  ✓ src/index.test.ts (8 tests) 11ms
+apps/web test:  ✓ src/behavior-policy-controller.test.ts (58 tests) 41ms
+packages/character-harness test:  ✓ src/generation-supervision.test.ts (15 tests) 11ms
+packages/character-harness test:  ✓ src/assembly-v2d.test.ts (8 tests) 6ms
+packages/character-harness test:  ✓ src/repetition-supervision.test.ts (11 tests) 8ms
+apps/web test:  ✓ src/companion-page.test.tsx (14 tests) 66ms
+packages/character-harness test:  ✓ src/embodied-soft-smile-projection.test.ts (6 tests) 6ms
+apps/web test:  ✓ src/user-settings-state.test.ts (31 tests) 15ms
+packages/character-harness test:  ✓ src/recovery.test.ts (13 tests) 7ms
+packages/character-harness test:  ✓ src/cognition-result.test.ts (11 tests) 10ms
+apps/web test:  ✓ src/lumi-live2d.test.ts (23 tests) 39ms
+packages/character-harness test:  ✓ src/accepted-proposal-instance.test.ts (6 tests) 7ms
+packages/character-harness test:  ✓ src/output-interpretation.test.ts (11 tests) 5ms
+packages/character-harness test:  ✓ src/cognition-section.test.ts (7 tests) 5ms
+packages/character-harness test:  ✓ src/cognition-request.test.ts (9 tests) 6ms
+packages/character-harness test:  Test Files  14 passed (14)
+packages/character-harness test:       Tests  135 passed (135)
+packages/character-harness test:    Start at  01:24:14
+packages/character-harness test:    Duration  3.63s (transform 370ms, setup 0ms, collect 600ms, tests 107ms, environment 3ms, prepare 935ms)
+packages/character-harness test: $ tsc -b tsconfig.json && node --input-type=module -e "await import('./dist/cognition-section.js'); await import('./dist/post-cognition-assembly.js'); await import('./dist/adapter-request.js'); await import('./dist/accepted-proposal-instance.js'); await import('./dist/embodied-soft-smile-projection.js')"
+packages/character-harness test: Done
+packages/config test$ vitest run --passWithNoTests
+packages/config test:  RUN  v2.1.9 /workspace/YUVI-source/packages/config
+apps/web test:  ✓ src/speech-queue.test.ts (20 tests) 1296ms
+packages/config test:  ✓ src/index.test.ts (15 tests) 23ms
+packages/config test:  Test Files  1 passed (1)
+packages/config test:       Tests  15 passed (15)
+packages/config test:    Start at  01:24:18
+packages/config test:    Duration  406ms (transform 125ms, setup 0ms, collect 169ms, tests 23ms, environment 0ms, prepare 76ms)
+packages/config test: Done
+packages/event-bus test$ vitest run --passWithNoTests
+apps/web test:  ✓ src/main-page-proactive.integration.test.tsx (10 tests) 267ms
+packages/event-bus test:  RUN  v2.1.9 /workspace/YUVI-source/packages/event-bus
+apps/web test:  ✓ src/companion-presence.test.ts (23 tests) 21ms
+apps/web test:  ✓ src/proactive-turn-execution.test.ts (11 tests) 12ms
+packages/event-bus test:  ✓ src/index.test.ts (5 tests) 4ms
+packages/event-bus test:  Test Files  1 passed (1)
+packages/event-bus test:       Tests  5 passed (5)
+packages/event-bus test:    Start at  01:24:19
+packages/event-bus test:    Duration  502ms (transform 193ms, setup 0ms, collect 264ms, tests 4ms, environment 0ms, prepare 68ms)
+packages/event-bus test: Done
+packages/journal test$ vitest run --passWithNoTests
+apps/web test:  ✓ src/companion-gaze.test.ts (20 tests) 41ms
+packages/journal test:  RUN  v2.1.9 /workspace/YUVI-source/packages/journal
+apps/web test:  ✓ src/product-configuration.test.tsx (10 tests) 96ms
+apps/web test:  ✓ src/capability-projection.test.ts (10 tests) 10ms
+packages/journal test:  ↓ test/postgres-store.integration.test.ts (13 tests | 13 skipped)
+packages/journal test:  Test Files  1 skipped (1)
+packages/journal test:       Tests  13 skipped (13)
+packages/journal test:    Start at  01:24:20
+packages/journal test:    Duration  996ms (transform 531ms, setup 0ms, collect 755ms, tests 0ms, environment 0ms, prepare 66ms)
+packages/journal test: Done
+packages/providers test$ vitest run --passWithNoTests
+packages/providers test:  RUN  v2.1.9 /workspace/YUVI-source/packages/providers
+apps/web test:  ✓ src/product-ai-routing.test.tsx (9 tests) 30ms
+packages/providers test:  ✓ src/registry.test.ts (35 tests) 47ms
+apps/web test:  ✓ src/companion-bus.test.ts (10 tests) 366ms
+packages/providers test:  ✓ src/policy.test.ts (32 tests) 31ms
+packages/providers test:  ✓ src/alibaba/transport-cancellation.test.ts (49 tests) 55ms
+apps/web test:  ✓ src/lumi-presentation-motion.test.ts (15 tests) 377ms
+packages/providers test:  ✓ src/openai-compatible-non-stream-transport.test.ts (24 tests) 46ms
+apps/web test:  ✓ src/lumi-framing.test.ts (19 tests) 9ms
+packages/providers test:  ✓ src/xai/transport-cancellation.test.ts (26 tests) 54ms
+apps/web test:  ✓ src/api/stream.test.ts (13 tests) 26ms
+packages/providers test:  ✓ src/local/GPTSoVITSTransportCancellation.test.ts (26 tests) 36ms
+apps/web test:  ✓ src/product-local-services.test.tsx (7 tests) 64ms
+packages/providers test:  ✓ src/xai/XAIVisionProvider.test.ts (49 tests) 145ms
+apps/web test:  ✓ src/service-status-state.test.ts (12 tests) 7ms
+packages/providers test:  ✓ src/openai-compatible-stream.test.ts (18 tests) 42ms
+apps/web test:  ✓ src/lumi-canvas.test.tsx (2 tests) 37ms
+packages/providers test:  ✓ src/streaming.test.ts (16 tests) 25ms
+apps/web test:  ✓ src/speech-segmenter-pipeline.test.ts (5 tests) 16ms
+packages/providers test:  ✓ src/deepseek/non-stream-transport.test.ts (25 tests) 25ms
+apps/web test:  ✓ src/settings-state.test.ts (17 tests) 8ms
+packages/providers test:  ✓ src/local/LocalSTTProvider.test.ts (12 tests) 21ms
+apps/web test:  ✓ src/chat-state.test.ts (11 tests) 7ms
+packages/providers test:  ✓ src/local/GPTSoVITSTTSProvider.test.ts (14 tests) 24ms
+apps/web test:  ✓ src/behavior-policy-embodied-shadow.test.ts (8 tests) 11ms
+packages/providers test:  ✓ src/proactive.test.ts (12 tests) 29ms
+apps/web test:  ✓ src/tauri-window.test.ts (14 tests) 20ms
+packages/providers test:  ✓ src/context-exposure.test.ts (11 tests) 16ms
+apps/web test:  ✓ src/api/proactive-stream.test.ts (8 tests) 21ms
+packages/providers test:  ✓ src/contracts.test.ts (3 tests) 7ms
+apps/web test:  ✓ src/lumi-audio.test.ts (12 tests) 11ms
+packages/providers test:  ✓ src/transport-abort.test.ts (10 tests) 14ms
+apps/web test:  ✓ src/main-page-embodied-presentation.forward.test.tsx (2 tests) 72ms
+packages/providers test:  ✓ src/local/DotsTTSProvider.test.ts (13 tests) 14ms
+packages/providers test:  ✓ src/multi-character.test.ts (4 tests | 1 skipped) 56ms
+apps/web test:  ✓ src/app-speech.test.ts (12 tests) 11ms
+packages/providers test:  ✓ src/product-configuration.test.ts (5 tests) 2ms
+packages/providers test:  Test Files  19 passed (19)
+packages/providers test:       Tests  383 passed | 1 skipped (384)
+packages/providers test:    Start at  01:24:21
+packages/providers test:    Duration  5.70s (transform 552ms, setup 0ms, collect 1.32s, tests 691ms, environment 3ms, prepare 1.08s)
+packages/providers test: Done
+apps/web test:  ✓ src/lumi-render-quality.test.ts (13 tests) 6ms
+apps/web test:  ✓ src/proactive-eligibility.test.ts (23 tests) 7ms
+apps/web test:  ✓ src/service-supervisor-client.test.ts (6 tests) 16ms
+apps/web test:  ✓ src/speech-conservation.test.ts (18 tests) 966ms
+apps/web test:    ✓ complete speech stream conservation > conserves the complete response at arbitrary delta boundaries: 第一段话已经说完。接下来详细解释这件事情，确保全部文字都被保留，并且按照正确顺序播放。接下来详细解释这件事情，确保全部文字都被保留，并且按照正确顺序播放。接下来详细解释这件事情，确保全部文字都被保留，并且按照正确顺序播放。接下来详细解释这件事情，确保全部文字都被保留，并且按照正确顺序播放。接下来详细解释这件事情，确保全部文字都被保留，并且按照正确顺序播放。接下来详细解释这件事情，确保全部文字都被保留，并且按照正确顺序播放。接下来详细解释这件事情，确保全部文字都被保留，并且按照正确顺序播放。接下来详细解释这件事情，确保全部文字都被保留，并且按照正确顺序播放。接下来详细解释这件事情，确保全部文字都被保留，并且按照正确顺序播放。接下来详细解释这件事情，确保全部文字都被保留，并且按照正确顺序播放。接下来详细解释这件事情，确保全部文字都被保留，并且按照正确顺序播放。接下来详细解释这件事情，确保全部文字都被保留，并且按照正确顺序播放。接下来详细解释这件事情，确保全部文字都被保留，并且按照正确顺序播放。接下来详细解释这件事情，确保全部文字都被保留，并且按照正确顺序播放。 482ms
+apps/web test:  ✓ src/product-webui.integration.test.tsx (3 tests) 58ms
+apps/web test:  ✓ src/vision-contract.test.ts (8 tests) 10ms
+apps/web test:  ✓ src/live-speech-capture.test.ts (3 tests) 15ms
+apps/web test:  ✓ src/product-compact-health.test.tsx (6 tests) 12ms
+apps/web test:  ✓ src/proactive-consent.test.ts (10 tests) 5ms
+apps/web test:  ✓ src/proactive-text-candidate.test.ts (4 tests) 7ms
+apps/web test:  ✓ src/desktop-runtime.test.ts (12 tests) 8ms
+apps/web test:  ✓ src/lumi-cubism-model.test.ts (7 tests) 6ms
+apps/web test:  ✓ src/daily-status-plugin.test.ts (5 tests) 10ms
+apps/web test:  ✓ src/product-live2d-native-drop.test.tsx (3 tests) 31ms
+apps/web test:  ✓ src/embodied-lifecycle-gaze-projection.test.ts (14 tests) 8ms
+apps/web test:  ✓ src/embodied-presentation-executor.test.ts (5 tests) 9ms
+apps/web test:  ✓ src/main-page.test.tsx (8 tests) 13ms
+apps/web test:  ✓ src/speech-playback-correlation.test.ts (6 tests) 4ms
+apps/web test:  ✓ src/subtitle-page.test.tsx (6 tests) 113ms
+apps/web test:  ✓ src/embodied-interrupt-reaction-projection.test.ts (13 tests) 6ms
+apps/web test:  ✓ src/product-models-providers.test.tsx (4 tests) 8ms
+apps/web test:  ✓ src/markdown-message.test.tsx (5 tests) 31ms
+apps/web test:  ✓ src/audio-capture.test.ts (3 tests) 5ms
+apps/web test:  ✓ src/hooks/async-data-state.test.ts (8 tests) 4ms
+apps/web test:  ✓ src/companion-voice-sync.test.ts (4 tests) 58ms
+apps/web test:  ✓ src/cubism-core.test.ts (3 tests) 5ms
+apps/web test:  ✓ src/product-locale-coverage.test.ts (3 tests) 6ms
+apps/web test:  ✓ src/conversation-history.test.ts (6 tests) 5ms
+apps/web test:  ✓ src/voice-output.test.ts (6 tests) 3ms
+apps/web test:  ✓ src/product-live2d-models.test.tsx (3 tests) 8ms
+apps/web test:  ✓ src/companion-embodied-behavior-controller.test.ts (1 test) 7ms
+apps/web test:  ✓ src/hands-free-utterance.test.ts (4 tests) 11ms
+apps/web test:  ✓ src/user-settings-panel.test.tsx (2 tests) 7ms
+apps/web test:  ✓ src/companion-speech-buffer.test.ts (4 tests) 3ms
+apps/web test:  ✓ src/companion-embodied-behavior-diagnostics.test.ts (1 test) 13ms
+apps/web test:  ✓ src/cubism-framework.test.ts (2 tests) 5ms
+apps/web test:  ✓ src/embodied-presentation-bus-forward.test.ts (3 tests) 6ms
+apps/web test:  ✓ src/provider-diagnostics.test.ts (3 tests) 2ms
+apps/web test:  ✓ src/action-deadline.test.ts (4 tests) 7ms
+apps/web test:  ✓ src/speech-pipeline-feedback.test.ts (5 tests) 3ms
+apps/web test:  ✓ src/subtitle-projection.test.ts (5 tests) 6ms
+apps/web test:  ✓ src/companion-presentation-projection.test.ts (3 tests) 10ms
+apps/web test:  ✓ src/surface-changed.test.ts (2 tests) 16ms
+apps/web test:  ✓ src/semantic-gaze-adapter.test.ts (9 tests) 6ms
+apps/web test:  ✓ src/product-memory-settings.test.tsx (2 tests) 13ms
+apps/web test:  ✓ src/product-first-run-setup.test.ts (2 tests) 3ms
+apps/web test:  ✓ src/locale.test.ts (2 tests) 38ms
+apps/web test:  ✓ src/api/client-websocket.test.ts (3 tests) 3ms
+apps/web test:  ✓ src/companion-appearance-settings.test.tsx (2 tests) 6ms
+apps/web test:  ✓ src/wait-desktop-binding.test.ts (3 tests) 3ms
+apps/web test:  ✓ src/speech-endpoint.test.ts (10 tests) 3ms
+apps/web test:  ✓ src/product-vision-status.test.tsx (3 tests) 6ms
+apps/web test:  ✓ src/proactive-turn-admission.test.ts (3 tests) 3ms
+apps/web test:  ✓ src/subtitle-appearance-settings.test.tsx (1 test) 5ms
+apps/web test:  ✓ src/companion-bus-embodied-presentation.test.ts (1 test) 4ms
+apps/web test:  ✓ src/product-daily-status.test.tsx (1 test) 18ms
+apps/web test:  ✓ src/runtime-status.test.tsx (1 test) 5ms
+apps/web test:  ✓ src/speech-segment-dedup.test.ts (2 tests) 2ms
+apps/web test:  ✓ src/pages/memory-page.test.ts (1 test) 2ms
+apps/web test:  Test Files  89 passed (89)
+apps/web test:       Tests  816 passed (816)
+apps/web test:    Start at  01:24:14
+apps/web test:    Duration  26.71s (transform 2.14s, setup 0ms, collect 6.33s, tests 4.73s, environment 14ms, prepare 4.84s)
+apps/web test: Done
+packages/cognition test$ vitest run --passWithNoTests && pnpm run test:runtime-import
+packages/effects test$ vitest run --passWithNoTests
+packages/cognition test:  RUN  v2.1.9 /workspace/YUVI-source/packages/cognition
+packages/effects test:  RUN  v2.1.9 /workspace/YUVI-source/packages/effects
+packages/cognition test:  ✓ src/index.test.ts (13 tests) 13ms
+packages/effects test:  ↓ test/dispatch.postgres.integration.test.ts (57 tests | 57 skipped)
+packages/cognition test:  ✓ src/capability-aware-protocol.test.ts (10 tests) 13ms
+packages/cognition test:  ✓ src/capability-aware-task.test.ts (10 tests) 8ms
+packages/effects test:  ↓ test/postgres.integration.test.ts (19 tests | 19 skipped)
+packages/cognition test:  ✓ src/interaction-evidence.test.ts (16 tests) 11ms
+packages/effects test:  ✓ src/admission.test.ts (30 tests) 62ms
+packages/cognition test:  ✓ src/post-capability-task.test.ts (12 tests) 7ms
+packages/effects test:  ✓ src/dispatch-model.test.ts (20 tests) 10ms
+packages/effects test:  Test Files  2 passed | 2 skipped (4)
+packages/effects test:       Tests  50 passed | 76 skipped (126)
+packages/effects test:    Start at  01:24:41
+packages/effects test:    Duration  1.57s (transform 363ms, setup 0ms, collect 746ms, tests 72ms, environment 1ms, prepare 239ms)
+packages/effects test: Done
+packages/cognition test:  ✓ src/interaction-round.test.ts (28 tests) 10ms
+packages/cognition test:  ✓ src/capability-request.test.ts (6 tests) 5ms
+packages/cognition test:  ✓ src/capability-descriptions.test.ts (6 tests) 11ms
+packages/cognition test:  ✓ src/zero-capability-roundtrip.integration.test.ts (4 tests) 6ms
+packages/cognition test:  ✓ src/capability-observation.test.ts (6 tests) 5ms
+packages/cognition test:  ✓ src/capability-aware-failure.test.ts (4 tests) 4ms
+packages/cognition test:  Test Files  11 passed (11)
+packages/cognition test:       Tests  115 passed (115)
+packages/cognition test:    Start at  01:24:41
+packages/cognition test:    Duration  2.76s (transform 482ms, setup 0ms, collect 751ms, tests 92ms, environment 2ms, prepare 557ms)
+packages/cognition test: $ tsc -b tsconfig.json && node --input-type=module -e "await import('./dist/index.js'); await import('./dist/capability-observation.js'); await import('./dist/post-capability-task.js'); await import('./dist/capability-aware-task.js'); await import('@companion/cognition/interaction-round'); await import('../character-harness/dist/cognition-result.js')"
+packages/cognition test: Done
+packages/memory test$ vitest run --passWithNoTests
+packages/memory test:  RUN  v2.1.9 /workspace/YUVI-source/packages/memory
+packages/memory test:  ✓ src/memory.test.ts (78 tests) 143ms
+packages/memory test:  ✓ src/memory-ingestion-coordinator.test.ts (43 tests | 9 skipped) 456ms
+packages/memory test:  ✓ src/finalized-ingestion-ledger.test.ts (21 tests | 4 skipped) 45ms
+packages/memory test:  ✓ src/profile.test.ts (19 tests) 1124ms
+packages/memory test:    ✓ A10.1f1 local profile materializer > excludes legacy gaps and NON_EVIDENCE, rejects wrong partitions, and proves the 4,096-row boundary 862ms
+packages/memory test:  ✓ src/profile-lifecycle.test.ts (23 tests) 156ms
+packages/memory test:  ✓ src/memory-vnext.test.ts (23 tests | 1 skipped) 87ms
+packages/memory test:  ✓ src/providers/mem0-memory-provider.test.ts (39 tests) 24ms
+packages/memory test:  ✓ src/conversation-repository.test.ts (13 tests) 14ms
+packages/memory test:  ✓ src/grounded-dream.test.ts (30 tests) 97ms
+packages/memory test:  ✓ src/evidence-admission.test.ts (23 tests) 86ms
+packages/memory test:  ✓ src/memory-vnext-hardening.test.ts (14 tests | 1 skipped) 80ms
+packages/memory test:  ↓ src/profile-mem0.integration.test.ts (3 tests | 3 skipped)
+packages/memory test:  ✓ src/grounded-memory.test.ts (19 tests) 85ms
+packages/memory test:  ↓ src/context-use-repository.postgres.integration.test.ts (24 tests | 24 skipped)
+packages/memory test:  ✓ src/providers/local-controller-evidence.test.ts (12 tests) 34ms
+packages/memory test:  ✓ src/aggregate-lineage.test.ts (15 tests) 172ms
+packages/memory test:  ✓ src/claim.test.ts (14 tests) 36ms
+packages/memory test:  ↓ src/mrl-migration.integration.test.ts (3 tests | 3 skipped)
+packages/memory test:  ✓ src/mem0-service.integration.test.ts (11 tests) 21ms
+packages/memory test:  ↓ src/grounded-dream.integration.test.ts (8 tests | 8 skipped)
+packages/memory test:  ✓ src/finalized-grounding.test.ts (19 tests) 42ms
+packages/memory test:  ↓ src/conversation-repository.integration.test.ts (3 tests | 3 skipped)
+packages/memory test:  ✓ src/lineage-encoding.test.ts (14 tests) 31ms
+packages/memory test:  ✓ src/finalized-ingestion-executor.test.ts (5 tests) 23ms
+packages/memory test:  ✓ src/backends/mem0-memory-backend.test.ts (10 tests) 113ms
+packages/memory test:  ↓ src/profile-postgres.integration.test.ts (1 test | 1 skipped)
+packages/memory test:  ✓ src/mem0-turn-routing.test.ts (10 tests) 18ms
+packages/memory test:  ✓ src/lineage.test.ts (9 tests) 11ms
+packages/memory test:  ↓ src/profile-lifecycle-postgres.integration.test.ts (1 test | 1 skipped)
+packages/memory test:  ✓ src/voice-profile-binding.test.ts (4 tests) 6ms
+packages/memory test:  ✓ src/effect-intent-compatibility.test.ts (5 tests) 16ms
+packages/memory test:  ✓ src/provider.test.ts (13 tests) 7ms
+packages/memory test:  ✓ src/character-scope.test.ts (4 tests) 8ms
+packages/memory test:  ✓ src/identity-evidence.test.ts (6 tests) 5ms
+packages/memory test:  ✓ src/mem0-chat.test.ts (5 tests) 13ms
+packages/memory test:  ✓ src/ingestion.test.ts (5 tests) 14ms
+packages/memory test:  ✓ src/postgres-connection.test.ts (4 tests) 137ms
+packages/memory test:  ✓ src/scope.test.ts (5 tests) 5ms
+packages/memory test:  Test Files  31 passed | 7 skipped (38)
+packages/memory test:       Tests  500 passed | 58 skipped (558)
+packages/memory test:    Start at  01:24:44
+packages/memory test:    Duration  12.34s (transform 946ms, setup 0ms, collect 3.69s, tests 3.11s, environment 7ms, prepare 1.71s)
+packages/memory test: Done
+packages/p8 test$ vitest run --passWithNoTests
+packages/p8 test:  RUN  v2.1.9 /workspace/YUVI-source/packages/p8
+packages/p8 test:  ✓ src/correction.test.ts (46 tests) 31ms
+packages/p8 test:  ✓ src/adapter.test.ts (33 tests) 28ms
+packages/p8 test:  ✓ src/profile.test.ts (15 tests) 19ms
+packages/p8 test:  ✓ src/identity.test.ts (20 tests) 13ms
+packages/p8 test:  ✓ src/evidence.test.ts (31 tests) 12ms
+packages/p8 test:  ✓ src/adversarial-closure.test.ts (16 tests) 21ms
+packages/p8 test:  ✓ src/reconstruction.test.ts (15 tests) 21ms
+packages/p8 test:  ✓ src/voice-identity.test.ts (9 tests) 14ms
+packages/p8 test:  ✓ src/index.test.ts (11 tests) 13ms
+packages/p8 test:  ✓ src/persistence.test.ts (5 tests) 6ms
+packages/p8 test:  ✓ src/adversarial-memory-boundary.test.ts (2 tests) 12ms
+packages/p8 test:  Test Files  11 passed (11)
+packages/p8 test:       Tests  203 passed (203)
+packages/p8 test:    Start at  01:24:57
+packages/p8 test:    Duration  4.16s (transform 749ms, setup 0ms, collect 2.40s, tests 189ms, environment 1ms, prepare 486ms)
+packages/p8 test: Done
+packages/core test$ vitest run --passWithNoTests
+packages/core test:  RUN  v2.1.9 /workspace/YUVI-source/packages/core
+packages/core test:  ✓ src/runtime-persistence.test.ts (31 tests) 456ms
+packages/core test:  ✓ src/runtime-streaming.test.ts (26 tests) 108ms
+packages/core test:  ✓ src/runtime-proactive.test.ts (24 tests) 1976ms
+packages/core test:    ✓ RuntimeOrchestrator > allocates fresh persistence identities after terminal-cap eviction 1342ms
+packages/core test:    ✓ RuntimeOrchestrator > retains terminal idempotency claims for fifteen minutes and bounds the terminal cache 523ms
+packages/core test:  ✓ src/runtime-character-outcome.test.ts (29 tests) 118ms
+packages/core test:  ✓ src/runtime-memory-integration.test.ts (8 tests) 75ms
+packages/core test:  ✓ src/runtime-speech-capture-runtime.test.ts (14 tests) 50ms
+packages/core test:  ✓ src/runtime-proactive-authority.test.ts (11 tests) 62ms
+packages/core test:  ✓ src/runtime-proactive-scheduler.test.ts (10 tests) 89ms
+packages/core test:  ✓ src/p8-correction-store.test.ts (9 tests) 12ms
+packages/core test:  ↓ src/p8-correction-store.integration.test.ts (2 tests | 2 skipped)
+packages/core test:  ✓ src/runtime-visual-grounding.test.ts (17 tests) 80ms
+packages/core test:  ✓ src/provider-retrieval.test.ts (10 tests) 50ms
+packages/core test:  ✓ src/runtime-speech-activity.test.ts (9 tests) 33ms
+packages/core test:  ✓ src/runtime-embodied-effect-event-publication.test.ts (9 tests) 17ms
+packages/core test:  ✓ src/memory-vnext-runtime.test.ts (5 tests) 117ms
+packages/core test:  ✓ src/runtime-speech-capture.test.ts (11 tests) 7ms
+packages/core test:  ✓ src/memory-context.test.ts (14 tests) 21ms
+packages/core test:  ✓ src/memory-architecture.test.ts (5 tests) 28ms
+packages/core test:  ✓ src/runtime-cognition-interaction.test.ts (20 tests) 18ms
+packages/core test:  ✓ src/runtime-cognition-one-shot.test.ts (9 tests) 11ms
+packages/core test:  ✓ src/runtime-embodied-effect-runtime-event.test.ts (7 tests) 11ms
+packages/core test:  ✓ src/runtime-effect-intent.test.ts (6 tests) 28ms
+packages/core test:  ✓ src/multi-character.test.ts (4 tests) 88ms
+packages/core test:  ✓ src/runtime-embodied-effect-state-transition.test.ts (18 tests) 9ms
+packages/core test:  ✓ src/runtime-embodied-effect-record-advancement.test.ts (5 tests) 10ms
+packages/core test:  ✓ src/p8-file-correction-store.test.ts (3 tests) 11ms
+packages/core test:  ✓ src/runtime-embodied-effect-event.test.ts (9 tests) 9ms
+packages/core test:  ✓ src/runtime-speech-identity.test.ts (3 tests) 32ms
+packages/core test:  ✓ src/runtime-embodied-effect-state-commit.test.ts (8 tests) 13ms
+packages/core test:  ✓ src/runtime-embodied-presentation-outcome-acceptance.test.ts (9 tests) 8ms
+packages/core test:  ✓ src/runtime-interaction-state.test.ts (41 tests) 11ms
+packages/core test:  ✓ src/runtime-proactive-policy.test.ts (8 tests) 4ms
+packages/core test:  ✓ src/runtime-capability-admission.test.ts (13 tests) 7ms
+packages/core test:  ✓ src/runtime-embodied-effect-identity.test.ts (13 tests) 10ms
+packages/core test:  ✓ src/runtime-embodied-presentation-request-projection.test.ts (5 tests) 7ms
+packages/core test:  ✓ src/runtime-embodied-presentation-execution.test.ts (3 tests) 12ms
+packages/core test:  ✓ src/runtime-embodied-effect-record-initialization.test.ts (5 tests) 8ms
+packages/core test:  ✓ src/runtime-embodied-effect-commit.test.ts (8 tests) 6ms
+packages/core test:  ✓ src/runtime-embodied-effect-snapshot-initialization.test.ts (5 tests) 5ms
+packages/core test:  ✓ src/runtime-p8-correction.test.ts (2 tests) 14ms
+packages/core test:  ✓ src/runtime-embodied-effect-fence.test.ts (11 tests) 5ms
+packages/core test:  ✓ src/runtime-embodied-effect-admission.test.ts (10 tests) 6ms
+packages/core test:  ✓ src/runtime-speech-playback.test.ts (3 tests) 5ms
+packages/core test:  Test Files  42 passed | 1 skipped (43)
+packages/core test:       Tests  470 passed | 2 skipped (472)
+packages/core test:    Start at  01:25:01
+packages/core test:    Duration  15.60s (transform 1.26s, setup 0ms, collect 5.81s, tests 3.64s, environment 6ms, prepare 1.87s)
+packages/core test: Done
+apps/server test$ vitest run --passWithNoTests
+apps/server test:  RUN  v2.1.9 /workspace/YUVI-source/apps/server
+apps/server test: {"level":30,"time":1791509120088,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/health","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120092,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":3.359353999956511,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120093,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120102,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","journalEventId":"jev1_testserverreceipt00000001","runtimeEventId":"1441314e-3e2e-4e42-9af5-606fc093fda3","sessionId":"test","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509120102,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","traceId":"1441314e-3e2e-4e42-9af5-606fc093fda3","sessionId":"test","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509120125,"pid":7306,"hostname":"4f58c64d5934","capability":"chat","provider":"deepseek","latencyMs":2,"traceId":"1441314e-3e2e-4e42-9af5-606fc093fda3","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509120132,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":38.89769100002013,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120134,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"GET","url":"/events/recent?limit=50","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120134,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":200},"responseTime":0.4356479999842122,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120135,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","req":{"method":"GET","url":"/debug/prompt/latest","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120136,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","res":{"statusCode":200},"responseTime":0.37470599997323006,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120137,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-5","req":{"method":"GET","url":"/providers/status","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120138,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-5","res":{"statusCode":200},"responseTime":1.080041000037454,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120139,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-6","req":{"method":"POST","url":"/v1/audio/transcriptions","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120143,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-6","res":{"statusCode":200},"responseTime":3.694469999987632,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120143,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-7","req":{"method":"GET","url":"/memory/recent?limit=20","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120143,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-7","res":{"statusCode":200},"responseTime":0.29308199998922646,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120143,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-8","req":{"method":"POST","url":"/v1/voice/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120149,"pid":7306,"hostname":"4f58c64d5934","capability":"chat","provider":"deepseek","latencyMs":1,"traceId":"d8faa231-2629-439f-8dc1-e7ea76f72458","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509120150,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-8","res":{"statusCode":200},"responseTime":6.630956000066362,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120151,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-9","req":{"method":"GET","url":"/memory/recent?limit=20","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120151,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-9","res":{"statusCode":200},"responseTime":0.1690350000280887,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120152,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-a","req":{"method":"POST","url":"/v1/tts","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120153,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-a","res":{"statusCode":200},"responseTime":1.419073999975808,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120153,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-b","req":{"method":"POST","url":"/v1/vision/analyze","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120155,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-b","res":{"statusCode":200},"responseTime":1.2546950000105426,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120155,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-c","req":{"method":"POST","url":"/providers/verify/stt","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120155,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-c","res":{"statusCode":200},"responseTime":0.3745549999875948,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120155,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-d","req":{"method":"POST","url":"/memory","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120158,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-d","res":{"statusCode":200},"responseTime":2.4226489999564365,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120158,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-e","req":{"method":"GET","url":"/memory/95532a82-2f18-4cc0-9890-bbf8a9cac393","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120159,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-e","res":{"statusCode":200},"responseTime":0.2351450000423938,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120159,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-f","req":{"method":"PATCH","url":"/memory/95532a82-2f18-4cc0-9890-bbf8a9cac393","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120160,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-f","res":{"statusCode":400},"responseTime":1.035513999988325,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120160,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-g","req":{"method":"PATCH","url":"/memory/95532a82-2f18-4cc0-9890-bbf8a9cac393","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120161,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-g","res":{"statusCode":400},"responseTime":0.9403000000165775,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120161,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-h","req":{"method":"PATCH","url":"/memory/95532a82-2f18-4cc0-9890-bbf8a9cac393","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120163,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-h","res":{"statusCode":200},"responseTime":2.1947650000220165,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120164,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-i","req":{"method":"POST","url":"/memory/95532a82-2f18-4cc0-9890-bbf8a9cac393/archive","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120164,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-i","res":{"statusCode":200},"responseTime":0.2834179999772459,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120164,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-j","req":{"method":"GET","url":"/memory/search?q=Server%20test%20memory%20updated&limit=5","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120168,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-j","res":{"statusCode":200},"responseTime":3.2575400000205263,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120168,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-k","req":{"method":"POST","url":"/memory/95532a82-2f18-4cc0-9890-bbf8a9cac393/restore","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120168,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-k","res":{"statusCode":200},"responseTime":0.23009800002910197,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120168,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-l","req":{"method":"POST","url":"/memory/95532a82-2f18-4cc0-9890-bbf8a9cac393/forget","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120169,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-l","res":{"statusCode":200},"responseTime":0.36093500000424683,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120169,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-m","req":{"method":"POST","url":"/memory/95532a82-2f18-4cc0-9890-bbf8a9cac393/restore","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120169,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-m","res":{"statusCode":200},"responseTime":0.19639599998481572,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120169,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-n","req":{"method":"PATCH","url":"/memory/missing","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120170,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-n","res":{"statusCode":404},"responseTime":0.44805700005963445,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120170,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-o","req":{"method":"POST","url":"/memory","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120171,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-o","res":{"statusCode":200},"responseTime":1.29224200011231,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120171,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-p","req":{"method":"DELETE","url":"/memory/736eb189-b335-4db2-8304-ca8f0586a99c","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120172,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-p","res":{"statusCode":200},"responseTime":0.3212250000797212,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120172,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-q","req":{"method":"POST","url":"/memory","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120173,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-q","res":{"statusCode":200},"responseTime":1.273103000014089,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120173,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-r","req":{"method":"DELETE","url":"/memory/2acaf2f9-ae92-4538-9b83-26468d1fa1de","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120174,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-r","res":{"statusCode":200},"responseTime":0.19557500001974404,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120174,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-s","req":{"method":"GET","url":"/memory/736eb189-b335-4db2-8304-ca8f0586a99c","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120174,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-s","res":{"statusCode":404},"responseTime":0.08466699998825788,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120174,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-t","req":{"method":"GET","url":"/memory/search?q=Delete%20me&limit=5","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120175,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-t","res":{"statusCode":200},"responseTime":1.226342000067234,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120176,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-u","req":{"method":"DELETE","url":"/memory/missing","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120176,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-u","res":{"statusCode":404},"responseTime":0.08480800001416355,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120176,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-v","req":{"method":"POST","url":"/memory","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120177,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-v","res":{"statusCode":200},"responseTime":1.1415239999769256,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120177,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-w","req":{"method":"POST","url":"/memory","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120178,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-w","res":{"statusCode":200},"responseTime":1.1071319999173284,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120178,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-x","req":{"method":"POST","url":"/memory","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120180,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-x","res":{"statusCode":200},"responseTime":1.1945440000854433,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120180,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-y","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120180,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-y","journalEventId":"jev1_testserverreceipt00000001","runtimeEventId":"d7d0d83e-b28e-4239-9e8f-4baebcb4c0e1","sessionId":"test","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509120180,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-y","traceId":"d7d0d83e-b28e-4239-9e8f-4baebcb4c0e1","sessionId":"test","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509120191,"pid":7306,"hostname":"4f58c64d5934","capability":"chat","provider":"deepseek","latencyMs":1,"traceId":"d7d0d83e-b28e-4239-9e8f-4baebcb4c0e1","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509120195,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-y","res":{"statusCode":200},"responseTime":14.855106999981217,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120195,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-z","req":{"method":"GET","url":"/debug/prompt/latest","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120195,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-z","res":{"statusCode":200},"responseTime":0.3849009999539703,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120196,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-10","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120197,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-10","journalEventId":"jev1_testserverreceipt00000001","runtimeEventId":"cc15ce51-c98f-4e14-9b5c-b17ce8fe6548","sessionId":"test","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509120197,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-10","traceId":"cc15ce51-c98f-4e14-9b5c-b17ce8fe6548","sessionId":"test","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509120203,"pid":7306,"hostname":"4f58c64d5934","capability":"chat","provider":"deepseek","latencyMs":0,"traceId":"cc15ce51-c98f-4e14-9b5c-b17ce8fe6548","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509120208,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-10","res":{"statusCode":200},"responseTime":11.308018999989145,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120208,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-11","req":{"method":"GET","url":"/debug/prompt/latest","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120208,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-11","res":{"statusCode":200},"responseTime":0.371341000078246,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120210,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-12","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120211,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-12","journalEventId":"jev1_testserverreceipt00000001","runtimeEventId":"90afc4a8-880e-43c7-be81-0a756ae9999a","sessionId":"test","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509120211,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-12","traceId":"90afc4a8-880e-43c7-be81-0a756ae9999a","sessionId":"test","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509120215,"pid":7306,"hostname":"4f58c64d5934","capability":"chat","provider":"deepseek","latencyMs":0,"traceId":"90afc4a8-880e-43c7-be81-0a756ae9999a","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509120216,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-12","res":{"statusCode":200},"responseTime":5.913281999994069,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120216,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-13","req":{"method":"GET","url":"/debug/prompt/latest","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120217,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-13","res":{"statusCode":200},"responseTime":0.29821999999694526,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120217,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-14","req":{"method":"GET","url":"/memory/recent?limit=5","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120217,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-14","res":{"statusCode":200},"responseTime":0.23238099995069206,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120218,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-15","req":{"method":"GET","url":"/memory/search?q=Server&limit=5","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120219,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-15","res":{"statusCode":200},"responseTime":1.2511699999449775,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120220,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-16","req":{"method":"GET","url":"/memory/search?q=Server+test+memory+updated&type=procedural&subtype=workflow&source=test&scope=project&scopeId=yuvi-runtime&memoryLayer=recall&status=active&tags=updated%2Cserver&minImportance=0.7&limit=5","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120221,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-16","res":{"statusCode":200},"responseTime":1.4435810000868514,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120222,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-17","req":{"method":"POST","url":"/memory/search","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120229,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-17","res":{"statusCode":200},"responseTime":7.7630450000287965,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120230,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-18","req":{"method":"GET","url":"/memory/search?limit=999","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120230,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-18","res":{"statusCode":400},"responseTime":0.2720010000048205,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120230,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-19","req":{"method":"GET","url":"/memory/search?q=%E9%A1%B9%E7%9B%AE&limit=5","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120231,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-19","res":{"statusCode":200},"responseTime":0.7500929998932406,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120231,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1a","req":{"method":"POST","url":"/memory","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120234,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1a","res":{"statusCode":200},"responseTime":2.579314999980852,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120234,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1b","req":{"method":"GET","url":"/memory/search?q=Archived%20manual%20search&limit=5","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120243,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1b","res":{"statusCode":200},"responseTime":9.30081800010521,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120244,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1c","req":{"method":"GET","url":"/memory/search?q=Archived%20manual%20search&includeArchived=true&limit=5","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120246,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1c","res":{"statusCode":200},"responseTime":1.916583999991417,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120246,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1d","req":{"method":"GET","url":"/events/recent?limit=20","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120252,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1d","res":{"statusCode":200},"responseTime":5.402740000048652,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120260,"pid":7306,"hostname":"4f58c64d5934","msg":"Server listening at http://127.0.0.1:38645"}
+apps/server test: {"level":30,"time":1791509120269,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1e","req":{"method":"GET","url":"/ws?dashboard=true","host":"127.0.0.1:38645","remoteAddress":"127.0.0.1","remotePort":50924},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120289,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/health","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120290,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.6521139999385923,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120301,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/health","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120302,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.4304400000255555,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120312,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/health","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120312,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.4873160000424832,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120320,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120323,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":2.8772260000696406,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120331,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120331,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","journalEventId":"jev1_testserverreceipt00000001","runtimeEventId":"90db419a-7cc4-4743-9252-0f62eb0f9308","sessionId":"temporal","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509120331,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","traceId":"90db419a-7cc4-4743-9252-0f62eb0f9308","sessionId":"temporal","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509120334,"pid":7306,"hostname":"4f58c64d5934","capability":"chat","provider":"deepseek","latencyMs":0,"traceId":"90db419a-7cc4-4743-9252-0f62eb0f9308","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509120339,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":8.283302000025287,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120340,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"GET","url":"/memory/recent?limit=10","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120340,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":0.12197400000877678,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120340,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"GET","url":"/memory/candidates/recent?limit=5","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120340,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":200},"responseTime":0.22441899997647852,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120351,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120351,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","journalEventId":"jev1_testserverreceipt00000001","runtimeEventId":"a9af4c1d-7c64-454d-a8c9-154beb9c0bdf","sessionId":"affect","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509120351,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","traceId":"a9af4c1d-7c64-454d-a8c9-154beb9c0bdf","sessionId":"affect","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509120354,"pid":7306,"hostname":"4f58c64d5934","capability":"chat","provider":"deepseek","latencyMs":0,"traceId":"a9af4c1d-7c64-454d-a8c9-154beb9c0bdf","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509120357,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":6.170414000051096,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120357,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"GET","url":"/debug/prompt/latest","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120357,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":0.22589100000914186,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120358,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"GET","url":"/memory/recent?limit=10","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120358,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":200},"responseTime":0.10149400006048381,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120370,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120370,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","journalEventId":"jev1_testserverreceipt00000001","runtimeEventId":"4dcf4149-31fe-4081-a2ba-e6eda726bc0a","sessionId":"test","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509120370,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","traceId":"4dcf4149-31fe-4081-a2ba-e6eda726bc0a","sessionId":"test","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509120374,"pid":7306,"hostname":"4f58c64d5934","capability":"chat","provider":"deepseek","latencyMs":2,"traceId":"4dcf4149-31fe-4081-a2ba-e6eda726bc0a","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509120374,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":4.786911000031978,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120375,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"GET","url":"/debug/prompt/latest","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120375,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":0.15182899998035282,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120384,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/providers/status","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120384,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.4035789999179542,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120384,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120385,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","journalEventId":"jev1_testserverreceipt00000001","runtimeEventId":"2d7f0d7b-db96-4a82-9aa5-43131800317e","sessionId":"real-first","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509120385,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","traceId":"2d7f0d7b-db96-4a82-9aa5-43131800317e","sessionId":"real-first","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":40,"time":1791509120387,"pid":7306,"hostname":"4f58c64d5934","provider":"local","capability":"chat","code":"PROVIDER_UNAVAILABLE","latencyMs":0,"traceId":"2d7f0d7b-db96-4a82-9aa5-43131800317e","msg":"provider call failed"}
+apps/server test: {"level":30,"time":1791509120388,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":503},"responseTime":3.4583369999891147,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120394,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/v1/audio/transcriptions","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120395,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":503},"responseTime":0.7820809999248013,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120402,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/memory","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120410,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":7.411280000000261,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120410,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120411,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","journalEventId":"jev1_testserverreceipt00000001","runtimeEventId":"0768d32f-fb72-46ed-8a61-ffe622fc314f","sessionId":"test","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509120411,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","traceId":"0768d32f-fb72-46ed-8a61-ffe622fc314f","sessionId":"test","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509120414,"pid":7306,"hostname":"4f58c64d5934","capability":"chat","provider":"deepseek","latencyMs":0,"traceId":"0768d32f-fb72-46ed-8a61-ffe622fc314f","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509120415,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":4.727414999972098,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120415,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"GET","url":"/debug/prompt/latest","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120415,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":200},"responseTime":0.17097800003830343,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120416,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","req":{"method":"GET","url":"/memory/recent?limit=10","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120416,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","res":{"statusCode":200},"responseTime":0.14976599998772144,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120416,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-5","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120416,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-5","journalEventId":"jev1_testserverreceipt00000001","runtimeEventId":"260ff5a6-5976-4165-83f3-793f1038ddc0","sessionId":"test","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509120416,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-5","traceId":"260ff5a6-5976-4165-83f3-793f1038ddc0","sessionId":"test","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509120419,"pid":7306,"hostname":"4f58c64d5934","capability":"chat","provider":"deepseek","latencyMs":0,"traceId":"260ff5a6-5976-4165-83f3-793f1038ddc0","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509120422,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-5","res":{"statusCode":200},"responseTime":6.1086419998900965,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120422,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-6","req":{"method":"GET","url":"/debug/prompt/latest","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120423,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-6","res":{"statusCode":200},"responseTime":0.21300200000405312,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120423,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-7","req":{"method":"GET","url":"/memory/recent?limit=10","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120423,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-7","res":{"statusCode":200},"responseTime":0.118138000019826,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120423,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-8","req":{"method":"GET","url":"/memory/candidates/recent?limit=5","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120423,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-8","res":{"statusCode":200},"responseTime":0.1054790000198409,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120424,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-9","req":{"method":"POST","url":"/memory/candidates/e21a0b1a-ac5b-4764-8711-543857032b68/accept","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120424,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-9","res":{"statusCode":404},"responseTime":0.5999669999582693,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120424,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-a","req":{"method":"GET","url":"/memory/recent?limit=10","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120425,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-a","res":{"statusCode":200},"responseTime":0.10214500001166016,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120425,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-b","req":{"method":"POST","url":"/memory/candidates/e21a0b1a-ac5b-4764-8711-543857032b68/reject","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120425,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-b","res":{"statusCode":200},"responseTime":0.31939299998339266,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120425,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-c","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120425,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-c","journalEventId":"jev1_testserverreceipt00000001","runtimeEventId":"d33f2567-8ffe-45d9-a5b9-fdb302cb0935","sessionId":"test","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509120425,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-c","traceId":"d33f2567-8ffe-45d9-a5b9-fdb302cb0935","sessionId":"test","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509120430,"pid":7306,"hostname":"4f58c64d5934","capability":"chat","provider":"deepseek","latencyMs":0,"traceId":"d33f2567-8ffe-45d9-a5b9-fdb302cb0935","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509120430,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-c","res":{"statusCode":200},"responseTime":4.769457999966107,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120430,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-d","req":{"method":"GET","url":"/debug/prompt/latest","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120431,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-d","res":{"statusCode":200},"responseTime":0.27916200004983693,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120431,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-e","req":{"method":"GET","url":"/memory/recent?limit=10","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120431,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-e","res":{"statusCode":200},"responseTime":0.11161899997387081,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120431,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-f","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120432,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-f","journalEventId":"jev1_testserverreceipt00000001","runtimeEventId":"b5b254eb-f7fd-41e9-996e-ef7586c26be8","sessionId":"test","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509120432,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-f","traceId":"b5b254eb-f7fd-41e9-996e-ef7586c26be8","sessionId":"test","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509120435,"pid":7306,"hostname":"4f58c64d5934","capability":"chat","provider":"deepseek","latencyMs":0,"traceId":"b5b254eb-f7fd-41e9-996e-ef7586c26be8","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509120437,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-f","res":{"statusCode":200},"responseTime":5.864422000013292,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120437,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-g","req":{"method":"GET","url":"/debug/prompt/latest","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120438,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-g","res":{"statusCode":200},"responseTime":0.3307090000016615,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120444,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120444,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","journalEventId":"jev1_testserverreceipt00000001","runtimeEventId":"96128c2e-0a9d-4a62-ba79-f714dadb1670","sessionId":"test","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509120444,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","traceId":"96128c2e-0a9d-4a62-ba79-f714dadb1670","sessionId":"test","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509120446,"pid":7306,"hostname":"4f58c64d5934","capability":"chat","provider":"deepseek","latencyMs":0,"traceId":"96128c2e-0a9d-4a62-ba79-f714dadb1670","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509120448,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":3.7865819999715313,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120448,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120448,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","journalEventId":"jev1_testserverreceipt00000001","runtimeEventId":"bbbe2b0c-76da-4015-ae19-ad45d1277c51","sessionId":"test","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509120448,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","traceId":"bbbe2b0c-76da-4015-ae19-ad45d1277c51","sessionId":"test","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509120451,"pid":7306,"hostname":"4f58c64d5934","capability":"chat","provider":"deepseek","latencyMs":0,"traceId":"bbbe2b0c-76da-4015-ae19-ad45d1277c51","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509120454,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":6.04592699999921,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120454,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"GET","url":"/memory/recent?limit=10","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120454,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":200},"responseTime":0.0879029999487102,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120461,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/providers/status","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120461,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.31866200000513345,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120467,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/providers/verify/chat","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120469,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":1.299754999927245,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120469,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/providers/verify/reasoning","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120469,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":0.6701129999710247,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120470,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"POST","url":"/providers/verify/embedding","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120471,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":200},"responseTime":1.1108179999282584,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120477,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/providers/verify/tts","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120478,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.23834000003989786,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120478,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"GET","url":"/providers/status","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120478,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":0.4139960000757128,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120485,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/providers/verify/tts","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120485,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.17970099998638034,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120485,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/providers/verify/stt","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120486,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":0.1646489999257028,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120486,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"POST","url":"/providers/verify/vision","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120486,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":200},"responseTime":0.16052299994044006,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120493,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/providers/verify-chain/chat","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120493,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.3232990000396967,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120500,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/providers/verify/chat","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120501,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.6810790000017732,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120501,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"GET","url":"/providers/status","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120502,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":0.420285000000149,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120509,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/providers/verify/chat","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120510,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":502},"responseTime":1.628091000020504,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120511,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"GET","url":"/providers/status","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120511,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":0.4407159999245778,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120511,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"GET","url":"/health","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120512,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":200},"responseTime":0.24893600004725158,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120518,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/providers/verify/chat","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120519,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":502},"responseTime":0.6810389999300241,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120519,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"GET","url":"/health","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120520,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":0.26303700008429587,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120536,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/providers/verify/chat","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120536,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":502},"responseTime":0.6323559999000281,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120537,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"GET","url":"/health","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120537,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":0.24046399991493672,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120543,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/health","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120543,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.26951700006611645,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120549,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/providers/status","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120549,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.3693489999277517,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120550,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"GET","url":"/health","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120550,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":0.21779899997636676,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120556,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/providers/verify/embedding","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120558,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":1.115256000077352,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120559,"pid":7306,"hostname":"4f58c64d5934","msg":"DASHBOARD_DEV_TOKEN is configured for sensitive development endpoints."}
+apps/server test: {"level":30,"time":1791509120564,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120564,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":401},"responseTime":0.4488780000247061,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120564,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"GET","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120564,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":401},"responseTime":0.06322500004898757,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120564,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"POST","url":"/providers/verify/chat","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120565,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":401},"responseTime":0.05590399994980544,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120565,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","req":{"method":"POST","url":"/memory/maintenance/run","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120565,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","res":{"statusCode":401},"responseTime":0.2781710000708699,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120565,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-5","req":{"method":"POST","url":"/providers/verify/chat","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120566,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-5","res":{"statusCode":200},"responseTime":0.4880579999880865,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120566,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-6","req":{"method":"GET","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120567,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-6","res":{"statusCode":200},"responseTime":1.0415939999511465,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120567,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-7","req":{"method":"POST","url":"/memory/maintenance/run","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120568,"pid":7306,"hostname":"4f58c64d5934","reason":"manual","scanned":0,"expired":0,"stale":0,"supersessionWarnings":0,"skipped":0,"failed":0,"msg":"memory maintenance completed"}
+apps/server test: {"level":30,"time":1791509120568,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-7","res":{"statusCode":200},"responseTime":0.6423109999159351,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120570,"pid":7306,"hostname":"4f58c64d5934","msg":"DASHBOARD_DEV_TOKEN is configured for sensitive development endpoints."}
+apps/server test: {"level":30,"time":1791509120574,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/memory","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120575,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":404},"responseTime":0.2047489999094978,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120575,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/memory/maintenance/run","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120575,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":404},"responseTime":0.12594000005628914,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120575,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"POST","url":"/memory","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120575,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":404},"responseTime":0.11942100001033396,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120575,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","req":{"method":"POST","url":"/memory/maintenance/run","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120576,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","res":{"statusCode":404},"responseTime":0.14913600008003414,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120576,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-5","req":{"method":"GET","url":"/memory/recent","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120576,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-5","res":{"statusCode":200},"responseTime":0.10801299999002367,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120583,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/settings/runtime","host":"localhost:80","remoteAddress":"10.0.0.8"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120583,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":403},"responseTime":0.11654600000474602,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120583,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/providers/verify/chat","host":"localhost:80","remoteAddress":"10.0.0.8"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120583,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":403},"responseTime":0.06234399997629225,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120583,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"GET","url":"/health","host":"localhost:80","remoteAddress":"10.0.0.8"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120583,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":200},"responseTime":0.29267300001811236,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120589,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/memory/vector-index/status","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120590,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.2188109999988228,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120592,"pid":7306,"hostname":"4f58c64d5934","msg":"DASHBOARD_DEV_TOKEN is configured for sensitive development endpoints."}
+apps/server test: {"level":30,"time":1791509120597,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/system/restart/deep","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120598,"pid":7306,"hostname":"4f58c64d5934","msg":"DASHBOARD_DEV_TOKEN is configured for sensitive development endpoints."}
+apps/server test: {"level":30,"time":1791509120597,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":404},"responseTime":0.2272739999461919,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120603,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/system/restart/deep","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120603,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":401},"responseTime":0.10781299998052418,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120603,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/system/restart/deep","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120603,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":409},"responseTime":0.1162760000443086,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120604,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/system/restart/deep","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120604,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":1.1735829999670386,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120632,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/memory/maintenance/status","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120632,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.28549100004602224,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120636,"pid":7306,"hostname":"4f58c64d5934","reason":"startup","scanned":0,"expired":0,"stale":0,"supersessionWarnings":0,"skipped":0,"failed":0,"msg":"memory maintenance completed"}
+apps/server test: {"level":30,"time":1791509120638,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/memory/maintenance/status","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120639,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.1836769999936223,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120639,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"GET","url":"/memory/maintenance/status","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120639,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":0.07402199995703995,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509180640,"pid":7306,"hostname":"4f58c64d5934","reason":"interval","scanned":0,"expired":0,"stale":0,"supersessionWarnings":0,"skipped":0,"failed":0,"msg":"memory maintenance completed"}
+apps/server test: {"level":30,"time":1791509180690,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/memory/maintenance/status","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509180690,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.1281239999225363,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120652,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/memory","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120654,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":1.035604999982752,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120654,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/memory","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120654,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":0.7535389999393374,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120655,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"POST","url":"/memory/maintenance/run","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120655,"pid":7306,"hostname":"4f58c64d5934","reason":"manual","scanned":1,"expired":1,"stale":0,"supersessionWarnings":0,"skipped":0,"failed":0,"msg":"memory maintenance completed"}
+apps/server test: {"level":30,"time":1791509120655,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":200},"responseTime":0.5954299999866635,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120655,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","req":{"method":"GET","url":"/memory/maintenance/status","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120656,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","res":{"statusCode":200},"responseTime":0.07722699991427362,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120656,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-5","req":{"method":"GET","url":"/memory/50a6794c-4d4c-4846-b0be-13f4930ea2ab","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120656,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-5","res":{"statusCode":200},"responseTime":0.1925010000122711,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120656,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-6","req":{"method":"GET","url":"/memory/6e4079d7-d69a-4bdb-a491-1b7b824d310f","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120656,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-6","res":{"statusCode":200},"responseTime":0.07702600001357496,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120663,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120663,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","journalEventId":"jev1_testserverreceipt00000001","runtimeEventId":"35ca02ed-dc48-4f6e-8754-e0a557e08a98","sessionId":"ambient","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509120664,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","traceId":"35ca02ed-dc48-4f6e-8754-e0a557e08a98","sessionId":"ambient","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509120666,"pid":7306,"hostname":"4f58c64d5934","capability":"chat","provider":"deepseek","latencyMs":0,"traceId":"35ca02ed-dc48-4f6e-8754-e0a557e08a98","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509120667,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":3.6791699999012053,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120667,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/providers/verify/chat","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120668,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":0.46026499988511205,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120677,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120678,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.9595200000330806,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120680,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120683,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":3.348490000003949,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120684,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"POST","url":"/settings/runtime/reload","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120684,"pid":7306,"hostname":"4f58c64d5934","msg":"[env] Loaded .env.local"}
+apps/server test: {"level":30,"time":1791509120686,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":200},"responseTime":2.5973350000567734,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120687,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120687,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","res":{"statusCode":400},"responseTime":0.2258119999896735,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120687,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-5","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120688,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-5","res":{"statusCode":400},"responseTime":1.0318690000567585,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120688,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-6","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120691,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-6","res":{"statusCode":200},"responseTime":2.143298999988474,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120693,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-7","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120695,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-7","res":{"statusCode":200},"responseTime":1.961553999921307,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120695,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-8","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120696,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-9","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120698,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-8","res":{"statusCode":200},"responseTime":2.3162000000011176,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120700,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-9","res":{"statusCode":200},"responseTime":4.1364509999984875,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120700,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-a","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120701,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-a","res":{"statusCode":400},"responseTime":1.2714720000512898,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120702,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-b","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120702,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-b","res":{"statusCode":400},"responseTime":0.5540370000526309,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120703,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-c","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120703,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-c","res":{"statusCode":400},"responseTime":0.25849099992774427,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120703,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-d","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120705,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-d","res":{"statusCode":200},"responseTime":2.2379220000002533,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120712,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120713,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":1.105511000030674,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120720,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120722,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":2.031870000064373,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120723,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/settings/runtime/reload","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120723,"pid":7306,"hostname":"4f58c64d5934","msg":"[env] Loaded .env.local"}
+apps/server test: {"level":30,"time":1791509120725,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":2.0749659999273717,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120725,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"GET","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120727,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":200},"responseTime":1.037607999984175,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120727,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","req":{"method":"GET","url":"/providers/status","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120728,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","res":{"statusCode":200},"responseTime":0.4399039999116212,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120736,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120748,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":11.257202000007965,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120748,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120750,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":2.402851000078954,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120751,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120754,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":200},"responseTime":3.235088999965228,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120762,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/providers/status","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120762,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.3949169999687001,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120762,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120765,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":2.194937000051141,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120765,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"GET","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120766,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":200},"responseTime":1.120704000000842,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120767,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","req":{"method":"POST","url":"/settings/runtime/reload","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120767,"pid":7306,"hostname":"4f58c64d5934","msg":"[env] Loaded .env.local"}
+apps/server test: {"level":30,"time":1791509120769,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","res":{"statusCode":200},"responseTime":2.0188609999604523,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120770,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-5","req":{"method":"GET","url":"/providers/status","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120770,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-5","res":{"statusCode":200},"responseTime":0.37385500001255423,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120770,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-6","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120770,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-6","journalEventId":"jev1_testserverreceipt00000002","runtimeEventId":"997d4d7b-a379-4512-89a0-e9f90a28d3c5","sessionId":"reload","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509120770,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-6","traceId":"997d4d7b-a379-4512-89a0-e9f90a28d3c5","sessionId":"reload","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509120773,"pid":7306,"hostname":"4f58c64d5934","capability":"chat","provider":"deepseek","latencyMs":0,"traceId":"997d4d7b-a379-4512-89a0-e9f90a28d3c5","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509120773,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-6","res":{"statusCode":200},"responseTime":2.8297059999313205,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120773,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-7","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120775,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-7","res":{"statusCode":200},"responseTime":2.154255000059493,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120777,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-8","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120779,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-8","res":{"statusCode":200},"responseTime":2.285844000056386,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120779,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-9","req":{"method":"POST","url":"/settings/runtime/reload","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120780,"pid":7306,"hostname":"4f58c64d5934","msg":"[env] Loaded .env.local"}
+apps/server test: {"level":30,"time":1791509120782,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-9","res":{"statusCode":200},"responseTime":2.433778000064194,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120788,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/providers/status","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120789,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.31114000000525266,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120789,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120790,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":1.734561000019312,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120791,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"POST","url":"/settings/runtime/reload","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120791,"pid":7306,"hostname":"4f58c64d5934","msg":"[env] Loaded .env.local"}
+apps/server test: {"level":30,"time":1791509120793,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":200},"responseTime":1.8684030000586063,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120793,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","req":{"method":"GET","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120794,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-4","res":{"statusCode":200},"responseTime":0.9247770000947639,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120801,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120802,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.6190850000130013,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509120807,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"GET","url":"/settings/runtime","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509120808,"pid":7306,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":0.6620809999294579,"msg":"request completed"}
+apps/server test:  ✓ src/server.test.ts (45 tests) 878ms
+apps/server test:  ✓ src/routes/media.test.ts (83 tests) 262ms
+apps/server test:  ↓ src/product-control-journal-ingress.integration.test.ts (13 tests | 13 skipped)
+apps/server test:  ↓ src/voice-control-journal-ingress.integration.test.ts (33 tests | 33 skipped)
+apps/server test:  ↓ src/outward-effects.integration.test.ts (40 tests | 40 skipped)
+apps/server test:  ↓ src/outward-transport.postgres.integration.test.ts (17 tests | 17 skipped)
+apps/server test: stdout | src/character-production-path.test.ts > ordinary production Character path > rejects an unknown extractor mode on reload before replacing the Runtime
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test: stdout | src/character-production-path.test.ts > ordinary production Character path > keeps the live proactive subscription connected across runtime reload
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test: {"level":30,"time":1791509124078,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: stdout | src/character-production-path.test.ts > ordinary production Character path > keeps a simple accepted RESPOND on the selected Chat model
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: '86db3642-c9a8-4da5-ad23-0677373754b6',
+apps/server test:   traceId: '86db3642-c9a8-4da5-ad23-0677373754b6',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:86db3642-c9a8-4da5-ad23-0677373754b6',
+apps/server test:   traceId: '86db3642-c9a8-4da5-ad23-0677373754b6',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:86db3642-c9a8-4da5-ad23-0677373754b6',
+apps/server test:   traceId: '86db3642-c9a8-4da5-ad23-0677373754b6',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: {"level":30,"time":1791509124082,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","journalEventId":"jev1_characterpathreceipt00000001","runtimeEventId":"86db3642-c9a8-4da5-ad23-0677373754b6","sessionId":"production-simple","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509124082,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","traceId":"86db3642-c9a8-4da5-ad23-0677373754b6","sessionId":"production-simple","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509124092,"pid":7437,"hostname":"4f58c64d5934","capability":"chat","provider":"openai-compatible","latencyMs":2,"traceId":"86db3642-c9a8-4da5-ad23-0677373754b6","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509124103,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":24.716191999963485,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509124123,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: stdout | src/character-production-path.test.ts > ordinary production Character path > takes NEED_COGNITION through one GLM round-trip and returns clean final output
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: '0ecf3592-6f47-44b9-9572-2f54171cf6b1',
+apps/server test:   traceId: '0ecf3592-6f47-44b9-9572-2f54171cf6b1',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:0ecf3592-6f47-44b9-9572-2f54171cf6b1',
+apps/server test:   traceId: '0ecf3592-6f47-44b9-9572-2f54171cf6b1',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:0ecf3592-6f47-44b9-9572-2f54171cf6b1',
+apps/server test:   traceId: '0ecf3592-6f47-44b9-9572-2f54171cf6b1',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: {"level":30,"time":1791509124124,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","journalEventId":"jev1_characterpathreceipt00000001","runtimeEventId":"0ecf3592-6f47-44b9-9572-2f54171cf6b1","sessionId":"production-cognition","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509124124,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","traceId":"0ecf3592-6f47-44b9-9572-2f54171cf6b1","sessionId":"production-cognition","hasSubjectUserId":false,"hasPersonaId":false,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509124129,"pid":7437,"hostname":"4f58c64d5934","capability":"chat","provider":"openai-compatible","latencyMs":1,"traceId":"0ecf3592-6f47-44b9-9572-2f54171cf6b1","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509124136,"pid":7437,"hostname":"4f58c64d5934","capability":"chat","provider":"openai-compatible","latencyMs":1,"traceId":"0ecf3592-6f47-44b9-9572-2f54171cf6b1","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509124138,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":14.74752700002864,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509124156,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/v1/messages/stream","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: stdout | src/character-production-path.test.ts > ordinary production Character path > uses the same Character disposition seam for ordinary message streaming
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: '8d270727-e032-45bf-8330-22567ea6cf12',
+apps/server test:   traceId: '8d270727-e032-45bf-8330-22567ea6cf12',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:8d270727-e032-45bf-8330-22567ea6cf12',
+apps/server test:   traceId: '8d270727-e032-45bf-8330-22567ea6cf12',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:8d270727-e032-45bf-8330-22567ea6cf12',
+apps/server test:   traceId: '8d270727-e032-45bf-8330-22567ea6cf12',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: {"level":30,"time":1791509124157,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","journalEventId":"jev1_characterpathreceipt00000001","runtimeEventId":"8d270727-e032-45bf-8330-22567ea6cf12","sessionId":"production-stream","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509124163,"pid":7437,"hostname":"4f58c64d5934","capability":"chat","provider":"openai-compatible","latencyMs":1,"traceId":"8d270727-e032-45bf-8330-22567ea6cf12","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509124166,"pid":7437,"hostname":"4f58c64d5934","traceId":"8d270727-e032-45bf-8330-22567ea6cf12","semanticGateLatencyMs":2,"firstTokenAfterGateMs":1,"totalResponseLatencyMs":4,"providerDeltaCount":1,"msg":"Character response stream completed"}
+apps/server test: {"level":30,"time":1791509124167,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":10.24875799997244,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509124179,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/p8/corrections","host":"localhost:80","remoteAddress":"192.0.2.1"},"msg":"incoming request"}
+apps/server test: stdout | src/character-production-path.test.ts > persists a controller P8 relationship correction through restart and projects its state
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test: {"level":30,"time":1791509124180,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":403},"responseTime":0.8049070000415668,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509124180,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/p8/corrections","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509124185,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":4.377195000066422,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509124185,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"POST","url":"/p8/corrections","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509124186,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":200},"responseTime":1.3772209999151528,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509124198,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: stdout | src/character-production-path.test.ts > persists a controller P8 relationship correction through restart and projects its state
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: '80746259-7a41-465b-9745-0c5b81098ecb',
+apps/server test:   traceId: '80746259-7a41-465b-9745-0c5b81098ecb',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:80746259-7a41-465b-9745-0c5b81098ecb',
+apps/server test:   traceId: '80746259-7a41-465b-9745-0c5b81098ecb',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:80746259-7a41-465b-9745-0c5b81098ecb',
+apps/server test:   traceId: '80746259-7a41-465b-9745-0c5b81098ecb',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: {"level":30,"time":1791509124199,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","journalEventId":"jev1_characterpathreceipt00000001","runtimeEventId":"80746259-7a41-465b-9745-0c5b81098ecb","sessionId":"default","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509124199,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","traceId":"80746259-7a41-465b-9745-0c5b81098ecb","sessionId":"default","hasSubjectUserId":true,"hasPersonaId":true,"msg":"message request received"}
+apps/server test: {"level":30,"time":1791509124204,"pid":7437,"hostname":"4f58c64d5934","capability":"chat","provider":"openai-compatible","latencyMs":1,"traceId":"80746259-7a41-465b-9745-0c5b81098ecb","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509124206,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":8.014472000068054,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509124213,"pid":7437,"hostname":"4f58c64d5934","backend":"mem0","mem0BaseUrl":"http://memory.example","searchTimeoutMs":600,"msg":"memory backend selected"}
+apps/server test: stdout | src/character-production-path.test.ts > binds a voice through the controller, restores it, and isolates resolved, mixed and conflicting speech turns
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.voice.transcript',
+apps/server test:   id: '37605d9a-fce6-4390-a63f-0921423ac720',
+apps/server test:   traceId: '37605d9a-fce6-4390-a63f-0921423ac720',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:37605d9a-fce6-4390-a63f-0921423ac720',
+apps/server test:   traceId: '37605d9a-fce6-4390-a63f-0921423ac720',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:37605d9a-fce6-4390-a63f-0921423ac720',
+apps/server test:   traceId: '37605d9a-fce6-4390-a63f-0921423ac720',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: {"level":30,"time":1791509124220,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/v1/voice/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509124238,"pid":7437,"hostname":"4f58c64d5934","capability":"chat","provider":"import-openai-compatible-chat","latencyMs":1,"traceId":"37605d9a-fce6-4390-a63f-0921423ac720","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509124240,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":19.385336000006646,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509124240,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/voice-profiles/profile-a/person","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509124245,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":4.992574999923818,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509124249,"pid":7437,"hostname":"4f58c64d5934","backend":"mem0","mem0BaseUrl":"http://memory.example","searchTimeoutMs":600,"msg":"memory backend selected"}
+apps/server test: stdout | src/character-production-path.test.ts > binds a voice through the controller, restores it, and isolates resolved, mixed and conflicting speech turns
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.voice.transcript',
+apps/server test:   id: '20cd9125-26a9-43e2-a613-dba47dbb9a21',
+apps/server test:   traceId: '20cd9125-26a9-43e2-a613-dba47dbb9a21',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'memory.retrieved',
+apps/server test:   id: '610a27cd-363d-466e-a723-e48190d9ddde',
+apps/server test:   traceId: '20cd9125-26a9-43e2-a613-dba47dbb9a21',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:20cd9125-26a9-43e2-a613-dba47dbb9a21',
+apps/server test:   traceId: '20cd9125-26a9-43e2-a613-dba47dbb9a21',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:20cd9125-26a9-43e2-a613-dba47dbb9a21',
+apps/server test:   traceId: '20cd9125-26a9-43e2-a613-dba47dbb9a21',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: {"level":30,"time":1791509124254,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/v1/voice/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509124267,"pid":7437,"hostname":"4f58c64d5934","capability":"chat","provider":"import-openai-compatible-chat","latencyMs":1,"traceId":"20cd9125-26a9-43e2-a613-dba47dbb9a21","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509124268,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":14.408575000008568,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509124270,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-2","req":{"method":"POST","url":"/v1/voice/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: stdout | src/character-production-path.test.ts > binds a voice through the controller, restores it, and isolates resolved, mixed and conflicting speech turns
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.voice.transcript',
+apps/server test:   id: '2795af16-70a3-4223-b398-67eb3538f501',
+apps/server test:   traceId: '2795af16-70a3-4223-b398-67eb3538f501',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:2795af16-70a3-4223-b398-67eb3538f501',
+apps/server test:   traceId: '2795af16-70a3-4223-b398-67eb3538f501',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:2795af16-70a3-4223-b398-67eb3538f501',
+apps/server test:   traceId: '2795af16-70a3-4223-b398-67eb3538f501',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: {"level":30,"time":1791509124277,"pid":7437,"hostname":"4f58c64d5934","capability":"chat","provider":"import-openai-compatible-chat","latencyMs":1,"traceId":"2795af16-70a3-4223-b398-67eb3538f501","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509124279,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-2","res":{"statusCode":200},"responseTime":8.853619999950752,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509124279,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-3","req":{"method":"POST","url":"/voice-profiles/profile-a/person","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: {"level":30,"time":1791509124282,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-3","res":{"statusCode":200},"responseTime":3.0021160000469536,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509124282,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-4","req":{"method":"POST","url":"/v1/voice/message","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+apps/server test: stdout | src/character-production-path.test.ts > binds a voice through the controller, restores it, and isolates resolved, mixed and conflicting speech turns
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.voice.transcript',
+apps/server test:   id: '7b52b787-9839-4840-bbd8-9c8b4a0b16ca',
+apps/server test:   traceId: '7b52b787-9839-4840-bbd8-9c8b4a0b16ca',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:7b52b787-9839-4840-bbd8-9c8b4a0b16ca',
+apps/server test:   traceId: '7b52b787-9839-4840-bbd8-9c8b4a0b16ca',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:7b52b787-9839-4840-bbd8-9c8b4a0b16ca',
+apps/server test:   traceId: '7b52b787-9839-4840-bbd8-9c8b4a0b16ca',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: {"level":30,"time":1791509124288,"pid":7437,"hostname":"4f58c64d5934","capability":"chat","provider":"import-openai-compatible-chat","latencyMs":1,"traceId":"7b52b787-9839-4840-bbd8-9c8b4a0b16ca","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509124290,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-4","res":{"statusCode":200},"responseTime":7.7192359999753535,"msg":"request completed"}
+apps/server test: {"level":30,"time":1791509124304,"pid":7437,"hostname":"4f58c64d5934","msg":"Server listening at http://127.0.0.1:35689"}
+apps/server test: stdout | src/character-production-path.test.ts > flushes native provider deltas over a real SSE socket before provider completion
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test: {"level":30,"time":1791509124314,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","req":{"method":"POST","url":"/v1/messages/stream","host":"127.0.0.1:35689","remoteAddress":"127.0.0.1","remotePort":40888},"msg":"incoming request"}
+apps/server test: stdout | src/character-production-path.test.ts > flushes native provider deltas over a real SSE socket before provider completion
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: 'dc233d44-b64a-4912-a3f6-b7dd0b9ec2ee',
+apps/server test:   traceId: 'dc233d44-b64a-4912-a3f6-b7dd0b9ec2ee',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: {"level":30,"time":1791509124316,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","journalEventId":"jev1_characterpathreceipt00000001","runtimeEventId":"dc233d44-b64a-4912-a3f6-b7dd0b9ec2ee","sessionId":"socket","msg":"conversation receipt committed"}
+apps/server test: {"level":30,"time":1791509124320,"pid":7437,"hostname":"4f58c64d5934","capability":"chat","provider":"openai-compatible","latencyMs":1,"traceId":"dc233d44-b64a-4912-a3f6-b7dd0b9ec2ee","msg":"provider call completed"}
+apps/server test: {"level":30,"time":1791509124327,"pid":7437,"hostname":"4f58c64d5934","traceId":"dc233d44-b64a-4912-a3f6-b7dd0b9ec2ee","semanticGateLatencyMs":1,"firstTokenAfterGateMs":1,"totalResponseLatencyMs":8,"providerDeltaCount":3,"msg":"Character response stream completed"}
+apps/server test: stdout | src/character-production-path.test.ts > flushes native provider deltas over a real SSE socket before provider completion
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:dc233d44-b64a-4912-a3f6-b7dd0b9ec2ee',
+apps/server test:   traceId: 'dc233d44-b64a-4912-a3f6-b7dd0b9ec2ee',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:dc233d44-b64a-4912-a3f6-b7dd0b9ec2ee',
+apps/server test:   traceId: 'dc233d44-b64a-4912-a3f6-b7dd0b9ec2ee',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: {"level":30,"time":1791509124328,"pid":7437,"hostname":"4f58c64d5934","reqId":"req-1","res":{"statusCode":200},"responseTime":13.139506999985315,"msg":"request completed"}
+apps/server test:  ✓ src/character-production-path.test.ts (10 tests | 2 skipped) 383ms
+apps/server test:  ✓ src/plugin-lifecycle.test.ts (31 tests) 132ms
+apps/server test:  ✓ src/character-runtime.test.ts (24 tests) 26ms
+apps/server test:  ✓ src/product-configuration.test.ts (11 tests) 389ms
+apps/server test:  ↓ src/canonical-evidence-admission.integration.test.ts (8 tests | 8 skipped)
+apps/server test:  ↓ src/runtime-control-journal-ingress.integration.test.ts (7 tests | 7 skipped)
+apps/server test:  ↓ src/grounded-finalized-mem0.integration.test.ts (7 tests | 7 skipped)
+apps/server test:  ↓ src/conversational-journal-ingress.integration.test.ts (9 tests | 9 skipped)
+apps/server test: stdout | src/chat-progressive-production.test.ts > Chat core production capability activation > boots first-run configuration without Chat and reports NOT_CONFIGURED
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test: stdout | src/chat-progressive-production.test.ts > Chat core production capability activation > activates each optional capability only when its own enabled route has a model
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: '4a7c196e-17e6-48c1-accd-cf324c51281b',
+apps/server test:   traceId: '4a7c196e-17e6-48c1-accd-cf324c51281b',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:4a7c196e-17e6-48c1-accd-cf324c51281b',
+apps/server test:   traceId: '4a7c196e-17e6-48c1-accd-cf324c51281b',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:4a7c196e-17e6-48c1-accd-cf324c51281b',
+apps/server test:   traceId: '4a7c196e-17e6-48c1-accd-cf324c51281b',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: '79cdef37-e986-4769-a5a7-74b16ce70bb2',
+apps/server test:   traceId: '79cdef37-e986-4769-a5a7-74b16ce70bb2',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:79cdef37-e986-4769-a5a7-74b16ce70bb2',
+apps/server test:   traceId: '79cdef37-e986-4769-a5a7-74b16ce70bb2',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:79cdef37-e986-4769-a5a7-74b16ce70bb2',
+apps/server test:   traceId: '79cdef37-e986-4769-a5a7-74b16ce70bb2',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: 'e88d315e-5480-4d9d-9816-3dc77caea499',
+apps/server test:   traceId: 'e88d315e-5480-4d9d-9816-3dc77caea499',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:e88d315e-5480-4d9d-9816-3dc77caea499',
+apps/server test:   traceId: 'e88d315e-5480-4d9d-9816-3dc77caea499',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:e88d315e-5480-4d9d-9816-3dc77caea499',
+apps/server test:   traceId: 'e88d315e-5480-4d9d-9816-3dc77caea499',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: '6ce5cf95-cb6b-43cb-b34d-fac61989c6a1',
+apps/server test:   traceId: '6ce5cf95-cb6b-43cb-b34d-fac61989c6a1',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:6ce5cf95-cb6b-43cb-b34d-fac61989c6a1',
+apps/server test:   traceId: '6ce5cf95-cb6b-43cb-b34d-fac61989c6a1',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:6ce5cf95-cb6b-43cb-b34d-fac61989c6a1',
+apps/server test:   traceId: '6ce5cf95-cb6b-43cb-b34d-fac61989c6a1',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: '6aca3431-2bf1-405c-a55e-9a136a02a791',
+apps/server test:   traceId: '6aca3431-2bf1-405c-a55e-9a136a02a791',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:6aca3431-2bf1-405c-a55e-9a136a02a791',
+apps/server test:   traceId: '6aca3431-2bf1-405c-a55e-9a136a02a791',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:6aca3431-2bf1-405c-a55e-9a136a02a791',
+apps/server test:   traceId: '6aca3431-2bf1-405c-a55e-9a136a02a791',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: '90eac5ec-61ac-4bfe-89b1-df1c4f835273',
+apps/server test:   traceId: '90eac5ec-61ac-4bfe-89b1-df1c4f835273',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:90eac5ec-61ac-4bfe-89b1-df1c4f835273',
+apps/server test:   traceId: '90eac5ec-61ac-4bfe-89b1-df1c4f835273',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:90eac5ec-61ac-4bfe-89b1-df1c4f835273',
+apps/server test:   traceId: '90eac5ec-61ac-4bfe-89b1-df1c4f835273',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: 'ca86d4df-69e8-4429-b106-11068c30aa6d',
+apps/server test:   traceId: 'ca86d4df-69e8-4429-b106-11068c30aa6d',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:ca86d4df-69e8-4429-b106-11068c30aa6d',
+apps/server test:   traceId: 'ca86d4df-69e8-4429-b106-11068c30aa6d',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:ca86d4df-69e8-4429-b106-11068c30aa6d',
+apps/server test:   traceId: 'ca86d4df-69e8-4429-b106-11068c30aa6d',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: 'f7fca220-4f22-4f87-94ed-0804e4449e14',
+apps/server test:   traceId: 'f7fca220-4f22-4f87-94ed-0804e4449e14',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:f7fca220-4f22-4f87-94ed-0804e4449e14',
+apps/server test:   traceId: 'f7fca220-4f22-4f87-94ed-0804e4449e14',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:f7fca220-4f22-4f87-94ed-0804e4449e14',
+apps/server test:   traceId: 'f7fca220-4f22-4f87-94ed-0804e4449e14',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: '630b2207-3dd8-4194-b996-a60363194a0e',
+apps/server test:   traceId: '630b2207-3dd8-4194-b996-a60363194a0e',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:630b2207-3dd8-4194-b996-a60363194a0e',
+apps/server test:   traceId: '630b2207-3dd8-4194-b996-a60363194a0e',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:630b2207-3dd8-4194-b996-a60363194a0e',
+apps/server test:   traceId: '630b2207-3dd8-4194-b996-a60363194a0e',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: '9557a81c-0db2-49aa-a8e4-a42a042b763a',
+apps/server test:   traceId: '9557a81c-0db2-49aa-a8e4-a42a042b763a',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:9557a81c-0db2-49aa-a8e4-a42a042b763a',
+apps/server test:   traceId: '9557a81c-0db2-49aa-a8e4-a42a042b763a',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:9557a81c-0db2-49aa-a8e4-a42a042b763a',
+apps/server test:   traceId: '9557a81c-0db2-49aa-a8e4-a42a042b763a',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: 'cc712715-373e-4275-93ff-5a797847e1a4',
+apps/server test:   traceId: 'cc712715-373e-4275-93ff-5a797847e1a4',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:cc712715-373e-4275-93ff-5a797847e1a4',
+apps/server test:   traceId: 'cc712715-373e-4275-93ff-5a797847e1a4',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:cc712715-373e-4275-93ff-5a797847e1a4',
+apps/server test:   traceId: 'cc712715-373e-4275-93ff-5a797847e1a4',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: '61f2f59b-67aa-4f09-b6ae-f1a428ea2293',
+apps/server test:   traceId: '61f2f59b-67aa-4f09-b6ae-f1a428ea2293',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:61f2f59b-67aa-4f09-b6ae-f1a428ea2293',
+apps/server test:   traceId: '61f2f59b-67aa-4f09-b6ae-f1a428ea2293',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:61f2f59b-67aa-4f09-b6ae-f1a428ea2293',
+apps/server test:   traceId: '61f2f59b-67aa-4f09-b6ae-f1a428ea2293',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: 'd12ca31c-3c3d-483f-90ec-1eb0df46bbfd',
+apps/server test:   traceId: 'd12ca31c-3c3d-483f-90ec-1eb0df46bbfd',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:d12ca31c-3c3d-483f-90ec-1eb0df46bbfd',
+apps/server test:   traceId: 'd12ca31c-3c3d-483f-90ec-1eb0df46bbfd',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:d12ca31c-3c3d-483f-90ec-1eb0df46bbfd',
+apps/server test:   traceId: 'd12ca31c-3c3d-483f-90ec-1eb0df46bbfd',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: '7de69a38-f0cb-4ab8-bcb8-72e419168caa',
+apps/server test:   traceId: '7de69a38-f0cb-4ab8-bcb8-72e419168caa',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:7de69a38-f0cb-4ab8-bcb8-72e419168caa',
+apps/server test:   traceId: '7de69a38-f0cb-4ab8-bcb8-72e419168caa',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:7de69a38-f0cb-4ab8-bcb8-72e419168caa',
+apps/server test:   traceId: '7de69a38-f0cb-4ab8-bcb8-72e419168caa',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: 'd7977d2a-79cd-4769-9f23-538478dad89d',
+apps/server test:   traceId: 'd7977d2a-79cd-4769-9f23-538478dad89d',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:d7977d2a-79cd-4769-9f23-538478dad89d',
+apps/server test:   traceId: 'd7977d2a-79cd-4769-9f23-538478dad89d',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:d7977d2a-79cd-4769-9f23-538478dad89d',
+apps/server test:   traceId: 'd7977d2a-79cd-4769-9f23-538478dad89d',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: stdout | src/chat-progressive-production.test.ts > Chat core production capability activation > does not arm or evaluate Proactive without a route, and keeps extraction rule-based on Reasoning activation
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test: stdout | src/chat-progressive-production.test.ts > Chat core production capability activation > uses bounded scores, leaves quiet state unchanged on low scores, and writes prose through Chat at threshold
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:assistant-initiated:e9fb76d2-f656-4eb7-915f-240e99eeb5a0',
+apps/server test:   traceId: '989e7bbd-ddb4-4499-a856-62daf214cc80',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:assistant-initiated:e9fb76d2-f656-4eb7-915f-240e99eeb5a0',
+apps/server test:   traceId: '989e7bbd-ddb4-4499-a856-62daf214cc80',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: stdout | src/chat-progressive-production.test.ts > Chat core production capability activation > fails closed when Cognition is absent and continues ordinary Chat afterwards
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: 'aca6c256-e24b-4cd5-9756-a57cbee71a06',
+apps/server test:   traceId: 'aca6c256-e24b-4cd5-9756-a57cbee71a06',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:aca6c256-e24b-4cd5-9756-a57cbee71a06',
+apps/server test:   traceId: 'aca6c256-e24b-4cd5-9756-a57cbee71a06',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:aca6c256-e24b-4cd5-9756-a57cbee71a06',
+apps/server test:   traceId: 'aca6c256-e24b-4cd5-9756-a57cbee71a06',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: '29e26d31-4e93-4626-9480-a6bb5ba1940a',
+apps/server test:   traceId: '29e26d31-4e93-4626-9480-a6bb5ba1940a',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:29e26d31-4e93-4626-9480-a6bb5ba1940a',
+apps/server test:   traceId: '29e26d31-4e93-4626-9480-a6bb5ba1940a',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:29e26d31-4e93-4626-9480-a6bb5ba1940a',
+apps/server test:   traceId: '29e26d31-4e93-4626-9480-a6bb5ba1940a',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: stdout | src/chat-progressive-production.test.ts > Chat core production capability activation > accepts Character quiet proposal and restores the existing Runtime suppression snapshot
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'user.message',
+apps/server test:   id: '24caa6fb-d548-447e-9119-55289b66025e',
+apps/server test:   traceId: '24caa6fb-d548-447e-9119-55289b66025e',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'agent.reply',
+apps/server test:   id: 'reply:24caa6fb-d548-447e-9119-55289b66025e',
+apps/server test:   traceId: '24caa6fb-d548-447e-9119-55289b66025e',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: [event-bus] event published {
+apps/server test:   type: 'assistant.message',
+apps/server test:   id: 'assistant:24caa6fb-d548-447e-9119-55289b66025e',
+apps/server test:   traceId: '24caa6fb-d548-447e-9119-55289b66025e',
+apps/server test:   subscriberCount: 1
+apps/server test: }
+apps/server test: stdout | src/chat-progressive-production.test.ts > Chat core production capability activation > accepts Character quiet proposal and restores the existing Runtime suppression snapshot
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test: stdout | src/chat-progressive-production.test.ts > Chat core production capability activation > accepts Character quiet proposal and restores the existing Runtime suppression snapshot
+apps/server test: [event-bus] event subscription added { typePattern: '*' }
+apps/server test:  ✓ src/chat-progressive-production.test.ts (9 tests | 1 skipped) 363ms
+apps/server test:  ✓ src/cognition-interaction.test.ts (13 tests) 98ms
+apps/server test:  ↓ src/speech-journal-ingress.integration.test.ts (5 tests | 5 skipped)
+apps/server test:  ↓ src/vision-journal-ingress.integration.test.ts (8 tests | 8 skipped)
+apps/server test:  ↓ src/proactive-consent-journal.integration.test.ts (2 tests | 2 skipped)
+apps/server test:  ↓ src/multi-character.integration.test.ts (2 tests | 2 skipped)
+apps/server test:  ✓ src/routes/proactive-turn-stream.test.ts (18 tests) 108ms
+apps/server test:  ✓ src/routes/message-stream.test.ts (13 tests) 131ms
+apps/server test:  ✓ src/mcp-capability-binding.test.ts (10 tests) 9ms
+apps/server test:  ↓ src/tts-journal-ingress.integration.test.ts (4 tests | 4 skipped)
+apps/server test:  ↓ src/proactive-turn-journal-ingress.integration.test.ts (4 tests | 4 skipped)
+apps/server test:  ✓ src/routes/memory-authority.test.ts (7 tests) 116ms
+apps/server test:  ↓ src/grounded-memory-lineage.integration.test.ts (2 tests | 2 skipped)
+apps/server test:  ✓ src/services/product-store.test.ts (12 tests) 16ms
+apps/server test:  ✓ src/cognition-current-read-text-roundtrip.test.ts (8 tests) 14ms
+apps/server test:  ✓ src/services/live2d-models.test.ts (21 tests) 127ms
+apps/server test:  ✓ src/cognition-read-text-assisted-completion.test.ts (7 tests) 12ms
+apps/server test:  ✓ src/character-streaming.test.ts (15 tests) 82ms
+apps/server test:  ↓ src/release-conformance.postgres.integration.test.ts (36 tests | 36 skipped)
+apps/server test:  ↓ src/read-text-effect.integration.test.ts (11 tests | 11 skipped)
+apps/server test:  ✓ src/cognition-current-capabilities.test.ts (6 tests) 10ms
+apps/server test:  ✓ src/cognition-read-text-observation.test.ts (6 tests) 10ms
+apps/server test:  ✓ src/cognition-capability-aware.test.ts (5 tests) 8ms
+apps/server test:  ✓ src/routes/local-connection.test.ts (5 tests) 77ms
+apps/server test:  ✓ src/character-embodied-soft-smile-composition.test.ts (12 tests) 12ms
+apps/server test:  ✓ src/mcp-read-text-capability.test.ts (8 tests) 10ms
+apps/server test:  ✓ src/cognition-observation-continuation.test.ts (5 tests) 11ms
+apps/server test:  ✓ src/routes/local-services.test.ts (3 tests) 88ms
+apps/server test:  ✓ src/embodied-effect-lifecycle-composition.test.ts (5 tests) 14ms
+apps/server test:  ✓ src/cognition-post-capability.test.ts (5 tests) 9ms
+apps/server test:  ↓ src/effect-intent-composition.integration.test.ts (2 tests | 2 skipped)
+apps/server test:  ✓ src/mcp-read-text-observation.test.ts (5 tests) 6ms
+apps/server test:  ✓ src/runtime-settings.test.ts (4 tests) 6ms
+apps/server test:  ✓ src/cognition-post-capability-roundtrip.test.ts (4 tests) 7ms
+apps/server test:  ✓ src/voice-control-receipt-admission.test.ts (3 tests) 10ms
+apps/server test:  ✓ src/cognition-character-reentry.test.ts (5 tests) 6ms
+apps/server test:  ✓ src/routes/speech-activity.test.ts (5 tests) 76ms
+apps/server test:  ✓ src/tts-receipt-admission.test.ts (2 tests) 7ms
+apps/server test:  ✓ src/mcp-client.test.ts (4 tests) 9ms
+apps/server test:  ✓ src/product-portable-persistence.test.ts (2 tests) 4ms
+apps/server test:  ✓ src/visual-grounding.integration.test.ts (2 tests) 45ms
+apps/server test:  ✓ src/character-composition.test.ts (4 tests) 6ms
+apps/server test:  ✓ src/runtime-control-receipt-admission.test.ts (3 tests) 10ms
+apps/server test:  ✓ src/embodied-presentation-bridge.test.ts (3 tests) 8ms
+apps/server test:  ✓ src/services/packaged-voice.test.ts (4 tests) 48ms
+apps/server test:  ✓ src/proactive-turn-receipt-admission.test.ts (2 tests) 6ms
+apps/server test:  ✓ src/cognition-roundtrip.test.ts (3 tests) 5ms
+apps/server test:  ✓ src/services/local-services.test.ts (2 tests) 8ms
+apps/server test:  ✓ src/routes/websocket.test.ts (3 tests) 24ms
+apps/server test:  ✓ src/routes/speech-turn-handoff.test.ts (2 tests) 89ms
+apps/server test:  ✓ src/product-person-command-effects.test.ts (3 tests) 13ms
+apps/server test:  ✓ src/routes/live2d.test.ts (3 tests) 120ms
+apps/server test:  ✓ src/embodied-presentation-dispatch.test.ts (3 tests) 8ms
+apps/server test:  ✓ src/routes/conversation-history.test.ts (1 test) 56ms
+apps/server test:  ✓ src/screen-capture.test.ts (5 tests) 18ms
+apps/server test:  ✓ src/mcp-read-text-capability-error.test.ts (1 test) 4ms
+apps/server test:  ✓ src/routes/memory-records.test.ts (1 test) 56ms
+apps/server test:  ✓ src/routes/security.test.ts (2 tests) 3ms
+apps/server test:  Test Files  54 passed | 18 skipped (72)
+apps/server test:       Tests  475 passed | 213 skipped (688)
+apps/server test:    Start at  01:25:17
+apps/server test:    Duration  32.16s (transform 2.14s, setup 0ms, collect 16.65s, tests 4.05s, environment 10ms, prepare 3.42s)
+apps/server test: Done
