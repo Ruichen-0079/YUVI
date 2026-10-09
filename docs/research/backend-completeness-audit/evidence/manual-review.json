@@ -1,0 +1,3017 @@
+{
+  "baselineSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4",
+  "reviewPolicy": "FULL_FILE_DEEP_REVIEW means all file sections read in this round; targeted/reused/AST is separate. Review statements are author evidence, not mechanically proved understanding.",
+  "files": [
+    {
+      "path": "packages/database/src/index.ts",
+      "level": "FULL_FILE_DEEP_REVIEW",
+      "evidence": [
+        {
+          "path": "packages/database/src/index.ts",
+          "lineStart": 1,
+          "lineEnd": 42,
+          "blobSHA": "2e15ed7b37e0cf05701becb7a02d666d48600960",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Windows localhost normalization; pool creation/lifetime is host-owned. Not a semantic intelligence facility.",
+      "remaining": "External/configuration/quality proof not implied"
+    },
+    {
+      "path": "packages/cognition/src/capability-observation.ts",
+      "level": "FULL_FILE_DEEP_REVIEW",
+      "evidence": [
+        {
+          "path": "packages/cognition/src/capability-observation.ts",
+          "lineStart": 1,
+          "lineEnd": 122,
+          "blobSHA": "c3da70cce72f2239fbf03ac6acdb1557cdfac86d",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "SUCCESS preserves nonempty <=16000 characters; other statuses forbid content. Tool identity opaque.",
+      "remaining": "External/configuration/quality proof not implied"
+    },
+    {
+      "path": "apps/server/src/mcp-read-text-observation.ts",
+      "level": "FULL_FILE_DEEP_REVIEW",
+      "evidence": [
+        {
+          "path": "apps/server/src/mcp-read-text-observation.ts",
+          "lineStart": 1,
+          "lineEnd": 134,
+          "blobSHA": "db83261e5fd9ebd86fee62f99ba94e063ae66249",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Revalidates binding, joins text blocks; malformed/empty/over-limit success becomes ERROR without body or reason.",
+      "remaining": "External/configuration/quality proof not implied"
+    },
+    {
+      "path": "apps/server/src/routes/websocket.ts",
+      "level": "FULL_FILE_DEEP_REVIEW",
+      "evidence": [
+        {
+          "path": "apps/server/src/routes/websocket.ts",
+          "lineStart": 1,
+          "lineEnd": 315,
+          "blobSHA": "e474ce066fafc076a9174ca51997de624661d9c3",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Trace registry versus dashboard wildcard stream, query coercion, close unsubscribe, deprecated /v1/events closure. Actual socket fixture tests no-active-trace suppression and false-string widening.",
+      "remaining": "External/configuration/quality proof not implied"
+    },
+    {
+      "path": "apps/server/src/routes/security.ts",
+      "level": "FULL_FILE_DEEP_REVIEW",
+      "evidence": [
+        {
+          "path": "apps/server/src/routes/security.ts",
+          "lineStart": 1,
+          "lineEnd": 58,
+          "blobSHA": "ba364deca592bce18efb6903e7ffedc3125f1364",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Dashboard dev-token/loopback helpers are explicit route guards, not global authentication.",
+      "remaining": "External/configuration/quality proof not implied"
+    },
+    {
+      "path": "apps/server/src/routes/events.ts",
+      "level": "FULL_FILE_DEEP_REVIEW",
+      "evidence": [
+        {
+          "path": "apps/server/src/routes/events.ts",
+          "lineStart": 1,
+          "lineEnd": 24,
+          "blobSHA": "3fb0fc60fc6450ecd48b59f8fa6fa8de81055030",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Recent-event dashboard reads are management consumers.",
+      "remaining": "External/configuration/quality proof not implied"
+    },
+    {
+      "path": "apps/server/src/routes/debug.ts",
+      "level": "FULL_FILE_DEEP_REVIEW",
+      "evidence": [
+        {
+          "path": "apps/server/src/routes/debug.ts",
+          "lineStart": 1,
+          "lineEnd": 33,
+          "blobSHA": "a3d0f98cc742a1d651b03395656c1ccb7d6b79a0",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Development debug route differs from production event route.",
+      "remaining": "External/configuration/quality proof not implied"
+    },
+    {
+      "path": "packages/event-bus/src/index.ts",
+      "level": "FULL_FILE_DEEP_REVIEW",
+      "evidence": [
+        {
+          "path": "packages/event-bus/src/index.ts",
+          "lineStart": 1,
+          "lineEnd": 153,
+          "blobSHA": "300e41d1214af6a3659af9bc5bcf1234d2311266",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Wildcard subscribers and catch/log handler errors; publication completion does not certify all subscriber effects. Other subscribers continue.",
+      "remaining": "External/configuration/quality proof not implied"
+    },
+    {
+      "path": "packages/character-harness/src/assembly-v2d.ts",
+      "level": "FULL_FILE_DEEP_REVIEW",
+      "evidence": [
+        {
+          "path": "packages/character-harness/src/assembly-v2d.ts",
+          "lineStart": 1,
+          "lineEnd": 156,
+          "blobSHA": "fee4c39edc9f5a625bd5549b717c0f6138d2bcfe",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Prefix-only budget closure drops all later sections; counts cognition semantic strings. Does not re-rank or summarize.",
+      "remaining": "External/configuration/quality proof not implied"
+    },
+    {
+      "path": "packages/providers/src/local/DotsTTSProvider.ts",
+      "level": "FULL_FILE_DEEP_REVIEW",
+      "evidence": [
+        {
+          "path": "packages/providers/src/local/DotsTTSProvider.ts",
+          "lineStart": 1,
+          "lineEnd": 154,
+          "blobSHA": "248974f5339a113d46142cf3b14495c6c58f55e5",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Exactly one whole-text HTTP request, input WAV/language check, 400 -> provider error unknown effect, cancellation and readiness.",
+      "remaining": "External/configuration/quality proof not implied"
+    },
+    {
+      "path": "services/dots-tts/server.py",
+      "level": "FULL_FILE_DEEP_REVIEW",
+      "evidence": [
+        {
+          "path": "services/dots-tts/server.py",
+          "lineStart": 1,
+          "lineEnd": 335,
+          "blobSHA": "fe632713bd99ebb1d387b6b4f0ed607d38ab0076",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Actual handler length cap, 2000-character service bound, locks, idle hibernation, late cancellation discards generated audio, explicit local-only startup.",
+      "remaining": "External/configuration/quality proof not implied"
+    },
+    {
+      "path": "services/memory-mem0/src/yuvi_mem0/config.py",
+      "level": "FULL_FILE_DEEP_REVIEW",
+      "evidence": [
+        {
+          "path": "services/memory-mem0/src/yuvi_mem0/config.py",
+          "lineStart": 1,
+          "lineEnd": 211,
+          "blobSHA": "bfd4a9d6f1b65d0d97f36b34a778e2c58bc9dbb1",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "MEM0 inference/provider routing, configured model/temperature; not simply assumed default rules.",
+      "remaining": "External/configuration/quality proof not implied"
+    },
+    {
+      "path": "services/memory-mem0/src/yuvi_mem0/noop_llm.py",
+      "level": "FULL_FILE_DEEP_REVIEW",
+      "evidence": [
+        {
+          "path": "services/memory-mem0/src/yuvi_mem0/noop_llm.py",
+          "lineStart": 1,
+          "lineEnd": 84,
+          "blobSHA": "9eb1c350967b3c6433e50b791bd6bdc209af5497",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Explicit no-inference compatibility adapter; availability alone is not semantic extraction.",
+      "remaining": "External/configuration/quality proof not implied"
+    },
+    {
+      "path": "services/memory-mem0/src/yuvi_mem0/__main__.py",
+      "level": "FULL_FILE_DEEP_REVIEW",
+      "evidence": [
+        {
+          "path": "services/memory-mem0/src/yuvi_mem0/__main__.py",
+          "lineStart": 1,
+          "lineEnd": 31,
+          "blobSHA": "8fe7e6d2db682c2d3df764c44454dbd7b7de5ca6",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Module entry calls uvicorn with config; no hidden periodic individual-life process.",
+      "remaining": "External/configuration/quality proof not implied"
+    },
+    {
+      "path": "apps/web/src/companion-embodied-behavior-diagnostics.ts",
+      "level": "FULL_FILE_DEEP_REVIEW",
+      "evidence": [
+        {
+          "path": "apps/web/src/companion-embodied-behavior-diagnostics.ts",
+          "lineStart": 1,
+          "lineEnd": 50,
+          "blobSHA": "6f3aa7f1c53c5b6e22d898ce160c71846c0e7411",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Bounded DEV-only browser diagnostics; intentional debug consumer, no production self-state claim.",
+      "remaining": "External/configuration/quality proof not implied"
+    },
+    {
+      "path": "packages/memory/migrations/009_finalized_ingestion_work_discovery_v1.sql",
+      "level": "FULL_FILE_DEEP_REVIEW",
+      "evidence": [
+        {
+          "path": "packages/memory/migrations/009_finalized_ingestion_work_discovery_v1.sql",
+          "lineStart": 1,
+          "lineEnd": 6,
+          "blobSHA": "2e8231e2424a06ee9c7611c4c10b3032c53de524",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Due-work index covers pending/retry/expired/reconcile; no semantic state write or autonomous job executor.",
+      "remaining": "External/configuration/quality proof not implied"
+    },
+    {
+      "path": "apps/server/src/read-text-effect.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/server/src/read-text-effect.ts",
+          "lineStart": 1,
+          "lineEnd": 120,
+          "blobSHA": "fb7bfc94d98c58de7d6af3deae76edc4f095e847",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Real regular-file adapter accepts <=64000 bytes. Durable grant/dispatcher inspected only in prefix; recovery remains open.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "services/local-stt/server.py",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "services/local-stt/server.py",
+          "lineStart": 330,
+          "lineEnd": 442,
+          "blobSHA": "eba738fcb61577023103c706e4ac7eaf6d1df676",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Actual per-span ASR and mixed-voice matching policy; invalid audio decode and span recognition probed. Initialization/complete HTTP failure matrix pending.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "services/local-stt/speaker_store.py",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "services/local-stt/speaker_store.py",
+          "lineStart": 1,
+          "lineEnd": 65,
+          "blobSHA": "2ef5e74058f1cf8303f50fa900862ea511ec8a4a",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Acoustic template persistence is explicitly not Person/P8; remainder native governance open.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/server/src/server.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/server/src/server.ts",
+          "lineStart": 75,
+          "lineEnd": 245,
+          "blobSHA": "09f391539fa082e7ded36c92ba9e6d0281cb151c",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Plugin lifecycle hooks and all route registration; characterComposition suppresses management endpoints; default no plugin discovery/grants.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/server/src/context.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/server/src/context.ts",
+          "lineStart": 250,
+          "lineEnd": 300,
+          "blobSHA": "5b99e3f31e1694c9316ec5cdaad4e69f14fa3a87",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "EventBus dashboard consumer and backend selection, repository/lifecycle construction.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/server/src/context.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/server/src/context.ts",
+          "lineStart": 515,
+          "lineEnd": 645,
+          "blobSHA": "5b99e3f31e1694c9316ec5cdaad4e69f14fa3a87",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Person used for runtime scope, Character/Cognition/read-text wiring, whole speech passes same text; no semantic Profile read here.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/server/src/context.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/server/src/context.ts",
+          "lineStart": 780,
+          "lineEnd": 808,
+          "blobSHA": "5b99e3f31e1694c9316ec5cdaad4e69f14fa3a87",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Lifecycle shutdown and exported ScopePeopleModelReader construction; exposure is not consumption.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/server/src/routes/message.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/server/src/routes/message.ts",
+          "lineStart": 90,
+          "lineEnd": 220,
+          "blobSHA": "60473bdc66470d252439fdbe32eb23dc51423a0e",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Receipt before Runtime, normalized identity and options, explicit controlAuthority, accounted target, null silence response.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/server/src/routes/message.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/server/src/routes/message.ts",
+          "lineStart": 270,
+          "lineEnd": 306,
+          "blobSHA": "60473bdc66470d252439fdbe32eb23dc51423a0e",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Both HTTP aliases and default memory option normalization.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/server/src/routes/message-stream.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/server/src/routes/message-stream.ts",
+          "lineStart": 1,
+          "lineEnd": 125,
+          "blobSHA": "b5522a6d33d367bd8b6293e787ca778007280cd3",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "SSE transport shares schema/options/receipt; continuation/cancel/recovery needs further deep review.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/server/src/routes/media.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/server/src/routes/media.ts",
+          "lineStart": 55,
+          "lineEnd": 86,
+          "blobSHA": "d2fb26d5269d57dad9ffe353e871ac29828ea7a0",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "TTS schema lacks service-specific max; image/multimodal schema explicit.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/server/src/routes/media.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/server/src/routes/media.ts",
+          "lineStart": 610,
+          "lineEnd": 702,
+          "blobSHA": "d2fb26d5269d57dad9ffe353e871ac29828ea7a0",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Receipt, disconnect boundary, whole/segmented media seal and unchanged text provider call.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/server/src/tts-receipt-admission.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/server/src/tts-receipt-admission.ts",
+          "lineStart": 1,
+          "lineEnd": 95,
+          "blobSHA": "2de3d10932a511ec5b25ff715bad23fcaee04ffe",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Raw TTS text is NOT_RETAINED/nonselectable; metadata summary is retained; intentional privacy state boundary.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/server/src/tts-receipt-admission.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/server/src/tts-receipt-admission.ts",
+          "lineStart": 130,
+          "lineEnd": 168,
+          "blobSHA": "2de3d10932a511ec5b25ff715bad23fcaee04ffe",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Unresolved principal/source acknowledged; appendWithHostAuthority fails closed; no sourceDedup invented.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/server/src/services/dashboard.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/server/src/services/dashboard.ts",
+          "lineStart": 1,
+          "lineEnd": 64,
+          "blobSHA": "7b8afc90cdba1bba214ccab6168ee2c917322cb1",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Recursive key redaction leaves ordinary text/content intact; management consumer only.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "packages/core/src/runtime-orchestrator.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "packages/core/src/runtime-orchestrator.ts",
+          "lineStart": 1200,
+          "lineEnd": 1245,
+          "blobSHA": "c69d37a8ca85063f38e29d1afbf77cb0d6ca0395",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "A4 Profile explicitly NOT_USED; P8 owner sources differ; not proof every possible host omits Profile.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "packages/core/src/runtime-orchestrator.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "packages/core/src/runtime-orchestrator.ts",
+          "lineStart": 4655,
+          "lineEnd": 4715,
+          "blobSHA": "c69d37a8ca85063f38e29d1afbf77cb0d6ca0395",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Whole speech includes unchanged reply.payload.content; configured media wrapper does not chunk here.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "packages/memory/src/profile-lifecycle.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "packages/memory/src/profile-lifecycle.ts",
+          "lineStart": 748,
+          "lineEnd": 810,
+          "blobSHA": "34a55b0ea7bc7e8a2eda3661b4b64f6dd50e87c0",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Reader facade delegates lifecycle. Typed reference or instantiated facade does not prove product consumer.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/desktop/src-tauri/src/config/env_export.rs",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/desktop/src-tauri/src/config/env_export.rs",
+          "lineStart": 1,
+          "lineEnd": 135,
+          "blobSHA": "6d5f1eb8b3ded54ef553934a836801a5525bc353",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Native managed/external settings export, runtime endpoint and memory config mapping.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/desktop/src-tauri/src/config/env_export.rs",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/desktop/src-tauri/src/config/env_export.rs",
+          "lineStart": 160,
+          "lineEnd": 290,
+          "blobSHA": "6d5f1eb8b3ded54ef553934a836801a5525bc353",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Secrets for owned consumers; native sidecar settings forwarding. Actual Windows/macOS execution remains untested.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/desktop/src-tauri/src/lib.rs",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/desktop/src-tauri/src/lib.rs",
+          "lineStart": 275,
+          "lineEnd": 335,
+          "blobSHA": "f220f57546e4049be1959768c8c882cef149f295",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Tauri command list and app lifecycle event registration, explicit command host.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/desktop/src-tauri/src/supervisor.rs",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/desktop/src-tauri/src/supervisor.rs",
+          "lineStart": 1735,
+          "lineEnd": 1754,
+          "blobSHA": "329a6c2343aaa183347442d5e5b4f38fa9de5fc5",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Tree-sitter grammar ERROR on HTTP response split/let syntax. No Rust compiler available; parsing incompleteness retained.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "packages/desktop-supervisor/src/types.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "packages/desktop-supervisor/src/types.ts",
+          "lineStart": 1,
+          "lineEnd": 105,
+          "blobSHA": "1d76f845a86e1789f335bd1c3c61b5581312c71b",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Ownership/instance/token and STT lease states are runtime safeguards, not cognition state.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "packages/config/src/index.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "packages/config/src/index.ts",
+          "lineStart": 1,
+          "lineEnd": 120,
+          "blobSHA": "7a2318bb39ac6f702751072539f1f61cb4c64a38",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Selectors/defaults source; capability selectable does not imply reachable from Chat.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "packages/core/src/index.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "packages/core/src/index.ts",
+          "lineStart": 1,
+          "lineEnd": 138,
+          "blobSHA": "228959fc151d08f60b0bc5e4873bf24458b483f9",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Barrel reexports include proactive/interaction/effects; exports are not entry traces.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "packages/effects/src/model.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "packages/effects/src/model.ts",
+          "lineStart": 1,
+          "lineEnd": 80,
+          "blobSHA": "8000d4660ff9c1915cf215f76f81fbb460fb0456",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Static host-owned effect contracts and necessary correct execution boundary.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "packages/journal/src/index.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "packages/journal/src/index.ts",
+          "lineStart": 1,
+          "lineEnd": 105,
+          "blobSHA": "93e9c93441762d97bf0b0e1e30186f9473d1d93f",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Repository interface and host authority draft; SQL transaction implementation remains deep-review pending.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "packages/prompt-builder/src/canonical-context.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "packages/prompt-builder/src/canonical-context.ts",
+          "lineStart": 1,
+          "lineEnd": 130,
+          "blobSHA": "d520342d03a9f28e594bd239efa81eac9353b255",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Shared slots, stable/volatile partition and assembly shape; classification alone does not replace model serialization.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "packages/providers/src/accounting.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "packages/providers/src/accounting.ts",
+          "lineStart": 1,
+          "lineEnd": 100,
+          "blobSHA": "e15e38cea38d2dfd3863486df38ec0bd59da692c",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "AsyncLocal work/task scope and logical task descriptor; all network leaves/fallback paths not reviewed.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "scripts/desktop-package/build-linux-mem0.mjs",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "scripts/desktop-package/build-linux-mem0.mjs",
+          "lineStart": 1,
+          "lineEnd": 65,
+          "blobSHA": "4b513a2f0f6086fcde75558823af9f0578801fc9",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "PyInstaller manifest & interpreter/version validation; not executing release build.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "services/local-stt/packaging/runtime_notices.py",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "services/local-stt/packaging/runtime_notices.py",
+          "lineStart": 1,
+          "lineEnd": 65,
+          "blobSHA": "962461c608c4cd3c55e688bd0c77296e5a357b9f",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Actual build interpreter notices; hashes native origins, Debian boundary, unknown inputs fail release; remainder attribution logic pending.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "packages/character-abi/src/v2d.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "packages/character-abi/src/v2d.ts",
+          "lineStart": 1,
+          "lineEnd": 95,
+          "blobSHA": "5d996cd7290c9fd2ae95ffb92110e54ad88e9ba8",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Typed ABI constraints and sections; cannot infer semantic value from contract validity.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "packages/host-environment/src/index.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "packages/host-environment/src/index.ts",
+          "lineStart": 1,
+          "lineEnd": 80,
+          "blobSHA": "8fc9ef1368904d86b7f6a95a585f8bde4420bd50",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Environment host includes guarded command/storage paths; large file remains open.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "packages/protocol/src/index.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "packages/protocol/src/index.ts",
+          "lineStart": 1,
+          "lineEnd": 80,
+          "blobSHA": "e4afad7361d141f7a98af48c93616bb97771c0d3",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Protocol is schema and shared types; deep review of full registry remains open.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "packages/p8/src/correction.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "packages/p8/src/correction.ts",
+          "lineStart": 1,
+          "lineEnd": 80,
+          "blobSHA": "1908e169b726e059672ed64e889ce19d4deab9fe",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Correction descriptors/evidence predicates; natural-language reachability requires Runtime trace, not an export.",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/server/src/product-person-command-effects.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/server/src/product-person-command-effects.ts",
+          "lineStart": 1,
+          "lineEnd": 85,
+          "blobSHA": "d7055b774c9b3e88d734b4e8a4b7776184e44761",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "CREATE/UPDATE and voice binding exact target/revision schemas; cross-owner fenced native updates require actual DB proof",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "packages/effects/src/dispatch-store.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "packages/effects/src/dispatch-store.ts",
+          "lineStart": 1,
+          "lineEnd": 85,
+          "blobSHA": "9f6700be81a5b2129422eece273fa97350e2339e",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Store interface and attempt row decoder: fences/leases/control states; low visibility does not mean unused reliability facility",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "scripts/desktop-package/installer-smoke.mjs",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "scripts/desktop-package/installer-smoke.mjs",
+          "lineStart": 1,
+          "lineEnd": 85,
+          "blobSHA": "d6e48cc6cd38cf48b5cb1ba7ac5bb9c6c9035a91",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Isolated real installer/supervisor smoke, strips credentials and PATH tools; release validation is part of build scope despite not ordinary runtime",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/web/src/companion-page.tsx",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/web/src/companion-page.tsx",
+          "lineStart": 1,
+          "lineEnd": 85,
+          "blobSHA": "c460ba8927f68829450a5d21c1eb1080182c5e24",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Companion owns renderer/audio queue and presentation acknowledgments; HTTP report chain catches errors without diagnostic, complete retry/reconciliation remains OPEN",
+      "remaining": "Other file sections remain pending"
+    },
+    {
+      "path": "apps/server/src/character-runtime.ts",
+      "level": "TARGETED_READ",
+      "evidence": [
+        {
+          "path": "apps/server/src/character-runtime.ts",
+          "lineStart": 139,
+          "lineEnd": 262,
+          "blobSHA": "ddd01919a87ed1eb63eaba430aac3403330911ec",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "judgement": "Actual factory, initial/reentry gate, cognition handoff and protection; all symbols verified; remainder body/visual/retry functions not full-file reviewed",
+      "remaining": "Other file sections remain pending"
+    }
+  ],
+  "traces": [
+    {
+      "id": "A-HTTP",
+      "entryPaths": [
+        "apps/server/src/routes/message.ts"
+      ],
+      "activation": "POST /message or /v1/messages; valid body and ready database/Journal",
+      "inputProvider": "External client/host/scheduler as stated in activation",
+      "steps": [
+        {
+          "path": "apps/server/src/routes/message.ts",
+          "function": "handleMessage",
+          "condition": "valid MessageRequestSchema -> identity/options -> host receipt",
+          "symbolReferences": [
+            {
+              "identifier": "handleMessage",
+              "firstReferenceLine": 98,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/server/src/context.ts",
+          "function": "new RuntimeOrchestrator",
+          "condition": "configured production ports",
+          "symbolReferences": [
+            {
+              "identifier": "RuntimeOrchestrator",
+              "firstReferenceLine": 90,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "packages/core/src/runtime-orchestrator.ts",
+          "function": "handleUserMessage/handleUserTurn/executeCharacterTurn",
+          "condition": "prepare context -> Character -> Cognition if admitted",
+          "symbolReferences": [
+            {
+              "identifier": "handleUserMessage",
+              "firstReferenceLine": 2195,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            },
+            {
+              "identifier": "handleUserTurn",
+              "firstReferenceLine": 2252,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            },
+            {
+              "identifier": "executeCharacterTurn",
+              "firstReferenceLine": 2859,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/server/src/character-runtime.ts",
+          "function": "createServerCharacterPort",
+          "condition": "provider-facing control and expression calls",
+          "symbolReferences": [
+            {
+              "identifier": "createServerCharacterPort",
+              "firstReferenceLine": 143,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "packages/core/src/runtime-orchestrator.ts",
+          "function": "persistUserMessage/persistCompletedAssistantReply",
+          "condition": "conversation and outward reply",
+          "symbolReferences": [
+            {
+              "identifier": "persistUserMessage",
+              "firstReferenceLine": 2284,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            },
+            {
+              "identifier": "persistCompletedAssistantReply",
+              "firstReferenceLine": 5365,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        }
+      ],
+      "stateIDs": [
+        "S-Conversation",
+        "S-Journal",
+        "S-Context",
+        "S-P8",
+        "S-Memory"
+      ],
+      "boundaryIDs": [
+        "C-Receipt",
+        "C-Context",
+        "C-Control",
+        "C-Publication"
+      ],
+      "normalization": "At schema, receipt and Runtime steps; see linked field-boundary records",
+      "authority": "Transport asserted identity not authenticated principal; LOCAL_EXPLICIT_CONTROLLER; host grants separate",
+      "terminalConsumer": "HTTP accounted reply or intentional null silence",
+      "failureCancellationRestart": "Admission failure before Runtime; cancellation/accounted output branches partial; restart workers separate",
+      "status": "TARGETED_CHAIN_WITH_OPEN_BRANCHES",
+      "evidenceBoundary": "Source/recording probes do not prove deployed configuration or model quality"
+    },
+    {
+      "id": "A-SSE",
+      "entryPaths": [
+        "apps/server/src/routes/message-stream.ts"
+      ],
+      "activation": "POST stream endpoint",
+      "inputProvider": "External client/host/scheduler as stated in activation",
+      "steps": [
+        {
+          "path": "apps/server/src/routes/message-stream.ts",
+          "function": "registerMessageStreamRoutes",
+          "condition": "schema/receipt then stream",
+          "symbolReferences": [
+            {
+              "identifier": "registerMessageStreamRoutes",
+              "firstReferenceLine": 31,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "packages/core/src/runtime-orchestrator.ts",
+          "function": "streamUserMessage",
+          "condition": "shared prepared context and publication",
+          "symbolReferences": [
+            {
+              "identifier": "streamUserMessage",
+              "firstReferenceLine": 2352,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        }
+      ],
+      "stateIDs": [
+        "S-Conversation",
+        "S-Journal",
+        "S-Context"
+      ],
+      "boundaryIDs": [
+        "C-Receipt",
+        "C-Publication"
+      ],
+      "normalization": "At schema, receipt and Runtime steps; see linked field-boundary records",
+      "authority": "Shared identity/options; disconnect tracking",
+      "terminalConsumer": "SSE event frames; not dashboard stream",
+      "failureCancellationRestart": "Deep cancellation/component-recovery matrix pending",
+      "status": "TARGETED_CHAIN_WITH_OPEN_BRANCHES",
+      "evidenceBoundary": "Source/recording probes do not prove deployed configuration or model quality"
+    },
+    {
+      "id": "A-WS",
+      "entryPaths": [
+        "apps/server/src/routes/websocket.ts"
+      ],
+      "activation": "WS /ws connection: incoming user.message and outgoing diagnostics/reply branches; /v1/events closes",
+      "inputProvider": "External client/host/scheduler as stated in activation",
+      "steps": [
+        {
+          "path": "apps/server/src/routes/websocket.ts",
+          "function": "registerWebSocketRoutes",
+          "condition": "query then activeTrace or dashboard wildcard subscriber",
+          "symbolReferences": [
+            {
+              "identifier": "registerWebSocketRoutes",
+              "firstReferenceLine": 100,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "packages/event-bus/src/index.ts",
+          "function": "publish/subscribe",
+          "condition": "await matched handlers; subscriber failures caught",
+          "symbolReferences": [
+            {
+              "identifier": "publish",
+              "firstReferenceLine": 23,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            },
+            {
+              "identifier": "subscribe",
+              "firstReferenceLine": 24,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/server/src/services/dashboard.ts",
+          "function": "redactValue",
+          "condition": "key-based redaction",
+          "symbolReferences": [
+            {
+              "identifier": "redactValue",
+              "firstReferenceLine": 19,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/server/src/routes/websocket.ts",
+          "function": "sendAccounted",
+          "condition": "target-liveness gate",
+          "symbolReferences": [
+            {
+              "identifier": "sendAccounted",
+              "firstReferenceLine": 120,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/server/src/routes/websocket.ts",
+          "function": "registerWebSocketRoutes",
+          "condition": "INBOUND: parse RuntimeEvent/UserMessageEvent, admit host receipt, attach sourceJournalRef; invalid packet may remove existing trace",
+          "symbolReferences": [
+            {
+              "identifier": "registerWebSocketRoutes",
+              "firstReferenceLine": 100,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "packages/core/src/runtime-orchestrator.ts",
+          "function": "handleUserMessage",
+          "condition": "INBOUND valid text: actual Runtime call; its emitted reply returns through already-listed subscription",
+          "symbolReferences": [
+            {
+              "identifier": "handleUserMessage",
+              "firstReferenceLine": 2195,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        }
+      ],
+      "stateIDs": [
+        "S-Events",
+        "S-Dashboard",
+        "S-Publication",
+        "S-Journal",
+        "S-Conversation",
+        "S-Context",
+        "S-WSTrace"
+      ],
+      "boundaryIDs": [
+        "C-WSQuery",
+        "C-Dashboard",
+        "C-Receipt",
+        "C-Context",
+        "C-Control",
+        "C-Publication",
+        "C-WSTrace"
+      ],
+      "normalization": "At schema, receipt and Runtime steps; see linked field-boundary records",
+      "authority": "No global authentication demonstrated in inspected server hook; target predicate is dashboard||activeTrace",
+      "terminalConsumer": "Socket receives selected diagnostic or reply frame",
+      "failureCancellationRestart": "close unsubscribes; outward store/accounting not exercised by fixture",
+      "status": "TARGETED_CHAIN_WITH_OPEN_BRANCHES",
+      "evidenceBoundary": "Source/recording probes do not prove deployed configuration or model quality",
+      "stepOrder": "Listed nodes include input/output callbacks; not a single synchronous linear stack"
+    },
+    {
+      "id": "A-ReadText",
+      "entryPaths": [
+        "apps/server/src/cognition-production.ts"
+      ],
+      "activation": "Admitted model capability request + host-authorized path, not arbitrary conversational path",
+      "inputProvider": "External client/host/scheduler as stated in activation",
+      "steps": [
+        {
+          "path": "apps/server/src/cognition-production.ts",
+          "function": "executeProductionCognition",
+          "condition": "NEED_COGNITION and host runtimeAuthorizedPath",
+          "symbolReferences": [
+            {
+              "identifier": "executeProductionCognition",
+              "firstReferenceLine": 17,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/server/src/mcp-read-text-capability.ts",
+          "function": "executeServerMcpReadTextCapability",
+          "condition": "admission/binding/current grant",
+          "symbolReferences": [
+            {
+              "identifier": "executeServerMcpReadTextCapability",
+              "firstReferenceLine": 60,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/server/src/read-text-effect.ts",
+          "function": "readAuthorizedLocalText",
+          "condition": "bounded regular-file decode",
+          "symbolReferences": [
+            {
+              "identifier": "readAuthorizedLocalText",
+              "firstReferenceLine": 27,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/server/src/mcp-read-text-observation.ts",
+          "function": "createServerMcpReadTextObservation",
+          "condition": "normalize outcome",
+          "symbolReferences": [
+            {
+              "identifier": "createServerMcpReadTextObservation",
+              "firstReferenceLine": 43,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/server/src/cognition-production.ts",
+          "function": "executeProductionCognition",
+          "condition": "observation feeds next Reasoning round",
+          "symbolReferences": [
+            {
+              "identifier": "executeProductionCognition",
+              "firstReferenceLine": 17,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        }
+      ],
+      "stateIDs": [
+        "S-Capability",
+        "S-ToolResult",
+        "S-Observation",
+        "S-Effect"
+      ],
+      "boundaryIDs": [
+        "C-FileObservation",
+        "C-CapabilityRequest"
+      ],
+      "normalization": "At schema, receipt and Runtime steps; see linked field-boundary records",
+      "authority": "Host path/operation freshness; no model self-grant",
+      "terminalConsumer": "Next Reasoning input; only transient read result",
+      "failureCancellationRestart": "Cancel before read => no result; 16k+ result => ERROR; durable recovery not probed",
+      "status": "TARGETED_CHAIN_WITH_OPEN_BRANCHES",
+      "evidenceBoundary": "Source/recording probes do not prove deployed configuration or model quality"
+    },
+    {
+      "id": "A-TTS",
+      "entryPaths": [
+        "apps/server/src/routes/media.ts"
+      ],
+      "activation": "POST /v1/tts or Runtime whole-speech with local dots selected",
+      "inputProvider": "External client/host/scheduler as stated in activation",
+      "steps": [
+        {
+          "path": "apps/server/src/routes/media.ts",
+          "function": "registerMediaRoutes",
+          "condition": "valid request -> receipt -> sealWhole/sealSegment",
+          "symbolReferences": [
+            {
+              "identifier": "registerMediaRoutes",
+              "firstReferenceLine": 291,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "packages/providers/src/local/DotsTTSProvider.ts",
+          "function": "synthesizeSpeech",
+          "condition": "one HTTP unchanged text body",
+          "symbolReferences": [
+            {
+              "identifier": "synthesizeSpeech",
+              "firstReferenceLine": 60,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "services/dots-tts/server.py",
+          "function": "do_POST/synthesize",
+          "condition": "16KB HTTP body / 2000 stripped chars -> audio",
+          "symbolReferences": [
+            {
+              "identifier": "do_POST",
+              "firstReferenceLine": 294,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            },
+            {
+              "identifier": "synthesize",
+              "firstReferenceLine": 209,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/server/src/routes/media.ts",
+          "function": "registerMediaRoutes",
+          "condition": "audio response/publication",
+          "symbolReferences": [
+            {
+              "identifier": "registerMediaRoutes",
+              "firstReferenceLine": 291,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        }
+      ],
+      "stateIDs": [
+        "S-TTSReceipt",
+        "S-Media",
+        "S-Effect"
+      ],
+      "boundaryIDs": [
+        "C-TTSReceipt",
+        "C-TTSWire"
+      ],
+      "normalization": "At schema, receipt and Runtime steps; see linked field-boundary records",
+      "authority": "Receipt and media-effect control; owns speech request; fixture bypasses durable seal only",
+      "terminalConsumer": "WAV/audio payload or mapped ProviderError",
+      "failureCancellationRestart": "Caller abort does not certify remote noninvocation; cancellation discards late result; oversized text 400",
+      "status": "TARGETED_CHAIN_WITH_OPEN_BRANCHES",
+      "evidenceBoundary": "Source/recording probes do not prove deployed configuration or model quality"
+    },
+    {
+      "id": "A-STT",
+      "entryPaths": [
+        "services/local-stt/server.py",
+        "apps/server/src/routes/media.ts"
+      ],
+      "activation": "Local STT selected + audio; optional diarize/identify",
+      "inputProvider": "External client/host/scheduler as stated in activation",
+      "steps": [
+        {
+          "path": "services/local-stt/server.py",
+          "function": "do_POST/handle_transcribe",
+          "condition": "audio decode -> whole ASR -> timed span ASR",
+          "symbolReferences": [
+            {
+              "identifier": "do_POST",
+              "firstReferenceLine": 486,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            },
+            {
+              "identifier": "handle_transcribe",
+              "firstReferenceLine": 335,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "packages/providers/src/local/LocalSTTProvider.ts",
+          "function": "transcribeAudio",
+          "condition": "provider adaptation (static candidate, exhaustive path pending)",
+          "symbolReferences": [
+            {
+              "identifier": "transcribeAudio",
+              "firstReferenceLine": 220,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/server/src/routes/media.ts",
+          "function": "admitFinalizedSpeech",
+          "condition": "reservation and journal evidence",
+          "symbolReferences": [
+            {
+              "identifier": "admitFinalizedSpeech",
+              "firstReferenceLine": 327,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "packages/core/src/runtime-orchestrator.ts",
+          "function": "commitSpeechTurn/handleUserMessage",
+          "condition": "finalized speech text -> conversation/model",
+          "symbolReferences": [
+            {
+              "identifier": "commitSpeechTurn",
+              "firstReferenceLine": 1528,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            },
+            {
+              "identifier": "handleUserMessage",
+              "firstReferenceLine": 2195,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        }
+      ],
+      "stateIDs": [
+        "S-Speech",
+        "S-VoiceProfile",
+        "S-Journal",
+        "S-Conversation"
+      ],
+      "boundaryIDs": [
+        "C-STTSpans",
+        "C-SpeechContext"
+      ],
+      "normalization": "At schema, receipt and Runtime steps; see linked field-boundary records",
+      "authority": "Voice profile is acoustic template, not person identity; host capture fence/receipt",
+      "terminalConsumer": "Timed result, text turn and review surface; model sees transcript; complete cluster projection not proved by sidecar test",
+      "failureCancellationRestart": "Bad WAV fails decode; full media route timeout/cross-process cancellation pending",
+      "status": "TARGETED_CHAIN_WITH_OPEN_BRANCHES",
+      "evidenceBoundary": "Source/recording probes do not prove deployed configuration or model quality"
+    },
+    {
+      "id": "A-Native",
+      "entryPaths": [
+        "apps/desktop/src-tauri/src/lib.rs",
+        "apps/desktop/src-tauri/src/main.rs"
+      ],
+      "activation": "Desktop app launch/explicit invoke/window lifecycle",
+      "inputProvider": "External client/host/scheduler as stated in activation",
+      "steps": [
+        {
+          "path": "apps/desktop/src-tauri/src/lib.rs",
+          "function": "run",
+          "condition": "registered Tauri commands and app lifecycle",
+          "symbolReferences": [
+            {
+              "identifier": "run",
+              "firstReferenceLine": 206,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/desktop/src-tauri/src/config/env_export.rs",
+          "function": "public_env_overrides/secret_env_overrides/combined_env_for_supervisor",
+          "condition": "managed settings/secrets to env",
+          "symbolReferences": [
+            {
+              "identifier": "public_env_overrides",
+              "firstReferenceLine": 13,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            },
+            {
+              "identifier": "secret_env_overrides",
+              "firstReferenceLine": 156,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            },
+            {
+              "identifier": "combined_env_for_supervisor",
+              "firstReferenceLine": 205,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/desktop/src-tauri/src/supervisor.rs",
+          "function": "bootstrap_supervisor",
+          "condition": "host service ownership/health/restart",
+          "symbolReferences": [
+            {
+              "identifier": "bootstrap_supervisor",
+              "firstReferenceLine": 219,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        }
+      ],
+      "stateIDs": [
+        "S-Supervisor",
+        "S-Settings"
+      ],
+      "boundaryIDs": [
+        "C-NativeEnv"
+      ],
+      "normalization": "At schema, receipt and Runtime steps; see linked field-boundary records",
+      "authority": "Managed/external ownership and host secret boundaries",
+      "terminalConsumer": "Owned server/sidecars, UI diagnostics",
+      "failureCancellationRestart": "Platform cfg/process kill/release binaries not executed; Rust grammar error remains",
+      "status": "TARGETED_CHAIN_WITH_OPEN_BRANCHES",
+      "evidenceBoundary": "Source/recording probes do not prove deployed configuration or model quality"
+    },
+    {
+      "id": "A-Mem0",
+      "entryPaths": [
+        "services/memory-mem0/src/yuvi_mem0/__main__.py"
+      ],
+      "activation": "Mem0 backend selected, sidecar ready, grounded finalized evidence",
+      "inputProvider": "External client/host/scheduler as stated in activation",
+      "steps": [
+        {
+          "path": "services/memory-mem0/src/yuvi_mem0/__main__.py",
+          "function": "main",
+          "condition": "uvicorn entry",
+          "symbolReferences": [
+            {
+              "identifier": "main",
+              "firstReferenceLine": 10,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "services/memory-mem0/src/yuvi_mem0/app.py",
+          "function": "add_memory/submit_idempotent_memory/search_memories/list_memories",
+          "condition": "configured memory operations",
+          "symbolReferences": [
+            {
+              "identifier": "add_memory",
+              "firstReferenceLine": 127,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            },
+            {
+              "identifier": "submit_idempotent_memory",
+              "firstReferenceLine": 144,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            },
+            {
+              "identifier": "search_memories",
+              "firstReferenceLine": 164,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            },
+            {
+              "identifier": "list_memories",
+              "firstReferenceLine": 191,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "services/memory-mem0/src/yuvi_mem0/config.py",
+          "function": "get_settings",
+          "condition": "inference/provider construction",
+          "symbolReferences": [
+            {
+              "identifier": "get_settings",
+              "firstReferenceLine": 206,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        }
+      ],
+      "stateIDs": [
+        "S-Mem0",
+        "S-Profile"
+      ],
+      "boundaryIDs": [
+        "C-Mem0"
+      ],
+      "normalization": "At schema, receipt and Runtime steps; see linked field-boundary records",
+      "authority": "Scope/lineage and no invented default subject",
+      "terminalConsumer": "Search records can enter Runtime; bounded snapshot supports profile source",
+      "failureCancellationRestart": "Actual sidecar DB/model ingestion not run; exception/compatibility branches pending",
+      "status": "TARGETED_CHAIN_WITH_OPEN_BRANCHES",
+      "evidenceBoundary": "Source/recording probes do not prove deployed configuration or model quality"
+    },
+    {
+      "id": "A-Dashboard",
+      "entryPaths": [
+        "apps/server/src/routes/events.ts",
+        "apps/server/src/routes/debug.ts"
+      ],
+      "activation": "Management HTTP/diagnostic client",
+      "inputProvider": "External client/host/scheduler as stated in activation",
+      "steps": [
+        {
+          "path": "apps/server/src/context.ts",
+          "function": "createAppContext",
+          "condition": "records diagnostics",
+          "symbolReferences": [
+            {
+              "identifier": "createAppContext",
+              "firstReferenceLine": 225,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/server/src/services/dashboard.ts",
+          "function": "recordEvent/listRecentEvents",
+          "condition": "bounded 200 events redaction",
+          "symbolReferences": [
+            {
+              "identifier": "recordEvent",
+              "firstReferenceLine": 7,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            },
+            {
+              "identifier": "listRecentEvents",
+              "firstReferenceLine": 14,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/server/src/routes/events.ts",
+          "function": "registerEventRoutes",
+          "condition": "management read",
+          "symbolReferences": [
+            {
+              "identifier": "registerEventRoutes",
+              "firstReferenceLine": 9,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        }
+      ],
+      "stateIDs": [
+        "S-Events",
+        "S-Dashboard"
+      ],
+      "boundaryIDs": [
+        "C-Dashboard"
+      ],
+      "normalization": "At schema, receipt and Runtime steps; see linked field-boundary records",
+      "authority": "Per-route guards differ; no semantic scope by default dashboard listing",
+      "terminalConsumer": "Dashboard, not future model memory",
+      "failureCancellationRestart": "Bounded list intentionally drops older diagnostics",
+      "status": "TARGETED_CHAIN_WITH_OPEN_BRANCHES",
+      "evidenceBoundary": "Source/recording probes do not prove deployed configuration or model quality"
+    },
+    {
+      "id": "A-Proactive",
+      "entryPaths": [
+        "apps/server/src/routes/proactive-turn-stream.ts",
+        "apps/server/src/context.ts"
+      ],
+      "activation": "Authorized consent + due eligibility or explicit proactive request",
+      "inputProvider": "External client/host/scheduler as stated in activation",
+      "steps": [
+        {
+          "path": "apps/server/src/context.ts",
+          "function": "startProactiveScheduler",
+          "condition": "boot config/default session/consent eligibility",
+          "symbolReferences": [
+            {
+              "identifier": "startProactiveScheduler",
+              "firstReferenceLine": 723,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "packages/core/src/runtime-orchestrator.ts",
+          "function": "runScheduledProactiveAttempt",
+          "condition": "decision provider score, Character proposal and admission",
+          "symbolReferences": [
+            {
+              "identifier": "runScheduledProactiveAttempt",
+              "firstReferenceLine": 1743,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/server/src/routes/proactive-turn-stream.ts",
+          "function": "registerProactiveTurnStreamRoutes",
+          "condition": "local consent projection and idempotent external turn stream",
+          "symbolReferences": [
+            {
+              "identifier": "registerProactiveTurnStreamRoutes",
+              "firstReferenceLine": 63,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        }
+      ],
+      "stateIDs": [
+        "S-Proactive",
+        "S-Context",
+        "S-Publication"
+      ],
+      "boundaryIDs": [
+        "C-Control",
+        "C-Publication"
+      ],
+      "normalization": "At schema, receipt and Runtime steps; see linked field-boundary records",
+      "authority": "Local dashboard access guard/consent revision, no model self-consent",
+      "terminalConsumer": "Admitted reply or NO_OP/backoff",
+      "failureCancellationRestart": "All timer/engagement combinations pending; old default-session probe reused",
+      "status": "TARGETED_CHAIN_WITH_OPEN_BRANCHES",
+      "evidenceBoundary": "Source/recording probes do not prove deployed configuration or model quality"
+    },
+    {
+      "id": "A-Worker",
+      "entryPaths": [
+        "apps/server/src/server.ts"
+      ],
+      "activation": "Server configured DB/source and worker startup",
+      "inputProvider": "External client/host/scheduler as stated in activation",
+      "steps": [
+        {
+          "path": "apps/server/src/server.ts",
+          "function": "buildServer",
+          "condition": "starts profile lifecycle/maintenance/ingestion/readTextEffects workers",
+          "symbolReferences": [
+            {
+              "identifier": "buildServer",
+              "firstReferenceLine": 70,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "packages/memory/src/profile-lifecycle.ts",
+          "function": "ProfileLifecycleCoordinator",
+          "condition": "due lease/source lineage verification",
+          "symbolReferences": [
+            {
+              "identifier": "ProfileLifecycleCoordinator",
+              "firstReferenceLine": 75,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "packages/memory/src/memory-ingestion-coordinator.ts",
+          "function": "MemoryIngestionCoordinator",
+          "condition": "configured coordinator worker from @companion/memory; SQL integration pending",
+          "symbolReferences": [
+            {
+              "identifier": "MemoryIngestionCoordinator",
+              "firstReferenceLine": 183,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        }
+      ],
+      "stateIDs": [
+        "S-Profile",
+        "S-Memory",
+        "S-Effect",
+        "S-Dream"
+      ],
+      "boundaryIDs": [
+        "C-Mem0"
+      ],
+      "normalization": "At schema, receipt and Runtime steps; see linked field-boundary records",
+      "authority": "Owner leases/fences and grounded evidence",
+      "terminalConsumer": "Persistent terminal/retry/reconcile state; conditional memory source",
+      "failureCancellationRestart": "No database-backed recovery run; not every worker declares semantic consumer",
+      "status": "TARGETED_CHAIN_WITH_OPEN_BRANCHES",
+      "evidenceBoundary": "Source/recording probes do not prove deployed configuration or model quality"
+    },
+    {
+      "id": "A-Plugins",
+      "entryPaths": [
+        "apps/server/src/server.ts",
+        "apps/server/src/plugin-lifecycle.ts"
+      ],
+      "activation": "Host-injected plugin source, compatible manifest and host grants",
+      "inputProvider": "External client/host/scheduler as stated in activation",
+      "steps": [
+        {
+          "path": "apps/server/src/server.ts",
+          "function": "buildServer",
+          "condition": "discover->load->start; default discovery [] and grants []",
+          "symbolReferences": [
+            {
+              "identifier": "buildServer",
+              "firstReferenceLine": 70,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/server/src/plugin-lifecycle.ts",
+          "function": "snapshotExecutableCapabilities/invokeExecutableCapability",
+          "condition": "host-issued handles authorize registered implementation",
+          "symbolReferences": [
+            {
+              "identifier": "snapshotExecutableCapabilities",
+              "firstReferenceLine": 231,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            },
+            {
+              "identifier": "invokeExecutableCapability",
+              "firstReferenceLine": 233,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/server/src/context.ts",
+          "function": "executeProductionCognition",
+          "condition": "snapshot/invoke surface",
+          "symbolReferences": [
+            {
+              "identifier": "executeProductionCognition",
+              "firstReferenceLine": 165,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        }
+      ],
+      "stateIDs": [
+        "S-Capability",
+        "S-Effect"
+      ],
+      "boundaryIDs": [
+        "C-CapabilityRequest"
+      ],
+      "normalization": "At schema, receipt and Runtime steps; see linked field-boundary records",
+      "authority": "Declarations cannot grant authority; callback registry requires explicit host composition",
+      "terminalConsumer": "Admitted capability observation/reasoning, or rejection/unavailable",
+      "failureCancellationRestart": "Loader/start timeout/late callbacks/external plugin processes not exhaustively investigated",
+      "status": "TARGETED_CHAIN_WITH_OPEN_BRANCHES",
+      "evidenceBoundary": "Source/recording probes do not prove deployed configuration or model quality"
+    },
+    {
+      "id": "A-Vision",
+      "entryPaths": [
+        "apps/server/src/routes/media.ts"
+      ],
+      "activation": "Image/media request or host-enabled screen-evidence request",
+      "inputProvider": "External client/host/scheduler as stated in activation",
+      "steps": [
+        {
+          "path": "apps/server/src/routes/media.ts",
+          "function": "registerMediaRoutes",
+          "condition": "image input -> vision receipt -> selected provider analyzeImage",
+          "symbolReferences": [
+            {
+              "identifier": "registerMediaRoutes",
+              "firstReferenceLine": 291,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/server/src/character-runtime.ts",
+          "function": "generateAcceptedCharacterProposal",
+          "condition": "optional single visual evidence cycle with requestVisualEvidence",
+          "symbolReferences": [
+            {
+              "identifier": "generateAcceptedCharacterProposal",
+              "firstReferenceLine": 186,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "packages/core/src/runtime-orchestrator.ts",
+          "function": "executeCharacterTurn",
+          "condition": "analysis text enters current model context",
+          "symbolReferences": [
+            {
+              "identifier": "executeCharacterTurn",
+              "firstReferenceLine": 2859,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        }
+      ],
+      "stateIDs": [
+        "S-Vision",
+        "S-Journal",
+        "S-Context"
+      ],
+      "boundaryIDs": [
+        "C-Receipt",
+        "C-Control"
+      ],
+      "normalization": "At schema, receipt and Runtime steps; see linked field-boundary records",
+      "authority": "Host capture/receipt and provider grants; raw image not text memory",
+      "terminalConsumer": "Current untrusted observation text or unavailable evidence",
+      "failureCancellationRestart": "Real hardware and vision provider untested; exhaustive repeated-observation matrix pending",
+      "status": "TARGETED_CHAIN_WITH_OPEN_BRANCHES",
+      "evidenceBoundary": "Source/recording probes do not prove deployed configuration or model quality"
+    },
+    {
+      "id": "A-Browser",
+      "entryPaths": [
+        "apps/web/src/main.tsx"
+      ],
+      "activation": "Browser or Tauri webview boot",
+      "inputProvider": "External client/host/scheduler as stated in activation",
+      "steps": [
+        {
+          "path": "apps/web/src/main.tsx",
+          "function": "renderSurface",
+          "condition": "Vite index loads browser/webview UI",
+          "symbolReferences": [
+            {
+              "identifier": "renderSurface",
+              "firstReferenceLine": 30,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        },
+        {
+          "path": "apps/web/src/companion-embodied-behavior-diagnostics.ts",
+          "function": "recordCompanionEmbodiedBehaviorDiagnostic",
+          "condition": "DEV-only presentation diagnostics",
+          "symbolReferences": [
+            {
+              "identifier": "recordCompanionEmbodiedBehaviorDiagnostic",
+              "firstReferenceLine": 40,
+              "validation": "IDENTIFIER_EXISTS_IN_PINNED_SOURCE_NOT_CALL_REACHABILITY_PROOF"
+            }
+          ]
+        }
+      ],
+      "stateIDs": [
+        "S-Settings",
+        "S-Media",
+        "S-Publication"
+      ],
+      "boundaryIDs": [
+        "C-Publication"
+      ],
+      "normalization": "At schema, receipt and Runtime steps; see linked field-boundary records",
+      "authority": "Selected server endpoint; native bridge in desktop mode",
+      "terminalConsumer": "Rendered chat/audio/Live2D/management controls",
+      "failureCancellationRestart": "Full UI event/capture/playback timing not reviewed; import graph is only reachability candidate",
+      "status": "TARGETED_CHAIN_WITH_OPEN_BRANCHES",
+      "evidenceBoundary": "Source/recording probes do not prove deployed configuration or model quality"
+    }
+  ],
+  "states": [
+    {
+      "id": "S-Journal",
+      "name": "Journal envelope/retained selectable text",
+      "producers": [
+        "Host receipt admission appendWithHostAuthority; PostgreSQL Journal"
+      ],
+      "consumers": [
+        "Conversation admission; finalized ingestion; effect causal reader"
+      ],
+      "consumptionKind": "AUTHORITY/LINEAGE_AND_ELIGIBLE_SOURCE",
+      "readsEnterModel": "Indirect selectable text; raw media explicitly not retained",
+      "affectsAction": true,
+      "feedsStateUpdate": true,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Principal UNKNOWN is not authenticated Person; complete SQL recovery pending"
+      ],
+      "traceIDs": [
+        "A-HTTP",
+        "A-SSE",
+        "A-WS",
+        "A-STT",
+        "A-Vision"
+      ]
+    },
+    {
+      "id": "S-Conversation",
+      "name": "User/assistant history and reply components",
+      "producers": [
+        "Runtime conversation writes; provisional/terminal reply"
+      ],
+      "consumers": [
+        "Runtime prepareTurn/build context; history HTTP/UI"
+      ],
+      "consumptionKind": "CONTEXT_AND_DISPLAY",
+      "readsEnterModel": true,
+      "affectsAction": false,
+      "feedsStateUpdate": true,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Stored faithful row does not imply full-length model projection; cancellation/component completion gaps"
+      ],
+      "traceIDs": [
+        "A-HTTP",
+        "A-SSE",
+        "A-WS",
+        "A-STT"
+      ]
+    },
+    {
+      "id": "S-Context",
+      "name": "Canonical shared/stable/volatile context",
+      "producers": [
+        "Runtime + P8/Memory/PromptBuilder projections"
+      ],
+      "consumers": [
+        "Character provider rendering; Cognition canonical context"
+      ],
+      "consumptionKind": "MODEL_INPUT",
+      "readsEnterModel": true,
+      "affectsAction": true,
+      "feedsStateUpdate": false,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Prefix budget means semantic slots may be omitted"
+      ],
+      "traceIDs": [
+        "A-HTTP",
+        "A-SSE",
+        "A-WS",
+        "A-Proactive",
+        "A-Vision"
+      ]
+    },
+    {
+      "id": "S-P8",
+      "name": "Authored identity and evidence-backed corrections",
+      "producers": [
+        "Host authored composition; correction store; evidence adapter"
+      ],
+      "consumers": [
+        "Character ABI identity/persona/relationship projection"
+      ],
+      "consumptionKind": "MODEL_INPUT_WITH_AUTHORITY",
+      "readsEnterModel": true,
+      "affectsAction": true,
+      "feedsStateUpdate": true,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "An empty meaning candidate is not relationship learning; natural-language correction path partly reused"
+      ],
+      "traceIDs": [
+        "A-HTTP"
+      ]
+    },
+    {
+      "id": "S-Memory",
+      "name": "Legacy L0/L1/L2 and retrieval context",
+      "producers": [
+        "Grounded user candidate extraction; recent episode/Dream writer conditional"
+      ],
+      "consumers": [
+        "Runtime buildMemoryVNextContext/search and Character memory evidence"
+      ],
+      "consumptionKind": "MODEL_CONTEXT",
+      "readsEnterModel": true,
+      "affectsAction": false,
+      "feedsStateUpdate": true,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "All negative/correction/retention paths not closed; backend selection matters"
+      ],
+      "traceIDs": [
+        "A-HTTP",
+        "A-Worker"
+      ]
+    },
+    {
+      "id": "S-Mem0",
+      "name": "Mem0 inferred scoped records",
+      "producers": [
+        "Python infer path + finalized ingestion coordinator"
+      ],
+      "consumers": [
+        "Runtime Mem0 provider search; source snapshot/Profile lifecycle"
+      ],
+      "consumptionKind": "MODEL_CONTEXT_AND_SOURCE",
+      "readsEnterModel": true,
+      "affectsAction": false,
+      "feedsStateUpdate": true,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Previous positive fixture verifies search consumed; actual LLM writing/quality needs credentials"
+      ],
+      "traceIDs": [
+        "A-Mem0"
+      ]
+    },
+    {
+      "id": "S-Profile",
+      "name": "Synthesized Profile snapshot/lifecycle materialization",
+      "producers": [
+        "LocalProfileProvider; ProfileLifecycleCoordinator worker"
+      ],
+      "consumers": [
+        "Lifecycle verification/status; exported ScopePeopleModelReader facade"
+      ],
+      "consumptionKind": "STORAGE/VALIDATION; A4_EXPLICIT_NOT_USED",
+      "readsEnterModel": "A4 NO; other hosts UNRESOLVED",
+      "affectsAction": "UNRESOLVED",
+      "feedsStateUpdate": true,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Inspected A4 explicitly NOT_USED. TS resolved references, construction/export and route registry inspected; callback/plugin/config/cross-process global exclusion incomplete => UNRESOLVED. Do not say entire Profile UNUSED"
+      ],
+      "traceIDs": [
+        "A-Mem0",
+        "A-Worker"
+      ]
+    },
+    {
+      "id": "S-Capability",
+      "name": "Static capability descriptions/request",
+      "producers": [
+        "Host plugin grants + read-text registrations; model REQUEST_CAPABILITY"
+      ],
+      "consumers": [
+        "Runtime admission and host executable dispatch"
+      ],
+      "consumptionKind": "MODEL_CHOICE/EXECUTION",
+      "readsEnterModel": true,
+      "affectsAction": true,
+      "feedsStateUpdate": false,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Default server discovery/grants empty; arbitrary builtin tools are not automatically available"
+      ],
+      "traceIDs": [
+        "A-ReadText",
+        "A-Plugins"
+      ]
+    },
+    {
+      "id": "S-ToolResult",
+      "name": "Read-text ServerMcpToolResult",
+      "producers": [
+        "readAuthorizedLocalText result transient"
+      ],
+      "consumers": [
+        "createServerMcpReadTextObservation"
+      ],
+      "consumptionKind": "TRANSIENT_OBSERVATION",
+      "readsEnterModel": false,
+      "affectsAction": false,
+      "feedsStateUpdate": false,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "64k read result not durable learned experience; normalize limit can remove all body"
+      ],
+      "traceIDs": [
+        "A-ReadText"
+      ]
+    },
+    {
+      "id": "S-Observation",
+      "name": "CognitionCapabilityObservation",
+      "producers": [
+        "Binding-validated tool result normalization"
+      ],
+      "consumers": [
+        "Next Reasoning input pair"
+      ],
+      "consumptionKind": "MODEL_INPUT",
+      "readsEnterModel": true,
+      "affectsAction": true,
+      "feedsStateUpdate": false,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "16k-char overflow status hides successful read and cause"
+      ],
+      "traceIDs": [
+        "A-ReadText"
+      ]
+    },
+    {
+      "id": "S-Effect",
+      "name": "Intent/attempt/outcome and transient effect result",
+      "producers": [
+        "EffectDispatcher; host adapters; provider/publication accounting"
+      ],
+      "consumers": [
+        "Claim/cancel/reconcile workers and operation freshness; adapter caller"
+      ],
+      "consumptionKind": "RELIABILITY/CONTROL",
+      "readsEnterModel": false,
+      "affectsAction": true,
+      "feedsStateUpdate": true,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "APPLIED is contract-layer completion, not proof model understood; volatile grants not restored after reboot"
+      ],
+      "traceIDs": [
+        "A-ReadText",
+        "A-TTS",
+        "A-Worker",
+        "A-Plugins"
+      ]
+    },
+    {
+      "id": "S-Events",
+      "name": "Runtime events",
+      "producers": [
+        "createEvent + EventBus.publish"
+      ],
+      "consumers": [
+        "Runtime/display/presentation/dashboard wildcard subscribers"
+      ],
+      "consumptionKind": "CALLBACK_AND_DISPLAY",
+      "readsEnterModel": "Depends on subscribed handler",
+      "affectsAction": "Depends on subscribed handler",
+      "feedsStateUpdate": true,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Subscriber resolution can be dynamic; EventBus catches errors; publication receipt is not transaction over subscribers"
+      ],
+      "traceIDs": [
+        "A-WS",
+        "A-Dashboard"
+      ]
+    },
+    {
+      "id": "S-Dashboard",
+      "name": "Recent diagnostic events",
+      "producers": [
+        "Context wildcard DashboardStateService"
+      ],
+      "consumers": [
+        "HTTP events/debug and WS dashboard"
+      ],
+      "consumptionKind": "ADMINISTRATION_ONLY",
+      "readsEnterModel": false,
+      "affectsAction": false,
+      "feedsStateUpdate": false,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Intentional bounded diagnostics; NOT USED by model is not automatically a waste"
+      ],
+      "traceIDs": [
+        "A-WS",
+        "A-Dashboard"
+      ]
+    },
+    {
+      "id": "S-Publication",
+      "name": "Reply target/frame/publish status",
+      "producers": [
+        "HTTP/SSE/WS outward effects"
+      ],
+      "consumers": [
+        "Transport clients; terminal reply/persistence/reconcile policy"
+      ],
+      "consumptionKind": "EXTERNAL_EFFECT/RELIABILITY",
+      "readsEnterModel": false,
+      "affectsAction": true,
+      "feedsStateUpdate": true,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Transport delivery is not reader comprehension; full DB failure/restart requires deployed probe"
+      ],
+      "traceIDs": [
+        "A-WS",
+        "A-Proactive",
+        "A-Browser"
+      ]
+    },
+    {
+      "id": "S-TTSReceipt",
+      "name": "Synthesis metadata receipt",
+      "producers": [
+        "HostTtsReceiptAdmission"
+      ],
+      "consumers": [
+        "Media effect causal authority; Journal"
+      ],
+      "consumptionKind": "AUTHORITY_METADATA",
+      "readsEnterModel": false,
+      "affectsAction": true,
+      "feedsStateUpdate": false,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Raw text deliberately NOT_RETAINED, no expected semantic consumer for raw receipt text"
+      ],
+      "traceIDs": [
+        "A-TTS"
+      ]
+    },
+    {
+      "id": "S-Media",
+      "name": "Audio/speech segment seals/playback acknowledgments",
+      "producers": [
+        "Media effect service; provider audio; client reports"
+      ],
+      "consumers": [
+        "Publication/playback gate and client"
+      ],
+      "consumptionKind": "EXTERNAL_OUTPUT/CONTROL",
+      "readsEnterModel": false,
+      "affectsAction": true,
+      "feedsStateUpdate": true,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Acknowledged playback not thought/learning; all client state transitions pending"
+      ],
+      "traceIDs": [
+        "A-TTS",
+        "A-Browser"
+      ]
+    },
+    {
+      "id": "S-Speech",
+      "name": "STT whole text + timed per-speaker segment text",
+      "producers": [
+        "Actual local SttEngine.handle_transcribe"
+      ],
+      "consumers": [
+        "LocalSTT provider; finalized speech reservation; review; transcript context"
+      ],
+      "consumptionKind": "INPUT_OBSERVATION",
+      "readsEnterModel": true,
+      "affectsAction": false,
+      "feedsStateUpdate": true,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Actual sidecar preserves span words; downstream transcript-only input may lose cluster distinctions"
+      ],
+      "traceIDs": [
+        "A-STT"
+      ]
+    },
+    {
+      "id": "S-VoiceProfile",
+      "name": "Acoustic template/match/binding evidence",
+      "producers": [
+        "SpeakerStore + governed native enrollment; matching result"
+      ],
+      "consumers": [
+        "Speech attribution/review; product binding governed commands"
+      ],
+      "consumptionKind": "PERCEPTION_AND_IDENTITY_CONTROL",
+      "readsEnterModel": "Only projected evidence",
+      "affectsAction": true,
+      "feedsStateUpdate": true,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Never equate acoustic match to Person trust; full native transaction/reconcile untested"
+      ],
+      "traceIDs": [
+        "A-STT"
+      ]
+    },
+    {
+      "id": "S-Supervisor",
+      "name": "PID/ownership/health/leases",
+      "producers": [
+        "Native supervisor + TS service supervisor"
+      ],
+      "consumers": [
+        "UI diagnostics; restart/stop/capture lease logic"
+      ],
+      "consumptionKind": "PROCESS_RELIABILITY",
+      "readsEnterModel": false,
+      "affectsAction": true,
+      "feedsStateUpdate": true,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Platform execution not performed; no automatic individual intelligence claim"
+      ],
+      "traceIDs": [
+        "A-Native"
+      ]
+    },
+    {
+      "id": "S-Settings",
+      "name": "Runtime/product settings and secrets",
+      "producers": [
+        "Native config commands; server settings APIs"
+      ],
+      "consumers": [
+        "env_export; ProviderRegistry/context boot; management UI"
+      ],
+      "consumptionKind": "CONFIGURATION",
+      "readsEnterModel": false,
+      "affectsAction": true,
+      "feedsStateUpdate": false,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Configured features can still lack model entry; private deployed settings unknown"
+      ],
+      "traceIDs": [
+        "A-Native",
+        "A-Browser"
+      ]
+    },
+    {
+      "id": "S-Dream",
+      "name": "Recent episodes/Dream jobs",
+      "producers": [
+        "post-turn recent episode consider/enqueue"
+      ],
+      "consumers": [
+        "runDue in post-turn path; writer only if configured"
+      ],
+      "consumptionKind": "ASYNC_STATE_UPDATE",
+      "readsEnterModel": "Only written memory when available",
+      "affectsAction": false,
+      "feedsStateUpdate": true,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "No complete dynamic proof of all timer hosts; default inspected call lacks idleMs; global NO worker claim not upgraded"
+      ],
+      "traceIDs": [
+        "A-Worker"
+      ]
+    },
+    {
+      "id": "S-Proactive",
+      "name": "Consent/engagement/eligibility/policy and scheduling",
+      "producers": [
+        "Explicit controller + runtime activity + proposal"
+      ],
+      "consumers": [
+        "Runtime scheduler decision, admission, Character proactive expression"
+      ],
+      "consumptionKind": "ACTION_SELECTION",
+      "readsEnterModel": true,
+      "affectsAction": true,
+      "feedsStateUpdate": true,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Default-session context issue reused; consent policy is necessary; exhaustive suspend/resume not closed"
+      ],
+      "traceIDs": [
+        "A-Proactive"
+      ]
+    },
+    {
+      "id": "S-Vision",
+      "name": "Raw image transient + analysis text",
+      "producers": [
+        "Media/provider vision or message image attachment"
+      ],
+      "consumers": [
+        "Current turn multimodal evidence and outward perception event"
+      ],
+      "consumptionKind": "MODEL_OBSERVATION",
+      "readsEnterModel": true,
+      "affectsAction": false,
+      "feedsStateUpdate": "Conditional text/history",
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Raw media not retained; repeated observation tools not universally wired; real-device/provider quality open"
+      ],
+      "traceIDs": [
+        "A-Vision"
+      ]
+    },
+    {
+      "id": "S-WSTrace",
+      "name": "WebSocket ActiveTraceRegistry",
+      "producers": [
+        "socket message envelope -> add(traceId); admitted turn"
+      ],
+      "consumers": [
+        "EventBus output filter; outward target acceptance; terminal/close cleanup"
+      ],
+      "consumptionKind": "TRANSPORT_SELECTION",
+      "readsEnterModel": false,
+      "affectsAction": true,
+      "feedsStateUpdate": true,
+      "consumerStatus": "IDENTIFIED_WITH_CONDITIONS",
+      "dynamicAuditStatus": "PARTIAL_BOUNDARY_REVIEW",
+      "questions": [
+        "Unsupported envelope type reusing existing trace deletes pending legitimate turn; whole normal/negative/counterfactual route probe; complete durable publisher/device not tested"
+      ],
+      "traceIDs": [
+        "A-WS"
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "C-FileObservation",
+      "traceIDs": [
+        "A-ReadText"
+      ],
+      "stateIDs": [
+        "S-ToolResult",
+        "S-Observation"
+      ],
+      "function": "normalizeOutcome/extractReadTextContent",
+      "inputStructure": "INVOKED {result:{isError:false,content:[{type:\"text\",text}]}}",
+      "outputStructure": "{version,capabilityRef,status,content?}",
+      "preservedFields": [
+        "text blocks joined with newline when <=16000; opaque ref"
+      ],
+      "discardedFields": [
+        "path/tool name/runtime rejection reason; all content when >16000 or malformed"
+      ],
+      "addedInterpretations": [
+        "Successful local read reclassified ERROR if contract validation throws"
+      ],
+      "conditions": "UTF-16 string length >16000 even if reader accepted <=64000 bytes",
+      "downstreamConsumer": "Next Reasoning request observation pair",
+      "evidence": [
+        {
+          "path": "apps/server/src/mcp-read-text-observation.ts",
+          "lineStart": 74,
+          "lineEnd": 134,
+          "blobSHA": "db83261e5fd9ebd86fee62f99ba94e063ae66249",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "analysisStatus": "FIELDS_REVIEWED",
+      "proof": "S + P backend-results.json readText"
+    },
+    {
+      "id": "C-WSQuery",
+      "traceIDs": [
+        "A-WS"
+      ],
+      "stateIDs": [
+        "S-Dashboard"
+      ],
+      "function": "WebSocketQuerySchema.safeParse/dashboard branch",
+      "inputStructure": "query {dashboard?:unknown}",
+      "outputStructure": "boolean dashboardMode + target predicate",
+      "preservedFields": [
+        "default absent false; literal boolean false false"
+      ],
+      "discardedFields": [
+        "string spelling false semantics"
+      ],
+      "addedInterpretations": [
+        "z.coerce.boolean(\"false\") => true"
+      ],
+      "conditions": "Nonempty query string including false",
+      "downstreamConsumer": "Wildcard event stream and accounted target gate",
+      "evidence": [
+        {
+          "path": "apps/server/src/routes/websocket.ts",
+          "lineStart": 96,
+          "lineEnd": 145,
+          "blobSHA": "e474ce066fafc076a9174ca51997de624661d9c3",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "analysisStatus": "FIELDS_REVIEWED",
+      "proof": "S + P backend-results.json websocket"
+    },
+    {
+      "id": "C-Dashboard",
+      "traceIDs": [
+        "A-WS",
+        "A-Dashboard"
+      ],
+      "stateIDs": [
+        "S-Events",
+        "S-Dashboard"
+      ],
+      "function": "redactValue",
+      "inputStructure": "RuntimeEvent.payload object",
+      "outputStructure": "same object shape with sensitive-key values [redacted]",
+      "preservedFields": [
+        "ordinary content/text, nested nonsensitive fields"
+      ],
+      "discardedFields": [
+        "apiKey/token/secret/password values; URL userinfo"
+      ],
+      "addedInterpretations": [
+        "key-name redaction not scope filter"
+      ],
+      "conditions": "Dashboard mode forwards every wildcard event",
+      "downstreamConsumer": "Socket/dashboard API",
+      "evidence": [
+        {
+          "path": "apps/server/src/services/dashboard.ts",
+          "lineStart": 19,
+          "lineEnd": 62,
+          "blobSHA": "7b8afc90cdba1bba214ccab6168ee2c917322cb1",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "analysisStatus": "FIELDS_REVIEWED",
+      "proof": "S + P foreign-session marker retained"
+    },
+    {
+      "id": "C-TTSWire",
+      "traceIDs": [
+        "A-TTS"
+      ],
+      "stateIDs": [
+        "S-Media"
+      ],
+      "function": "synthesizeSpeech",
+      "inputStructure": "TTSInput {text,metadata.language,voice,format,signal}",
+      "outputStructure": "HTTP {requestId,text,language uppercase,voice?}; TTSOutput or ProviderError",
+      "preservedFields": [
+        "full text without split/truncation; explicit voice"
+      ],
+      "discardedFields": [
+        "local options format/signal not body; sidecar response error reason collapsed to status message"
+      ],
+      "addedInterpretations": [
+        "UUID; uppercase language; HTTP400 unknown effect-state"
+      ],
+      "conditions": "Whole text >2000 chars reaches actual sidecar and is rejected",
+      "downstreamConsumer": "WAV publication or provider error",
+      "evidence": [
+        {
+          "path": "packages/providers/src/local/DotsTTSProvider.ts",
+          "lineStart": 61,
+          "lineEnd": 121,
+          "blobSHA": "248974f5339a113d46142cf3b14495c6c58f55e5",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "analysisStatus": "FIELDS_REVIEWED",
+      "proof": "S + real localhost cross-language P, waveform mocked"
+    },
+    {
+      "id": "C-TTSReceipt",
+      "traceIDs": [
+        "A-TTS"
+      ],
+      "stateIDs": [
+        "S-TTSReceipt",
+        "S-Journal"
+      ],
+      "function": "HostTtsReceiptAdmission.admit",
+      "inputStructure": "structural {textCharacterCount,voiceSupplied,languageSupplied,format,sessionId?}",
+      "outputStructure": "Journal summary + NOT_RETAINED/nonselectable raw text descriptor",
+      "preservedFields": [
+        "counts/options presence and admitted causal ref"
+      ],
+      "discardedFields": [
+        "raw synthesis text and option values from this seam"
+      ],
+      "addedInterpretations": [
+        "CONTROL receipt with principal/source unresolved"
+      ],
+      "conditions": "Every standalone TTS admission",
+      "downstreamConsumer": "Media causal validation, not semantic memory",
+      "evidence": [
+        {
+          "path": "apps/server/src/tts-receipt-admission.ts",
+          "lineStart": 65,
+          "lineEnd": 95,
+          "blobSHA": "2de3d10932a511ec5b25ff715bad23fcaee04ffe",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "analysisStatus": "FIELDS_REVIEWED",
+      "proof": "S intentional privacy boundary"
+    },
+    {
+      "id": "C-STTSpans",
+      "traceIDs": [
+        "A-STT"
+      ],
+      "stateIDs": [
+        "S-Speech"
+      ],
+      "function": "SttEngine.handle_transcribe",
+      "inputStructure": "decoded waveform; diarize/identify flags",
+      "outputStructure": "{text,language,identity,voiceProfileMatch,segments:[{startMs,endMs,speakerClusterId,text}],latencyMs,device}",
+      "preservedFields": [
+        "timing/clusters; span-specific text; whole transcript separately"
+      ],
+      "discardedFields": [
+        "raw waveform; no default ASR confidence field produced"
+      ],
+      "addedInterpretations": [
+        "Each span independently transcribed when >1 span"
+      ],
+      "conditions": "Diarize yields spans; identify separately gated",
+      "downstreamConsumer": "TS provider and speech admission",
+      "evidence": [
+        {
+          "path": "services/local-stt/server.py",
+          "lineStart": 335,
+          "lineEnd": 375,
+          "blobSHA": "eba738fcb61577023103c706e4ac7eaf6d1df676",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "analysisStatus": "FIELDS_REVIEWED",
+      "proof": "S + P python-results.json STT"
+    },
+    {
+      "id": "C-NativeEnv",
+      "traceIDs": [
+        "A-Native"
+      ],
+      "stateIDs": [
+        "S-Settings"
+      ],
+      "function": "public_env_overrides/secret_env_overrides/combined_env_for_supervisor",
+      "inputStructure": "Settings + secret store + managed/external mode",
+      "outputStructure": "child env map",
+      "preservedFields": [
+        "selected provider config and applicable owned secrets"
+      ],
+      "discardedFields": [
+        "unowned consumer secrets not forwarded"
+      ],
+      "addedInterpretations": [
+        "explicit DATABASE_URL/keys only for selected managed consumers"
+      ],
+      "conditions": "managed memory/provider consumer chosen",
+      "downstreamConsumer": "Owned Runtime/Mem0 process",
+      "evidence": [
+        {
+          "path": "apps/desktop/src-tauri/src/config/env_export.rs",
+          "lineStart": 160,
+          "lineEnd": 210,
+          "blobSHA": "6d5f1eb8b3ded54ef553934a836801a5525bc353",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "analysisStatus": "FIELDS_REVIEWED",
+      "proof": "S; platform execution not tested"
+    },
+    {
+      "id": "C-WSTrace",
+      "traceIDs": [
+        "A-WS"
+      ],
+      "stateIDs": [
+        "S-WSTrace",
+        "S-Publication"
+      ],
+      "function": "registerWebSocketRoutes",
+      "inputStructure": "existing active trace T + new client RuntimeEvent {traceId:T,type:not-user.message}",
+      "outputStructure": "error frame + removed T; later valid reply filtered out",
+      "preservedFields": [
+        "original admitted Runtime turn continues; rejection message"
+      ],
+      "discardedFields": [
+        "pre-existing activeTrace ownership and subsequent valid reply visibility"
+      ],
+      "addedInterpretations": [
+        "packet rejection cleans shared trace even when traceAlreadyActive true"
+      ],
+      "conditions": "unsupported type, or outer payload parse failure; tested unsupported type while valid turn pending",
+      "downstreamConsumer": "Normal WS event filter and target predicate",
+      "evidence": [
+        {
+          "path": "apps/server/src/routes/websocket.ts",
+          "lineStart": 162,
+          "lineEnd": 251,
+          "blobSHA": "e474ce066fafc076a9174ca51997de624661d9c3",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "analysisStatus": "FIELDS_REVIEWED",
+      "proof": "S + P backend-results pendingReply; host receipt/Runtime event producer injected; deletion guard is runtime-only counterfactual"
+    },
+    {
+      "id": "C-Receipt",
+      "traceIDs": [
+        "A-HTTP",
+        "A-SSE"
+      ],
+      "stateIDs": [
+        "S-Journal"
+      ],
+      "function": "admit",
+      "inputStructure": "normalized text + session + transport identity hints",
+      "outputStructure": "text payload + ATTRIBUTED_ASSERTION receipt",
+      "preservedFields": [
+        "text Unicode-codepoint range; explicit image-presence descriptor"
+      ],
+      "discardedFields": [
+        "raw image retention; authenticated principal absent"
+      ],
+      "addedInterpretations": [
+        "authority principal UNRESOLVED"
+      ],
+      "conditions": "Journal configured/valid host append",
+      "downstreamConsumer": "Runtime/finalized ingestion",
+      "evidence": [
+        {
+          "path": "apps/server/src/conversational-receipt-admission.ts",
+          "lineStart": 95,
+          "lineEnd": 142,
+          "blobSHA": "a798ebd1057abe465b9fb9ab2604d404a1635abb",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "analysisStatus": "FIELDS_REVIEWED",
+      "proof": "S targeted"
+    },
+    {
+      "id": "C-Context",
+      "traceIDs": [
+        "A-HTTP",
+        "A-SSE"
+      ],
+      "stateIDs": [
+        "S-Context"
+      ],
+      "function": "assembleCharacterHarness2DContext",
+      "inputStructure": "ordered ABI section list + budgets",
+      "outputStructure": "included prefix + omittedSectionKinds",
+      "preservedFields": [
+        "whole included sections; cognition evidence/uncertainty when selected"
+      ],
+      "discardedFields": [
+        "oversized first failed section and all later ones"
+      ],
+      "addedInterpretations": [
+        "budgetClosed true no backfill"
+      ],
+      "conditions": "next section exceeds maxSemanticCharacters or maxSections",
+      "downstreamConsumer": "Character ABI render",
+      "evidence": [
+        {
+          "path": "packages/character-harness/src/assembly-v2d.ts",
+          "lineStart": 37,
+          "lineEnd": 77,
+          "blobSHA": "fee4c39edc9f5a625bd5549b717c0f6138d2bcfe",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "analysisStatus": "FIELDS_REVIEWED",
+      "proof": "S; previous P reused, no quality M"
+    },
+    {
+      "id": "C-Control",
+      "traceIDs": [
+        "A-HTTP"
+      ],
+      "stateIDs": [
+        "S-Context",
+        "S-Capability"
+      ],
+      "function": "createServerCharacterPort/generateInitialCharacterTurn/generatePostCognitionCharacterTurn",
+      "inputStructure": "assembled context/current input",
+      "outputStructure": "control output then expression result",
+      "preservedFields": [
+        "authored constraints/provider parameter routing"
+      ],
+      "discardedFields": [
+        "open-ended free answer is subject to control parser"
+      ],
+      "addedInterpretations": [
+        "explicit RESPOND/SILENCE/NEED_COGNITION decision"
+      ],
+      "conditions": "Character port active",
+      "downstreamConsumer": "Runtime control decision and possible Cognition",
+      "evidence": [
+        {
+          "path": "apps/server/src/character-runtime.ts",
+          "lineStart": 139,
+          "lineEnd": 262,
+          "blobSHA": "ddd01919a87ed1eb63eaba430aac3403330911ec",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "analysisStatus": "FIELDS_REVIEWED",
+      "proof": "Current SHA hash-verified previous control probes; full branch matrix pending"
+    },
+    {
+      "id": "C-Publication",
+      "traceIDs": [
+        "A-HTTP",
+        "A-SSE"
+      ],
+      "stateIDs": [
+        "S-Publication",
+        "S-Conversation"
+      ],
+      "function": "handleMessage",
+      "inputStructure": "Runtime AgentReplyEvent|null",
+      "outputStructure": "accounted response or {reply:null,...}",
+      "preservedFields": [
+        "final reply content when present; trace"
+      ],
+      "discardedFields": [
+        "null has no assistant message"
+      ],
+      "addedInterpretations": [
+        "null treated intentional success"
+      ],
+      "conditions": "Character silence/termination",
+      "downstreamConsumer": "HTTP user and conversation persistence",
+      "evidence": [
+        {
+          "path": "apps/server/src/routes/message.ts",
+          "lineStart": 198,
+          "lineEnd": 231,
+          "blobSHA": "60473bdc66470d252439fdbe32eb23dc51423a0e",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "analysisStatus": "FIELDS_REVIEWED",
+      "proof": "S targeted; no model-quality inference"
+    },
+    {
+      "id": "C-CapabilityRequest",
+      "traceIDs": [
+        "A-ReadText"
+      ],
+      "stateIDs": [
+        "S-Capability"
+      ],
+      "function": "bindServerMcpCapabilityRequest",
+      "inputStructure": "opaque capabilityRef/request + host-issued registry",
+      "outputStructure": "implementationRef/toolName/request",
+      "preservedFields": [
+        "semantic request"
+      ],
+      "discardedFields": [
+        "no arbitrary concrete tool name granting"
+      ],
+      "addedInterpretations": [
+        "binding resolves only admitted descriptor"
+      ],
+      "conditions": "Issued registry binding exists",
+      "downstreamConsumer": "Host executable dispatcher",
+      "evidence": [
+        {
+          "path": "apps/server/src/mcp-capability-binding.ts",
+          "lineStart": 467,
+          "lineEnd": 490,
+          "blobSHA": "1b6c331c7f7a298a754d84e3848a66d8b21ef7a0",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "analysisStatus": "FIELDS_REVIEWED",
+      "proof": "S targeted; complete plugin dynamic loading pending"
+    },
+    {
+      "id": "C-Mem0",
+      "traceIDs": [
+        "A-Mem0",
+        "A-HTTP"
+      ],
+      "stateIDs": [
+        "S-Mem0"
+      ],
+      "function": "retrieveMemoriesForQuery",
+      "inputStructure": "configured MemoryProvider search response",
+      "outputStructure": "selected semantic memory context",
+      "preservedFields": [
+        "Mem0 record text marker in actual model input (prior P)"
+      ],
+      "discardedFields": [
+        "retrieval omissions/caps depend query and backend"
+      ],
+      "addedInterpretations": [
+        "backend-specific source evidence"
+      ],
+      "conditions": "MEMORY_BACKEND=mem0 or shadow path",
+      "downstreamConsumer": "Character/Reasoning context",
+      "evidence": [
+        {
+          "path": "packages/core/src/runtime-orchestrator.ts",
+          "lineStart": 5820,
+          "lineEnd": 5845,
+          "blobSHA": "c69d37a8ca85063f38e29d1afbf77cb0d6ca0395",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "analysisStatus": "FIELDS_REVIEWED",
+      "proof": "Prior recorder probe/source hashes reused; live Python inference not run"
+    },
+    {
+      "id": "C-SpeechContext",
+      "traceIDs": [
+        "A-STT"
+      ],
+      "stateIDs": [
+        "S-Speech",
+        "S-Conversation"
+      ],
+      "function": "commitSpeechTurn",
+      "inputStructure": "finalized observation with timed segments",
+      "outputStructure": "UserMessageEvent + later transcript input",
+      "preservedFields": [
+        "whole text; committed timed segments"
+      ],
+      "discardedFields": [
+        "prior P: segment confidences not committed; cluster IDs absent from Character request"
+      ],
+      "addedInterpretations": [
+        "voice-source event normalization"
+      ],
+      "conditions": "speech reservation/finalization passes",
+      "downstreamConsumer": "Conversation and Character input",
+      "evidence": [
+        {
+          "path": "packages/core/src/runtime-orchestrator.ts",
+          "lineStart": 1528,
+          "lineEnd": 1590,
+          "blobSHA": "c69d37a8ca85063f38e29d1afbf77cb0d6ca0395",
+          "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+        }
+      ],
+      "analysisStatus": "FIELDS_REVIEWED",
+      "proof": "Prior P with custom-capable provider fields; local STT does NOT supply confidence by default"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "OPEN-PRESENTATION-REPORT",
+      "kind": "EXTERNAL_CALLBACK_RECOVERY_GAP",
+      "path": "apps/web/src/companion-page.tsx",
+      "status": "OPEN_GAP",
+      "reason": "Lines 78-85 catch presentation outcome API errors with undefined; full client/server retry/reconciliation not traced, so cannot yet declare outward effect forgotten or intelligent behavior harmed."
+    },
+    {
+      "id": "OPEN-PROFILE-DYNAMIC",
+      "kind": "DYNAMIC_CONSUMER_SCOPE",
+      "path": "packages/memory/src/profile-lifecycle.ts",
+      "status": "OPEN_GAP",
+      "reason": "A4 explicit NOT_USED is confirmed; global facade/host callback/plugin/config consumer exclusion not complete. No NO_PRODUCTION_CONSUMER declaration."
+    },
+    {
+      "id": "OPEN-PLATFORM-RUST",
+      "kind": "PLATFORM_TOOL_GAP",
+      "path": "apps/desktop/src-tauri/src/supervisor.rs",
+      "status": "OPEN_GAP",
+      "reason": "One tree-sitter ERROR; no cargo/rustc/pwsh, platform-conditioned native/service launch and packaging not executed."
+    },
+    {
+      "id": "OPEN-BRANCHES",
+      "kind": "BRANCH_ACTIVITY_UNCONFIRMED",
+      "path": null,
+      "status": "OPEN_GAP",
+      "reason": "All remote heads enumerated and compared; commit dates/open PRs cannot establish actual maintenance/deployment; non-QQ variant functions not exhaustively read."
+    },
+    {
+      "id": "OPEN-PLUNGE",
+      "kind": "BRANCH_DEEP_REVIEW_GAP",
+      "path": null,
+      "status": "OPEN_GAP",
+      "reason": "Independent QQ inventory locked to adff0c...; branch AST and all callbacks are not deeply audited in this round; old branch probes only bounded reuse."
+    },
+    {
+      "id": "OPEN-MODEL",
+      "kind": "REAL_MODEL_EVIDENCE_GAP",
+      "path": null,
+      "status": "OPEN_GAP",
+      "reason": "No same-model quality comparison or live credential/device tests. Deterministic control probes cannot measure actual Alice intelligence."
+    },
+    {
+      "id": "OPEN-DB",
+      "kind": "PROCESS_RUNTIME_RECOVERY_GAP",
+      "path": null,
+      "status": "OPEN_GAP",
+      "reason": "No real PostgreSQL recovery/fence/cancel/reconcile integration run this round."
+    },
+    {
+      "id": "OPEN-CONFIG-PRESENTATION",
+      "kind": "DYNAMIC_PLATFORM_CONFIG_GAP",
+      "path": null,
+      "status": "OPEN_GAP",
+      "reason": "PowerShell/Batch/YAML/CSS/GLSL/assets metadata only; actual release/platform selection or graphics consumers not fully traced."
+    },
+    {
+      "id": "OPEN-UNTYPED-STATES",
+      "kind": "DYNAMIC_STATE_DISCOVERY_GAP",
+      "path": null,
+      "status": "OPEN_GAP",
+      "reason": "All TS type/interface/class declarations are now retained in B, not selected by familiar state words. Untyped caches, closures and runtime-computed semantic objects still require producer/write-site investigation; declaration coverage is not an exhaustive semantic-state universe."
+    },
+    {
+      "id": "OPEN-ALL-PATHS",
+      "kind": "BEHAVIOR_PATH_GAP",
+      "path": null,
+      "status": "OPEN_GAP",
+      "reason": "Positive/negative/counterfactual cases cover selected high-risk seams; remaining entry/state/transform candidates retain individual OPEN_GAPs."
+    }
+  ]
+}

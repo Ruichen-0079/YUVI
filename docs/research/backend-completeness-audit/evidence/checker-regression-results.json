@@ -1,0 +1,144 @@
+{
+  "baselineSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4",
+  "results": [
+    {
+      "name": "valid-partial",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "stderr": "",
+      "stdout": {
+        "baselineSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4",
+        "tracked": 1435,
+        "production": 702,
+        "classified": 702,
+        "unclassified": 0,
+        "structuralCompleted": 595,
+        "deepCompleted": 16,
+        "entrypoints": {
+          "identified": 412,
+          "groupTraced": 64,
+          "manualTraces": 14,
+          "unhandled": 348
+        },
+        "states": {
+          "identified": 1710,
+          "manuallyReviewed": 24,
+          "unresolved": 1710
+        },
+        "transformations": {
+          "identified": 1538,
+          "manuallyReviewed": 15
+        },
+        "openGaps": 3956,
+        "gates": {
+          "A": true,
+          "B_ProducerConsumerRecordsExist": true,
+          "B_ConsumerInvestigationComplete": false,
+          "C_FieldTransformComplete": false,
+          "D_AllDiscrepanciesClassified": true,
+          "D_InvestigationComplete": false,
+          "importantOpenGapsRemain": true
+        },
+        "limitedAuditComplete": false
+      }
+    },
+    {
+      "name": "strict-incomplete",
+      "expectedExit": 2,
+      "actualExit": 2,
+      "stderr": "",
+      "stdout": {
+        "baselineSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4",
+        "tracked": 1435,
+        "production": 702,
+        "classified": 702,
+        "unclassified": 0,
+        "structuralCompleted": 595,
+        "deepCompleted": 16,
+        "entrypoints": {
+          "identified": 412,
+          "groupTraced": 64,
+          "manualTraces": 14,
+          "unhandled": 348
+        },
+        "states": {
+          "identified": 1710,
+          "manuallyReviewed": 24,
+          "unresolved": 1710
+        },
+        "transformations": {
+          "identified": 1538,
+          "manuallyReviewed": 15
+        },
+        "openGaps": 3956,
+        "gates": {
+          "A": true,
+          "B_ProducerConsumerRecordsExist": true,
+          "B_ConsumerInvestigationComplete": false,
+          "C_FieldTransformComplete": false,
+          "D_AllDiscrepanciesClassified": true,
+          "D_InvestigationComplete": false,
+          "importantOpenGapsRemain": true
+        },
+        "limitedAuditComplete": false
+      }
+    },
+    {
+      "name": "missing-production-record",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "stderr": "COVERAGE_INVALID: Missing, extra or duplicate tracked inventory record",
+      "stdout": null
+    },
+    {
+      "name": "wrong-baseline",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "stderr": "COVERAGE_INVALID: HEAD differs from inventory baseline; checkout 0000000000000000000000000000000000000000 explicitly",
+      "stdout": null
+    },
+    {
+      "name": "hidden-entry",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "stderr": "COVERAGE_INVALID: Pass A candidate entries were removed or altered",
+      "stdout": null
+    },
+    {
+      "name": "invented-trace-symbol",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "stderr": "COVERAGE_INVALID: Nonexistent/unbounded trace symbol NONEXISTENT_RESEARCH_FUNCTION_999",
+      "stdout": null
+    },
+    {
+      "name": "hidden-boundary",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "stderr": "COVERAGE_INVALID: Missing or altered C boundary candidate",
+      "stdout": null
+    },
+    {
+      "name": "hidden-state",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "stderr": "COVERAGE_INVALID: Missing B declaration record type:apps/server/src/character-composition.ts:12:ProductPersonProjection",
+      "stdout": null
+    },
+    {
+      "name": "unsupported-unused",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "stderr": "COVERAGE_INVALID: Unsupported missing-consumer verdict type:apps/server/src/character-composition.ts:12:ProductPersonProjection",
+      "stdout": null
+    },
+    {
+      "name": "hidden-gap",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "stderr": "COVERAGE_INVALID: Unrecorded B consumer gap type:apps/server/src/character-composition.ts:12:ProductPersonProjection",
+      "stdout": null
+    }
+  ],
+  "scope": "Checks detect specific corruption and unsupported claims; cannot prove all omissions impossible"
+}

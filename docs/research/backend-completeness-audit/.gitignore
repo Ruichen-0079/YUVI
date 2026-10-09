@@ -1,0 +1,4 @@
+experiments/.generated-*.mjs
+experiments/probe-console.txt
+evidence/check-console.txt
+__pycache__/

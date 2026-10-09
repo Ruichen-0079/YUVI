@@ -1,0 +1,102 @@
+{
+  "baselineSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4",
+  "scenarios": [
+    {
+      "scenario": "日常聊天",
+      "traceID": "A-HTTP",
+      "expectedChain": "Character RESPOND/control -> body -> accounted output",
+      "status": "部分确定性证据，真实自然度未测"
+    },
+    {
+      "scenario": "多轮历史与跨轮修改",
+      "traceID": "A-HTTP",
+      "expectedChain": "Conversation -> canonical recent context",
+      "status": "历史读取存在，长原文/纠正/取消组合未闭合"
+    },
+    {
+      "scenario": "长期记住与召回",
+      "traceID": "A-Mem0",
+      "expectedChain": "grounded candidate -> backend -> search -> model",
+      "status": "已有召回正例；自然语言写入纠正跨重启未验证"
+    },
+    {
+      "scenario": "人物识别",
+      "traceID": "A-STT",
+      "expectedChain": "voice profile match -> evidence/binding -> scope/P8",
+      "status": "声学模板不等于人物理解；真实设备待测"
+    },
+    {
+      "scenario": "纠正记忆/关系",
+      "traceID": "A-HTTP",
+      "expectedChain": "rule/correction store -> subsequent model",
+      "status": "部分规则负例复用；自然纠正与失效路径 OPEN"
+    },
+    {
+      "scenario": "授权文件读取",
+      "traceID": "A-ReadText",
+      "expectedChain": "host authorization -> actual read -> observation -> Reasoning",
+      "status": "16k 正反例和信息反事实已测；普通用户授权入口不足"
+    },
+    {
+      "scenario": "工具反馈与多步查证",
+      "traceID": "A-ReadText",
+      "expectedChain": "REQUEST_CAPABILITY -> result pair -> next reasoning",
+      "status": "反馈消费正例；重复 CONTINUE/更多工具/长期学习未闭合"
+    },
+    {
+      "scenario": "图像/屏幕理解",
+      "traceID": "A-Vision",
+      "expectedChain": "receipt -> Vision -> text evidence -> Character",
+      "status": "源码候选链；真实模型/硬件未测"
+    },
+    {
+      "scenario": "语音理解",
+      "traceID": "A-STT",
+      "expectedChain": "waveform -> span transcripts -> committed turn/context",
+      "status": "侧车正例；下游说话者区分能力需端到端对照"
+    },
+    {
+      "scenario": "语音输出",
+      "traceID": "A-TTS",
+      "expectedChain": "whole/segmented input -> selected provider -> playback",
+      "status": "跨语言上限/取消已测；完整播放回执恢复未测"
+    },
+    {
+      "scenario": "主动行为",
+      "traceID": "A-Proactive",
+      "expectedChain": "consent -> policy -> timer/provider -> admitted reply",
+      "status": "默认会话复用负例；多轮主动体验未测"
+    },
+    {
+      "scenario": "长期恢复",
+      "traceID": "A-Worker",
+      "expectedChain": "Journal/outbox/ingestion/profile leases -> workers",
+      "status": "装配已查；真实 DB 重启故障未跑"
+    },
+    {
+      "scenario": "桌面宿主",
+      "traceID": "A-Native",
+      "expectedChain": "Tauri settings/services/native commands",
+      "status": "Rust AST+针对阅读；平台与发布缺口"
+    },
+    {
+      "scenario": "WebUI与Dashboard",
+      "traceID": "A-Browser",
+      "expectedChain": "browser input/HTTP-SSE-WS/presentation/diagnostics",
+      "status": "入口/诊断查过；UI 全交互时序未审完"
+    },
+    {
+      "scenario": "QQ/Plunge",
+      "traceID": null,
+      "expectedChain": "adff0c standalone plugin/surface transport",
+      "status": "独立清单/语法索引与旧分支探针；不混入 main"
+    },
+    {
+      "scenario": "隐私诊断流",
+      "traceID": "A-WS",
+      "expectedChain": "dashboard query -> wildcard/redaction",
+      "status": "false-string 扩流确定性已测；部署边界未确认"
+    }
+  ],
+  "inverseCheck": "Backend states with no matching user scenario are not automatically waste; management/validation/recovery are necessary. Every missing product consumer stays UNRESOLVED."
+}

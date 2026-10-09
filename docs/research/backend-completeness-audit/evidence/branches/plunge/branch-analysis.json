@@ -1,0 +1,45 @@
+{
+  "branch": "plunge",
+  "baselineSHA": "adff0c70648b42a3a15ea45609adae1c45b31fc5",
+  "tracked": 1438,
+  "production": 729,
+  "structuralCompleted": 620,
+  "deepCompleted": 0,
+  "actualAliceDeploymentConfirmed": false,
+  "passA_B_C_ManualStatus": "OPEN_GAP",
+  "inventory": "branches/plunge/source-inventory.json",
+  "syntaxIndices": [
+    "branches/plunge/typescript-relations.json.gz",
+    "branches/plunge/other-language-relations.json.gz"
+  ],
+  "limitations": "Whole independent version retained; source counts not added to main; old probes do not close every branch path",
+  "assemblyEvidence": [
+    {
+      "path": "apps/server/src/index.ts",
+      "lines": [
+        39,
+        62
+      ],
+      "function": "composePlunge -> buildServer(surfacePlugins)",
+      "condition": "YUVI_PLUNGE_CONFIG_PATH and independent character composition; optional WebUI"
+    },
+    {
+      "path": "apps/server/src/server.ts",
+      "lines": [
+        90,
+        106
+      ],
+      "function": "protectPlunge and combined surface source discovery",
+      "condition": "WebUI loopback independent Alice and token; host plugin source set"
+    },
+    {
+      "path": "apps/server/src/plunge/qq-composition.ts",
+      "lines": [
+        96,
+        140
+      ],
+      "function": "new QQTransport -> transport.source()",
+      "condition": "Plunge runtime config/transport connection"
+    }
+  ]
+}

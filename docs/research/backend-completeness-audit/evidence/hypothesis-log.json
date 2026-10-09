@@ -1,0 +1,35 @@
+{
+  "baselineSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4",
+  "rejectedOrBoundedHypotheses": [
+    {
+      "claim": "Local STT never produces span-specific text",
+      "verdict": "REFUTED",
+      "evidence": "Actual SttEngine.handle_transcribe and python-results: separate clips transcribed when >1 segment; downstream projection must be audited separately"
+    },
+    {
+      "claim": "modelContextBudget accidentally confuses chars and tokens",
+      "verdict": "NOT_ESTABLISHED_AS_TYPE_BUG",
+      "evidence": "context-compression.ts 164-182 explicitly defines conservative one-character-per-token accounting. Whether conservative cap harms quality remains separate M question."
+    },
+    {
+      "claim": "No added files means no independent product branch",
+      "verdict": "REFUTED",
+      "evidence": "Desktop presentation branch changes existing files relative to merge base; standalone inventory retained"
+    },
+    {
+      "claim": "ScopePeopleModelReader has no production consumer everywhere",
+      "verdict": "UNRESOLVED_BEYOND_INSPECTED_A4",
+      "evidence": "A4 NOT_USED explicit; constructor/export/type-reference and inspected assembly insufficient to exclude all callbacks/plugins/config/cross-process consumers"
+    },
+    {
+      "claim": "Dashboard redaction scopes users/sessions",
+      "verdict": "REFUTED_AT_INSPECTED_WS_SEAM",
+      "evidence": "Key-based secret redaction leaves ordinary content; dashboard wildcard intentionally unscoped, false-string coercion enters it"
+    },
+    {
+      "claim": "Transport cancellation proves remote action never happened",
+      "verdict": "REFUTED_AS_GENERAL_RULE",
+      "evidence": "Provider invocation witness/UNKNOWN effect contract; late sidecar output can be discarded after computation. Reliability fences must stay."
+    }
+  ]
+}

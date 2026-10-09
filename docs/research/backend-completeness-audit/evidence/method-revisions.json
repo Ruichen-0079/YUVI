@@ -1,0 +1,38 @@
+{
+  "revisions": [
+    {
+      "id": "METHOD-1",
+      "stage": "syntax index self-check",
+      "issue": "entry kind overwritten by spreading call metadata",
+      "change": "Keep CALL/CONSTRUCT kind and separate entryKind",
+      "scope": "Every TypeScript/JavaScript candidate; regenerate full index",
+      "isProductionDefect": false
+    },
+    {
+      "id": "METHOD-2",
+      "stage": "cross-language risk sample",
+      "issue": "Decorator-only Python entry discovery misses BaseHTTPRequestHandler do_GET/do_POST and standalone main",
+      "change": "Index handler methods and main in every Python source, not just dots-TTS",
+      "scope": "All Python service/build scripts; regenerate and retain candidates pending trace",
+      "isProductionDefect": false
+    },
+    {
+      "id": "METHOD-3",
+      "stage": "dependency resolution self-check",
+      "issue": "Node builtins and Vite CSS imports recorded as unresolved imports",
+      "change": "Separate NODE_BUILTIN and resolve existing asset imports; retain actual dynamic dispatch unknowns",
+      "scope": "Every TS/JS import; does not prove package runtime reachability",
+      "isProductionDefect": false
+    }
+  ],
+  "testClassificationRevision": {
+    "rule": "test-support directories and node:test imports across first8192 bytes",
+    "initialInventory": "initial-source-inventory.json.gz"
+  },
+  "stateCandidateRevision": {
+    "id": "METHOD-5",
+    "reason": "Keywords could exclude declarations with unfamiliar semantic roles; raw AST already retained them, but B subset was too narrow",
+    "change": "Retain ALL TypeScript interface/type/class declarations in B, label non-keyword cases TYPE_ROLE_UNRESOLVED_NOT_EXCLUDED; do not assert they are states or unused",
+    "remaining": "Untyped caches/closures/runtime objects and all write-to-consumer assignments need manual investigation"
+  }
+}

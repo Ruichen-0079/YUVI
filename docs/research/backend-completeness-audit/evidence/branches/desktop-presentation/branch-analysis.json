@@ -1,0 +1,33 @@
+{
+  "branch": "desktop-presentation",
+  "baselineSHA": "4da346636be7bdaefeeb7617f1530eaedbcd0711",
+  "tracked": 1162,
+  "production": 615,
+  "structuralCompleted": 509,
+  "deepCompleted": 0,
+  "actualAliceDeploymentConfirmed": false,
+  "passA_B_C_ManualStatus": "OPEN_GAP",
+  "inventory": "branches/desktop-presentation/source-inventory.json",
+  "syntaxIndices": [
+    "branches/desktop-presentation/typescript-relations.json.gz",
+    "branches/desktop-presentation/other-language-relations.json.gz"
+  ],
+  "limitations": "Whole independent version retained; source counts not added to main; old probes do not close every branch path",
+  "independentDeltaBase": "3204987b559f2f0579ac68b93d8bf50feac9bd08",
+  "uniqueDelta": [
+    "M\tapps/web/src/companion-appearance-settings.test.tsx",
+    "M\tapps/web/src/companion-appearance-settings.tsx",
+    "M\tapps/web/src/companion-page.tsx",
+    "M\tapps/web/src/companion-presentation-projection.test.ts",
+    "M\tapps/web/src/companion-presentation-projection.ts",
+    "M\tapps/web/src/locale-zh-cn.ts",
+    "M\tapps/web/src/lumi-canvas.test.tsx",
+    "M\tapps/web/src/lumi-canvas.tsx",
+    "M\tapps/web/src/lumi-live2d.test.ts",
+    "M\tapps/web/src/lumi-live2d.ts",
+    "M\tapps/web/src/subtitle-appearance-settings.test.tsx",
+    "M\tapps/web/src/subtitle-appearance-settings.tsx",
+    "M\tapps/web/src/tauri-window.test.ts"
+  ],
+  "finding": "Existing presentation/canvas/appearance modules differ without newly added production path; new-path-only branch screening would miss this variant."
+}

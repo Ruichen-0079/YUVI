@@ -1,0 +1,138 @@
+{
+  "baselineSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4",
+  "actualModelQualityExperiments": 0,
+  "probeGroups": [
+    {
+      "capability": "pending-WS-reply",
+      "evidence": "experiments/backend-results.json#pendingReply",
+      "positive": "Valid receipt/admitted input and scoped eventual reply delivered",
+      "negative": "Unsupported packet reuses existing trace while turn pending; eventual reply produced but not delivered",
+      "counterfactual": "Same packet/turn/event, guard deletion of pre-existing trace during invalid-packet handling restores delivery",
+      "boundary": "Actual WS handler/schema/ActiveTraceRegistry/EventBus; Journal receipt and Runtime event producer injected; no durable output or quality claim",
+      "evidenceType": "DETERMINISTIC_OR_HASH_VERIFIED_REUSE",
+      "effectiveQuality": "UNTESTED"
+    },
+    {
+      "capability": "authorized-text",
+      "evidence": "experiments/backend-results.json#readText",
+      "positive": "16000-char successful local read reaches next real production Reasoning input",
+      "negative": "16001/64000-char accepted file loses whole body and becomes ERROR; aborted real reader returns none",
+      "counterfactual": "Bypass only normalizer: full admitted raw text still exists; no quality result",
+      "boundary": "Actual Cognition+normalizer+filesystem; durable grant adapter/Reasoning recorder injected",
+      "evidenceType": "DETERMINISTIC_OR_HASH_VERIFIED_REUSE",
+      "effectiveQuality": "UNTESTED"
+    },
+    {
+      "capability": "websocket",
+      "evidence": "experiments/backend-results.json#websocket",
+      "positive": "Default/no trace suppresses foreign reply; explicit true dashboard receives it",
+      "negative": "String false receives foreign text while boolean false does not",
+      "counterfactual": "Same event/query intent, actual boolean false suppresses foreign event",
+      "boundary": "Actual route and EventBus; socket/HTTP context injected; deployment/output DB not tested",
+      "evidenceType": "DETERMINISTIC_OR_HASH_VERIFIED_REUSE",
+      "effectiveQuality": "UNTESTED"
+    },
+    {
+      "capability": "character",
+      "evidence": "experiments/backend-results.json#character",
+      "positive": "RESPOND/SILENCE/NEED_COGNITION represented correctly; post-cognition answer/uncertainty/caveat enters input",
+      "negative": "Already aborted produces zero Chat calls",
+      "counterfactual": "Direct free reply has no control grammar; not tested as quality comparator",
+      "boundary": "Actual port, not complete Runtime body/publication; invalid-JSON/retry/timeouts remain pending",
+      "evidenceType": "DETERMINISTIC_OR_HASH_VERIFIED_REUSE",
+      "effectiveQuality": "UNTESTED"
+    },
+    {
+      "capability": "local-STT",
+      "evidence": "experiments/python-results.json#stt",
+      "positive": "Actual span handler independently recognizes two spans; no-diarize normal whole transcript",
+      "negative": "Invalid WAV rejected before inference",
+      "counterfactual": "Whole-transcript-only would lose span-specific text; actual STT preserves it",
+      "boundary": "ASR/diarizer/import stub; no acoustic quality/enrollment/native command recovery",
+      "evidenceType": "DETERMINISTIC_OR_HASH_VERIFIED_REUSE",
+      "effectiveQuality": "UNTESTED"
+    },
+    {
+      "capability": "dots-TTS",
+      "evidence": "experiments/backend-results.json#localTTS; experiments/python-results.json#dotsTTS",
+      "positive": "Actual TS provider -> actual Python HTTP handler accepts 2000 chars, WAV transport works",
+      "negative": "2001 chars returns 400 UNSUPPORTED_INPUT; explicit service cancel returns 409",
+      "counterfactual": "1001+1000 requests both accepted; adds a call, no quality/latency benefit proved",
+      "boundary": "Waveform/GPU replaced; durable media seal and complete Runtime voice not exercised",
+      "evidenceType": "DETERMINISTIC_OR_HASH_VERIFIED_REUSE",
+      "effectiveQuality": "UNTESTED"
+    },
+    {
+      "capability": "memory",
+      "evidence": "prior-evidence-reuse.json",
+      "positive": "Prior real Runtime search recorder sees Mem0 marker",
+      "negative": "Prior negated forget fixture deletes matching item; failed forget becomes notFound",
+      "counterfactual": "Faithful authorized memory text can enter context; natural correction/write+re-read still OPEN",
+      "boundary": "Recorders/rule fixtures, no actual sidecar model learning",
+      "evidenceType": "DETERMINISTIC_OR_HASH_VERIFIED_REUSE",
+      "effectiveQuality": "UNTESTED"
+    },
+    {
+      "capability": "relationship",
+      "evidence": "prior-evidence-reuse.json",
+      "positive": "Explicit supplied interpretation can be projected to P8 context",
+      "negative": "Empty candidate has no relationship meaning despite evidence",
+      "counterfactual": "Add valid interpretation marker changes projection, not proof it is true",
+      "boundary": "No autonomous relationship generation quality",
+      "evidenceType": "DETERMINISTIC_OR_HASH_VERIFIED_REUSE",
+      "effectiveQuality": "UNTESTED"
+    },
+    {
+      "capability": "proactive",
+      "evidence": "prior-evidence-reuse.json",
+      "positive": "Authorized ordinary work-session turn receives work context",
+      "negative": "Default proactive decision reads different default-session context",
+      "counterfactual": "Same session selection would make work history available; quality unknown",
+      "boundary": "Real scheduler executor fixture; all consent/engagement/resume paths incomplete",
+      "evidenceType": "DETERMINISTIC_OR_HASH_VERIFIED_REUSE",
+      "effectiveQuality": "UNTESTED"
+    },
+    {
+      "capability": "dream",
+      "evidence": "prior-evidence-reuse.json",
+      "positive": "Explicit elapsed idle input can trigger; enqueue due job state visible",
+      "negative": "Current caller shape lacks idleMs; queued job alone never executes",
+      "counterfactual": "Supply elapsed input changes trigger opportunity, not semantic consolidation quality",
+      "boundary": "Real engine/in-memory state; actual DB worker/crossprocess clocks not run",
+      "evidenceType": "DETERMINISTIC_OR_HASH_VERIFIED_REUSE",
+      "effectiveQuality": "UNTESTED"
+    },
+    {
+      "capability": "reply-control",
+      "evidence": "prior-evidence-reuse.json",
+      "positive": "Prior ordinary RESPOND leads to accepted body recorder",
+      "negative": "Prior length finish throws control error; repeated CONTINUE consumes no new evidence",
+      "counterfactual": "Delivering original body/adding observation avoids that exact input gap; no model-quality proof",
+      "boundary": "Control/output paths only; no broad deletion recommendation",
+      "evidenceType": "DETERMINISTIC_OR_HASH_VERIFIED_REUSE",
+      "effectiveQuality": "UNTESTED"
+    },
+    {
+      "capability": "affect",
+      "evidence": "prior-evidence-reuse.json",
+      "positive": "Original user text remains in request",
+      "negative": "Negated worry still adds anxious hint",
+      "counterfactual": "Remove wrong hint while keeping original text yields less contradictory input",
+      "boundary": "Quality gain requires same-model M",
+      "evidenceType": "DETERMINISTIC_OR_HASH_VERIFIED_REUSE",
+      "effectiveQuality": "UNTESTED"
+    }
+  ],
+  "uncoveredHighRiskPaths": [
+    "All HTTP/media failures and retry combos",
+    "Natural-language correction -> durable write -> later recall",
+    "Real Profile/People dynamic readers",
+    "Plugin load callbacks timeout/cancel recovery",
+    "SQL effect outbox/fence/reconcile restart",
+    "Native voice enrollment/speaker/person-binding recovery",
+    "Vision/device capture and repeated observation",
+    "Browser SSE/audio/Live2D timing",
+    "Branch-specific production paths",
+    "Multiuser deployed settings and actual Alice SHA"
+  ]
+}

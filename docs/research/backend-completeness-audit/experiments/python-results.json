@@ -1,0 +1,81 @@
+{
+  "sourceSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4",
+  "kind": "sidecar-control-probes",
+  "actualModelCalls": 0,
+  "stt": {
+    "normal": {
+      "calls": [
+        {
+          "samples": 2000,
+          "first": 0,
+          "language": null
+        }
+      ],
+      "output": {
+        "text": "CLIP_0_2000",
+        "language": "zh",
+        "identity": null,
+        "voiceProfileMatch": null,
+        "segments": null,
+        "latencyMs": 0,
+        "device": "cpu"
+      }
+    },
+    "diarized": {
+      "calls": [
+        {
+          "samples": 2000,
+          "first": 0,
+          "language": null
+        },
+        {
+          "samples": 700,
+          "first": 0,
+          "language": null
+        },
+        {
+          "samples": 800,
+          "first": 1000,
+          "language": null
+        }
+      ],
+      "output": {
+        "text": "CLIP_0_2000",
+        "language": "zh",
+        "identity": null,
+        "voiceProfileMatch": null,
+        "segments": [
+          {
+            "segmentId": "A",
+            "speakerClusterId": "cluster-A",
+            "startMs": 0,
+            "endMs": 700,
+            "text": "CLIP_0_700"
+          },
+          {
+            "segmentId": "B",
+            "speakerClusterId": "cluster-B",
+            "startMs": 1000,
+            "endMs": 1800,
+            "text": "CLIP_1000_800"
+          }
+        ],
+        "latencyMs": 0,
+        "device": "cpu"
+      }
+    },
+    "invalidWavError": "Error",
+    "counterfactual": "Without per-span recognition only CLIP_0_2000 would remain; actual STT produces distinct timed segment text. Downstream conversion requires separate audit.",
+    "scope": "Real SttEngine.handle_transcribe/_decode_audio; mocked ASR/diarizer, numpy fixture, sherpa import stub; no acoustic identification or quality claim"
+  },
+  "dotsTTS": {
+    "normalStatus": 200,
+    "overflowStatus": 400,
+    "overflowError": {
+      "error": "text must contain 1–2000 characters"
+    },
+    "cancelStatus": 409,
+    "counterfactual": "Two <=2000-character requests could pass the sidecar input bound; not proof production splits long replies.",
+    "scope": "Real Service.synthesize validation/locks/cancel; generated audio mocked, no GPU, hibernate/reload or provider end-to-end claim"
+  }
+}

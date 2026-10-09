@@ -1,0 +1,10 @@
+{
+  "baselineSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4",
+  "mandatoryArtefacts": 8,
+  "digestedEvidenceFiles": 45,
+  "digestedExperimentFiles": 6,
+  "reportLinksChecked": 37,
+  "productionImplementationDiff": [],
+  "limitedAuditComplete": false,
+  "notAProofOfCorrectness": true
+}

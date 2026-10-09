@@ -1,0 +1,57 @@
+{
+  "baselineSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4",
+  "initialProduction": 710,
+  "currentProduction": 702,
+  "excludedAfterRuleCorrection": [
+    {
+      "path": "apps/server/src/test-support/offline-media-effects.ts",
+      "before": "FIRST_PARTY_SOURCE",
+      "after": "TEST_OR_TEST_SUPPORT",
+      "reason": "Test naming/directory convention; retained and checked for production imports"
+    },
+    {
+      "path": "apps/server/src/test-support/offline-outward-effects.ts",
+      "before": "FIRST_PARTY_SOURCE",
+      "after": "TEST_OR_TEST_SUPPORT",
+      "reason": "Test naming/directory convention; retained and checked for production imports"
+    },
+    {
+      "path": "apps/server/src/test-support/product-control-receipt.ts",
+      "before": "FIRST_PARTY_SOURCE",
+      "after": "TEST_OR_TEST_SUPPORT",
+      "reason": "Test naming/directory convention; retained and checked for production imports"
+    },
+    {
+      "path": "apps/server/src/test-support/product-person-command.ts",
+      "before": "FIRST_PARTY_SOURCE",
+      "after": "TEST_OR_TEST_SUPPORT",
+      "reason": "Test naming/directory convention; retained and checked for production imports"
+    },
+    {
+      "path": "apps/server/src/test-support/speech-receipt.ts",
+      "before": "FIRST_PARTY_SOURCE",
+      "after": "TEST_OR_TEST_SUPPORT",
+      "reason": "Test naming/directory convention; retained and checked for production imports"
+    },
+    {
+      "path": "apps/server/src/test-support/vision-receipt.ts",
+      "before": "FIRST_PARTY_SOURCE",
+      "after": "TEST_OR_TEST_SUPPORT",
+      "reason": "Test naming/directory convention; retained and checked for production imports"
+    },
+    {
+      "path": "apps/server/src/test-support/voice-control-receipt.ts",
+      "before": "FIRST_PARTY_SOURCE",
+      "after": "TEST_OR_TEST_SUPPORT",
+      "reason": "Test naming/directory convention; retained and checked for production imports"
+    },
+    {
+      "path": "scripts/check-host-environment-safety.node.mjs",
+      "before": "FIRST_PARTY_SOURCE",
+      "after": "TEST_OR_TEST_SUPPORT",
+      "reason": "Source imports node:test; excluded test runner remains in inventory and production-import checks"
+    }
+  ],
+  "exclusionsRemainInInventory": true,
+  "productionImportsIntoExcludedClassesStayAsDiscrepancies": true
+}

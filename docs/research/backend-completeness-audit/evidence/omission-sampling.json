@@ -1,0 +1,786 @@
+{
+  "seed": 3211009,
+  "selectionUniverse": "Inventory executable sources/migrations; no familiar-module whitelist",
+  "samples": [
+    {
+      "package": "@companion/character-abi",
+      "path": "packages/character-abi/src/v2d.ts",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING",
+      "reviewEvidence": [
+        {
+          "path": "packages/character-abi/src/v2d.ts",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "packages/character-abi/src/v2d.ts",
+              "lineStart": 1,
+              "lineEnd": 95,
+              "blobSHA": "5d996cd7290c9fd2ae95ffb92110e54ad88e9ba8",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Typed ABI constraints and sections; cannot infer semantic value from contract validity.",
+          "remaining": "Other file sections remain pending"
+        }
+      ]
+    },
+    {
+      "package": "@companion/character-harness",
+      "path": "packages/character-harness/src/assembly-v2d.ts",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "FULL_FILE_DEEP_REVIEW",
+      "reviewEvidence": [
+        {
+          "path": "packages/character-harness/src/assembly-v2d.ts",
+          "level": "FULL_FILE_DEEP_REVIEW",
+          "evidence": [
+            {
+              "path": "packages/character-harness/src/assembly-v2d.ts",
+              "lineStart": 1,
+              "lineEnd": 156,
+              "blobSHA": "fee4c39edc9f5a625bd5549b717c0f6138d2bcfe",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Prefix-only budget closure drops all later sections; counts cognition semantic strings. Does not re-rank or summarize.",
+          "remaining": "External/configuration/quality proof not implied"
+        }
+      ]
+    },
+    {
+      "package": "@companion/cognition",
+      "path": "packages/cognition/src/capability-observation.ts",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "FULL_FILE_DEEP_REVIEW",
+      "reviewEvidence": [
+        {
+          "path": "packages/cognition/src/capability-observation.ts",
+          "level": "FULL_FILE_DEEP_REVIEW",
+          "evidence": [
+            {
+              "path": "packages/cognition/src/capability-observation.ts",
+              "lineStart": 1,
+              "lineEnd": 122,
+              "blobSHA": "c3da70cce72f2239fbf03ac6acdb1557cdfac86d",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "SUCCESS preserves nonempty <=16000 characters; other statuses forbid content. Tool identity opaque.",
+          "remaining": "External/configuration/quality proof not implied"
+        }
+      ]
+    },
+    {
+      "package": "@companion/config",
+      "path": "packages/config/src/index.ts",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING",
+      "reviewEvidence": [
+        {
+          "path": "packages/config/src/index.ts",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "packages/config/src/index.ts",
+              "lineStart": 1,
+              "lineEnd": 120,
+              "blobSHA": "7a2318bb39ac6f702751072539f1f61cb4c64a38",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Selectors/defaults source; capability selectable does not imply reachable from Chat.",
+          "remaining": "Other file sections remain pending"
+        }
+      ]
+    },
+    {
+      "package": "@companion/core",
+      "path": "packages/core/src/index.ts",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING",
+      "reviewEvidence": [
+        {
+          "path": "packages/core/src/index.ts",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "packages/core/src/index.ts",
+              "lineStart": 1,
+              "lineEnd": 138,
+              "blobSHA": "228959fc151d08f60b0bc5e4873bf24458b483f9",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Barrel reexports include proactive/interaction/effects; exports are not entry traces.",
+          "remaining": "Other file sections remain pending"
+        }
+      ]
+    },
+    {
+      "package": "@companion/database",
+      "path": "packages/database/src/index.ts",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "FULL_FILE_DEEP_REVIEW",
+      "reviewEvidence": [
+        {
+          "path": "packages/database/src/index.ts",
+          "level": "FULL_FILE_DEEP_REVIEW",
+          "evidence": [
+            {
+              "path": "packages/database/src/index.ts",
+              "lineStart": 1,
+              "lineEnd": 42,
+              "blobSHA": "2e15ed7b37e0cf05701becb7a02d666d48600960",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Windows localhost normalization; pool creation/lifetime is host-owned. Not a semantic intelligence facility.",
+          "remaining": "External/configuration/quality proof not implied"
+        }
+      ]
+    },
+    {
+      "package": "@companion/desktop-supervisor",
+      "path": "packages/desktop-supervisor/src/types.ts",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING",
+      "reviewEvidence": [
+        {
+          "path": "packages/desktop-supervisor/src/types.ts",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "packages/desktop-supervisor/src/types.ts",
+              "lineStart": 1,
+              "lineEnd": 105,
+              "blobSHA": "1d76f845a86e1789f335bd1c3c61b5581312c71b",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Ownership/instance/token and STT lease states are runtime safeguards, not cognition state.",
+          "remaining": "Other file sections remain pending"
+        }
+      ]
+    },
+    {
+      "package": "@companion/effects",
+      "path": "packages/effects/src/model.ts",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING",
+      "reviewEvidence": [
+        {
+          "path": "packages/effects/src/model.ts",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "packages/effects/src/model.ts",
+              "lineStart": 1,
+              "lineEnd": 80,
+              "blobSHA": "8000d4660ff9c1915cf215f76f81fbb460fb0456",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Static host-owned effect contracts and necessary correct execution boundary.",
+          "remaining": "Other file sections remain pending"
+        }
+      ]
+    },
+    {
+      "package": "@companion/event-bus",
+      "path": "packages/event-bus/src/index.ts",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "FULL_FILE_DEEP_REVIEW",
+      "reviewEvidence": [
+        {
+          "path": "packages/event-bus/src/index.ts",
+          "level": "FULL_FILE_DEEP_REVIEW",
+          "evidence": [
+            {
+              "path": "packages/event-bus/src/index.ts",
+              "lineStart": 1,
+              "lineEnd": 153,
+              "blobSHA": "300e41d1214af6a3659af9bc5bcf1234d2311266",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Wildcard subscribers and catch/log handler errors; publication completion does not certify all subscriber effects. Other subscribers continue.",
+          "remaining": "External/configuration/quality proof not implied"
+        }
+      ]
+    },
+    {
+      "package": "@companion/host-environment",
+      "path": "packages/host-environment/src/index.ts",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING",
+      "reviewEvidence": [
+        {
+          "path": "packages/host-environment/src/index.ts",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "packages/host-environment/src/index.ts",
+              "lineStart": 1,
+              "lineEnd": 80,
+              "blobSHA": "8fc9ef1368904d86b7f6a95a585f8bde4420bd50",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Environment host includes guarded command/storage paths; large file remains open.",
+          "remaining": "Other file sections remain pending"
+        }
+      ]
+    },
+    {
+      "package": "@companion/journal",
+      "path": "packages/journal/src/index.ts",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING",
+      "reviewEvidence": [
+        {
+          "path": "packages/journal/src/index.ts",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "packages/journal/src/index.ts",
+              "lineStart": 1,
+              "lineEnd": 105,
+              "blobSHA": "93e9c93441762d97bf0b0e1e30186f9473d1d93f",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Repository interface and host authority draft; SQL transaction implementation remains deep-review pending.",
+          "remaining": "Other file sections remain pending"
+        }
+      ]
+    },
+    {
+      "package": "@companion/memory",
+      "path": "packages/memory/migrations/009_finalized_ingestion_work_discovery_v1.sql",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "FULL_FILE_DEEP_REVIEW",
+      "reviewEvidence": [
+        {
+          "path": "packages/memory/migrations/009_finalized_ingestion_work_discovery_v1.sql",
+          "level": "FULL_FILE_DEEP_REVIEW",
+          "evidence": [
+            {
+              "path": "packages/memory/migrations/009_finalized_ingestion_work_discovery_v1.sql",
+              "lineStart": 1,
+              "lineEnd": 6,
+              "blobSHA": "2e8231e2424a06ee9c7611c4c10b3032c53de524",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Due-work index covers pending/retry/expired/reconcile; no semantic state write or autonomous job executor.",
+          "remaining": "External/configuration/quality proof not implied"
+        }
+      ]
+    },
+    {
+      "package": "@companion/p8",
+      "path": "packages/p8/src/correction.ts",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING",
+      "reviewEvidence": [
+        {
+          "path": "packages/p8/src/correction.ts",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "packages/p8/src/correction.ts",
+              "lineStart": 1,
+              "lineEnd": 80,
+              "blobSHA": "1908e169b726e059672ed64e889ce19d4deab9fe",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Correction descriptors/evidence predicates; natural-language reachability requires Runtime trace, not an export.",
+          "remaining": "Other file sections remain pending"
+        }
+      ]
+    },
+    {
+      "package": "@companion/prompt-builder",
+      "path": "packages/prompt-builder/src/canonical-context.ts",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING",
+      "reviewEvidence": [
+        {
+          "path": "packages/prompt-builder/src/canonical-context.ts",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "packages/prompt-builder/src/canonical-context.ts",
+              "lineStart": 1,
+              "lineEnd": 130,
+              "blobSHA": "d520342d03a9f28e594bd239efa81eac9353b255",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Shared slots, stable/volatile partition and assembly shape; classification alone does not replace model serialization.",
+          "remaining": "Other file sections remain pending"
+        }
+      ]
+    },
+    {
+      "package": "@companion/protocol",
+      "path": "packages/protocol/src/index.ts",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING",
+      "reviewEvidence": [
+        {
+          "path": "packages/protocol/src/index.ts",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "packages/protocol/src/index.ts",
+              "lineStart": 1,
+              "lineEnd": 80,
+              "blobSHA": "e4afad7361d141f7a98af48c93616bb97771c0d3",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Protocol is schema and shared types; deep review of full registry remains open.",
+          "remaining": "Other file sections remain pending"
+        }
+      ]
+    },
+    {
+      "package": "@companion/providers",
+      "path": "packages/providers/src/accounting.ts",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING",
+      "reviewEvidence": [
+        {
+          "path": "packages/providers/src/accounting.ts",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "packages/providers/src/accounting.ts",
+              "lineStart": 1,
+              "lineEnd": 100,
+              "blobSHA": "e15e38cea38d2dfd3863486df38ec0bd59da692c",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "AsyncLocal work/task scope and logical task descriptor; all network leaves/fallback paths not reviewed.",
+          "remaining": "Other file sections remain pending"
+        }
+      ]
+    },
+    {
+      "package": "@companion/server",
+      "path": "apps/server/src/tts-receipt-admission.ts",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING",
+      "reviewEvidence": [
+        {
+          "path": "apps/server/src/tts-receipt-admission.ts",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "apps/server/src/tts-receipt-admission.ts",
+              "lineStart": 1,
+              "lineEnd": 95,
+              "blobSHA": "2de3d10932a511ec5b25ff715bad23fcaee04ffe",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Raw TTS text is NOT_RETAINED/nonselectable; metadata summary is retained; intentional privacy state boundary.",
+          "remaining": "Other file sections remain pending"
+        },
+        {
+          "path": "apps/server/src/tts-receipt-admission.ts",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "apps/server/src/tts-receipt-admission.ts",
+              "lineStart": 130,
+              "lineEnd": 168,
+              "blobSHA": "2de3d10932a511ec5b25ff715bad23fcaee04ffe",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Unresolved principal/source acknowledged; appendWithHostAuthority fails closed; no sourceDedup invented.",
+          "remaining": "Other file sections remain pending"
+        }
+      ]
+    },
+    {
+      "package": "@companion/web",
+      "path": "apps/web/src/companion-embodied-behavior-diagnostics.ts",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "FULL_FILE_DEEP_REVIEW",
+      "reviewEvidence": [
+        {
+          "path": "apps/web/src/companion-embodied-behavior-diagnostics.ts",
+          "level": "FULL_FILE_DEEP_REVIEW",
+          "evidence": [
+            {
+              "path": "apps/web/src/companion-embodied-behavior-diagnostics.ts",
+              "lineStart": 1,
+              "lineEnd": 50,
+              "blobSHA": "6f3aa7f1c53c5b6e22d898ce160c71846c0e7411",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Bounded DEV-only browser diagnostics; intentional debug consumer, no production self-state claim.",
+          "remaining": "External/configuration/quality proof not implied"
+        }
+      ]
+    },
+    {
+      "package": "apps/desktop/src-tauri",
+      "path": "apps/desktop/src-tauri/src/config/env_export.rs",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING",
+      "reviewEvidence": [
+        {
+          "path": "apps/desktop/src-tauri/src/config/env_export.rs",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "apps/desktop/src-tauri/src/config/env_export.rs",
+              "lineStart": 1,
+              "lineEnd": 135,
+              "blobSHA": "6d5f1eb8b3ded54ef553934a836801a5525bc353",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Native managed/external settings export, runtime endpoint and memory config mapping.",
+          "remaining": "Other file sections remain pending"
+        },
+        {
+          "path": "apps/desktop/src-tauri/src/config/env_export.rs",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "apps/desktop/src-tauri/src/config/env_export.rs",
+              "lineStart": 160,
+              "lineEnd": 290,
+              "blobSHA": "6d5f1eb8b3ded54ef553934a836801a5525bc353",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Secrets for owned consumers; native sidecar settings forwarding. Actual Windows/macOS execution remains untested.",
+          "remaining": "Other file sections remain pending"
+        }
+      ]
+    },
+    {
+      "package": "scripts",
+      "path": "scripts/desktop-package/build-linux-mem0.mjs",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING",
+      "reviewEvidence": [
+        {
+          "path": "scripts/desktop-package/build-linux-mem0.mjs",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "scripts/desktop-package/build-linux-mem0.mjs",
+              "lineStart": 1,
+              "lineEnd": 65,
+              "blobSHA": "4b513a2f0f6086fcde75558823af9f0578801fc9",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "PyInstaller manifest & interpreter/version validation; not executing release build.",
+          "remaining": "Other file sections remain pending"
+        }
+      ]
+    },
+    {
+      "package": "services",
+      "path": "services/dots-tts/server.py",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "FULL_FILE_DEEP_REVIEW",
+      "reviewEvidence": [
+        {
+          "path": "services/dots-tts/server.py",
+          "level": "FULL_FILE_DEEP_REVIEW",
+          "evidence": [
+            {
+              "path": "services/dots-tts/server.py",
+              "lineStart": 1,
+              "lineEnd": 335,
+              "blobSHA": "fe632713bd99ebb1d387b6b4f0ed607d38ab0076",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Actual handler length cap, 2000-character service bound, locks, idle hibernation, late cancellation discards generated audio, explicit local-only startup.",
+          "remaining": "External/configuration/quality proof not implied"
+        }
+      ]
+    },
+    {
+      "package": "services/local-stt",
+      "path": "services/local-stt/server.py",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING",
+      "reviewEvidence": [
+        {
+          "path": "services/local-stt/server.py",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "services/local-stt/server.py",
+              "lineStart": 330,
+              "lineEnd": 442,
+              "blobSHA": "eba738fcb61577023103c706e4ac7eaf6d1df676",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Actual per-span ASR and mixed-voice matching policy; invalid audio decode and span recognition probed. Initialization/complete HTTP failure matrix pending.",
+          "remaining": "Other file sections remain pending"
+        }
+      ]
+    },
+    {
+      "package": "services/local-stt/packaging",
+      "path": "services/local-stt/packaging/runtime_notices.py",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING",
+      "reviewEvidence": [
+        {
+          "path": "services/local-stt/packaging/runtime_notices.py",
+          "level": "TARGETED_READ",
+          "evidence": [
+            {
+              "path": "services/local-stt/packaging/runtime_notices.py",
+              "lineStart": 1,
+              "lineEnd": 65,
+              "blobSHA": "962461c608c4cd3c55e688bd0c77296e5a357b9f",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Actual build interpreter notices; hashes native origins, Debian boundary, unknown inputs fail release; remainder attribution logic pending.",
+          "remaining": "Other file sections remain pending"
+        }
+      ]
+    },
+    {
+      "package": "services/memory-mem0",
+      "path": "services/memory-mem0/src/yuvi_mem0/__main__.py",
+      "selection": "One deterministic sample per discovered executable/migration package, before finding-based prioritization",
+      "reviewStatus": "FULL_FILE_DEEP_REVIEW",
+      "reviewEvidence": [
+        {
+          "path": "services/memory-mem0/src/yuvi_mem0/__main__.py",
+          "level": "FULL_FILE_DEEP_REVIEW",
+          "evidence": [
+            {
+              "path": "services/memory-mem0/src/yuvi_mem0/__main__.py",
+              "lineStart": 1,
+              "lineEnd": 31,
+              "blobSHA": "8fe7e6d2db682c2d3df764c44454dbd7b7de5ca6",
+              "commitSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4"
+            }
+          ],
+          "judgement": "Module entry calls uvicorn with config; no hidden periodic individual-life process.",
+          "remaining": "External/configuration/quality proof not implied"
+        }
+      ]
+    }
+  ],
+  "sampleFindings": [
+    {
+      "id": "SAMPLE-PYTHON-ENTRY",
+      "path": "services/dots-tts/server.py",
+      "methodGap": "Initial Python scan found decorators only, omitted do_GET/do_POST/main; real HTTP server would have had missing A entries",
+      "response": "Global handler/main rule added, all Python reanalyzed; method-revisions METHOD-2",
+      "remaining": "Calls/handler protocol across processes still need manual tracing"
+    },
+    {
+      "id": "SAMPLE-STATE-CAPACITY",
+      "path": "packages/cognition/src/capability-observation.ts",
+      "methodGap": "Standalone contract bound was locally correct; reverse consumer comparison reveals readText producer accepts larger input",
+      "response": "Trace whole chain and run 16000/16001/64000/cancel and information counterfactual probes"
+    },
+    {
+      "id": "SAMPLE-PLATFORM",
+      "path": "apps/desktop/src-tauri/src/config/env_export.rs",
+      "methodGap": "TS-only audit would miss native mode/secret forwarding",
+      "response": "Rust all19 syntax units indexed; targeted env/host review; platform run and grammar gap kept OPEN"
+    },
+    {
+      "id": "SAMPLE-DIAGNOSTIC",
+      "path": "apps/web/src/companion-embodied-behavior-diagnostics.ts",
+      "finding": "DEV-only bounded ledger has intentional management consumer, no false intelligence/UNUSED verdict"
+    },
+    {
+      "id": "RISK-CLASSIFICATION",
+      "path": "scripts/check-host-environment-safety.node.mjs",
+      "methodGap": "Name-only test rule missed node:test and test-support directory",
+      "response": "Global classifier corrected; 8 records reclassified, not deleted; scope-revision and initial inventory retained"
+    }
+  ],
+  "additionalRiskSamples": [
+    {
+      "path": "packages/core/src/runtime-orchestrator.ts",
+      "package": "@companion/core",
+      "score": 40,
+      "stateOrEffectCallCandidates": 112,
+      "dynamicImportCandidates": 0,
+      "noResolvedIncomingImports": false,
+      "nonTSProcessOrPlatform": false,
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING"
+    },
+    {
+      "path": "packages/memory/src/repository.ts",
+      "package": "@companion/memory",
+      "score": 40,
+      "stateOrEffectCallCandidates": 79,
+      "dynamicImportCandidates": 0,
+      "noResolvedIncomingImports": false,
+      "nonTSProcessOrPlatform": false,
+      "reviewStatus": "UNREVIEWED_OPEN_GAP"
+    },
+    {
+      "path": "apps/server/src/product-person-command-effects.ts",
+      "package": "@companion/server",
+      "score": 31,
+      "stateOrEffectCallCandidates": 31,
+      "dynamicImportCandidates": 0,
+      "noResolvedIncomingImports": false,
+      "nonTSProcessOrPlatform": false,
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING"
+    },
+    {
+      "path": "packages/effects/src/dispatch-store.ts",
+      "package": "@companion/effects",
+      "score": 29,
+      "stateOrEffectCallCandidates": 29,
+      "dynamicImportCandidates": 0,
+      "noResolvedIncomingImports": false,
+      "nonTSProcessOrPlatform": false,
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING"
+    },
+    {
+      "path": "scripts/desktop-package/installer-smoke.mjs",
+      "package": "scripts",
+      "score": 28,
+      "stateOrEffectCallCandidates": 23,
+      "dynamicImportCandidates": 0,
+      "noResolvedIncomingImports": true,
+      "nonTSProcessOrPlatform": false,
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING"
+    },
+    {
+      "path": "packages/memory/src/finalized-ingestion-ledger.ts",
+      "package": "@companion/memory",
+      "score": 27,
+      "stateOrEffectCallCandidates": 27,
+      "dynamicImportCandidates": 0,
+      "noResolvedIncomingImports": false,
+      "nonTSProcessOrPlatform": false,
+      "reviewStatus": "UNREVIEWED_OPEN_GAP"
+    },
+    {
+      "path": "apps/web/src/companion-page.tsx",
+      "package": "@companion/web",
+      "score": 24,
+      "stateOrEffectCallCandidates": 24,
+      "dynamicImportCandidates": 0,
+      "noResolvedIncomingImports": false,
+      "nonTSProcessOrPlatform": false,
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING"
+    },
+    {
+      "path": "packages/journal/src/index.ts",
+      "package": "@companion/journal",
+      "score": 24,
+      "stateOrEffectCallCandidates": 24,
+      "dynamicImportCandidates": 0,
+      "noResolvedIncomingImports": false,
+      "nonTSProcessOrPlatform": false,
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING"
+    },
+    {
+      "path": "packages/memory/src/dream-consolidation.ts",
+      "package": "@companion/memory",
+      "score": 24,
+      "stateOrEffectCallCandidates": 24,
+      "dynamicImportCandidates": 0,
+      "noResolvedIncomingImports": false,
+      "nonTSProcessOrPlatform": false,
+      "reviewStatus": "UNREVIEWED_OPEN_GAP"
+    },
+    {
+      "path": "apps/server/src/media-effects.ts",
+      "package": "@companion/server",
+      "score": 22,
+      "stateOrEffectCallCandidates": 22,
+      "dynamicImportCandidates": 0,
+      "noResolvedIncomingImports": false,
+      "nonTSProcessOrPlatform": false,
+      "reviewStatus": "UNREVIEWED_OPEN_GAP"
+    },
+    {
+      "path": "packages/memory/src/conversation-repository.ts",
+      "package": "@companion/memory",
+      "score": 22,
+      "stateOrEffectCallCandidates": 22,
+      "dynamicImportCandidates": 0,
+      "noResolvedIncomingImports": false,
+      "nonTSProcessOrPlatform": false,
+      "reviewStatus": "UNREVIEWED_OPEN_GAP"
+    },
+    {
+      "path": "packages/host-environment/src/index.ts",
+      "package": "@companion/host-environment",
+      "score": 21,
+      "stateOrEffectCallCandidates": 21,
+      "dynamicImportCandidates": 0,
+      "noResolvedIncomingImports": false,
+      "nonTSProcessOrPlatform": false,
+      "reviewStatus": "TARGETED_ONLY_WHOLE_FILE_PENDING"
+    },
+    {
+      "path": "packages/memory/src/profile-lifecycle-store.ts",
+      "package": "@companion/memory",
+      "score": 21,
+      "stateOrEffectCallCandidates": 21,
+      "dynamicImportCandidates": 0,
+      "noResolvedIncomingImports": false,
+      "nonTSProcessOrPlatform": false,
+      "reviewStatus": "UNREVIEWED_OPEN_GAP"
+    },
+    {
+      "path": "apps/web/src/service-supervisor-client.ts",
+      "package": "@companion/web",
+      "score": 20,
+      "stateOrEffectCallCandidates": 0,
+      "dynamicImportCandidates": 5,
+      "noResolvedIncomingImports": false,
+      "nonTSProcessOrPlatform": false,
+      "reviewStatus": "UNREVIEWED_OPEN_GAP"
+    },
+    {
+      "path": "apps/web/src/tauri-window.ts",
+      "package": "@companion/web",
+      "score": 20,
+      "stateOrEffectCallCandidates": 0,
+      "dynamicImportCandidates": 5,
+      "noResolvedIncomingImports": false,
+      "nonTSProcessOrPlatform": false,
+      "reviewStatus": "UNREVIEWED_OPEN_GAP"
+    },
+    {
+      "path": "scripts/conformance/packaged-linux.mjs",
+      "package": "scripts",
+      "score": 18,
+      "stateOrEffectCallCandidates": 13,
+      "dynamicImportCandidates": 0,
+      "noResolvedIncomingImports": true,
+      "nonTSProcessOrPlatform": false,
+      "reviewStatus": "UNREVIEWED_OPEN_GAP"
+    }
+  ],
+  "seedReproduced": true,
+  "selectionScript": "omission-review.py",
+  "additionalRiskRule": "All nondeep executable/migration units: min(state/effect calls,40)+4*dynamic imports+8*non-TS/process+5*zero resolved incoming; sort descending score, then Git path. Syntax risk is not semantic complexity proof.",
+  "unreviewedSamplesRemainExposed": true
+}

@@ -1,0 +1,14 @@
+{
+  "checkedKnownProviderEnvironmentKeyPresence": {
+    "DEEPSEEK_API_KEY": false,
+    "OPENAI_API_KEY": false,
+    "OPENAI_COMPATIBLE_API_KEY": false,
+    "XAI_API_KEY": false,
+    "DASHSCOPE_API_KEY": false,
+    "YUVI_API_KEY": false
+  },
+  "deploymentConfigConfirmed": false,
+  "actualModelCalls": 0,
+  "limits": "Presence check is not exhaustive discovery of private config or every provider credential; no actual quality experiment performed.",
+  "valuesNotPrintedOrRetained": true
+}

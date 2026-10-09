@@ -1,0 +1,19 @@
+{
+  "baselineSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4",
+  "comparisonBaseline": "46a24878536d537021c49d50c5ce004d93489628",
+  "changedProductPaths": [],
+  "reuseCondition": "Git two-tree product paths byte-identical, not assumption based on docs-only title",
+  "artifacts": [
+    {
+      "gitPath": "docs/research/backend-intelligence-value/experiments/backend-results.json",
+      "sha256": "2583b5620a26fdb38577b7cee301126c717a524e5bcd290d905bb311f1f04da2",
+      "actualModelQualityEvidence": false
+    },
+    {
+      "gitPath": "docs/research/production-intelligence-loss/experiments/main-results.json",
+      "sha256": "c273cf6449883cbdf0a3f12621e82ea14061792c6c682ae0f6ad92f3edacf869",
+      "actualModelQualityEvidence": false
+    }
+  ],
+  "limits": "Previous probes have their own injected-provider/evidence dependencies; current hashes permit bounded reuse, not expanded claims. No previous report is used to close all current consumer gaps."
+}
