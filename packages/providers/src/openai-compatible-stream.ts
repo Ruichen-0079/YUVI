@@ -117,6 +117,9 @@ export async function* streamOpenAICompatibleChatCompletion(
 
     const processFrame = (frame: string): void => {
       const data = parseSseData(frame, options.provider, capability);
+      // SSE comments are transport keep-alives, not completion chunks. Gateways
+      // may send them while generating and after [DONE].
+      if (data === null) return;
       if (sawDone) {
         throw protocolError(
           options.provider,
@@ -396,7 +399,11 @@ function findFrameBoundary(value: string): { index: number; length: number } | u
   return best;
 }
 
-function parseSseData(frame: string, provider: string, capability: ProviderCapability): string {
+function parseSseData(
+  frame: string,
+  provider: string,
+  capability: ProviderCapability
+): string | null {
   let event: string | undefined;
   const data: string[] = [];
   for (const line of frame.split(/\r\n|\r|\n/)) {
@@ -432,11 +439,7 @@ function parseSseData(frame: string, provider: string, capability: ProviderCapab
     throw protocolError(provider, capability, "OpenAI-compatible SSE frame used an unknown event.");
   }
   if (data.length === 0) {
-    throw protocolError(
-      provider,
-      capability,
-      "OpenAI-compatible SSE frame must contain a data line."
-    );
+    return null;
   }
   // SSE permits multiple data fields in one event. Per the event-stream
   // specification, they are joined with a newline before dispatching the
