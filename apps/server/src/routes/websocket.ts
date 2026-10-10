@@ -240,10 +240,10 @@ export async function registerWebSocketRoutes(
                 createEvent(
                   "runtime.error",
                   {
+                    rejectedTraceId: parsedEnvelope.traceId,
                     message: `Unsupported WebSocket event type '${parsedEnvelope.type}'.`
                   },
                   {
-                    traceId: parsedEnvelope.traceId,
                     parentId: parsedEnvelope.id
                   }
                 )
@@ -261,10 +261,11 @@ export async function registerWebSocketRoutes(
                 createEvent(
                   "runtime.error",
                   {
+                    rejectedTraceId: parsed.traceId,
                     message:
                       "WebSocket trace is full or belongs to a different request/session. Use a fresh trace ID for new work."
                   },
-                  { traceId: parsed.traceId, parentId: parsed.id }
+                  { parentId: parsed.id }
                 )
               )
             );
@@ -306,9 +307,10 @@ export async function registerWebSocketRoutes(
                   "runtime.error",
                   {
                     code: failure.code,
+                    ...(!ownership ? { rejectedTraceId: parsed.traceId } : {}),
                     message: "Message was not admitted for processing."
                   },
-                  { traceId: parsed.traceId, parentId: parsed.id }
+                  { traceId: ownership ? parsed.traceId : undefined, parentId: parsed.id }
                 )
               )
             );
@@ -325,10 +327,11 @@ export async function registerWebSocketRoutes(
               createEvent(
                 "runtime.error",
                 {
+                  ...(!ownership && envelope ? { rejectedTraceId: envelope.traceId } : {}),
                   message: error instanceof Error ? error.message : "Invalid WebSocket event"
                 },
                 {
-                  traceId: envelope?.traceId,
+                  traceId: ownership ? envelope?.traceId : undefined,
                   parentId: envelope?.id
                 }
               )

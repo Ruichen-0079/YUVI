@@ -77,6 +77,10 @@ async function scenario(
           : valid;
     socket.send(JSON.stringify(invalid));
     await vi.waitFor(() => expect(frames.some((f) => f.type === "runtime.error")).toBe(true));
+    // A rejection is about this packet, not a terminal failure of already running work.
+    const rejection = frames.find((f) => f.type === "runtime.error")!;
+    expect(rejection.traceId).not.toBe(valid.traceId);
+    expect(rejection.payload?.rejectedTraceId).toBe(valid.traceId);
     if (includeForeign)
       await bus.publish(
         createEvent(
