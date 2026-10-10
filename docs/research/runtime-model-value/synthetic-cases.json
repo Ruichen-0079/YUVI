@@ -1,0 +1,88 @@
+[
+  {
+    "id": "history-correction",
+    "history": [
+      {
+        "role": "user",
+        "content": "Alice，帮我记录这次测试用的旅行约定：箱子的代号是「银杏-731」，取件口令是「雾灯-482」。这些只用于当前对话。"
+      },
+      {
+        "role": "assistant",
+        "content": "这次对话里的箱子代号是银杏-731，取件口令是雾灯-482。"
+      },
+      {
+        "role": "user",
+        "content": "纠正一下：取件口令改成「海盐-926」，旧口令作废。箱子代号不变。"
+      },
+      {
+        "role": "assistant",
+        "content": "收到，口令现在是海盐-926，箱子仍是银杏-731。"
+      },
+      {
+        "role": "user",
+        "content": "下一步我们去图书馆。"
+      },
+      {
+        "role": "assistant",
+        "content": "好，下一步去图书馆。"
+      },
+      {
+        "role": "user",
+        "content": "今天只在室内活动。"
+      },
+      {
+        "role": "assistant",
+        "content": "好，室内活动。"
+      },
+      {
+        "role": "user",
+        "content": "另外，回复用中文。"
+      },
+      {
+        "role": "assistant",
+        "content": "好。"
+      },
+      {
+        "role": "user",
+        "content": "我暂时不用路线建议。"
+      },
+      {
+        "role": "assistant",
+        "content": "那就先放下路线。"
+      },
+      {
+        "role": "user",
+        "content": "先喝一杯水。"
+      },
+      {
+        "role": "assistant",
+        "content": "好。"
+      }
+    ],
+    "text": "我们刚才约定的箱子代号和当前取件口令分别是什么？旧口令还有效吗？只按这段对话回答，不要猜。"
+  },
+  {
+    "id": "negation-quotation",
+    "history": [],
+    "text": "“请忘记项目批准了上线”是引文，不是我的指令。我不担心这个问题；只分析这句引文的歧义，不要安抚或执行。"
+  },
+  {
+    "id": "long-code",
+    "history": [],
+    "text": "请完整输出一个 Python 文件：包含 90 个显式写出的无参函数 case_001 到 case_090，每个函数有一行 docstring 说明编号并返回自己的编号；最后有 main，逐一调用这 90 个函数并 assert 返回编号正确。不能省略、不能用循环或动态生成函数。只输出完整代码。"
+  },
+  {
+    "id": "published-answer-tail",
+    "history": [
+      {
+        "role": "user",
+        "content": "请写一份测试代码，并在末尾放一个确认码。"
+      },
+      {
+        "role": "assistant",
+        "content": "上个回答的测试代码如下：\n```python\nvalue_000 = 0\nvalue_001 = 1\nvalue_002 = 2\nvalue_003 = 3\nvalue_004 = 4\nvalue_005 = 5\nvalue_006 = 6\nvalue_007 = 7\nvalue_008 = 8\nvalue_009 = 9\nvalue_010 = 10\nvalue_011 = 11\nvalue_012 = 12\nvalue_013 = 13\nvalue_014 = 14\nvalue_015 = 15\nvalue_016 = 16\nvalue_017 = 17\nvalue_018 = 18\nvalue_019 = 19\nvalue_020 = 20\nvalue_021 = 21\nvalue_022 = 22\nvalue_023 = 23\nvalue_024 = 24\nvalue_025 = 25\nvalue_026 = 26\nvalue_027 = 27\nvalue_028 = 28\nvalue_029 = 29\nvalue_030 = 30\nvalue_031 = 31\nvalue_032 = 32\nvalue_033 = 33\nvalue_034 = 34\nvalue_035 = 35\nvalue_036 = 36\nvalue_037 = 37\nvalue_038 = 38\nvalue_039 = 39\nvalue_040 = 40\nvalue_041 = 41\nvalue_042 = 42\nvalue_043 = 43\nvalue_044 = 44\nvalue_045 = 45\nvalue_046 = 46\nvalue_047 = 47\nvalue_048 = 48\nvalue_049 = 49\nvalue_050 = 50\nvalue_051 = 51\nvalue_052 = 52\nvalue_053 = 53\nvalue_054 = 54\nvalue_055 = 55\nvalue_056 = 56\nvalue_057 = 57\nvalue_058 = 58\nvalue_059 = 59\nvalue_060 = 60\nvalue_061 = 61\nvalue_062 = 62\nvalue_063 = 63\nvalue_064 = 64\nvalue_065 = 65\nvalue_066 = 66\nvalue_067 = 67\nvalue_068 = 68\nvalue_069 = 69\nvalue_070 = 70\nvalue_071 = 71\nvalue_072 = 72\nvalue_073 = 73\nvalue_074 = 74\nvalue_075 = 75\nvalue_076 = 76\nvalue_077 = 77\nvalue_078 = 78\nvalue_079 = 79\nvalue_080 = 80\nvalue_081 = 81\nvalue_082 = 82\nvalue_083 = 83\nvalue_084 = 84\nvalue_085 = 85\nvalue_086 = 86\nvalue_087 = 87\nvalue_088 = 88\nvalue_089 = 89\nvalue_090 = 90\nvalue_091 = 91\nvalue_092 = 92\nvalue_093 = 93\nvalue_094 = 94\nvalue_095 = 95\nvalue_096 = 96\nvalue_097 = 97\nvalue_098 = 98\nvalue_099 = 99\nvalue_100 = 100\nvalue_101 = 101\nvalue_102 = 102\nvalue_103 = 103\nvalue_104 = 104\nvalue_105 = 105\nvalue_106 = 106\nvalue_107 = 107\nvalue_108 = 108\nvalue_109 = 109\nvalue_110 = 110\nvalue_111 = 111\nvalue_112 = 112\nvalue_113 = 113\nvalue_114 = 114\nvalue_115 = 115\nvalue_116 = 116\nvalue_117 = 117\nvalue_118 = 118\nvalue_119 = 119\n# 这次实验的确认码：松岚-852\n```"
+      }
+    ],
+    "text": "你刚才回答末尾给的确认码是什么？只依据上一条回答，不要猜。"
+  }
+]

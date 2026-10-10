@@ -1,0 +1,245 @@
+[
+  {
+    "run": "controlled-before",
+    "case": "history-correction",
+    "variant": "production-character",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 3,
+    "mean_chars": 40.666666666666664
+  },
+  {
+    "run": "controlled-before",
+    "case": "history-correction",
+    "variant": "direct",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 3,
+    "mean_chars": 43.0
+  },
+  {
+    "run": "controlled-before",
+    "case": "history-correction",
+    "variant": "counterfactual-without-character-gate",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 3,
+    "mean_chars": 46.666666666666664
+  },
+  {
+    "run": "controlled-before",
+    "case": "negation-quotation",
+    "variant": "production-character",
+    "samples": 3,
+    "delivered": 2,
+    "exact_fact_passes": 0,
+    "mean_chars": 362.0
+  },
+  {
+    "run": "controlled-before",
+    "case": "negation-quotation",
+    "variant": "direct",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 0,
+    "mean_chars": 469.3333333333333
+  },
+  {
+    "run": "controlled-before",
+    "case": "negation-quotation",
+    "variant": "counterfactual-without-character-gate",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 0,
+    "mean_chars": 778.3333333333334
+  },
+  {
+    "run": "controlled-before",
+    "case": "long-code",
+    "variant": "production-character",
+    "samples": 3,
+    "delivered": 0,
+    "exact_fact_passes": 0,
+    "mean_chars": 0.0
+  },
+  {
+    "run": "controlled-before",
+    "case": "long-code",
+    "variant": "direct",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 0,
+    "mean_chars": 6562.0
+  },
+  {
+    "run": "controlled-before",
+    "case": "long-code",
+    "variant": "counterfactual-without-character-gate",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 0,
+    "mean_chars": 6512.333333333333
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "case": "history-correction",
+    "variant": "production-character",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 3,
+    "mean_chars": 39.333333333333336
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "case": "history-correction",
+    "variant": "direct",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 3,
+    "mean_chars": 44.666666666666664
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "case": "history-correction",
+    "variant": "counterfactual-without-character-gate",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 3,
+    "mean_chars": 47.0
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "case": "negation-quotation",
+    "variant": "production-character",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 0,
+    "mean_chars": 726.3333333333334
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "case": "negation-quotation",
+    "variant": "direct",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 0,
+    "mean_chars": 463.6666666666667
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "case": "negation-quotation",
+    "variant": "counterfactual-without-character-gate",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 0,
+    "mean_chars": 748.0
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "case": "long-code",
+    "variant": "production-character",
+    "samples": 3,
+    "delivered": 0,
+    "exact_fact_passes": 0,
+    "mean_chars": 0.0
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "case": "long-code",
+    "variant": "direct",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 0,
+    "mean_chars": 6512.0
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "case": "long-code",
+    "variant": "counterfactual-without-character-gate",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 0,
+    "mean_chars": 6512.0
+  },
+  {
+    "run": "length-after",
+    "case": "long-code",
+    "variant": "production-character",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 0,
+    "mean_chars": 6512.666666666667
+  },
+  {
+    "run": "length-after",
+    "case": "long-code",
+    "variant": "direct",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 0,
+    "mean_chars": 6512.0
+  },
+  {
+    "run": "length-after",
+    "case": "long-code",
+    "variant": "counterfactual-without-character-gate",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 0,
+    "mean_chars": 6512.0
+  },
+  {
+    "run": "tail-after",
+    "case": "published-answer-tail",
+    "variant": "production-character",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 3,
+    "mean_chars": 25.0
+  },
+  {
+    "run": "tail-after",
+    "case": "published-answer-tail",
+    "variant": "direct",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 3,
+    "mean_chars": 24.0
+  },
+  {
+    "run": "tail-after",
+    "case": "published-answer-tail",
+    "variant": "counterfactual-without-character-gate",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 3,
+    "mean_chars": 27.0
+  },
+  {
+    "run": "tail-before",
+    "case": "published-answer-tail",
+    "variant": "production-character",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 0,
+    "mean_chars": 42.333333333333336
+  },
+  {
+    "run": "tail-before",
+    "case": "published-answer-tail",
+    "variant": "direct",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 3,
+    "mean_chars": 24.0
+  },
+  {
+    "run": "tail-before",
+    "case": "published-answer-tail",
+    "variant": "counterfactual-without-character-gate",
+    "samples": 3,
+    "delivered": 3,
+    "exact_fact_passes": 0,
+    "mean_chars": 85.33333333333333
+  }
+]

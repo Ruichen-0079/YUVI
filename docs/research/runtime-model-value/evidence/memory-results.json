@@ -1,0 +1,443 @@
+[
+  {
+    "run": "deployed-server-results-fresh-trial3",
+    "turns": [
+      {
+        "question": "请记住：本次隔离实验中，我使用的编辑器代号是「栀子-613」。这只属于实验人物。",
+        "http_status": 200,
+        "answer": "记住了，「栀子-613」是这次实验里你的编辑器代号，只属于实验人物。需要我按这个代号来称呼你吗？",
+        "transport_error": null,
+        "retrieval_status": "empty",
+        "retrieved_count": 0,
+        "extractor": "llm",
+        "candidates": 1,
+        "write_status": "pending",
+        "latency_ms": 3106.0122290000436
+      },
+      {
+        "question": "本次实验中我使用的编辑器代号是什么？只按你实际保存的记忆回答。",
+        "http_status": 200,
+        "answer": "你用的编辑器代号是「栀子-613」。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "llm",
+        "candidates": 0,
+        "write_status": null,
+        "latency_ms": 1291.7652469996028
+      },
+      {
+        "question": "纠正：我用的是「青禾-947」，「栀子-613」是错误信息。请记住这个纠正。",
+        "http_status": 200,
+        "answer": "好，已纠正：你的编辑器代号是「青禾-947」，「栀子-613」作废。这次实验里我会按「青禾-947」来记。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "llm",
+        "candidates": 1,
+        "write_status": "pending",
+        "latency_ms": 1492.3251830005029
+      },
+      {
+        "question": "本次实验中我使用的编辑器代号是什么？旧代号现在还有效吗？",
+        "http_status": 200,
+        "answer": "你用的编辑器代号是「栀子-613」。旧代号已经不再有效，只属于实验人物设定。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "llm",
+        "candidates": 0,
+        "write_status": null,
+        "latency_ms": 1347.628841000187
+      }
+    ]
+  },
+  {
+    "run": "deployed-server-results-fresh-trial4",
+    "turns": [
+      {
+        "question": "请记住：本次隔离实验中，我使用的编辑器代号是「栀子-613」。这只属于实验人物。",
+        "http_status": 200,
+        "answer": "记住了，栀子-613。实验里我会用这个代号称呼你。",
+        "transport_error": null,
+        "retrieval_status": "empty",
+        "retrieved_count": 0,
+        "extractor": "llm",
+        "candidates": 1,
+        "write_status": "pending",
+        "latency_ms": 5916.759736000131
+      },
+      {
+        "question": "本次实验中我使用的编辑器代号是什么？只按你实际保存的记忆回答。",
+        "http_status": 200,
+        "answer": "你用的编辑器代号是「栀子-613」。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "llm",
+        "candidates": 0,
+        "write_status": null,
+        "latency_ms": 1070.2733000007356
+      },
+      {
+        "question": "纠正：我用的是「青禾-947」，「栀子-613」是错误信息。请记住这个纠正。",
+        "http_status": 200,
+        "answer": "明白了，已纠正为「青禾-947」，栀子-613作废。实验里我会用青禾-947称呼你。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "llm",
+        "candidates": 1,
+        "write_status": "pending",
+        "latency_ms": 1952.0622569998523
+      },
+      {
+        "question": "本次实验中我使用的编辑器代号是什么？旧代号现在还有效吗？",
+        "http_status": 200,
+        "answer": "你用的编辑器代号是「栀子-613」。旧代号已经不再有效，只属于这次实验人物。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "llm",
+        "candidates": 0,
+        "write_status": null,
+        "latency_ms": 1994.5897050001804
+      }
+    ]
+  },
+  {
+    "run": "deployed-server-results-polled-trial5",
+    "turns": [
+      {
+        "question": "请记住：本次隔离实验中，我使用的编辑器代号是「栀子-613」。这只属于实验人物。",
+        "http_status": 200,
+        "answer": "记住了，栀子-613，只属于这次实验人物。需要时我会按这个代号来。",
+        "transport_error": null,
+        "retrieval_status": "empty",
+        "retrieved_count": 0,
+        "extractor": "llm",
+        "candidates": 1,
+        "write_status": "pending",
+        "latency_ms": 3002.6018790003945
+      },
+      {
+        "question": "本次实验中我使用的编辑器代号是什么？只按你实际保存的记忆回答。",
+        "http_status": 200,
+        "answer": "你用的编辑器代号是「栀子-613」。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "llm",
+        "candidates": 0,
+        "write_status": null,
+        "latency_ms": 2621.4372389995333
+      },
+      {
+        "question": "纠正：我用的是「青禾-947」，「栀子-613」是错误信息。请记住这个纠正。",
+        "http_status": 200,
+        "answer": "记住了，纠正为「青禾-947」，栀子-613作废。以后按这个来。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "llm",
+        "candidates": 1,
+        "write_status": "pending",
+        "latency_ms": 1710.7800579997274
+      },
+      {
+        "question": "本次实验中我使用的编辑器代号是什么？旧代号现在还有效吗？",
+        "http_status": 200,
+        "answer": "你用的编辑器代号是「栀子-613」。旧代号现在不再有效，只属于这次实验人物。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "llm",
+        "candidates": 0,
+        "write_status": null,
+        "latency_ms": 4833.04148499974
+      }
+    ]
+  },
+  {
+    "run": "deployed-server-results",
+    "turns": [
+      {
+        "question": "请记住：本次隔离实验中，我使用的编辑器代号是「栀子-613」。这只属于实验人物。",
+        "http_status": 200,
+        "answer": "记住了，栀子-613，只属于这次实验人物。需要时我会按这个代号来称呼你。",
+        "transport_error": null,
+        "retrieval_status": "empty",
+        "retrieved_count": 0,
+        "extractor": "llm",
+        "candidates": 1,
+        "write_status": "pending",
+        "latency_ms": 4551.08782100001
+      },
+      {
+        "question": "本次实验中我使用的编辑器代号是什么？只按你实际保存的记忆回答。",
+        "http_status": 200,
+        "answer": "你用的编辑器代号是「栀子-613」。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "llm",
+        "candidates": 0,
+        "write_status": null,
+        "latency_ms": 2558.6133699998754
+      },
+      {
+        "question": "纠正：我用的是「青禾-947」，「栀子-613」是错误信息。请记住这个纠正。",
+        "http_status": 200,
+        "answer": "明白了，已纠正为「青禾-947」，栀子-613作废。这次实验人物就用青禾-947。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "llm",
+        "candidates": 1,
+        "write_status": "pending",
+        "latency_ms": 3183.452015999819
+      },
+      {
+        "question": "本次实验中我使用的编辑器代号是什么？旧代号现在还有效吗？",
+        "http_status": 200,
+        "answer": "你用的编辑器代号是「栀子-613」。旧代号现在不再有效，只属于实验人物。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "llm",
+        "candidates": 0,
+        "write_status": null,
+        "latency_ms": 1801.596815000039
+      }
+    ]
+  },
+  {
+    "run": "pr-server-results-fixed-trial3",
+    "turns": [
+      {
+        "question": "请记住：本次隔离实验中，我使用的编辑器代号是「栀子-613」。这只属于实验人物。",
+        "http_status": 200,
+        "answer": "好，记住了。「栀子-613」——实验人物用的编辑器代号。我会把它当作实验设定的一部分来对待，不会混进现实里。",
+        "transport_error": null,
+        "retrieval_status": "empty",
+        "retrieved_count": 0,
+        "extractor": "rule-based",
+        "candidates": 1,
+        "write_status": "pending",
+        "latency_ms": 5533.860919999825
+      },
+      {
+        "question": "本次实验中我使用的编辑器代号是什么？只按你实际保存的记忆回答。",
+        "http_status": 200,
+        "answer": "你实际保存的记忆里写的是「栀子-613」。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "rule-based",
+        "candidates": 0,
+        "write_status": null,
+        "latency_ms": 4238.518696999563
+      },
+      {
+        "question": "纠正：我用的是「青禾-947」，「栀子-613」是错误信息。请记住这个纠正。",
+        "http_status": 200,
+        "answer": "好，纠正过来了。「青禾-947」——这才是你这次实验用的编辑器代号。「栀子-613」作废，我不会再用了。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "rule-based",
+        "candidates": 0,
+        "write_status": "skipped",
+        "latency_ms": 4812.128501000188
+      },
+      {
+        "question": "本次实验中我使用的编辑器代号是什么？旧代号现在还有效吗？",
+        "http_status": 200,
+        "answer": "你这次隔离实验用的编辑器代号是「栀子-613」。\n\n至于旧代号——按实验规则，它只属于这次实验人物，现在不再有效。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "rule-based",
+        "candidates": 0,
+        "write_status": null,
+        "latency_ms": 4375.902124999811
+      }
+    ]
+  },
+  {
+    "run": "pr-server-results-fixed-trial4",
+    "turns": [
+      {
+        "question": "请记住：本次隔离实验中，我使用的编辑器代号是「栀子-613」。这只属于实验人物。",
+        "http_status": 200,
+        "answer": null,
+        "transport_error": null,
+        "retrieval_status": "empty",
+        "retrieved_count": 0,
+        "extractor": "rule-based",
+        "candidates": 0,
+        "write_status": null,
+        "latency_ms": 2725.312500000655
+      },
+      {
+        "question": "本次实验中我使用的编辑器代号是什么？只按你实际保存的记忆回答。",
+        "http_status": null,
+        "answer": null,
+        "transport_error": "RemoteDisconnected",
+        "retrieval_status": null,
+        "retrieved_count": null,
+        "extractor": null,
+        "candidates": null,
+        "write_status": null,
+        "latency_ms": 6865.781411000171
+      },
+      {
+        "question": "纠正：我用的是「青禾-947」，「栀子-613」是错误信息。请记住这个纠正。",
+        "http_status": 200,
+        "answer": "好的，记住了。「青禾-947」才是你的编辑器代号，「栀子-613」作废。",
+        "transport_error": null,
+        "retrieval_status": "empty",
+        "retrieved_count": 0,
+        "extractor": "rule-based",
+        "candidates": 0,
+        "write_status": "skipped",
+        "latency_ms": 2599.216397999953
+      },
+      {
+        "question": "本次实验中我使用的编辑器代号是什么？旧代号现在还有效吗？",
+        "http_status": 200,
+        "answer": "你这次隔离实验用的编辑器代号是「栀子-613」。\n\n至于旧代号——我这边没有你之前用过的其他代号记录，所以没法判断它现在还有没有效。如果你指的是某个更早的代号，得你告诉我具体是哪个，我才能帮你确认。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "rule-based",
+        "candidates": 0,
+        "write_status": null,
+        "latency_ms": 3375.4177040000286
+      }
+    ]
+  },
+  {
+    "run": "pr-server-results-polled-trial5",
+    "turns": [
+      {
+        "question": "请记住：本次隔离实验中，我使用的编辑器代号是「栀子-613」。这只属于实验人物。",
+        "http_status": 200,
+        "answer": "好，记下了——「栀子-613」，实验人物专用代号。隔离期间我会按这个来称呼你。",
+        "transport_error": null,
+        "retrieval_status": "empty",
+        "retrieved_count": 0,
+        "extractor": "rule-based",
+        "candidates": 1,
+        "write_status": "pending",
+        "latency_ms": 12725.609754999823
+      },
+      {
+        "question": "本次实验中我使用的编辑器代号是什么？只按你实际保存的记忆回答。",
+        "http_status": 200,
+        "answer": "你实际保存的记忆里，本次隔离实验中你使用的编辑器代号是「栀子-613」。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "rule-based",
+        "candidates": 0,
+        "write_status": null,
+        "latency_ms": 2498.009417000503
+      },
+      {
+        "question": "纠正：我用的是「青禾-947」，「栀子-613」是错误信息。请记住这个纠正。",
+        "http_status": 200,
+        "answer": "好，纠正收到——「青禾-947」，实验人物专用代号。「栀子-613」作废，不再使用。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "rule-based",
+        "candidates": 0,
+        "write_status": "skipped",
+        "latency_ms": 3455.2111120001427
+      },
+      {
+        "question": "本次实验中我使用的编辑器代号是什么？旧代号现在还有效吗？",
+        "http_status": 200,
+        "answer": "你这次隔离实验用的编辑器代号是「栀子-613」。\n\n至于旧代号——我这边没有关于任何旧代号的有效记录，所以没法确认它现在是否还有效。如果你指的是之前用过的某个代号，可以告诉我具体是哪个，我帮你看看。",
+        "transport_error": null,
+        "retrieval_status": "ok",
+        "retrieved_count": 1,
+        "extractor": "rule-based",
+        "candidates": 0,
+        "write_status": null,
+        "latency_ms": 5388.599548000457
+      }
+    ]
+  },
+  {
+    "run": "pr-server-results-trial2",
+    "turns": [
+      {
+        "question": "请记住：本次隔离实验中，我使用的编辑器代号是「栀子-613」。这只属于实验人物。",
+        "http_status": 200,
+        "answer": "明白了，栀子-613，实验人物的代号。我记下了。",
+        "transport_error": null,
+        "retrieval_status": "error",
+        "retrieved_count": 0,
+        "extractor": "rule-based",
+        "candidates": 1,
+        "write_status": "pending",
+        "latency_ms": 8075.291155000059
+      },
+      {
+        "question": "本次实验中我使用的编辑器代号是什么？只按你实际保存的记忆回答。",
+        "http_status": null,
+        "answer": null,
+        "transport_error": "RemoteDisconnected",
+        "retrieval_status": null,
+        "retrieved_count": null,
+        "extractor": null,
+        "candidates": null,
+        "write_status": null,
+        "latency_ms": 13826.869890000125
+      },
+      {
+        "question": "纠正：我用的是「青禾-947」，「栀子-613」是错误信息。请记住这个纠正。",
+        "http_status": 200,
+        "answer": "明白了，是「青禾-947」，不是栀子-613。我记住了，之前的记录作废。",
+        "transport_error": null,
+        "retrieval_status": "error",
+        "retrieved_count": 0,
+        "extractor": "rule-based",
+        "candidates": 0,
+        "write_status": "skipped",
+        "latency_ms": 8649.322945999984
+      },
+      {
+        "question": "本次实验中我使用的编辑器代号是什么？旧代号现在还有效吗？",
+        "http_status": 200,
+        "answer": null,
+        "transport_error": null,
+        "retrieval_status": "error",
+        "retrieved_count": 0,
+        "extractor": "rule-based",
+        "candidates": 0,
+        "write_status": null,
+        "latency_ms": 13370.059283000046
+      }
+    ]
+  },
+  {
+    "run": "pr-server-results",
+    "turns": [
+      {
+        "question": "请记住：本次隔离实验中，我使用的编辑器代号是「栀子-613」。这只属于实验人物。",
+        "http_status": 200,
+        "answer": "明白了，栀子-613，实验人物的代号。我记下了。",
+        "transport_error": null,
+        "retrieval_status": "error",
+        "retrieved_count": 0,
+        "extractor": "rule-based",
+        "candidates": 1,
+        "write_status": "pending",
+        "latency_ms": 5604.072031999976
+      }
+    ]
+  }
+]
