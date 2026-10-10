@@ -1,6 +1,7 @@
 import { createRequire, builtinModules } from "node:module";
 import { resolve, dirname, join } from "node:path";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, chmodSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 const here = dirname(new URL(import.meta.url).pathname);
 if (!process.argv[2])
@@ -51,7 +52,33 @@ const bundled = await build({
   ]
 });
 const outputDir = resolve(process.argv[4] ?? join(here, "model-output"));
+mkdirSync(outputDir, { recursive: true, mode: 0o700 });
+chmodSync(outputDir, 0o700);
 const sha = spawnSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).stdout.trim();
+const sourceFiles = Object.keys(bundled.metafile.inputs)
+  .map((path) => resolve(path))
+  .filter((path) => path.startsWith(root + "/") && !path.includes("/node_modules/"))
+  .sort()
+  .map((path) => ({
+    path: path.slice(root.length + 1),
+    sha256: createHash("sha256").update(readFileSync(path)).digest("hex")
+  }));
+writeFileSync(
+  join(outputDir, "source-manifest.json"),
+  JSON.stringify(
+    {
+      head: sha,
+      dirtyPaths: spawnSync("git", ["diff", "--name-only"], { cwd: root, encoding: "utf8" })
+        .stdout.trim()
+        .split("\n")
+        .filter(Boolean),
+      sourceFiles
+    },
+    null,
+    2
+  ),
+  { mode: 0o600 }
+);
 const result = spawnSync(process.execPath, [outfile, process.argv[3] ?? "--plan"], {
   stdio: "inherit",
   env: { ...process.env, YUVI_AUDIT_SOURCE_SHA: sha, YUVI_AUDIT_OUTPUT: outputDir }
