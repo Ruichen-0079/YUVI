@@ -21,7 +21,10 @@ function createMockBackend(overrides: Partial<MemoryBackend> = {}): MemoryBacken
       }
     ]),
     get: async () => null,
-    list: async () => ({ items: [] }),
+    list: async () => ({
+      items: [],
+      snapshot: { mode: "bounded_snapshot" as const, exhausted: true, rawBytesExceeded: false }
+    }),
     update: async () => ({
       id: "m1",
       content: "x",
@@ -53,7 +56,7 @@ describe("MemoryService mem0 mode", () => {
     });
   });
 
-  it("searches mem0 and maps prompt-safe memories", async () => {
+  it("does not expose unadmitted raw Mem0 records as current evidence", async () => {
     const backend = createMockBackend();
     const service = new MemoryService(
       new InMemoryMemoryRepository(),
@@ -71,10 +74,9 @@ describe("MemoryService mem0 mode", () => {
       limit: 8
     });
     expect(backend.search).toHaveBeenCalledOnce();
-    expect(result.count).toBe(1);
-    expect(result.memories[0]?.displayText).toBe("User prefers short replies");
-    expect(result.memories[0]?.displayText).not.toContain("secret");
-    expect(result.selectedMemories[0]?.metadata).toEqual({});
+    expect(result.count).toBe(0);
+    expect(result.selectedMemories).toEqual([]);
+    expect(JSON.stringify(result)).not.toContain("secret");
   });
 
   it("does not search when identity is incomplete", async () => {

@@ -46,7 +46,9 @@ import {
 } from "./index.js";
 
 const temporaryRoots: string[] = [];
-afterEach(() => temporaryRoots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true })));
+afterEach(() =>
+  temporaryRoots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true }))
+);
 
 let testSpeechReceiptSequence = 0;
 function admitSpeechForTest(
@@ -289,7 +291,9 @@ describe("RuntimeOrchestrator", () => {
       attemptId: "runtime-persistence-binding-attempt",
       fence: "1",
       payloadDigest: "b".repeat(64),
-      causalRefs: [{ kind: "JOURNAL_EVENT" as const, namespace: "test:control", eventId: "control-binding" }],
+      causalRefs: [
+        { kind: "JOURNAL_EVENT" as const, namespace: "test:control", eventId: "control-binding" }
+      ],
       operation: "ASSIGN" as const,
       voiceProfileId: "voice-a",
       personaId: "alice",
@@ -302,7 +306,9 @@ describe("RuntimeOrchestrator", () => {
       eventBus,
       memory,
       voicePersonaId: "alice",
-      voiceBindingReferences: createFileVoiceBindingReferences(join(ownerRoot, "voice-binding-references.json")),
+      voiceBindingReferences: createFileVoiceBindingReferences(
+        join(ownerRoot, "voice-binding-references.json")
+      ),
       conversation,
       finalizedIngestion: new FinalizedIngestionService(ledger),
       memoryIngestionCoordinator: {
@@ -662,6 +668,61 @@ describe("RuntimeOrchestrator", () => {
       published.findIndex((event) => event.type === "agent.reply")
     );
   });
+
+  it.each([false, true])(
+    "publishes completed chat while model admission is pending (stream=%s) and preserves its failure status",
+    async (stream) => {
+      let release!: () => void;
+      const blocked = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const conversation = new InMemoryConversationRepository();
+      const ledger = new InMemoryFinalizedIngestionRepository();
+      const policy = {
+        async build() {
+          await blocked;
+          throw new Error("extractor offline");
+        }
+      };
+      const runtime = createDeliveryRuntime({
+        eventBus: new InMemoryEventBus({ development: false }),
+        memory: createMem0RecordingMemory(async () => completeMemoryWrite()),
+        conversation,
+        finalizedIngestion: new FinalizedIngestionService(ledger, policy),
+        deferFinalizedMemoryAdmission: true,
+        promptBuilder: new PromptBuilder(),
+        providers: createMockProviders()
+      });
+      const turn = {
+        sessionId: "deferred-admission-" + stream,
+        content: "请记住：我的代号是柳岸-137。",
+        subjectUserId: "person-x",
+        personaId: "persona-a"
+      };
+      if (stream) {
+        const events = [];
+        for await (const event of runtime.streamUserMessage(turn)) events.push(event);
+        expect(events.some((event) => event.type === "completed")).toBe(true);
+      } else {
+        const result = await runtime.handleUserMessage(turn);
+        expect(result?.payload.content).toBeTruthy();
+      }
+      const messages = await conversation.listRecentMessages(turn.sessionId);
+      const assistant = messages.find((message) => message.role === "assistant");
+      expect(assistant).toMatchObject({ status: "completed", ingestionRequested: true });
+      expect(assistant?.finalizedTurnId).toBeTruthy();
+      expect(await ledger.getTurn(assistant!.finalizedTurnId!)).toBeNull();
+      expect(runtime.getLatestPromptPreview()?.memoryWriteStatus).not.toBe("complete");
+      release();
+      await runtime.drainMemoryWrites();
+      expect(await ledger.getTurn(assistant!.finalizedTurnId!)).toMatchObject({
+        status: "terminal_failed",
+        lastErrorCode: "MEMORY_MATERIALIZATION_FAILED"
+      });
+      expect((await conversation.getMessageById(assistant!.id))?.status).toBe("completed");
+      await runtime.sealAndDrainMemoryWrites();
+    }
+  );
 
   it("keeps assistant success independent when ledger materialization fails", async () => {
     const eventBus = new InMemoryEventBus({ development: false });
