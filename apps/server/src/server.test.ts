@@ -240,9 +240,8 @@ describe("server", () => {
         finalProvider: "mock"
       });
       expect(voiceMessage.json().reply).toContain("Mock reply");
-      expect(voiceMessage.json().promptPreview.currentAffect).toMatchObject({
-        affectLabel: expect.stringMatching(/frustrated|confused/)
-      });
+      expect(voiceMessage.json().promptPreview.currentAffect).toBeUndefined();
+      expect(voiceMessage.json().promptPreview.userMessage).toContain("烦死了，这个报错我看不懂");
       expect(voiceMessage.json().chat).toMatchObject({
         capability: "chat",
         mock: true
@@ -924,7 +923,7 @@ describe("server", () => {
     }
   });
 
-  it("adds CurrentAffect to prompt preview for obvious immediate emotion without storing mood", async () => {
+  it("keeps the original emotion utterance without inventing CurrentAffect or storing mood", async () => {
     const app = await buildTestServer({ MEMORY_EXTRACTOR: "rule-based" });
 
     try {
@@ -945,13 +944,9 @@ describe("server", () => {
 
       const prompt = await app.inject({ method: "GET", url: "/debug/prompt/latest" });
       expect(prompt.statusCode).toBe(200);
-      expect(prompt.json().currentAffect).toMatchObject({
-        affectLabel: expect.stringMatching(/frustrated|confused/),
-        confidence: expect.any(Number)
-      });
-      expect(findPromptSection(prompt.json().sections, "CurrentAffect")?.content).toContain(
-        "current turn"
-      );
+      expect(prompt.json().currentAffect).toBeUndefined();
+      expect(findPromptSection(prompt.json().sections, "CurrentAffect")).toBeUndefined();
+      expect(prompt.json().userMessage).toBe("烦死了，这个报错我完全看不懂");
       expect(prompt.body).not.toContain("test_deepseek_secret");
 
       const memories = await app.inject({ method: "GET", url: "/memory/recent?limit=10" });
