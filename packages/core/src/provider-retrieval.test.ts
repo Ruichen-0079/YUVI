@@ -1,5 +1,15 @@
+import { createHash } from "node:crypto";
+import { freezeFinalizedMemoryEvent } from "../../memory/src/finalized-memory-lineage.js";
+import { canonicalLineageJson } from "../../memory/src/lineage-encoding.js";
+import {
+  finalizedTestResolver,
+  finalizedTestParent
+} from "../../memory/src/finalized-test-fixture.js";
 import { InMemoryEventBus } from "@companion/event-bus";
 import {
+  InMemoryEvidenceAdmissionStore,
+  prepareEvidenceAdmission,
+  buildWriteMetadata,
   type MemoryEvent,
   buildMemoryScope,
   InMemoryMemoryRepository,
@@ -158,34 +168,68 @@ function createRuntime(memory: RuntimeMemoryPort, builder?: Pick<MemoryContextBu
   return { runtime, buildPrompt };
 }
 
-function createMem0Service(backend: MemoryBackend): MemoryService {
+function createMem0Service(
+  backend: MemoryBackend,
+  evidenceAdmissions?: InMemoryEvidenceAdmissionStore
+): MemoryService {
   return new MemoryService(
     new InMemoryMemoryRepository(),
     undefined,
     undefined,
     undefined,
     { enabled: false },
-    { kind: "mem0", mem0: backend }
+    { kind: "mem0", mem0: backend, ...(evidenceAdmissions ? { evidenceAdmissions } : {}) }
   );
 }
 
 describe("Runtime provider retrieval wiring", () => {
   it("retrieves a bound Character's memories through its explicit user × instance scope", async () => {
     const scope = buildMemoryScope("test-person", "character-instance:scope-audit");
-    const search = vi.fn(async () => [
-      { id: "scoped-fact", content: "Editor is GARDEN_613", scope, metadata: {}, score: 0.9 }
-    ]);
-    const memory = createMem0Service({
-      kind: "mem0",
-      search,
-      health: vi.fn(),
-      add: vi.fn(),
-      get: vi.fn(),
-      list: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      history: vi.fn()
-    } as MemoryBackend);
+    const content = "Editor is GARDEN_613";
+    const frozen = freezeFinalizedMemoryEvent(
+      await finalizedTestResolver.resolve({
+        sourceJournalRef: finalizedTestParent,
+        sourceText: content
+      }),
+      { scope, kind: "fact", content },
+      "test"
+    );
+    const event = {
+      ...frozen,
+      idempotencyKey: "scoped-source",
+      payloadDigest: createHash("sha256").update(canonicalLineageJson(frozen)).digest("hex")
+    };
+    const admissions = new InMemoryEvidenceAdmissionStore();
+    await admissions.prepare(prepareEvidenceAdmission("FINALIZED_INGESTION", event));
+    const record = {
+      id: "61361361-3613-4613-8613-613613613613",
+      content,
+      scope,
+      metadata: Object.fromEntries(
+        Object.entries({ schemaVersion: 1, ...buildWriteMetadata(event) }).filter(
+          ([, v]) => v !== null
+        )
+      )
+    };
+    await admissions.bind(scope, event.idempotencyKey, record.id);
+    const search = vi.fn(async () => [{ ...record, score: 0.9 }]);
+    const memory = createMem0Service(
+      {
+        kind: "mem0",
+        search,
+        health: vi.fn(),
+        add: vi.fn(),
+        get: vi.fn(),
+        list: vi.fn(async () => ({
+          items: [record],
+          snapshot: { mode: "bounded_snapshot", exhausted: true, rawBytesExceeded: false }
+        })),
+        update: vi.fn(),
+        delete: vi.fn(),
+        history: vi.fn()
+      } as MemoryBackend,
+      admissions
+    );
     const runtime = new RuntimeOrchestrator({
       eventBus: new InMemoryEventBus({ development: false }),
       memory,
@@ -209,7 +253,7 @@ describe("Runtime provider retrieval wiring", () => {
     expect(search).toHaveBeenCalledWith(expect.objectContaining({ scope }), undefined);
     expect(runtime.getLatestPromptPreview()).toMatchObject({
       memoryProviderStatus: "ok",
-      memoryRetrievalEventIds: ["mem0:scoped-fact"]
+      memoryRetrievalEventIds: ["mem0:61361361-3613-4613-8613-613613613613"]
     });
     expect(
       runtime

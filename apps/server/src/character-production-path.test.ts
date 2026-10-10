@@ -737,6 +737,18 @@ it("binds a voice through the controller, restores it, and isolates resolved, mi
           records.set(id, record);
           return Response.json({ ok: true, data: { memoryId: id, operation: "created", record } });
         }
+        if (url.pathname === "/v1/memories" && init?.method !== "POST")
+          return Response.json({
+            ok: true,
+            data: {
+              items: [],
+              snapshot: {
+                mode: "bounded_snapshot",
+                exhausted: true,
+                rawBytesExceeded: false
+              }
+            }
+          });
         if (url.pathname === "/v1/memories/search") {
           searchScopes.push(body.scope);
           return Response.json({
@@ -835,8 +847,9 @@ it("binds a voice through the controller, restores it, and isolates resolved, mi
     );
     expect(speakerContext!.content.slice(situationStart)).toContain("Current speaker:");
     expect(speakerContext!.content.slice(situationStart)).toContain("person-a");
-    expect(JSON.stringify(chatRequests)).toContain("The user grows mint in the garden.");
-    expect(JSON.stringify(chatRequests)).toContain("mem0:mint-evidence");
+    // Scoped vector hits alone are not admitted user evidence.
+    expect(JSON.stringify(chatRequests)).not.toContain("The user grows mint in the garden.");
+    expect(JSON.stringify(chatRequests)).not.toContain("mem0:mint-evidence");
     expect(JSON.stringify(chatRequests)).not.toMatch(
       /profile-a|voiceProfileId|speakerClusterId|embedding/
     );
