@@ -25,6 +25,51 @@ import { describe, expect, it } from "vitest";
 import { RuntimeOrchestrator, type RuntimeMemoryPort } from "./index.js";
 
 describe("RuntimeOrchestrator", () => {
+  it("restores published answer tails and multiline code within the conversation budget", async () => {
+    const conversation = new InMemoryConversationRepository();
+    const sessionId = "published-tail";
+    const code =
+      "```python\n" +
+      Array.from({ length: 120 }, (_, i) => `value_${i} = ${i}\n`).join("") +
+      "# confirmation: PUBLISHED_TAIL_852\n```";
+    await conversation.ensureSession(sessionId);
+    for (const [index, entry] of [
+      { role: "user" as const, content: "Write the test code and its confirmation." },
+      { role: "assistant" as const, content: code }
+    ].entries()) {
+      await conversation.appendMessage({
+        id: `published-tail-${index}`,
+        sessionId,
+        traceId: "published-tail-trace",
+        parentMessageId: null,
+        role: entry.role,
+        content: entry.content,
+        status: "completed",
+        createdAt: "2026-10-10T00:00:00.000Z",
+        completedAt: "2026-10-10T00:00:00.000Z",
+        metadata: {}
+      });
+    }
+    const runtime = new RuntimeOrchestrator({
+      eventBus: new InMemoryEventBus({ development: false }),
+      memory: createRecordingMemory([]),
+      conversation,
+      promptBuilder: new PromptBuilder(),
+      providers: createMockProviders()
+    });
+    await runtime.handleUserMessage(
+      { sessionId, content: "What confirmation did you give?" },
+      { readMemory: false, writeMemory: false }
+    );
+    const direct = runtime
+      .getLatestPromptPreview()
+      ?.sections.find((section) => section.name === "DirectContext");
+    expect(direct?.content).toContain(code);
+    expect(direct?.content).toContain("PUBLISHED_TAIL_852");
+    expect(direct?.content.length).toBeLessThanOrEqual(6000);
+    await runtime.sealAndDrainMemoryWrites();
+  });
+
   it("publishes no reply events when every chat provider fails", async () => {
     const eventBus = new InMemoryEventBus({ development: false });
     const published: RuntimeEvent[] = [];
@@ -262,7 +307,8 @@ describe("RuntimeOrchestrator", () => {
     const eventBus = new InMemoryEventBus({ development: false });
     const written: MemoryCandidate[] = [];
     const extractionInputs: string[] = [];
-    const groundingContexts: Array<{ sourceJournalRef: unknown; sourceText: string } | undefined> = [];
+    const groundingContexts: Array<{ sourceJournalRef: unknown; sourceText: string } | undefined> =
+      [];
     const runtime = new RuntimeOrchestrator({
       eventBus,
       memory: {
@@ -340,15 +386,17 @@ describe("RuntimeOrchestrator", () => {
       providers: createMockProviders()
     });
 
-    await runtime.handleUserMessage(createEvent("user.message", {
-      sessionId: "test-session",
-      content: "hi",
-      sourceJournalRef: {
-        kind: "JOURNAL_EVENT",
-        namespace: "runtime-memory-test",
-        eventId: "jev1_1111111111111111"
-      }
-    }));
+    await runtime.handleUserMessage(
+      createEvent("user.message", {
+        sessionId: "test-session",
+        content: "hi",
+        sourceJournalRef: {
+          kind: "JOURNAL_EVENT",
+          namespace: "runtime-memory-test",
+          eventId: "jev1_1111111111111111"
+        }
+      })
+    );
     await runtime.handleUserMessage({
       sessionId: "test-session",
       content: "记住：unreceipted input must not become legacy evidence"
@@ -367,24 +415,28 @@ describe("RuntimeOrchestrator", () => {
         writeMemory: false
       }
     );
-    const reply = await runtime.handleUserMessage(createEvent("user.message", {
-      sessionId: "test-session",
-      content: "记住：我的项目路径是 /home/administrator/uv-main/uv-main",
-      sourceJournalRef: {
-        kind: "JOURNAL_EVENT",
-        namespace: "runtime-memory-test",
-        eventId: "jev1_3333333333333333"
-      }
-    }));
-    await runtime.handleUserMessage(createEvent("user.message", {
-      sessionId: "test-session",
-      content: "secret metadata candidate",
-      sourceJournalRef: {
-        kind: "JOURNAL_EVENT",
-        namespace: "runtime-memory-test",
-        eventId: "jev1_4444444444444444"
-      }
-    }));
+    const reply = await runtime.handleUserMessage(
+      createEvent("user.message", {
+        sessionId: "test-session",
+        content: "记住：我的项目路径是 /home/administrator/uv-main/uv-main",
+        sourceJournalRef: {
+          kind: "JOURNAL_EVENT",
+          namespace: "runtime-memory-test",
+          eventId: "jev1_3333333333333333"
+        }
+      })
+    );
+    await runtime.handleUserMessage(
+      createEvent("user.message", {
+        sessionId: "test-session",
+        content: "secret metadata candidate",
+        sourceJournalRef: {
+          kind: "JOURNAL_EVENT",
+          namespace: "runtime-memory-test",
+          eventId: "jev1_4444444444444444"
+        }
+      })
+    );
 
     expect(extractionInputs).toEqual([
       "hi",
@@ -441,9 +493,8 @@ describe("RuntimeOrchestrator", () => {
       tags: [],
       reason: "explicit-remember"
     };
-    const groundingContexts: Array<
-      { sourceJournalRef: unknown; sourceText: string } | undefined
-    > = [];
+    const groundingContexts: Array<{ sourceJournalRef: unknown; sourceText: string } | undefined> =
+      [];
     const memory = createRecordingMemory([]);
     memory.extractCandidates = async () => [candidate];
     memory.processCandidateForStorage = async (proposed, options, groundingContext) => {
@@ -485,18 +536,15 @@ describe("RuntimeOrchestrator", () => {
     ).resolves.toBeNull();
     expect(groundingContexts).toHaveLength(1);
 
-    const accepted = await runtime.acceptMemoryCandidate(
-      review!.id,
-      {
-        sourceJournalRef: {
-          kind: "JOURNAL_EVENT",
-          namespace: "attacker-controlled",
-          eventId: "jev1_aaaaaaaaaaaaaaaa"
-        },
-        lineage: { state: "GROUNDED" },
-        consumerKey: "attacker-controlled"
-      } as never
-    );
+    const accepted = await runtime.acceptMemoryCandidate(review!.id, {
+      sourceJournalRef: {
+        kind: "JOURNAL_EVENT",
+        namespace: "attacker-controlled",
+        eventId: "jev1_aaaaaaaaaaaaaaaa"
+      },
+      lineage: { state: "GROUNDED" },
+      consumerKey: "attacker-controlled"
+    } as never);
     expect(accepted?.alreadyStored).toBe(false);
     expect(groundingContexts).toHaveLength(2);
     expect(groundingContexts[1]).toEqual({ sourceJournalRef, sourceText });

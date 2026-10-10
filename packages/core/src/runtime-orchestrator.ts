@@ -7281,25 +7281,20 @@ function formatDirectContextEntry(entry: DirectContextEntry): string {
   if (entry.kind === "turn") {
     return [
       `- Previous turn (${entry.timestamp}, trace ${entry.traceId.slice(0, 8)}):`,
-      `  User: ${truncateDirectContextLine(entry.userMessage)}`,
-      `  Assistant: ${truncateDirectContextLine(entry.assistantReply)}`
+      `  User: ${entry.userMessage.trim()}`,
+      `  Assistant: ${entry.assistantReply.trim()}`
     ].join("\n");
   }
   if (entry.kind === "assistant-only") {
     return [
       `- Previous assistant-initiated message (${entry.timestamp}, trace ${entry.traceId.slice(0, 8)}):`,
-      `  Assistant: ${truncateDirectContextLine(entry.assistantMessage)}`
+      `  Assistant: ${entry.assistantMessage.trim()}`
     ].join("\n");
   }
   return [
     `- Previous incomplete user message (${entry.timestamp}, trace ${entry.traceId.slice(0, 8)}):`,
-    `  User: ${truncateDirectContextLine(entry.userMessage)}`
+    `  User: ${entry.userMessage.trim()}`
   ].join("\n");
-}
-
-function truncateDirectContextLine(value: string): string {
-  const normalized = value.replace(/\s+/g, " ").trim();
-  return normalized.length > 800 ? `${normalized.slice(0, 797)}...` : normalized;
 }
 
 function toIsoString(value: Date | string | null | undefined): string | null | undefined {
