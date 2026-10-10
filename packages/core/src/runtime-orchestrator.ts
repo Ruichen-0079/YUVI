@@ -5886,6 +5886,9 @@ export class RuntimeOrchestrator {
         text: request.queryText,
         limit: 5,
         sessionId: request.sessionId,
+        ...(request.subjectUserId && request.personaId
+          ? { scope: buildMemoryScope(request.subjectUserId, request.personaId) }
+          : {}),
         ...retrievalIdentityPayload(request)
       });
     } catch {
