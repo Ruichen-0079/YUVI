@@ -80,15 +80,17 @@ describe("diagnostic boundary through real WS route and EventBus", () => {
       ).statusCode
     ).toBe(403);
   });
-  it.each(["http://localhost:5173", "http://tauri.localhost", "https://127.0.0.1:4000"])(
-    "preserves local Dashboard browser origin %s",
-    async (origin) => {
-      const { app, bus } = await fixture();
-      const frames = await connect(app, "/ws?dashboard=true", { origin });
-      await foreignReply(bus);
-      expect(JSON.stringify(frames)).toContain("FOREIGN_BODY");
-    }
-  );
+  it.each([
+    "http://localhost:5173",
+    "http://tauri.localhost",
+    "https://127.0.0.1:4000",
+    "http://[::1]:5173"
+  ])("preserves local Dashboard browser origin %s", async (origin) => {
+    const { app, bus } = await fixture();
+    const frames = await connect(app, "/ws?dashboard=true", { origin });
+    await foreignReply(bus);
+    expect(JSON.stringify(frames)).toContain("FOREIGN_BODY");
+  });
   it.each(["/ws", "/ws?dashboard=false"])("keeps ordinary connection scoped: %s", async (path) => {
     const { app, bus } = await fixture();
     const frames = await connect(app, path);
