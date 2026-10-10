@@ -5,6 +5,11 @@ import { join } from "node:path";
 
 const port = 3137;
 const memoryRepository = process.env["MEMORY_REPOSITORY"] ?? "in-memory";
+if (!process.env["DATABASE_URL"]?.trim()) {
+  throw new Error(
+    "Smoke requires an isolated, migrated PostgreSQL DATABASE_URL for durable Journal admission. Run pnpm db:migrate before pnpm smoke."
+  );
+}
 const runtimeEnvDir = mkdtempSync(join(tmpdir(), "yuvi-smoke-env-"));
 const env = {
   ...process.env,

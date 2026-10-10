@@ -18,6 +18,20 @@ env:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    services:
+      smoke-postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: yuvi_smoke
+          POSTGRES_PASSWORD: yuvi_smoke_ci
+          POSTGRES_DB: yuvi_smoke
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U yuvi_smoke -d yuvi_smoke"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - name: Checkout
@@ -66,4 +80,11 @@ jobs:
         run: pnpm test
 
       - name: Smoke
-        run: pnpm smoke
+        env:
+          DATABASE_URL: postgres://yuvi_smoke:yuvi_smoke_ci@127.0.0.1:5432/yuvi_smoke
+          MEMORY_REPOSITORY: postgres
+          DEFAULT_EMBEDDING_PROVIDER: mock
+          PROVIDER_ALLOW_MOCKS: "true"
+        run: |
+          pnpm db:migrate
+          pnpm smoke
