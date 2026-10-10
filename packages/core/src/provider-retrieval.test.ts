@@ -24,7 +24,12 @@ import {
   MockEmbeddingProvider
 } from "@companion/providers";
 import { describe, expect, it, vi } from "vitest";
-import { MemoryContextBuilder, RuntimeOrchestrator, type RuntimeMemoryPort } from "./index.js";
+import {
+  MemoryContextBuilder,
+  RuntimeOrchestrator,
+  defineCharacter,
+  type RuntimeMemoryPort
+} from "./index.js";
 
 function event(content = "User likes tea"): MemoryEvent {
   return {
@@ -165,6 +170,55 @@ function createMem0Service(backend: MemoryBackend): MemoryService {
 }
 
 describe("Runtime provider retrieval wiring", () => {
+  it("retrieves a bound Character's memories through its explicit user × instance scope", async () => {
+    const scope = buildMemoryScope("test-person", "character-instance:scope-audit");
+    const search = vi.fn(async () => [
+      { id: "scoped-fact", content: "Editor is GARDEN_613", scope, metadata: {}, score: 0.9 }
+    ]);
+    const memory = createMem0Service({
+      kind: "mem0",
+      search,
+      health: vi.fn(),
+      add: vi.fn(),
+      get: vi.fn(),
+      list: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      history: vi.fn()
+    } as MemoryBackend);
+    const runtime = new RuntimeOrchestrator({
+      eventBus: new InMemoryEventBus({ development: false }),
+      memory,
+      promptBuilder: new PromptBuilder(),
+      providers: createProviders(),
+      characterBinding: {
+        instanceId: "scope-audit",
+        definition: defineCharacter({
+          id: "scope-audit",
+          name: "Alice",
+          revision: "1",
+          persona: "Use authorized evidence."
+        })
+      }
+    });
+    await runtime.handleUserMessage(
+      { sessionId: "scoped-session", content: "What is my editor?", subjectUserId: "test-person" },
+      { readMemory: true, writeMemory: false }
+    );
+    expect(search).toHaveBeenCalledOnce();
+    expect(search).toHaveBeenCalledWith(expect.objectContaining({ scope }), undefined);
+    expect(runtime.getLatestPromptPreview()).toMatchObject({
+      memoryProviderStatus: "ok",
+      memoryRetrievalEventIds: ["mem0:scoped-fact"]
+    });
+    expect(
+      runtime
+        .getLatestPromptPreview()
+        ?.sections.find((section) => section.name === "RelevantMemory")?.content
+    ).toContain("GARDEN_613");
+    await runtime.sealAndDrainMemoryWrites();
+  });
+
   it("uses MemoryProvider and MemoryContextBuilder without legacy mapping on success", async () => {
     const provider = createProvider(outcome("ok", [event()]));
     const legacy = vi.fn(async () => legacyResult("legacy should not be read"));

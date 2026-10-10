@@ -632,6 +632,8 @@ export type RuntimeMemoryCandidateAcceptResult =
     };
 
 export type SafeProviderCallMetadata = {
+  finishReason?: ChatOutput["finishReason"];
+  outputCompleteness?: "PARTIAL" | undefined;
   sourceAttemptId?: string | undefined;
   name: string;
   capability: ProviderCapability;

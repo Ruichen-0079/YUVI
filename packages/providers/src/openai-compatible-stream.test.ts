@@ -58,6 +58,36 @@ describe("OpenAI-compatible native chat streaming", () => {
     vi.unstubAllGlobals();
   });
 
+  it.each(["\n", "\r\n", "\r"])(
+    "ignores comment heartbeats before, between and after business frames (%j)",
+    async (newline) => {
+      const heartbeat = `: ping - 2026-10-10 04:41:32+00:00${newline}${newline}`;
+      const body = [
+        heartbeat,
+        frame({ choices: [{ delta: { content: "first" } }] }, newline),
+        heartbeat,
+        frame({ choices: [{ delta: { content: " second" }, finish_reason: "stop" }] }, newline),
+        frame("[DONE]", newline),
+        heartbeat
+      ].join("");
+      const bytes = encoded(body);
+      // One byte per pull also splits Unicode and CRLF boundaries.
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => streamResponse(Array.from(bytes, (byte) => new Uint8Array([byte]))))
+      );
+      const events = await collect(createProvider());
+      expect(events.filter((event) => event.type === "text-delta")).toEqual([
+        { type: "text-delta", text: "first" },
+        { type: "text-delta", text: " second" }
+      ]);
+      expect(events.at(-1)).toMatchObject({
+        type: "completed",
+        output: { message: { content: "first second" }, finishReason: "stop" }
+      });
+    }
+  );
+
   it("reads split UTF-8 SSE frames, role-only and usage frames, then emits one completed", async () => {
     const responseText = [
       `event: message\r\n${frame({ model: "deepseek-chat", choices: [{ delta: { role: "assistant" }, finish_reason: null }] }, "\r\n")}`,

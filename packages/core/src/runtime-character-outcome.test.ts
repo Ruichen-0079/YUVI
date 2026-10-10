@@ -1,4 +1,7 @@
-import { executeRuntimeCognitionInteraction, DEFAULT_COGNITION_LIMITS } from "./runtime-cognition-interaction.js";
+import {
+  executeRuntimeCognitionInteraction,
+  DEFAULT_COGNITION_LIMITS
+} from "./runtime-cognition-interaction.js";
 import { InMemoryEventBus } from "@companion/event-bus";
 import { InMemoryConversationRepository } from "@companion/memory";
 import { PromptBuilder } from "@companion/prompt-builder";
@@ -23,6 +26,161 @@ import {
   type RuntimeMemoryPort,
   type RuntimeReplyStreamEvent
 } from "./index.js";
+
+describe("Character body output budget", () => {
+  it.each([false, true])(
+    "preserves a length-limited body and its partial status: streaming=%s",
+    async (streaming) => {
+      const conversation = new InMemoryConversationRepository();
+      const eventBus = new InMemoryEventBus({ development: false });
+      const published: RuntimeEvent[] = [];
+      eventBus.subscribe("*", (event) => {
+        published.push(event);
+      });
+      const prefix = "```python\ndef unfinished():\n    return 852";
+      const providers = providersStub();
+      const chat = {
+        ...providers.getChatProvider(),
+        streamingMode: "native" as const,
+        async *streamReply() {
+          yield { type: "text-delta" as const, text: prefix };
+          yield {
+            type: "completed" as const,
+            output: {
+              message: { role: "assistant" as const, content: prefix },
+              finishReason: "length" as const
+            }
+          };
+        }
+      };
+      const character: RuntimeCharacterPort = {
+        generate: async () => ({
+          ...decisionFixture({ disposition: "SILENCE" }),
+          decision: {
+            addressing: "DIRECTED_TO_YUVI",
+            proactive: { action: "KEEP" },
+            reply: {
+              disposition: "RESPOND",
+              body: { messages: [{ role: "user", content: "write code" }] }
+            }
+          }
+        }),
+        generateAfterCognition: async () => {
+          throw Error("No escalation");
+        }
+      };
+      const runtime = new RuntimeOrchestrator({
+        eventBus,
+        conversation,
+        memory: memoryStub().memory,
+        providers: { ...providers, getChatProvider: () => chat },
+        promptBuilder: new PromptBuilder(),
+        character
+      });
+      const input = { sessionId: "length-prefix", content: "write code" };
+      const options = { readMemory: false, writeMemory: false };
+      if (streaming) {
+        const events = [];
+        for await (const event of runtime.streamUserMessage(input, options)) events.push(event);
+        expect(events.at(-1)).toMatchObject({ type: "completed", content: prefix });
+      } else {
+        const reply = await runtime.handleUserMessage(input, options);
+        expect(reply?.payload.content).toBe(prefix);
+      }
+      const reply = published.find((event) => event.type === "agent.reply");
+      expect(reply?.payload).toMatchObject({
+        provider: { finishReason: "length", outputCompleteness: "PARTIAL" }
+      });
+      const stored = (await conversation.listRecentMessages(input.sessionId)).find(
+        (message) => message.role === "assistant"
+      );
+      expect(stored?.content).toBe(prefix);
+      expect(stored?.metadata["provider"]).toMatchObject({
+        finishReason: "length",
+        outputCompleteness: "PARTIAL"
+      });
+      await runtime.sealAndDrainMemoryWrites();
+      const restored = new RuntimeOrchestrator({
+        eventBus: new InMemoryEventBus({ development: false }),
+        conversation,
+        memory: memoryStub().memory,
+        providers: { ...providers, getChatProvider: () => chat },
+        promptBuilder: new PromptBuilder(),
+        character
+      });
+      await restored.handleUserMessage({ ...input, content: "continue" }, options);
+      const context = restored
+        .getLatestPromptPreview()
+        ?.sections.find((section) => section.name === "DirectContext")?.content;
+      expect(context).toContain("PARTIAL");
+      expect(context).toContain(prefix);
+      await restored.sealAndDrainMemoryWrites();
+    }
+  );
+
+  it.each(["content_filter", "mismatch", "missing-completion"])(
+    "still rejects an invalid body: %s",
+    async (failure) => {
+      const conversation = new InMemoryConversationRepository();
+      const providers = providersStub();
+      const chat = {
+        ...providers.getChatProvider(),
+        streamingMode: "native" as const,
+        async *streamReply() {
+          yield { type: "text-delta" as const, text: "unfinished" };
+          if (failure !== "missing-completion")
+            yield {
+              type: "completed" as const,
+              output: {
+                message: {
+                  role: "assistant" as const,
+                  content: failure === "mismatch" ? "different" : "unfinished"
+                },
+                finishReason:
+                  failure === "content_filter" ? ("content_filter" as const) : ("length" as const)
+              }
+            };
+        }
+      };
+      const character: RuntimeCharacterPort = {
+        generate: async () => ({
+          ...decisionFixture({ disposition: "SILENCE" }),
+          decision: {
+            addressing: "DIRECTED_TO_YUVI",
+            proactive: { action: "KEEP" },
+            reply: {
+              disposition: "RESPOND",
+              body: { messages: [{ role: "user", content: "write code" }] }
+            }
+          }
+        }),
+        generateAfterCognition: async () => {
+          throw Error("No escalation");
+        }
+      };
+      const runtime = new RuntimeOrchestrator({
+        eventBus: new InMemoryEventBus({ development: false }),
+        conversation,
+        memory: memoryStub().memory,
+        providers: { ...providers, getChatProvider: () => chat },
+        promptBuilder: new PromptBuilder(),
+        character
+      });
+      await expect(
+        runtime.handleUserMessage(
+          { sessionId: "invalid-body", content: "write code" },
+          { readMemory: false, writeMemory: false }
+        )
+      ).rejects.toMatchObject({ code: "MALFORMED_RESPONSE" });
+      expect(
+        (await conversation.listRecentMessages("invalid-body")).some(
+          (message) => message.role === "assistant" && message.status === "completed"
+        )
+      ).toBe(false);
+      await runtime.sealAndDrainMemoryWrites();
+    }
+  );
+});
 
 function decisionFixture(
   reply: RuntimeCharacterTurnResult["decision"]["reply"]

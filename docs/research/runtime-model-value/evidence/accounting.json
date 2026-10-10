@@ -1,0 +1,30 @@
+{
+  "captured_wire_requests": 205,
+  "captured_application_calls": 150,
+  "input_tokens_with_usage": 183940,
+  "output_tokens_with_usage": 69395,
+  "provider_estimated_cost_usd": 0.021235425000000002,
+  "requests_missing_cost": 0,
+  "application_errors": 5,
+  "application_calls_with_unknown_cost": [
+    {
+      "run": "durable-files-canonical",
+      "index": 1,
+      "phase": "B:256:direct-full",
+      "kind": "chat",
+      "latency_ms": 60006.127871000004,
+      "error": {
+        "name": "ProviderError",
+        "code": "TIMEOUT"
+      },
+      "reported_usage": null,
+      "run_status": "INCOMPLETE"
+    }
+  ],
+  "limits": [
+    "Provider estimates are not invoices; missing or interrupted usage is UNKNOWN.",
+    "Concurrent invalid pilot files may have overwritten records: total cost is a lower bound.",
+    "Local embedding/Mem0 resources are not included in remote model cost.",
+    "Objective label-hidden checks are not human blind review or broad semantic quality scores."
+  ]
+}

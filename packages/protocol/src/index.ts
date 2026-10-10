@@ -119,6 +119,8 @@ export const AssistantMessagePayloadSchema = z.object({
       capability: z.string(),
       model: z.string().optional(),
       mock: z.boolean(),
+      finishReason: z.enum(["stop", "length", "tool_call", "content_filter", "unknown"]).optional(),
+      outputCompleteness: z.literal("PARTIAL").optional(),
       latencyMs: z.number().optional(),
       tokenUsage: z
         .object({

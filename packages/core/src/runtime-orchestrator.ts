@@ -247,6 +247,7 @@ type DirectContextEntry = (
       timestamp: string;
       userMessage: string;
       assistantReply: string;
+      outputCompleteness?: "PARTIAL";
       memoryEphemeral?: boolean;
       memoryWriteDisabled?: boolean;
     }
@@ -5338,19 +5339,13 @@ export class RuntimeOrchestrator {
             )
           : await this.persistCompletedAssistantReply(reply.id, {
               ...conversationMessageFromEvent(assistantMessage, "assistant", "completed"),
-              ...(this.visuallyGroundedTurns.has(sourceEvent)
-                ? { metadata: { memoryEphemeral: true } }
-                : {}),
-              ...(this.memoryWriteDisabledTurns.has(sourceEvent)
-                ? {
-                    metadata: {
-                      memoryWriteDisabled: true,
-                      ...(this.visuallyGroundedTurns.has(sourceEvent)
-                        ? { memoryEphemeral: true }
-                        : {})
-                    }
-                  }
-                : {}),
+              metadata: {
+                ...(reply.payload.provider ? { provider: reply.payload.provider } : {}),
+                ...(this.visuallyGroundedTurns.has(sourceEvent) ? { memoryEphemeral: true } : {}),
+                ...(this.memoryWriteDisabledTurns.has(sourceEvent)
+                  ? { memoryWriteDisabled: true }
+                  : {})
+              },
               finalizedTurnId: finalizedTurnId ?? null,
               sourceUserEventId: sourceEvent.id,
               personaId: sourceEvent.payload.personaId ?? null,
@@ -5891,6 +5886,9 @@ export class RuntimeOrchestrator {
         text: request.queryText,
         limit: 5,
         sessionId: request.sessionId,
+        ...(request.subjectUserId && request.personaId
+          ? { scope: buildMemoryScope(request.subjectUserId, request.personaId) }
+          : {}),
         ...retrievalIdentityPayload(request)
       });
     } catch {
@@ -6257,6 +6255,9 @@ export class RuntimeOrchestrator {
       timestamp: new Date().toISOString(),
       userMessage: redactUnsafeText(userEvent.payload.content),
       assistantReply: redactUnsafeText(reply.payload.content),
+      ...(reply.payload.provider?.outputCompleteness === "PARTIAL"
+        ? { outputCompleteness: "PARTIAL" as const }
+        : {}),
       ...(this.memoryWriteDisabledTurns.has(userEvent) ? { memoryWriteDisabled: true } : {}),
       ...(this.visuallyGroundedTurns.has(userEvent) ? { memoryEphemeral: true } : {})
     });
@@ -6460,7 +6461,7 @@ export class RuntimeOrchestrator {
   private safeProviderCallMetadata(
     capability: ProviderCapability,
     providerName: string,
-    output: ProviderMetadata,
+    output: ProviderMetadata & Pick<ChatOutput, "finishReason">,
     status: ProviderHealth | undefined
   ): SafeProviderCallMetadata {
     const finalProvider = output.finalProvider ?? providerName;
@@ -6479,6 +6480,8 @@ export class RuntimeOrchestrator {
       mock,
       latencyMs: output.latencyMs,
       tokenUsage: output.tokenUsage,
+      ...(output.finishReason ? { finishReason: output.finishReason } : {}),
+      ...(output.finishReason === "length" ? { outputCompleteness: "PARTIAL" as const } : {}),
       healthStatus: finalStatus?.status,
       ...(output.fallbackUsed !== undefined ? { fallbackUsed: output.fallbackUsed } : {}),
       ...(output.attemptedProviders ? { attemptedProviders: output.attemptedProviders } : {}),
@@ -7179,6 +7182,10 @@ function buildDirectContextEntries(
         timestamp: assistant.message.completedAt ?? assistant.message.createdAt,
         userMessage: redactUnsafeText(user.message.content),
         assistantReply: redactUnsafeText(assistant.message.content),
+        ...((assistant.message.metadata["provider"] as SafeProviderCallMetadata | undefined)
+          ?.outputCompleteness === "PARTIAL"
+          ? { outputCompleteness: "PARTIAL" as const }
+          : {}),
         ...(assistant.message.metadata["memoryWriteDisabled"] === true
           ? { memoryWriteDisabled: true }
           : {}),
@@ -7281,25 +7288,25 @@ function formatDirectContextEntry(entry: DirectContextEntry): string {
   if (entry.kind === "turn") {
     return [
       `- Previous turn (${entry.timestamp}, trace ${entry.traceId.slice(0, 8)}):`,
-      `  User: ${truncateDirectContextLine(entry.userMessage)}`,
-      `  Assistant: ${truncateDirectContextLine(entry.assistantReply)}`
+      ...(entry.outputCompleteness === "PARTIAL"
+        ? [
+            "  Assistant output: PARTIAL (output limit reached; the following text is an unfinished response)."
+          ]
+        : []),
+      `  User: ${entry.userMessage.trim()}`,
+      `  Assistant: ${entry.assistantReply.trim()}`
     ].join("\n");
   }
   if (entry.kind === "assistant-only") {
     return [
       `- Previous assistant-initiated message (${entry.timestamp}, trace ${entry.traceId.slice(0, 8)}):`,
-      `  Assistant: ${truncateDirectContextLine(entry.assistantMessage)}`
+      `  Assistant: ${entry.assistantMessage.trim()}`
     ].join("\n");
   }
   return [
     `- Previous incomplete user message (${entry.timestamp}, trace ${entry.traceId.slice(0, 8)}):`,
-    `  User: ${truncateDirectContextLine(entry.userMessage)}`
+    `  User: ${entry.userMessage.trim()}`
   ].join("\n");
-}
-
-function truncateDirectContextLine(value: string): string {
-  const normalized = value.replace(/\s+/g, " ").trim();
-  return normalized.length > 800 ? `${normalized.slice(0, 797)}...` : normalized;
 }
 
 function toIsoString(value: Date | string | null | undefined): string | null | undefined {
@@ -7749,7 +7756,6 @@ async function* streamCharacterBody(
         if (
           !text.trim() ||
           event.output.message.content !== text ||
-          event.output.finishReason === "length" ||
           event.output.finishReason === "content_filter"
         ) {
           throw runtimeStreamProtocolError(provider.name, "Invalid Character stream completion.");

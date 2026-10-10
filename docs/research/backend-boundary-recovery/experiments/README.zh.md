@@ -52,7 +52,7 @@ node docs/research/backend-boundary-recovery/experiments/run-live-model.mjs . --
 
 A 使用真实 Runtime、Server Character 与 PromptBuilder；忠实历史 direct、当前 Character gate、移除 gate 的可逆反事实分别运行。Conversation 是真实 InMemory 实现，Memory 明确关闭；这不是全持久化部署。人格相同，模型、temperature=0、最大输出=2048 锁定；框架指令和信息投影的差异保留，正是比较对象。
 
-B 使用真实临时授权文件、真实读取器、生产 Cognition/Observation/下一轮消息。分别比较 direct 完整正文与生产限制。宿主的持久 admission/store 被明确注入，因此结果不能证明 PostgreSQL 授权和恢复可靠。模型必须自行选择工具；拒绝调用也是观察结果，不用 scripted 输出强迫它成功。任务覆盖 16,000、16,001、64,000 字符的首尾标记；生产前缀缺尾部时应诚实说明。
+B 使用真实临时授权文件、生产 Cognition/Observation/下一轮消息。设置 `YUVI_AUDIT_DATABASE_URL` 时，实际建立 PostgreSQL Journal receipt、Host grant、effect admission/store/dispatch；不设置则使用明确标记的测试宿主替身。宿主只授权本次创建的单个文件，不能据此宣称普通产品授权 UI 已接通。比较没有观察、完整观察和工具取得观察三种输入；模型自行选择能力，拒绝调用也是结果。可用 `YUVI_AUDIT_FILE_LENGTHS='[256,16001]'` 指定边界，用 `YUVI_AUDIT_FILE_CANONICAL=true` 提供与正常入口一致的语义上下文。
 
 C 仅在真实专用 Server 启用，用新隔离用户与两个会话，先可信纠正，再查询 records/semantic，最后保留实际 promptPreview 与回复。配置证明至少包含：
 
@@ -71,4 +71,6 @@ C 仅在真实专用 Server 启用，用新隔离用户与两个会话，先可�
 
 同一 Harness 可以对两个独立 checkout 运行 before/after。复用同一模型版本、采样、人格和权限；temperature=0 不保证远端模型完全确定。报告全部输入、归一化业务输出、调用记录、可获得 token 用量与延迟，不要求或记录隐藏思维链。输出目录可能包含测试正文，请按自己的资料权限管理。
 
-盲评至少覆盖：否定/引用/纠正是否理解；权限是否虚增；结尾缺失是否诚实；失败是否准确；跨会话纠正是否被引用。先遮蔽版本与路径标签，再人工打分；单次输出、调用减少、合同通过均不能自动证明智能改善。当前实际模型调用为 **0**，仅验证了编译、计划模式及缺凭据拒绝。
+盲评至少覆盖：否定/引用/纠正是否理解；权限是否虚增；结尾缺失是否诚实；失败是否准确；跨会话纠正是否被引用。先遮蔽版本与路径标签，再人工打分；单次输出、调用减少、合同通过均不能自动证明智能改善。原 #322 首次交付实际模型调用为 **0**。2026-10-10 后续实机实验已运行；结果、原始轨迹存储规则、客观评价及限制见 [真实模型结果](../../runtime-model-value/README.zh.md)。本轮没有另找模型做主观自评，也没有完成独立人工盲评。
+
+可选 `YUVI_AUDIT_PERSONA_FILE`、`YUVI_AUDIT_CASES_FILE`、`YUVI_AUDIT_REPETITIONS`、`YUVI_AUDIT_MAX_TOKENS`、`YUVI_AUDIT_TIMEOUT_MS` 控制 Persona、任务和重复样本；`YUVI_AUDIT_SKIP_FILES=true` 只跑普通对照。输出目录强制 0700，记录每次请求正文、流事件、供应商 usage/费用及源码摘要，不记录授权头。凭据仅从环境传入，禁止提交输出目录。启动一个 Harness 期间不要并发使用同一 runner 的生成文件。

@@ -1,0 +1,2242 @@
+[
+  {
+    "run": "controlled-before",
+    "index": 0,
+    "phase": "A:history-correction:trial-0:direct",
+    "kind": "chat",
+    "latency_ms": 6443.0029429999995,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 611,
+      "outputTokens": 32,
+      "totalTokens": 643,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 1,
+    "phase": "A:history-correction:trial-0:production-character",
+    "kind": "chat",
+    "latency_ms": 1278.8148380000002,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1210,
+      "outputTokens": 18,
+      "totalTokens": 1228,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 2,
+    "phase": "A:history-correction:trial-0:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 2520.8450139999995,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 812,
+      "outputTokens": 26,
+      "totalTokens": 838,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 3,
+    "phase": "A:history-correction:trial-0:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 2067.7736829999994,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 560,
+      "outputTokens": 32,
+      "totalTokens": 592,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 4,
+    "phase": "A:negation-quotation:trial-0:direct",
+    "kind": "chat",
+    "latency_ms": 11064.321824,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 451,
+      "outputTokens": 303,
+      "totalTokens": 754,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 5,
+    "phase": "A:negation-quotation:trial-0:production-character",
+    "kind": "chat",
+    "latency_ms": 1006.1423209999994,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 876,
+      "outputTokens": 18,
+      "totalTokens": 894,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 6,
+    "phase": "A:negation-quotation:trial-0:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 28865.407370999998,
+    "error": {
+      "name": "ProviderError",
+      "code": "MALFORMED_RESPONSE"
+    },
+    "reported_usage": null,
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 7,
+    "phase": "A:negation-quotation:trial-0:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 8831.025984,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 271,
+      "outputTokens": 400,
+      "totalTokens": 671,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 8,
+    "phase": "A:long-code:trial-0:direct",
+    "kind": "chat",
+    "latency_ms": 26414.263296999998,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 495,
+      "outputTokens": 2048,
+      "totalTokens": 2543,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 9,
+    "phase": "A:long-code:trial-0:production-character",
+    "kind": "chat",
+    "latency_ms": 1292.5061569999962,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 920,
+      "outputTokens": 18,
+      "totalTokens": 938,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 10,
+    "phase": "A:long-code:trial-0:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 18597.857044000004,
+    "error": {
+      "name": "ProviderError",
+      "code": "MALFORMED_RESPONSE"
+    },
+    "reported_usage": null,
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 11,
+    "phase": "A:long-code:trial-0:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 17972.792826000004,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 315,
+      "outputTokens": 2048,
+      "totalTokens": 2363,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 12,
+    "phase": "A:history-correction:trial-1:direct",
+    "kind": "chat",
+    "latency_ms": 1199.7694639999972,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 611,
+      "outputTokens": 32,
+      "totalTokens": 643,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 13,
+    "phase": "A:history-correction:trial-1:production-character",
+    "kind": "chat",
+    "latency_ms": 3076.316592999996,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1214,
+      "outputTokens": 18,
+      "totalTokens": 1232,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 14,
+    "phase": "A:history-correction:trial-1:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 1194.8055250000034,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 816,
+      "outputTokens": 33,
+      "totalTokens": 849,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 15,
+    "phase": "A:history-correction:trial-1:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 1115.125280999986,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 558,
+      "outputTokens": 32,
+      "totalTokens": 590,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 16,
+    "phase": "A:negation-quotation:trial-1:direct",
+    "kind": "chat",
+    "latency_ms": 10129.670881999977,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 451,
+      "outputTokens": 289,
+      "totalTokens": 740,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 17,
+    "phase": "A:negation-quotation:trial-1:production-character",
+    "kind": "chat",
+    "latency_ms": 1181.8834999999963,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 876,
+      "outputTokens": 18,
+      "totalTokens": 894,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 18,
+    "phase": "A:negation-quotation:trial-1:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 7421.3775889999815,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 478,
+      "outputTokens": 337,
+      "totalTokens": 815,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 19,
+    "phase": "A:negation-quotation:trial-1:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 24291.017926,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 271,
+      "outputTokens": 673,
+      "totalTokens": 944,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 20,
+    "phase": "A:long-code:trial-1:direct",
+    "kind": "chat",
+    "latency_ms": 23723.87498199998,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 495,
+      "outputTokens": 2048,
+      "totalTokens": 2543,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 21,
+    "phase": "A:long-code:trial-1:production-character",
+    "kind": "chat",
+    "latency_ms": 2183.7287249999936,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 920,
+      "outputTokens": 18,
+      "totalTokens": 938,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 22,
+    "phase": "A:long-code:trial-1:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 21505.366781999997,
+    "error": {
+      "name": "ProviderError",
+      "code": "MALFORMED_RESPONSE"
+    },
+    "reported_usage": null,
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 23,
+    "phase": "A:long-code:trial-1:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 31095.37337799999,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 315,
+      "outputTokens": 2048,
+      "totalTokens": 2363,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 24,
+    "phase": "A:history-correction:trial-2:direct",
+    "kind": "chat",
+    "latency_ms": 1019.236699000001,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 611,
+      "outputTokens": 28,
+      "totalTokens": 639,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 25,
+    "phase": "A:history-correction:trial-2:production-character",
+    "kind": "chat",
+    "latency_ms": 1247.1730149999785,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1213,
+      "outputTokens": 18,
+      "totalTokens": 1231,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 26,
+    "phase": "A:history-correction:trial-2:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 2964.435994999978,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 815,
+      "outputTokens": 27,
+      "totalTokens": 842,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 27,
+    "phase": "A:history-correction:trial-2:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 1625.3768379999965,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 556,
+      "outputTokens": 33,
+      "totalTokens": 589,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 28,
+    "phase": "A:negation-quotation:trial-2:direct",
+    "kind": "chat",
+    "latency_ms": 8027.20893600001,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 451,
+      "outputTokens": 312,
+      "totalTokens": 763,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 29,
+    "phase": "A:negation-quotation:trial-2:production-character",
+    "kind": "chat",
+    "latency_ms": 763.3995780000114,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 876,
+      "outputTokens": 18,
+      "totalTokens": 894,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 30,
+    "phase": "A:negation-quotation:trial-2:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 9384.08415499999,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 478,
+      "outputTokens": 351,
+      "totalTokens": 829,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 31,
+    "phase": "A:negation-quotation:trial-2:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 8830.774883000006,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 271,
+      "outputTokens": 413,
+      "totalTokens": 684,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 32,
+    "phase": "A:long-code:trial-2:direct",
+    "kind": "chat",
+    "latency_ms": 25076.755468000018,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 495,
+      "outputTokens": 2048,
+      "totalTokens": 2543,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 33,
+    "phase": "A:long-code:trial-2:production-character",
+    "kind": "chat",
+    "latency_ms": 3236.1436720000347,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 920,
+      "outputTokens": 18,
+      "totalTokens": 938,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 34,
+    "phase": "A:long-code:trial-2:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 22676.767914999975,
+    "error": {
+      "name": "ProviderError",
+      "code": "MALFORMED_RESPONSE"
+    },
+    "reported_usage": null,
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before",
+    "index": 35,
+    "phase": "A:long-code:trial-2:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 23259.446865999955,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 315,
+      "outputTokens": 2048,
+      "totalTokens": 2363,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-before-invalid-concurrent",
+    "index": 0,
+    "phase": "A:history-correction:trial-0:direct",
+    "kind": "chat",
+    "latency_ms": 3270.4735450000003,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 611,
+      "outputTokens": 28,
+      "totalTokens": 639,
+      "cachedInputTokens": 512
+    },
+    "run_status": "INCOMPLETE"
+  },
+  {
+    "run": "controlled-before-invalid-concurrent",
+    "index": 1,
+    "phase": "A:history-correction:trial-0:production-character",
+    "kind": "chat",
+    "latency_ms": 3369.3302049999998,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1213,
+      "outputTokens": 18,
+      "totalTokens": 1231,
+      "cachedInputTokens": 512
+    },
+    "run_status": "INCOMPLETE"
+  },
+  {
+    "run": "controlled-before-invalid-concurrent",
+    "index": 2,
+    "phase": "A:history-correction:trial-0:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 1496.4099119999992,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 815,
+      "outputTokens": 26,
+      "totalTokens": 841,
+      "cachedInputTokens": 0
+    },
+    "run_status": "INCOMPLETE"
+  },
+  {
+    "run": "controlled-before-invalid-concurrent",
+    "index": 3,
+    "phase": "A:history-correction:trial-0:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 1483.4336459999995,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 557,
+      "outputTokens": 33,
+      "totalTokens": 590,
+      "cachedInputTokens": 0
+    },
+    "run_status": "INCOMPLETE"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 0,
+    "phase": "A:history-correction:trial-0:direct",
+    "kind": "chat",
+    "latency_ms": 5366.540902999999,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 611,
+      "outputTokens": 31,
+      "totalTokens": 642,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 1,
+    "phase": "A:history-correction:trial-0:production-character",
+    "kind": "chat",
+    "latency_ms": 1115.4931639999995,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1210,
+      "outputTokens": 18,
+      "totalTokens": 1228,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 2,
+    "phase": "A:history-correction:trial-0:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 1514.3735270000006,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 812,
+      "outputTokens": 27,
+      "totalTokens": 839,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 3,
+    "phase": "A:history-correction:trial-0:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 1040.224983,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 553,
+      "outputTokens": 33,
+      "totalTokens": 586,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 4,
+    "phase": "A:negation-quotation:trial-0:direct",
+    "kind": "chat",
+    "latency_ms": 10115.444036999997,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 451,
+      "outputTokens": 251,
+      "totalTokens": 702,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 5,
+    "phase": "A:negation-quotation:trial-0:production-character",
+    "kind": "chat",
+    "latency_ms": 992.5416360000017,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 876,
+      "outputTokens": 18,
+      "totalTokens": 894,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 6,
+    "phase": "A:negation-quotation:trial-0:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 7719.633027,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 478,
+      "outputTokens": 450,
+      "totalTokens": 928,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 7,
+    "phase": "A:negation-quotation:trial-0:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 10401.495276999998,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 271,
+      "outputTokens": 559,
+      "totalTokens": 830,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 8,
+    "phase": "A:long-code:trial-0:direct",
+    "kind": "chat",
+    "latency_ms": 25188.817538999996,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 495,
+      "outputTokens": 2048,
+      "totalTokens": 2543,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 9,
+    "phase": "A:long-code:trial-0:production-character",
+    "kind": "chat",
+    "latency_ms": 771.0477689999971,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 920,
+      "outputTokens": 18,
+      "totalTokens": 938,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 10,
+    "phase": "A:long-code:trial-0:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 20835.624355,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 522,
+      "outputTokens": 2048,
+      "totalTokens": 2570,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 11,
+    "phase": "A:long-code:trial-0:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 25287.938616999993,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 315,
+      "outputTokens": 2048,
+      "totalTokens": 2363,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 12,
+    "phase": "A:history-correction:trial-1:direct",
+    "kind": "chat",
+    "latency_ms": 3280.4875950000132,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 611,
+      "outputTokens": 36,
+      "totalTokens": 647,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 13,
+    "phase": "A:history-correction:trial-1:production-character",
+    "kind": "chat",
+    "latency_ms": 1840.1583759999921,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1213,
+      "outputTokens": 18,
+      "totalTokens": 1231,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 14,
+    "phase": "A:history-correction:trial-1:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 2214.7943499999965,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 815,
+      "outputTokens": 27,
+      "totalTokens": 842,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 15,
+    "phase": "A:history-correction:trial-1:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 1513.0542690000002,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 555,
+      "outputTokens": 29,
+      "totalTokens": 584,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 16,
+    "phase": "A:negation-quotation:trial-1:direct",
+    "kind": "chat",
+    "latency_ms": 6480.484205000001,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 451,
+      "outputTokens": 215,
+      "totalTokens": 666,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 17,
+    "phase": "A:negation-quotation:trial-1:production-character",
+    "kind": "chat",
+    "latency_ms": 3063.068843999994,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 876,
+      "outputTokens": 18,
+      "totalTokens": 894,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 18,
+    "phase": "A:negation-quotation:trial-1:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 13100.043352000008,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 478,
+      "outputTokens": 477,
+      "totalTokens": 955,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 19,
+    "phase": "A:negation-quotation:trial-1:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 12597.561434000003,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 271,
+      "outputTokens": 400,
+      "totalTokens": 671,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 20,
+    "phase": "A:long-code:trial-1:direct",
+    "kind": "chat",
+    "latency_ms": 27503.759412999992,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 495,
+      "outputTokens": 2048,
+      "totalTokens": 2543,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 21,
+    "phase": "A:long-code:trial-1:production-character",
+    "kind": "chat",
+    "latency_ms": 3101.9920600000187,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 920,
+      "outputTokens": 18,
+      "totalTokens": 938,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 22,
+    "phase": "A:long-code:trial-1:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 32725.4344,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 522,
+      "outputTokens": 2048,
+      "totalTokens": 2570,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 23,
+    "phase": "A:long-code:trial-1:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 29936.218120000005,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 315,
+      "outputTokens": 2048,
+      "totalTokens": 2363,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 24,
+    "phase": "A:history-correction:trial-2:direct",
+    "kind": "chat",
+    "latency_ms": 9183.317228,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 611,
+      "outputTokens": 28,
+      "totalTokens": 639,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 25,
+    "phase": "A:history-correction:trial-2:production-character",
+    "kind": "chat",
+    "latency_ms": 1502.5416569999943,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1211,
+      "outputTokens": 18,
+      "totalTokens": 1229,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 26,
+    "phase": "A:history-correction:trial-2:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 3074.2917029999953,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 813,
+      "outputTokens": 30,
+      "totalTokens": 843,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 27,
+    "phase": "A:history-correction:trial-2:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 2059.5722449999885,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 560,
+      "outputTokens": 33,
+      "totalTokens": 593,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 28,
+    "phase": "A:negation-quotation:trial-2:direct",
+    "kind": "chat",
+    "latency_ms": 10440.729730000021,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 451,
+      "outputTokens": 416,
+      "totalTokens": 867,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 29,
+    "phase": "A:negation-quotation:trial-2:production-character",
+    "kind": "chat",
+    "latency_ms": 4189.138451999985,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 876,
+      "outputTokens": 18,
+      "totalTokens": 894,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 30,
+    "phase": "A:negation-quotation:trial-2:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 16988.013280000014,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 478,
+      "outputTokens": 476,
+      "totalTokens": 954,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 31,
+    "phase": "A:negation-quotation:trial-2:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 8181.813862999959,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 271,
+      "outputTokens": 423,
+      "totalTokens": 694,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 32,
+    "phase": "A:long-code:trial-2:direct",
+    "kind": "chat",
+    "latency_ms": 21902.793758000014,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 495,
+      "outputTokens": 2048,
+      "totalTokens": 2543,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 33,
+    "phase": "A:long-code:trial-2:production-character",
+    "kind": "chat",
+    "latency_ms": 1961.7097369999974,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 920,
+      "outputTokens": 18,
+      "totalTokens": 938,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 34,
+    "phase": "A:long-code:trial-2:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 20702.010924000002,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 522,
+      "outputTokens": 2048,
+      "totalTokens": 2570,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "controlled-heartbeat-fixed",
+    "index": 35,
+    "phase": "A:long-code:trial-2:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 27065.887167999987,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 315,
+      "outputTokens": 2048,
+      "totalTokens": 2363,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files",
+    "index": 0,
+    "phase": "B:256:direct-no-observation",
+    "kind": "chat",
+    "latency_ms": 7607.4184589999995,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 441,
+      "outputTokens": 45,
+      "totalTokens": 486,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files",
+    "index": 1,
+    "phase": "B:256:direct-full",
+    "kind": "chat",
+    "latency_ms": 1523.7520540000005,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 497,
+      "outputTokens": 56,
+      "totalTokens": 553,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files",
+    "index": 2,
+    "phase": "B:256:production-cognition",
+    "kind": "reasoning",
+    "latency_ms": 1573.8908599999995,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 226,
+      "outputTokens": 26,
+      "totalTokens": 252,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files",
+    "index": 3,
+    "phase": "B:16001:direct-no-observation",
+    "kind": "chat",
+    "latency_ms": 2615.8804119999986,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 441,
+      "outputTokens": 47,
+      "totalTokens": 488,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files",
+    "index": 4,
+    "phase": "B:16001:direct-full",
+    "kind": "chat",
+    "latency_ms": 2782.6673939999982,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 2461,
+      "outputTokens": 36,
+      "totalTokens": 2497,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files",
+    "index": 5,
+    "phase": "B:16001:production-cognition",
+    "kind": "reasoning",
+    "latency_ms": 1738.5572299999985,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 226,
+      "outputTokens": 63,
+      "totalTokens": 289,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-canonical",
+    "index": 0,
+    "phase": "B:256:direct-no-observation",
+    "kind": "chat",
+    "latency_ms": 6372.6037670000005,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 441,
+      "outputTokens": 44,
+      "totalTokens": 485,
+      "cachedInputTokens": 256
+    },
+    "run_status": "INCOMPLETE"
+  },
+  {
+    "run": "durable-files-canonical",
+    "index": 1,
+    "phase": "B:256:direct-full",
+    "kind": "chat",
+    "latency_ms": 60006.127871000004,
+    "error": {
+      "name": "ProviderError",
+      "code": "TIMEOUT"
+    },
+    "reported_usage": null,
+    "run_status": "INCOMPLETE"
+  },
+  {
+    "run": "durable-files-canonical-retry",
+    "index": 0,
+    "phase": "B:256:direct-no-observation",
+    "kind": "chat",
+    "latency_ms": 3819.944734,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 441,
+      "outputTokens": 42,
+      "totalTokens": 483,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-canonical-retry",
+    "index": 1,
+    "phase": "B:256:direct-full",
+    "kind": "chat",
+    "latency_ms": 1149.9776010000005,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 494,
+      "outputTokens": 57,
+      "totalTokens": 551,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-canonical-retry",
+    "index": 2,
+    "phase": "B:256:production-cognition",
+    "kind": "reasoning",
+    "latency_ms": 1826.3910619999997,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 756,
+      "outputTokens": 37,
+      "totalTokens": 793,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-canonical-retry",
+    "index": 3,
+    "phase": "B:16001:direct-no-observation",
+    "kind": "chat",
+    "latency_ms": 1225.0392180000008,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 441,
+      "outputTokens": 39,
+      "totalTokens": 480,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-canonical-retry",
+    "index": 4,
+    "phase": "B:16001:direct-full",
+    "kind": "chat",
+    "latency_ms": 1669.5233720000006,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 2465,
+      "outputTokens": 38,
+      "totalTokens": 2503,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-canonical-retry",
+    "index": 5,
+    "phase": "B:16001:production-cognition",
+    "kind": "reasoning",
+    "latency_ms": 1409.2436880000005,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 756,
+      "outputTokens": 29,
+      "totalTokens": 785,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-glm",
+    "index": 0,
+    "phase": "B:256:direct-no-observation",
+    "kind": "chat",
+    "latency_ms": 7544.381514,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 452,
+      "outputTokens": 60,
+      "totalTokens": 512,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-glm",
+    "index": 1,
+    "phase": "B:256:direct-full",
+    "kind": "chat",
+    "latency_ms": 12132.312643,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 505,
+      "outputTokens": 135,
+      "totalTokens": 640,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-glm",
+    "index": 2,
+    "phase": "B:256:production-cognition",
+    "kind": "reasoning",
+    "latency_ms": 1843.6118999999999,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 738,
+      "outputTokens": 42,
+      "totalTokens": 780,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-glm",
+    "index": 3,
+    "phase": "B:256:production-cognition",
+    "kind": "reasoning",
+    "latency_ms": 4624.135966000002,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 841,
+      "outputTokens": 84,
+      "totalTokens": 925,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-glm",
+    "index": 4,
+    "phase": "B:16001:direct-no-observation",
+    "kind": "chat",
+    "latency_ms": 10253.713307999999,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 452,
+      "outputTokens": 81,
+      "totalTokens": 533,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-glm",
+    "index": 5,
+    "phase": "B:16001:direct-full",
+    "kind": "chat",
+    "latency_ms": 9087.210080999997,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 2475,
+      "outputTokens": 155,
+      "totalTokens": 2630,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-glm",
+    "index": 6,
+    "phase": "B:16001:production-cognition",
+    "kind": "reasoning",
+    "latency_ms": 1756.5535519999976,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 738,
+      "outputTokens": 40,
+      "totalTokens": 778,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-glm",
+    "index": 7,
+    "phase": "B:16001:production-cognition",
+    "kind": "reasoning",
+    "latency_ms": 8414.526748999997,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 2856,
+      "outputTokens": 170,
+      "totalTokens": 3026,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-glm-repeat",
+    "index": 0,
+    "phase": "B:256:direct-no-observation",
+    "kind": "chat",
+    "latency_ms": 7113.192473,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 452,
+      "outputTokens": 58,
+      "totalTokens": 510,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-glm-repeat",
+    "index": 1,
+    "phase": "B:256:direct-full",
+    "kind": "chat",
+    "latency_ms": 7854.955451000001,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 503,
+      "outputTokens": 150,
+      "totalTokens": 653,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-glm-repeat",
+    "index": 2,
+    "phase": "B:256:production-cognition",
+    "kind": "reasoning",
+    "latency_ms": 6000.309803,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 738,
+      "outputTokens": 40,
+      "totalTokens": 778,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-glm-repeat",
+    "index": 3,
+    "phase": "B:256:production-cognition",
+    "kind": "reasoning",
+    "latency_ms": 3534.654179000001,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 841,
+      "outputTokens": 61,
+      "totalTokens": 902,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-glm-repeat",
+    "index": 4,
+    "phase": "B:256:direct-no-observation",
+    "kind": "chat",
+    "latency_ms": 5219.528243000001,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 452,
+      "outputTokens": 110,
+      "totalTokens": 562,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-glm-repeat",
+    "index": 5,
+    "phase": "B:256:direct-full",
+    "kind": "chat",
+    "latency_ms": 5738.536321000003,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 505,
+      "outputTokens": 143,
+      "totalTokens": 648,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-glm-repeat",
+    "index": 6,
+    "phase": "B:256:production-cognition",
+    "kind": "reasoning",
+    "latency_ms": 2701.8361680000016,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 738,
+      "outputTokens": 38,
+      "totalTokens": 776,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "durable-files-glm-repeat",
+    "index": 7,
+    "phase": "B:256:production-cognition",
+    "kind": "reasoning",
+    "latency_ms": 4750.154029999998,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 841,
+      "outputTokens": 84,
+      "totalTokens": 925,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "harness-before-invalid-concurrent",
+    "index": 0,
+    "phase": "A:history-correction:trial-0:direct",
+    "kind": "chat",
+    "latency_ms": 5164.624969,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 611,
+      "outputTokens": 28,
+      "totalTokens": 639,
+      "cachedInputTokens": 0
+    },
+    "run_status": "INCOMPLETE"
+  },
+  {
+    "run": "harness-before-invalid-concurrent",
+    "index": 1,
+    "phase": "A:history-correction:trial-0:production-character",
+    "kind": "chat",
+    "latency_ms": 1604.8593310000006,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1216,
+      "outputTokens": 18,
+      "totalTokens": 1234,
+      "cachedInputTokens": 512
+    },
+    "run_status": "INCOMPLETE"
+  },
+  {
+    "run": "harness-before-invalid-concurrent",
+    "index": 2,
+    "phase": "A:history-correction:trial-0:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 1233.685711,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 818,
+      "outputTokens": 24,
+      "totalTokens": 842,
+      "cachedInputTokens": 0
+    },
+    "run_status": "INCOMPLETE"
+  },
+  {
+    "run": "harness-before-invalid-concurrent",
+    "index": 3,
+    "phase": "A:history-correction:trial-0:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 1329.888594,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 558,
+      "outputTokens": 29,
+      "totalTokens": 587,
+      "cachedInputTokens": 0
+    },
+    "run_status": "INCOMPLETE"
+  },
+  {
+    "run": "harness-before-invalid-concurrent",
+    "index": 4,
+    "phase": "A:negation-quotation:trial-0:direct",
+    "kind": "chat",
+    "latency_ms": 9271.156534,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 451,
+      "outputTokens": 402,
+      "totalTokens": 853,
+      "cachedInputTokens": 256
+    },
+    "run_status": "INCOMPLETE"
+  },
+  {
+    "run": "harness-before-invalid-concurrent",
+    "index": 5,
+    "phase": "A:negation-quotation:trial-0:production-character",
+    "kind": "chat",
+    "latency_ms": 1599.2692910000005,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 876,
+      "outputTokens": 18,
+      "totalTokens": 894,
+      "cachedInputTokens": 0
+    },
+    "run_status": "INCOMPLETE"
+  },
+  {
+    "run": "harness-before-invalid-concurrent",
+    "index": 6,
+    "phase": "A:negation-quotation:trial-0:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 15345.357788000001,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 478,
+      "outputTokens": 429,
+      "totalTokens": 907,
+      "cachedInputTokens": 0
+    },
+    "run_status": "INCOMPLETE"
+  },
+  {
+    "run": "harness-before-invalid-concurrent",
+    "index": 7,
+    "phase": "A:negation-quotation:trial-0:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 11589.078617,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 271,
+      "outputTokens": 561,
+      "totalTokens": 832,
+      "cachedInputTokens": 0
+    },
+    "run_status": "INCOMPLETE"
+  },
+  {
+    "run": "length-after",
+    "index": 0,
+    "phase": "A:long-code:trial-0:direct",
+    "kind": "chat",
+    "latency_ms": 17707.727433,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 495,
+      "outputTokens": 2048,
+      "totalTokens": 2543,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "length-after",
+    "index": 1,
+    "phase": "A:long-code:trial-0:production-character",
+    "kind": "chat",
+    "latency_ms": 1875.7527719999998,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 920,
+      "outputTokens": 18,
+      "totalTokens": 938,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "length-after",
+    "index": 2,
+    "phase": "A:long-code:trial-0:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 21993.93132,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 522,
+      "outputTokens": 2048,
+      "totalTokens": 2570,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "length-after",
+    "index": 3,
+    "phase": "A:long-code:trial-0:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 17013.365647,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 315,
+      "outputTokens": 2048,
+      "totalTokens": 2363,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "length-after",
+    "index": 4,
+    "phase": "A:long-code:trial-1:direct",
+    "kind": "chat",
+    "latency_ms": 13995.310245000008,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 495,
+      "outputTokens": 2048,
+      "totalTokens": 2543,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "length-after",
+    "index": 5,
+    "phase": "A:long-code:trial-1:production-character",
+    "kind": "chat",
+    "latency_ms": 933.7306090000056,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 920,
+      "outputTokens": 18,
+      "totalTokens": 938,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "length-after",
+    "index": 6,
+    "phase": "A:long-code:trial-1:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 20187.90377199999,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 522,
+      "outputTokens": 2048,
+      "totalTokens": 2570,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "length-after",
+    "index": 7,
+    "phase": "A:long-code:trial-1:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 14130.829234999997,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 315,
+      "outputTokens": 2048,
+      "totalTokens": 2363,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "length-after",
+    "index": 8,
+    "phase": "A:long-code:trial-2:direct",
+    "kind": "chat",
+    "latency_ms": 14327.032758000001,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 495,
+      "outputTokens": 2048,
+      "totalTokens": 2543,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "length-after",
+    "index": 9,
+    "phase": "A:long-code:trial-2:production-character",
+    "kind": "chat",
+    "latency_ms": 1529.0716409999877,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 920,
+      "outputTokens": 18,
+      "totalTokens": 938,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "length-after",
+    "index": 10,
+    "phase": "A:long-code:trial-2:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 19196.560440999994,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 522,
+      "outputTokens": 2048,
+      "totalTokens": 2570,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "length-after",
+    "index": 11,
+    "phase": "A:long-code:trial-2:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 24680.299211000005,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 315,
+      "outputTokens": 2048,
+      "totalTokens": 2363,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-after",
+    "index": 0,
+    "phase": "A:published-answer-tail:trial-0:direct",
+    "kind": "chat",
+    "latency_ms": 10631.048737000001,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1316,
+      "outputTokens": 17,
+      "totalTokens": 1333,
+      "cachedInputTokens": 1024
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-after",
+    "index": 1,
+    "phase": "A:published-answer-tail:trial-0:production-character",
+    "kind": "chat",
+    "latency_ms": 3734.877452999999,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1789,
+      "outputTokens": 18,
+      "totalTokens": 1807,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-after",
+    "index": 2,
+    "phase": "A:published-answer-tail:trial-0:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 2600.5159749999984,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1391,
+      "outputTokens": 17,
+      "totalTokens": 1408,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-after",
+    "index": 3,
+    "phase": "A:published-answer-tail:trial-0:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 1686.5716219999995,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1162,
+      "outputTokens": 19,
+      "totalTokens": 1181,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-after",
+    "index": 4,
+    "phase": "A:published-answer-tail:trial-1:direct",
+    "kind": "chat",
+    "latency_ms": 1371.287306000002,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1316,
+      "outputTokens": 17,
+      "totalTokens": 1333,
+      "cachedInputTokens": 1024
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-after",
+    "index": 5,
+    "phase": "A:published-answer-tail:trial-1:production-character",
+    "kind": "chat",
+    "latency_ms": 1352.3930179999988,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1789,
+      "outputTokens": 18,
+      "totalTokens": 1807,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-after",
+    "index": 6,
+    "phase": "A:published-answer-tail:trial-1:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 1890.9083269999974,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1391,
+      "outputTokens": 17,
+      "totalTokens": 1408,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-after",
+    "index": 7,
+    "phase": "A:published-answer-tail:trial-1:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 1647.4283670000004,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1162,
+      "outputTokens": 19,
+      "totalTokens": 1181,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-after",
+    "index": 8,
+    "phase": "A:published-answer-tail:trial-2:direct",
+    "kind": "chat",
+    "latency_ms": 5313.751471,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1316,
+      "outputTokens": 17,
+      "totalTokens": 1333,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-after",
+    "index": 9,
+    "phase": "A:published-answer-tail:trial-2:production-character",
+    "kind": "chat",
+    "latency_ms": 14338.542610999997,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1791,
+      "outputTokens": 18,
+      "totalTokens": 1809,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-after",
+    "index": 10,
+    "phase": "A:published-answer-tail:trial-2:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 3476.943324,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1393,
+      "outputTokens": 19,
+      "totalTokens": 1412,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-after",
+    "index": 11,
+    "phase": "A:published-answer-tail:trial-2:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 2476.048256000002,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1161,
+      "outputTokens": 19,
+      "totalTokens": 1180,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-before",
+    "index": 0,
+    "phase": "A:published-answer-tail:trial-0:direct",
+    "kind": "chat",
+    "latency_ms": 2571.270545,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1316,
+      "outputTokens": 17,
+      "totalTokens": 1333,
+      "cachedInputTokens": 256
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-before",
+    "index": 1,
+    "phase": "A:published-answer-tail:trial-0:production-character",
+    "kind": "chat",
+    "latency_ms": 2082.232842,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1247,
+      "outputTokens": 18,
+      "totalTokens": 1265,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-before",
+    "index": 2,
+    "phase": "A:published-answer-tail:trial-0:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 1234.8383489999997,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 849,
+      "outputTokens": 27,
+      "totalTokens": 876,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-before",
+    "index": 3,
+    "phase": "A:published-answer-tail:trial-0:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 2651.5865489999996,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 620,
+      "outputTokens": 54,
+      "totalTokens": 674,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-before",
+    "index": 4,
+    "phase": "A:published-answer-tail:trial-1:direct",
+    "kind": "chat",
+    "latency_ms": 2517.9261339999994,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1316,
+      "outputTokens": 17,
+      "totalTokens": 1333,
+      "cachedInputTokens": 1024
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-before",
+    "index": 5,
+    "phase": "A:published-answer-tail:trial-1:production-character",
+    "kind": "chat",
+    "latency_ms": 1794.0746640000016,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1247,
+      "outputTokens": 18,
+      "totalTokens": 1265,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-before",
+    "index": 6,
+    "phase": "A:published-answer-tail:trial-1:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 1258.9145449999996,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 849,
+      "outputTokens": 26,
+      "totalTokens": 875,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-before",
+    "index": 7,
+    "phase": "A:published-answer-tail:trial-1:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 1879.1773060000014,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 621,
+      "outputTokens": 42,
+      "totalTokens": 663,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-before",
+    "index": 8,
+    "phase": "A:published-answer-tail:trial-2:direct",
+    "kind": "chat",
+    "latency_ms": 1132.3712240000004,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1316,
+      "outputTokens": 17,
+      "totalTokens": 1333,
+      "cachedInputTokens": 1024
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-before",
+    "index": 9,
+    "phase": "A:published-answer-tail:trial-2:production-character",
+    "kind": "chat",
+    "latency_ms": 1305.784716000002,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 1245,
+      "outputTokens": 18,
+      "totalTokens": 1263,
+      "cachedInputTokens": 512
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-before",
+    "index": 10,
+    "phase": "A:published-answer-tail:trial-2:production-character",
+    "kind": "chat-stream",
+    "latency_ms": 1120.0768319999988,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 847,
+      "outputTokens": 33,
+      "totalTokens": 880,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  },
+  {
+    "run": "tail-before",
+    "index": 11,
+    "phase": "A:published-answer-tail:trial-2:counterfactual-without-character-gate",
+    "kind": "chat",
+    "latency_ms": 1743.2400660000021,
+    "error": null,
+    "reported_usage": {
+      "inputTokens": 622,
+      "outputTokens": 55,
+      "totalTokens": 677,
+      "cachedInputTokens": 0
+    },
+    "run_status": "LIVE_RUN_COMPLETE_UNRATED"
+  }
+]
