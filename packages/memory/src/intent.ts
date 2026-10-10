@@ -43,36 +43,12 @@ export function stripExplicitRememberPrefix(text: string): string {
     .trim();
 }
 
-const explicitForgetPatterns: RegExp[] = [
-  /(?:^|[，,。！!？?\s])请?忘记/u,
-  /(?:^|[，,。！!？?\s])忘掉/u,
-  /帮我忘记/u,
-  /不要再记住/u,
-  /删掉.*记忆/u,
-  /删除.*记忆/u,
-  /\bplease\s+forget\b/iu,
-  /\bforget\s+that\b/iu,
-  /\bforget\b[,:]?\s+(?:that\s+)?/iu,
-  /\bdon'?t\s+remember\b/iu,
-  /\bdelete\s+(?:that\s+)?memory\b/iu
-];
-
-const explicitForgetFalsePositivePatterns: RegExp[] = [
-  /忘记带/u,
-  /忘了带/u,
-  /差点儿忘记/u,
-  /almost\s+forgot\b/iu
-];
-
-export function detectExplicitForgetRequest(userMessage: string): boolean {
-  const text = normalizeIntentInput(userMessage);
-  if (!text) {
-    return false;
-  }
-  if (explicitForgetFalsePositivePatterns.some((pattern) => pattern.test(text))) {
-    return false;
-  }
-  return explicitForgetPatterns.some((pattern) => pattern.test(text));
+/**
+ * Natural-language text is not authority for destructive Memory operations.
+ * Kept as a compatibility export; use explicit, scoped management commands.
+ */
+export function detectExplicitForgetRequest(_userMessage: string): boolean {
+  return false;
 }
 
 export function stripExplicitForgetPrefix(text: string): string {

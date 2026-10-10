@@ -4,10 +4,7 @@
  */
 
 import type { MemoryBackend, MemorySearchResult } from "./backend.js";
-import {
-  detectExplicitForgetRequest,
-  detectExplicitRememberRequest
-} from "./intent.js";
+import { detectExplicitForgetRequest, detectExplicitRememberRequest } from "./intent.js";
 import { buildMemoryScope } from "./scope.js";
 import type { Memory, MemoryRetrievalResult, RetrievedMemoryDebug } from "./types.js";
 
@@ -270,6 +267,16 @@ export function buildMem0RetrievalResult(
 }
 
 export type ForgetMemoriesResult = {
+  status:
+    | "DELETED"
+    | "NOT_FOUND"
+    | "FAILED"
+    | "PARTIAL"
+    | "UNKNOWN"
+    | "CANCELLED"
+    | "CONFIRMATION_REQUIRED"
+    | "SCOPE_REQUIRED";
+  unknownMemoryIds?: string[];
   deleted: number;
   notFound: boolean;
   memoryIds: string[];
@@ -287,71 +294,72 @@ export async function forgetMemoriesInScope(
   }
 ): Promise<ForgetMemoriesResult> {
   const query = input.query.trim();
-  if (!query) {
-    return { deleted: 0, notFound: true, memoryIds: [], query };
-  }
-  let hits = await backend.search(
-    {
-      scope: input.scope,
-      query,
-      limit: MEM0_CHAT_SEARCH_TOP_K
-    },
-    input.signal
-  );
+  const result = (
+    status: ForgetMemoriesResult["status"],
+    memoryIds: string[] = [],
+    unknownMemoryIds: string[] = []
+  ): ForgetMemoriesResult => ({
+    status,
+    deleted: memoryIds.length,
+    notFound: status === "NOT_FOUND",
+    memoryIds,
+    query,
+    ...(unknownMemoryIds.length ? { unknownMemoryIds } : {})
+  });
+  if (!query || !input.scope.trim()) return result("FAILED");
+  if (input.signal?.aborted) return result("CANCELLED");
   const queryTokens = tokenizeForForget(query);
-  // Content overlap is the only hard gate for explicit forget.
-  // Mem0/pgvector scores can be near-zero for strong exact hits (distance-like
-  // or poorly calibrated cosine), so minScore must not block deletions when
-  // content clearly matches the forget query.
-  let candidates = dedupeSearchResults(hits).filter((item) =>
-    contentOverlapsQuery(item.content, queryTokens)
-  );
-  // Fallback: list scope and content-filter when vector search misses exact facts.
-  if (candidates.length === 0) {
-    try {
-      const listed = await backend.list(
-        { scope: input.scope, limit: 50, offset: 0 },
-        input.signal
-      );
+  let candidates: MemorySearchResult[];
+  try {
+    const hits = await backend.search(
+      { scope: input.scope, query, limit: MEM0_CHAT_SEARCH_TOP_K },
+      input.signal
+    );
+    candidates = dedupeSearchResults(hits).filter(
+      (item) => item.scope === input.scope && contentOverlapsQuery(item.content, queryTokens)
+    );
+    if (candidates.length === 0) {
+      const listed = await backend.list({ scope: input.scope, limit: 50, offset: 0 }, input.signal);
       candidates = dedupeSearchResults(
-        (listed.items ?? []).map((item) => ({
-          id: item.id,
-          content: item.content,
-          scope: item.scope,
-          metadata: item.metadata ?? {},
-          // list has no score; treat as neutral so ranking falls to overlap
-          score: 0.5
-        }))
-      ).filter((item) => contentOverlapsQuery(item.content, queryTokens));
-    } catch {
-      // keep empty candidates
+        listed.items.map((item) => ({ ...item, score: item.score ?? 0.5 }))
+      ).filter(
+        (item) => item.scope === input.scope && contentOverlapsQuery(item.content, queryTokens)
+      );
     }
+  } catch {
+    return result(input.signal?.aborted ? "CANCELLED" : "FAILED");
   }
-  const maxDelete = input.maxDelete ?? MEM0_FORGET_MAX_DELETE;
+  if (input.signal?.aborted) return result("CANCELLED");
   candidates = candidates
-    .sort((a, b) => {
-      const oa = overlapCount(a.content, queryTokens);
-      const ob = overlapCount(b.content, queryTokens);
-      if (ob !== oa) return ob - oa;
-      return (b.score ?? 0) - (a.score ?? 0);
-    })
-    .slice(0, maxDelete);
-
-  const deletedIds: string[] = [];
+    .sort(
+      (a, b) =>
+        overlapCount(b.content, queryTokens) - overlapCount(a.content, queryTokens) ||
+        (b.score ?? 0) - (a.score ?? 0)
+    )
+    .slice(0, input.maxDelete ?? MEM0_FORGET_MAX_DELETE);
+  if (!candidates.length) return result("NOT_FOUND");
+  const deletedIds: string[] = [],
+    unknownIds: string[] = [];
   for (const item of candidates) {
+    if (input.signal?.aborted)
+      return result(
+        deletedIds.length || unknownIds.length ? "PARTIAL" : "CANCELLED",
+        deletedIds,
+        unknownIds
+      );
     try {
       await backend.delete({ memoryId: item.id, scope: input.scope }, input.signal);
       deletedIds.push(item.id);
     } catch {
-      // Continue deleting remaining candidates.
+      // Transport failure cannot prove that a dispatched delete did not happen.
+      unknownIds.push(item.id);
     }
   }
-  return {
-    deleted: deletedIds.length,
-    notFound: deletedIds.length === 0,
-    memoryIds: deletedIds,
-    query
-  };
+  return result(
+    unknownIds.length ? (deletedIds.length ? "PARTIAL" : "UNKNOWN") : "DELETED",
+    deletedIds,
+    unknownIds
+  );
 }
 
 function clamp01(value: number): number {
