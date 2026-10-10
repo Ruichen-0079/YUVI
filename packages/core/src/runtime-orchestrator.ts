@@ -3711,32 +3711,6 @@ export class RuntimeOrchestrator {
       text: event.payload.content,
       sourceTraceId: event.traceId
     });
-    // Explicit forget runs before search so deleted facts are not re-injected.
-    let forgetNote: string | undefined;
-    if (
-      memoryOptions.writeMemory &&
-      this.options.memory.isMem0Backend?.() &&
-      this.options.memory.forgetExplicitMemory &&
-      detectExplicitForgetRequest(event.payload.content)
-    ) {
-      try {
-        const forget = await this.options.memory.forgetExplicitMemory({
-          userMessage: event.payload.content,
-          personaId: event.payload.personaId,
-          subjectUserId: event.payload.subjectUserId
-        });
-        forgetNote = forget.notFound
-          ? "The user asked to forget something, but no matching memory was found in this scope."
-          : `The user asked to forget something; deleted ${forget.deleted} related memor${forget.deleted === 1 ? "y" : "ies"} in the current scope only.`;
-      } catch (error) {
-        this.options.logger?.warn?.(
-          "mem0 forget failed",
-          this.errorLogContext(error, event.traceId)
-        );
-        forgetNote =
-          "The user asked to forget something, but memory deletion failed; continue without claiming success.";
-      }
-    }
     const directContext = this.buildDirectContext(event.payload.sessionId);
     const memoryContext = memoryOptions.readMemory
       ? await this.retrieveMemories(event, {
@@ -3768,9 +3742,9 @@ export class RuntimeOrchestrator {
         ? "The user is interacting through voice."
         : "The user is interacting through text."
     ];
-    if (forgetNote) {
-      situationParts.push(forgetNote);
-    }
+    situationParts.push(
+      "Chat text is not memory-deletion authorization. Do not claim deletion without an explicit authorized operation result; use memory-management controls for selected records."
+    );
     const prompt = this.options.promptBuilder.buildPrompt({
       maxCharacters: modelContextBudget(this.options.providers.getChatContextWindow?.())
         .maxInputCharacters,

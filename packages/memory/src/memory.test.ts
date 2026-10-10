@@ -120,13 +120,12 @@ describe("MemoryRepository", () => {
     expect(results.map((memory) => memory.content)).not.toContain("另一个用户喜欢深色主题。");
   });
 
-  it("detects CurrentAffect without storing one-off mood as long-term memory", async () => {
+  it("keeps the unreliable CurrentAffect heuristic disabled and never stores one-off mood", async () => {
     const affect = detectCurrentAffect({
       text: "这个报错我看不懂，快崩溃了",
       sourceTraceId: "trace-affect"
     });
-    expect(affect?.affectLabel).toBe("frustrated");
-    expect(affect?.sourceTraceId).toBe("trace-affect");
+    expect(affect).toBeNull();
 
     const repository = new InMemoryMemoryRepository();
     const service = new GroundedMemoryTestService(repository);

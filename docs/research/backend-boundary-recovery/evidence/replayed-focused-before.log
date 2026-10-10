@@ -1,0 +1,33 @@
+Preparing worktree (detached HEAD 0d894cc)
+HEAD is now at 0d894cc docs: publish reproducible partial backend completeness audit
+Scope: all 20 workspace projects
+✓ Lockfile passes supply-chain policies (verified 1d ago)
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +422
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Packages are hard linked from the content-addressable store to the virtual store.
+  Content-addressable store is at: /tmp/.pnpm-store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 422, reused 422, downloaded 0, added 422, done
+
+dependencies:
++ pg 8.20.0
+
+devDependencies:
++ @types/node 22.19.18
++ @yao-pkg/pkg 5.16.1
++ esbuild 0.25.12
++ prettier 3.8.3
++ tsx 4.21.0
++ typescript 5.9.3
++ vitest 2.1.9
+
+Done in 975ms using pnpm v11.19.0
+$ pnpm prepare:cubism-framework && pnpm check:host-environment && tsc -b --pretty false
+$ node scripts/prepare-cubism-framework.mjs
+[prepare-cubism-framework] Cubism Framework dist ready.
+$ node scripts/check-host-environment-safety.mjs
+Host environment safety check passed: no persistent shell target references an ephemeral path.
+JSON report written to /workspace/YUVI-boundary-recovery/evidence/replayed-focused-before.json
+{"version":"0d894cc70d42ebba0df132924f5ea181c062b431","mode":"before","testExitCode":1,"expectedFailure":true,"output":"/workspace/YUVI-boundary-recovery/evidence/replayed-focused-before.json","qualityEvidence":false}

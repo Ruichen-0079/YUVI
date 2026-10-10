@@ -123,7 +123,7 @@ describe("Mem0 turn classification and write routing", () => {
         userMessage: "忘记我喜欢科幻作品",
         assistantMessage: "已删除"
       })
-    ).toBe("explicit_forget");
+    ).toBe("normal");
     expect(
       classifyMem0Turn({
         userMessage: "hi",
@@ -151,11 +151,12 @@ describe("Mem0 turn classification and write routing", () => {
     expect(calls.add.some((c) => c.infer === true)).toBe(false);
   });
 
-  it("explicit forget never calls add", async () => {
+  it("a host-authored explicit_forget turn skips add, but conversational text cannot authorize deletion", async () => {
     const { backend, calls } = createCountingBackend();
     const service = serviceWith(backend);
     const write = await service.storeConversationTurn({
       userMessage: "忘记我喜欢科幻作品",
+      turnKind: "explicit_forget",
       assistantMessage: "好的",
       subjectUserId: "local-user",
       personaId: "lumi"
@@ -171,9 +172,9 @@ describe("Mem0 turn classification and write routing", () => {
       subjectUserId: "local-user",
       personaId: "lumi"
     });
-    expect(forget.deleted).toBe(1);
-    expect(calls.search).toBe(1);
-    expect(calls.delete).toBe(1);
+    expect(forget).toMatchObject({ status: "CONFIRMATION_REQUIRED", deleted: 0, notFound: false });
+    expect(calls.search).toBe(0);
+    expect(calls.delete).toBe(0);
     expect(calls.add).toHaveLength(0);
   });
 

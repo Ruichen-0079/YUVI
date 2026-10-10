@@ -1,0 +1,227 @@
+{
+  "baselineSHA": "0d894cc70d42ebba0df132924f5ea181c062b431",
+  "graphSourceSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4",
+  "reviewedProductionSHA": "7ea26d683c8e0a1001478014dac45e4b39b298d1",
+  "rawUniverse": {
+    "productionFiles": 702,
+    "A": 412,
+    "B": 1710,
+    "C": 1538,
+    "gaps": 3956
+  },
+  "originalIDsPreserved": true,
+  "oldGapDispositions": {
+    "PRESERVED_OPEN_GAP": 3956
+  },
+  "ledgerRows": 1043,
+  "classes": {
+    "CONFIRMED_PRODUCTION_CHAIN": 13,
+    "CONFIRMED_REGISTRATION": 79,
+    "PLATFORM_OR_SIDECAR_CANDIDATE": 52,
+    "RISK_CANDIDATE_REQUIRES_WIRING": 899
+  },
+  "conclusions": {
+    "MITIGATED": 7,
+    "OPEN_WITH_REASON": 1035,
+    "VERIFIED": 1
+  },
+  "sixRanges": {
+    "EXTERNAL_ENTRY": {
+      "indexed": 135,
+      "confirmedRegistrationsOrReviewedChains": 83,
+      "confirmedConclusions": {
+        "MITIGATED": 2,
+        "OPEN_WITH_REASON": 80,
+        "VERIFIED": 1
+      },
+      "wiringUnresolvedCandidates": 52,
+      "completeEnumeration": false
+    },
+    "MODEL_IO": {
+      "indexed": 74,
+      "confirmedRegistrationsOrReviewedChains": 5,
+      "confirmedConclusions": {
+        "MITIGATED": 3,
+        "OPEN_WITH_REASON": 2
+      },
+      "wiringUnresolvedCandidates": 69,
+      "completeEnumeration": false
+    },
+    "PERSISTENT_STATE": {
+      "indexed": 495,
+      "confirmedRegistrationsOrReviewedChains": 6,
+      "confirmedConclusions": {
+        "MITIGATED": 3,
+        "OPEN_WITH_REASON": 3
+      },
+      "wiringUnresolvedCandidates": 489,
+      "completeEnumeration": false
+    },
+    "AUTHORIZED_EFFECT": {
+      "indexed": 48,
+      "confirmedRegistrationsOrReviewedChains": 7,
+      "confirmedConclusions": {
+        "MITIGATED": 5,
+        "OPEN_WITH_REASON": 1,
+        "VERIFIED": 1
+      },
+      "wiringUnresolvedCandidates": 41,
+      "completeEnumeration": false
+    },
+    "CROSS_PROCESS_PROVIDER": {
+      "indexed": 294,
+      "confirmedRegistrationsOrReviewedChains": 3,
+      "confirmedConclusions": {
+        "MITIGATED": 2,
+        "OPEN_WITH_REASON": 1
+      },
+      "wiringUnresolvedCandidates": 291,
+      "completeEnumeration": false
+    },
+    "ASYNC_OWNERSHIP": {
+      "indexed": 126,
+      "confirmedRegistrationsOrReviewedChains": 11,
+      "confirmedConclusions": {
+        "MITIGATED": 3,
+        "OPEN_WITH_REASON": 8
+      },
+      "wiringUnresolvedCandidates": 115,
+      "completeEnumeration": false
+    }
+  },
+  "probeReports": {
+    "p0-diagnostics-before.json": {
+      "passed": 3,
+      "failed": 12,
+      "skipped": 0
+    },
+    "p0-diagnostics-after.json": {
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0
+    },
+    "diagnostic-origin-before.json": {
+      "passed": 18,
+      "failed": 1,
+      "skipped": 0
+    },
+    "diagnostic-origin-after.json": {
+      "passed": 66,
+      "failed": 0,
+      "skipped": 0
+    },
+    "ipv6-origin-before.json": {
+      "passed": 19,
+      "failed": 1,
+      "skipped": 0
+    },
+    "ipv6-origin-after.json": {
+      "passed": 74,
+      "failed": 0,
+      "skipped": 0
+    },
+    "p1-ownership-before.json": {
+      "passed": 1,
+      "failed": 5,
+      "skipped": 0
+    },
+    "p1-ownership-after.json": {
+      "passed": 27,
+      "failed": 0,
+      "skipped": 0
+    },
+    "ws-rejection-before.json": {
+      "passed": 1,
+      "failed": 6,
+      "skipped": 0
+    },
+    "ws-rejection-after.json": {
+      "passed": 76,
+      "failed": 0,
+      "skipped": 0
+    },
+    "p0-memory-before.json": {
+      "passed": 0,
+      "failed": 13,
+      "skipped": 0
+    },
+    "p0-memory-after.json": {
+      "passed": 52,
+      "failed": 0,
+      "skipped": 0
+    },
+    "memory-management-before.json": {
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0
+    },
+    "p1-read-before.json": {
+      "passed": 2,
+      "failed": 4,
+      "skipped": 0
+    },
+    "p1-read-after.json": {
+      "passed": 132,
+      "failed": 0,
+      "skipped": 0
+    },
+    "p1-read-properties.json": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "read-grant-before.json": {
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0
+    },
+    "read-grant-after.json": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 11
+    },
+    "p1-affect-before.json": {
+      "passed": 0,
+      "failed": 6,
+      "skipped": 0
+    },
+    "p1-affect-after.json": {
+      "passed": 124,
+      "failed": 0,
+      "skipped": 0
+    },
+    "crossPackage": {
+      "passed": 2530,
+      "failed": 0,
+      "skipped": 273
+    }
+  },
+  "sampling": {
+    "seed": 3211010,
+    "total": 29,
+    "statuses": {
+      "BINARY_ASSET_METADATA_ONLY": 2,
+      "CONFIG_OR_BUILD_RISK_REVIEW": 13,
+      "SOURCE_EXCERPTS_OPEN": 7,
+      "WHOLE_SMALL_FILE_RISK_REVIEW": 7
+    }
+  },
+  "realModelEvidence": {
+    "actualCalls": 0,
+    "status": "NOT_RUN_NO_APPLICATION_CREDENTIALS",
+    "harness": "../experiments/run-live-model.mjs"
+  },
+  "openReasons": [
+    "Not alias-complete; provider polymorphism, Rust cfg, Python dynamic dispatch and external deployment remain unresolved",
+    "New production wrappers verified by targeted tests; old graph is a baseline, not a regenerated full repository graph",
+    "Register callback extraction is exact for top-level literal register functions; nested registrations/dynamic routes require separate review",
+    "Persistent query types are candidate operations, not an exhaustive table consumer proof"
+  ],
+  "excludedAreas": [
+    "Independent Plunge and desktop-presentation versions not modified or claimed covered",
+    "No native/device/remote-provider quality or PostgreSQL restart evidence"
+  ],
+  "validationErrors": [],
+  "scopeComplete": false,
+  "interpretation": "Checks inventory preservation and stale evidence, not correctness or semantic completeness. OPEN rows never count as verified."
+}

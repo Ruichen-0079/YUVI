@@ -1,0 +1,8 @@
+$ pnpm prepare:cubism-framework && pnpm check:host-environment && tsc -b --pretty false
+$ node scripts/prepare-cubism-framework.mjs
+[prepare-cubism-framework] Cubism Framework dist ready.
+$ node scripts/check-host-environment-safety.mjs
+Host environment safety check passed: no persistent shell target references an ephemeral path.
+apps/server/src/routes/websocket-ownership.integration.test.ts(82,22): error TS2339: Property 'traceId' does not exist on type '{ type: string; payload: { content?: string; }; }'.
+apps/server/src/routes/websocket-ownership.integration.test.ts(83,31): error TS2339: Property 'rejectedTraceId' does not exist on type '{ content?: string; }'.
+[ELIFECYCLE] Command failed with exit code 1.

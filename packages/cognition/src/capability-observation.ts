@@ -1,7 +1,4 @@
-import {
-  COGNITION_6G_VERSION,
-  createCognitionCapabilityDescriptions
-} from "./index.js";
+import { COGNITION_6G_VERSION, createCognitionCapabilityDescriptions } from "./index.js";
 
 export const COGNITION_6N_VERSION = "cognition-6n.v1" as const;
 export const COGNITION_6N_OBSERVATION_STATUSES = ["SUCCESS", "UNAVAILABLE", "ERROR"] as const;
@@ -15,9 +12,16 @@ export type CognitionCapabilityObservation = Readonly<{
   status: CognitionCapabilityObservationStatus;
   /** Bounded semantic observation from a successful admitted invocation. */
   content?: string;
+  /** Successful invocation with only a bounded prefix available to Cognition. */
+  coverage?: Readonly<{
+    kind: "PREFIX";
+    unit: "UTF16_CODE_UNITS";
+    originalCharacters: number;
+    providedCharacters: number;
+  }>;
 }>;
 
-const COGNITION_6N_MAX_CONTENT_CHARACTERS = 16_000;
+export const COGNITION_6N_MAX_CONTENT_CHARACTERS = 16_000;
 
 type UnknownObject = Record<string, unknown> & {
   version?: unknown;
@@ -39,7 +43,7 @@ export function createCognitionCapabilityObservation(
   const value = expectObject(input, "Cognition 6N capability observation");
   assertAllowedKeys(
     value,
-    ["version", "capabilityRef", "status", "content"],
+    ["version", "capabilityRef", "status", "content", "coverage"],
     "Cognition 6N capability observation"
   );
   if (value.version !== COGNITION_6N_VERSION) {
@@ -52,15 +56,18 @@ export function createCognitionCapabilityObservation(
   const capabilityRef = validateCapabilityRef(value.capabilityRef);
   if (value.status === "SUCCESS") {
     const content = boundedContent(value.content);
+    const coverage =
+      value["coverage"] === undefined ? undefined : validateCoverage(value["coverage"], content);
     return Object.freeze({
       version: COGNITION_6N_VERSION,
       capabilityRef,
       status: value.status,
-      content
+      content,
+      ...(coverage ? { coverage } : {})
     });
   }
 
-  if (value.content !== undefined) {
+  if (value.content !== undefined || value["coverage"] !== undefined) {
     throw new Error("Non-success Cognition capability observations must not carry content.");
   }
   return Object.freeze({
@@ -84,8 +91,8 @@ function validateCapabilityRef(input: unknown): string {
 }
 
 function boundedContent(input: unknown): string {
-  if (typeof input !== "string" || input.trim().length === 0) {
-    throw new Error("Successful Cognition capability observation requires non-empty content.");
+  if (typeof input !== "string") {
+    throw new Error("Successful Cognition capability observation requires textual content.");
   }
   if (input.length > COGNITION_6N_MAX_CONTENT_CHARACTERS) {
     throw new Error(
@@ -93,6 +100,38 @@ function boundedContent(input: unknown): string {
     );
   }
   return input;
+}
+
+function validateCoverage(
+  input: unknown,
+  content: string
+): NonNullable<CognitionCapabilityObservation["coverage"]> {
+  const value = expectObject(input, "Cognition observation coverage");
+  assertAllowedKeys(
+    value,
+    ["kind", "unit", "originalCharacters", "providedCharacters"],
+    "Cognition observation coverage"
+  );
+  const original = value["originalCharacters"],
+    provided = value["providedCharacters"];
+  if (
+    value["kind"] !== "PREFIX" ||
+    value["unit"] !== "UTF16_CODE_UNITS" ||
+    typeof original !== "number" ||
+    !Number.isSafeInteger(original) ||
+    typeof provided !== "number" ||
+    !Number.isSafeInteger(provided) ||
+    provided !== content.length ||
+    original <= provided
+  ) {
+    throw new Error("Cognition observation coverage must describe an actual bounded prefix.");
+  }
+  return Object.freeze({
+    kind: "PREFIX",
+    unit: "UTF16_CODE_UNITS",
+    originalCharacters: original,
+    providedCharacters: provided
+  });
 }
 
 function isObservationStatus(input: unknown): input is CognitionCapabilityObservationStatus {

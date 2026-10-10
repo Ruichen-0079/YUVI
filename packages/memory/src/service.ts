@@ -18,11 +18,7 @@ import { MemoryRetriever } from "./retriever.js";
 import { MemoryScorer } from "./scorer.js";
 import { buildCandidateFingerprint, deduplicateCandidateBatch } from "./candidate-dedupe.js";
 import { detectEpisodicCorrectionRelationships, hasCorrectionRelatedMemory } from "./correction.js";
-import {
-  detectExplicitForgetRequest,
-  detectExplicitRememberRequest,
-  stripExplicitForgetPrefix
-} from "./intent.js";
+import { detectExplicitForgetRequest, detectExplicitRememberRequest } from "./intent.js";
 import { enrichCandidateProvenance, isAssistantOnlyRestatement } from "./provenance.js";
 import {
   admitDurableMemoryClaim,
@@ -45,7 +41,6 @@ import {
   buildChatMemoryScope,
   buildMem0RetrievalResult,
   emptyMem0RetrievalResult,
-  forgetMemoriesInScope,
   MEM0_CHAT_SEARCH_TIMEOUT_MS,
   MEM0_CHAT_SEARCH_TOP_K,
   MEM0_CHAT_WRITE_TIMEOUT_MS,
@@ -946,41 +941,18 @@ export class MemoryService {
     subjectUserId?: string | null | undefined;
   }): Promise<ForgetMemoriesResult & { code?: string }> {
     input = this.scopeCharacterInput(input);
-    if (!this.isMem0Backend() || !this.mem0Backend) {
-      return { deleted: 0, notFound: true, memoryIds: [], query: input.userMessage };
-    }
     const resolved = resolveMem0ChatIdentity({
       subjectUserId: input.subjectUserId,
       personaId: input.personaId
     });
-    if (!resolved.ok) {
-      this.mem0Logger?.warn?.(MEMORY_SCOPE_MISSING, { missing: resolved.missing, op: "forget" });
-      return {
-        deleted: 0,
-        notFound: true,
-        memoryIds: [],
-        query: input.userMessage,
-        code: MEMORY_SCOPE_MISSING
-      };
-    }
-    const scope = buildChatMemoryScope(resolved.identity);
-    const query = stripExplicitForgetPrefix(input.userMessage) || input.userMessage;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), this.mem0WriteTimeoutMs);
-    try {
-      return await forgetMemoriesInScope(this.mem0Backend, {
-        scope,
-        query,
-        signal: controller.signal
-      });
-    } catch (error) {
-      this.mem0Logger?.warn?.("mem0 forget failed", {
-        message: error instanceof Error ? error.message : String(error)
-      });
-      return { deleted: 0, notFound: true, memoryIds: [], query };
-    } finally {
-      clearTimeout(timer);
-    }
+    return {
+      status: resolved.ok ? "CONFIRMATION_REQUIRED" : "SCOPE_REQUIRED",
+      deleted: 0,
+      notFound: false,
+      memoryIds: [],
+      query: input.userMessage,
+      code: resolved.ok ? "MEMORY_DELETE_CONFIRMATION_REQUIRED" : MEMORY_SCOPE_MISSING
+    };
   }
 
   private async retrieveFromMem0(query: MemorySearchQuery): Promise<MemoryRetrievalResult> {

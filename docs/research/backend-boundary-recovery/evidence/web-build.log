@@ -1,0 +1,9 @@
+$ pnpm prepare:cubism-framework && pnpm prepare:fonts && tsc -b tsconfig.json && vite build
+$ node ../../scripts/prepare-cubism-framework.mjs
+[prepare-cubism-framework] Cubism Framework dist ready.
+$ node ../../scripts/prepare-product-fonts.mjs
+fetch failed
+[ELIFECYCLE] Command failed with exit code 1.
+/workspace/YUVI-source/apps/web:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @companion/web@0.1.0 build: `pnpm prepare:cubism-framework && pnpm prepare:fonts && tsc -b tsconfig.json && vite build`
+Exit status 1

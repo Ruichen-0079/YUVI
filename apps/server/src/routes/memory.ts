@@ -346,13 +346,25 @@ export async function registerMemoryRoutes(
     }
 
     let deleted = 0;
-    for (const id of input.data.ids) {
-      if (await context.memoryRepository.deleteMemory(id)) {
-        deleted += 1;
+    const outcomes: Array<{ id: string; status: "DELETED" | "NOT_FOUND" | "UNKNOWN" }> = [];
+    for (const id of new Set(input.data.ids)) {
+      try {
+        const didDelete = await context.memoryRepository.deleteMemory(id);
+        if (didDelete) deleted += 1;
+        outcomes.push({ id, status: didDelete ? "DELETED" : "NOT_FOUND" });
+      } catch {
+        // An acknowledgement failure cannot prove whether the delete committed.
+        outcomes.push({ id, status: "UNKNOWN" });
       }
     }
 
-    return reply.send({ ok: true, deleted });
+    const unknown = outcomes.some((outcome) => outcome.status === "UNKNOWN");
+    return reply.code(unknown ? 207 : 200).send({
+      ok: !unknown,
+      deleted,
+      status: unknown ? (deleted ? "PARTIAL" : "UNKNOWN") : deleted ? "DELETED" : "NOT_FOUND",
+      outcomes
+    });
   });
 
   app.get("/memory/maintenance/health", async (request, reply) => {

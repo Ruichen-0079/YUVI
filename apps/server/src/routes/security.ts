@@ -1,5 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { ServerConfig } from "../config.js";
+import { isDesktopAllowedOrigin } from "../cors.js";
 
 export function requireDashboardDevToken(
   config: ServerConfig,
@@ -22,7 +23,7 @@ export function requireLocalDashboardAccess(
   request: FastifyRequest,
   reply: FastifyReply
 ): boolean {
-  if (!isLocalAddress(request.ip)) {
+  if (!isLocalRequest(request)) {
     reply.status(403).send({
       error: "forbidden",
       message: "This dashboard operation can only be requested from localhost."
@@ -35,17 +36,49 @@ export function requireLocalDashboardAccess(
 
 /** Re-evaluate local dashboard permission at a durable command's dispatch boundary. */
 export function hasLocalDashboardAccess(config: ServerConfig, request: FastifyRequest): boolean {
-  return isLocalAddress(request.ip) && hasDashboardDevTokenAccess(config, request);
+  return isLocalRequest(request) && hasDashboardDevTokenAccess(config, request);
 }
 
-function hasDashboardDevTokenAccess(config: ServerConfig, request: FastifyRequest): boolean {
+/** Browser WebSockets cannot set Authorization; credentials stay out of query URLs. */
+export function hasLocalDashboardWebSocketAccess(
+  config: ServerConfig,
+  request: FastifyRequest
+): boolean {
+  const raw = request.headers["sec-websocket-protocol"];
+  const protocols = (Array.isArray(raw) ? raw.join(",") : (raw ?? ""))
+    .split(",")
+    .map((value) => value.trim());
+  const credentials = protocols.filter((value) => value.startsWith("yuvi-dev-token."));
+  let token: string | undefined;
+  if (credentials.length === 1) {
+    const encoded = credentials[0]!.slice("yuvi-dev-token.".length);
+    if (encoded.length <= 4096 && /^[A-Za-z0-9_-]+$/u.test(encoded)) {
+      const decoded = Buffer.from(encoded, "base64url");
+      if (decoded.toString("base64url") === encoded) token = decoded.toString("utf8");
+    }
+  }
+  return isLocalRequest(request) && hasDashboardDevTokenAccess(config, request, token);
+}
+
+/** A foreign website's browser also connects from loopback; CORS alone cannot
+ * protect a WebSocket or prevent a simple HTTP request's side effects. */
+function isLocalRequest(request: FastifyRequest): boolean {
+  const origin = request.headers.origin;
+  return isLocalAddress(request.ip) && (origin === undefined || isDesktopAllowedOrigin(origin));
+}
+
+function hasDashboardDevTokenAccess(
+  config: ServerConfig,
+  request: FastifyRequest,
+  alternativeToken?: string
+): boolean {
   if (config.runtimeMode !== "development" || !config.dashboardDevToken) return true;
   const provided = request.headers["x-yuvi-dev-token"];
   const legacyToken = Array.isArray(provided) ? provided[0] : provided;
   const authorization = request.headers.authorization;
   const authorizationValue = Array.isArray(authorization) ? authorization[0] : authorization;
   const bearerToken = authorizationValue?.match(/^Bearer\s+(.+)$/iu)?.[1]?.trim();
-  return (bearerToken ?? legacyToken) === config.dashboardDevToken;
+  return (bearerToken ?? legacyToken ?? alternativeToken) === config.dashboardDevToken;
 }
 
 export function isLocalAddress(value: string | undefined): boolean {

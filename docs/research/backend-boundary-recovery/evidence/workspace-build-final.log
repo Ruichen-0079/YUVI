@@ -1,0 +1,5 @@
+$ pnpm prepare:cubism-framework && pnpm prepare:fonts && tsc -b
+$ node scripts/prepare-cubism-framework.mjs
+[prepare-cubism-framework] Cubism Framework dist ready.
+$ node scripts/prepare-product-fonts.mjs
+[fonts] prepared 2 offline fonts (19481540 bytes) under /workspace/YUVI-source/apps/web/public/yuvi-fonts

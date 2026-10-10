@@ -1,9 +1,7 @@
-import {
-  COGNITION_6H_VERSION,
-  createCognitionCapabilityRequest
-} from "@companion/cognition";
+import { COGNITION_6H_VERSION, createCognitionCapabilityRequest } from "@companion/cognition";
 import {
   COGNITION_6N_VERSION,
+  COGNITION_6N_MAX_CONTENT_CHARACTERS,
   createCognitionCapabilityObservation,
   type CognitionCapabilityObservation
 } from "@companion/cognition/capability-observation";
@@ -96,20 +94,32 @@ function normalizeOutcome(
         });
       }
 
-      try {
-        return createCognitionCapabilityObservation({
-          version: COGNITION_6N_VERSION,
-          capabilityRef,
-          status: "SUCCESS",
-          content
-        });
-      } catch {
-        return createCognitionCapabilityObservation({
-          version: COGNITION_6N_VERSION,
-          capabilityRef,
-          status: "ERROR"
-        });
+      let provided = Math.min(content.length, COGNITION_6N_MAX_CONTENT_CHARACTERS);
+      // Do not split a Unicode surrogate pair at the UTF-16 budget boundary.
+      if (
+        provided < content.length &&
+        provided > 0 &&
+        /[\uD800-\uDBFF]/u.test(content[provided - 1]!) &&
+        /[\uDC00-\uDFFF]/u.test(content[provided]!)
+      ) {
+        provided -= 1;
       }
+      return createCognitionCapabilityObservation({
+        version: COGNITION_6N_VERSION,
+        capabilityRef,
+        status: "SUCCESS",
+        content: content.slice(0, provided),
+        ...(provided < content.length
+          ? {
+              coverage: {
+                kind: "PREFIX",
+                unit: "UTF16_CODE_UNITS",
+                originalCharacters: content.length,
+                providedCharacters: provided
+              }
+            }
+          : {})
+      });
   }
 }
 
@@ -130,5 +140,5 @@ function extractReadTextContent(content: readonly unknown[]): string | undefined
     return undefined;
   }
   const joined = textBlocks.join("\n");
-  return joined.trim().length === 0 ? undefined : joined;
+  return joined;
 }

@@ -72,7 +72,7 @@ describe("mem0 chat helpers", () => {
       history: async () => []
     };
     const sci = await forgetMemoriesInScope(backend, {
-      scope: "scope",
+      scope: "yuvi:v1:user:u:character:c",
       query: "我喜欢科幻作品",
       maxDelete: 5
     });
@@ -81,7 +81,7 @@ describe("mem0 chat helpers", () => {
 
     deleted.length = 0;
     const red = await forgetMemoriesInScope(backend, {
-      scope: "scope",
+      scope: "yuvi:v1:user:u:character:c",
       query: "red color preference",
       maxDelete: 5
     });

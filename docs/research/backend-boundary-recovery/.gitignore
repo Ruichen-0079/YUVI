@@ -1,0 +1,4 @@
+experiments/.generated-*.mjs
+experiments/model-output/
+__pycache__/
+!evidence/*.log

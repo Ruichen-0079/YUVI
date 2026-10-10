@@ -8,6 +8,8 @@ import {
 } from "@companion/protocol";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
+import { loadServerConfig, type ServerConfig } from "../config.js";
+import { hasLocalDashboardWebSocketAccess, isLocalAddress } from "./security.js";
 import type { AppContext } from "../context.js";
 import { redactValue } from "../services/dashboard.js";
 import {
@@ -21,30 +23,57 @@ export const ACTIVE_TRACE_RETENTION_MS = 15 * 60 * 1000;
 type ActiveTraceEntry = {
   lastSeenAtMs: number;
   terminal: boolean;
+  owner: symbol;
+  sessionId?: string;
+  requestId?: string;
 };
 
 export class ActiveTraceRegistry {
   private readonly entries = new Map<string, ActiveTraceEntry>();
 
   add(traceId: string): boolean {
+    return this.claim(traceId) !== null;
+  }
+
+  claim(
+    traceId: string,
+    sessionId?: string,
+    requestId?: string
+  ): { created: boolean; owner: symbol } | null {
     this.prune();
     const existing = this.entries.get(traceId);
     if (existing) {
+      if (
+        (existing.sessionId !== undefined &&
+          sessionId !== undefined &&
+          existing.sessionId !== sessionId) ||
+        (existing.requestId !== undefined &&
+          requestId !== undefined &&
+          existing.requestId !== requestId)
+      )
+        return null;
       existing.lastSeenAtMs = Date.now();
       this.entries.delete(traceId);
       this.entries.set(traceId, existing);
-      return true;
+      return { created: false, owner: existing.owner };
     }
 
     if (this.entries.size >= ACTIVE_TRACE_MAX_ENTRIES) {
       const oldestTerminal = [...this.entries.entries()].find(([, entry]) => entry.terminal);
       if (!oldestTerminal) {
-        return false;
+        return null;
       }
       this.entries.delete(oldestTerminal[0]);
     }
-    this.entries.set(traceId, { lastSeenAtMs: Date.now(), terminal: false });
-    return true;
+    const owner = Symbol(traceId);
+    this.entries.set(traceId, {
+      lastSeenAtMs: Date.now(),
+      terminal: false,
+      owner,
+      ...(sessionId === undefined ? {} : { sessionId }),
+      ...(requestId === undefined ? {} : { requestId })
+    });
+    return { created: true, owner };
   }
 
   has(traceId: string): boolean {
@@ -52,9 +81,30 @@ export class ActiveTraceRegistry {
     return this.entries.has(traceId);
   }
 
+  matches(traceId: string, sessionId: string | undefined): boolean {
+    this.prune();
+    const entry = this.entries.get(traceId);
+    return (
+      !!entry &&
+      (entry.sessionId === undefined || sessionId === undefined || entry.sessionId === sessionId)
+    );
+  }
+
+  matchesEvent(event: RuntimeEvent): boolean {
+    const session =
+      event.payload && typeof event.payload === "object"
+        ? (event.payload as Record<string, unknown>)["sessionId"]
+        : undefined;
+    return this.matches(event.traceId, typeof session === "string" ? session : undefined);
+  }
+
+  deleteOwned(traceId: string, owner: symbol): void {
+    if (this.entries.get(traceId)?.owner === owner) this.entries.delete(traceId);
+  }
+
   observe(event: RuntimeEvent): void {
     const entry = this.entries.get(event.traceId);
-    if (!entry) {
+    if (!entry || !this.matchesEvent(event)) {
       return;
     }
     if (
@@ -94,188 +144,210 @@ export class ActiveTraceRegistry {
 }
 
 const WebSocketQuerySchema = z.object({
-  dashboard: z.coerce.boolean().optional().default(false)
+  dashboard: z
+    .union([z.boolean(), z.enum(["true", "false"]).transform((value) => value === "true")])
+    .optional()
+    .default(false)
 });
 
 export async function registerWebSocketRoutes(
   app: FastifyInstance,
-  context: AppContext
+  context: AppContext,
+  config: ServerConfig = loadServerConfig()
 ): Promise<void> {
-  app.get("/ws", { websocket: true }, (socket, request) => {
-    const query = WebSocketQuerySchema.safeParse(request.query);
-    const dashboardMode = query.success ? query.data.dashboard : false;
-    const activeTraceIds = new ActiveTraceRegistry();
-    let live = true;
-    const target: ReplyPublicationTarget = {
-      surface: "WEBSOCKET",
-      targetId: `WEBSOCKET:${crypto.randomUUID()}`,
-      targetGeneration: crypto.randomUUID()
-    };
-    const unregister = context.outwardEffects?.registerTarget(
-      target,
-      (_session, trace) => dashboardMode || activeTraceIds.has(trace),
-      () => live && socket.readyState === socket.OPEN,
-      false
-    );
-    const sendAccounted = async (payload: unknown, event?: RuntimeEvent) => {
-      if (!live || socket.readyState !== socket.OPEN) return;
-      if (context.outwardEffects)
-        await context.outwardEffects.publish({
-          target,
-          frameId: event?.id ?? crypto.randomUUID(),
-          payload,
-          scope: "websocket-target",
-          ...(event?.type === "agent.reply" ? { replyId: event.id } : {}),
-          write: () =>
-            new Promise<void>((resolve, reject) =>
-              socket.send(JSON.stringify(payload), (error?: Error) =>
-                error ? reject(error) : resolve()
-              )
-            )
-        });
-      else sendJson(socket, payload);
-    };
-    const subscription = context.eventBus.subscribe("*", async (event) => {
-      if (dashboardMode) {
-        await sendAccounted(redactRuntimeEvent(event), event);
-        return;
-      }
-
-      if (activeTraceIds.has(event.traceId) && shouldForwardEvent(event)) {
-        await sendAccounted(redactRuntimeEvent(event), event);
-        activeTraceIds.observe(event);
-      }
-    });
-
-    if (dashboardMode) {
-      void sendAccounted({
-        kind: "dashboard.connected",
-        traceId: crypto.randomUUID(),
-        timestamp: new Date().toISOString(),
-        payload: {
-          message:
-            "Dashboard WebSocket connected. Recent event replay is available through GET /events/recent."
+  app.get(
+    "/ws",
+    {
+      websocket: true,
+      preValidation: async (request, reply) => {
+        const query = WebSocketQuerySchema.safeParse(request.query);
+        if (!query.success) {
+          return reply.code(400).send({ error: "invalid_request" });
         }
-      }).catch(() => socket.close());
-    }
-
-    socket.on("message", async (rawMessage: Buffer) => {
-      let envelope: RuntimeEvent | undefined;
-      try {
-        const parsedEnvelope = RuntimeEventSchema.parse(
-          JSON.parse(rawMessage.toString())
-        ) as RuntimeEvent;
-        envelope = parsedEnvelope;
-        const traceAlreadyActive = activeTraceIds.has(parsedEnvelope.traceId);
-        if (!activeTraceIds.add(parsedEnvelope.traceId)) {
-          await sendAccounted(
-            redactRuntimeEvent(
-              createEvent(
-                "runtime.error",
-                { message: "WebSocket trace capacity is full; retry after active turns finish." },
-                { traceId: parsedEnvelope.traceId, parentId: parsedEnvelope.id }
+        if (query.data.dashboard && !hasLocalDashboardWebSocketAccess(config, request)) {
+          return reply.code(isLocalAddress(request.ip) ? 401 : 403).send({ error: "forbidden" });
+        }
+      }
+    },
+    (socket, request) => {
+      const dashboardMode = WebSocketQuerySchema.parse(request.query).dashboard;
+      const activeTraceIds = new ActiveTraceRegistry();
+      let live = true;
+      const target: ReplyPublicationTarget = {
+        surface: "WEBSOCKET",
+        targetId: `WEBSOCKET:${crypto.randomUUID()}`,
+        targetGeneration: crypto.randomUUID()
+      };
+      const unregister = context.outwardEffects?.registerTarget(
+        target,
+        (session, trace) => dashboardMode || activeTraceIds.matches(trace, session),
+        () => live && socket.readyState === socket.OPEN,
+        false
+      );
+      const sendAccounted = async (payload: unknown, event?: RuntimeEvent) => {
+        if (!live || socket.readyState !== socket.OPEN) return;
+        if (context.outwardEffects)
+          await context.outwardEffects.publish({
+            target,
+            frameId: event?.id ?? crypto.randomUUID(),
+            payload,
+            scope: "websocket-target",
+            ...(event?.type === "agent.reply" ? { replyId: event.id } : {}),
+            write: () =>
+              new Promise<void>((resolve, reject) =>
+                socket.send(JSON.stringify(payload), (error?: Error) =>
+                  error ? reject(error) : resolve()
+                )
               )
-            )
-          );
+          });
+        else sendJson(socket, payload);
+      };
+      const subscription = context.eventBus.subscribe("*", async (event) => {
+        if (dashboardMode) {
+          await sendAccounted(redactRuntimeEvent(event), event);
           return;
         }
 
-        if (parsedEnvelope.type !== "user.message") {
-          activeTraceIds.delete(parsedEnvelope.traceId);
+        if (activeTraceIds.matchesEvent(event) && shouldForwardEvent(event)) {
+          await sendAccounted(redactRuntimeEvent(event), event);
+          activeTraceIds.observe(event);
+        }
+      });
+
+      if (dashboardMode) {
+        void sendAccounted({
+          kind: "dashboard.connected",
+          traceId: crypto.randomUUID(),
+          timestamp: new Date().toISOString(),
+          payload: {
+            message:
+              "Dashboard WebSocket connected. Recent event replay is available through GET /events/recent."
+          }
+        }).catch(() => socket.close());
+      }
+
+      socket.on("message", async (rawMessage: Buffer) => {
+        let envelope: RuntimeEvent | undefined;
+        let ownership: { traceId: string; owner: symbol } | undefined;
+        try {
+          const parsedEnvelope = RuntimeEventSchema.parse(
+            JSON.parse(rawMessage.toString())
+          ) as RuntimeEvent;
+          envelope = parsedEnvelope;
+          if (parsedEnvelope.type !== "user.message") {
+            await sendAccounted(
+              redactRuntimeEvent(
+                createEvent(
+                  "runtime.error",
+                  {
+                    rejectedTraceId: parsedEnvelope.traceId,
+                    message: `Unsupported WebSocket event type '${parsedEnvelope.type}'.`
+                  },
+                  {
+                    parentId: parsedEnvelope.id
+                  }
+                )
+              )
+            );
+            return;
+          }
+
+          const parsed = UserMessageEventSchema.parse(parsedEnvelope);
+          // Validate before claiming; a rejected packet has no resource to release.
+          const claim = activeTraceIds.claim(parsed.traceId, parsed.payload.sessionId, parsed.id);
+          if (!claim) {
+            await sendAccounted(
+              redactRuntimeEvent(
+                createEvent(
+                  "runtime.error",
+                  {
+                    rejectedTraceId: parsed.traceId,
+                    message:
+                      "WebSocket trace is full or belongs to a different request/session. Use a fresh trace ID for new work."
+                  },
+                  { parentId: parsed.id }
+                )
+              )
+            );
+            return;
+          }
+          if (claim.created) ownership = { traceId: parsed.traceId, owner: claim.owner };
+
+          app.log.info(
+            { traceId: parsed.traceId, sessionId: parsed.payload.sessionId },
+            "websocket user.message received"
+          );
+          let sourceJournalRef: JournalEventRef;
+          try {
+            const receipt = await context.conversationalReceiptAdmission.admit({
+              surface: "WEBSOCKET",
+              sessionId: parsed.payload.sessionId,
+              runtimeEventId: parsed.id,
+              content: parsed.payload.content
+            });
+            sourceJournalRef = toConversationalJournalRef(receipt.envelope);
+            app.log.info(
+              {
+                journalEventId: receipt.envelope.eventId,
+                traceId: parsed.traceId,
+                sessionId: parsed.payload.sessionId
+              },
+              "websocket conversation receipt committed"
+            );
+          } catch (error) {
+            if (ownership) activeTraceIds.deleteOwned(ownership.traceId, ownership.owner);
+            const failure = toConversationalAdmissionFailure(error);
+            app.log.error(
+              { traceId: parsed.traceId, sessionId: parsed.payload.sessionId, code: failure.code },
+              "websocket conversation receipt admission failed"
+            );
+            await sendAccounted(
+              redactRuntimeEvent(
+                createEvent(
+                  "runtime.error",
+                  {
+                    code: failure.code,
+                    ...(!ownership ? { rejectedTraceId: parsed.traceId } : {}),
+                    message: "Message was not admitted for processing."
+                  },
+                  { traceId: ownership ? parsed.traceId : undefined, parentId: parsed.id }
+                )
+              )
+            );
+            return;
+          }
+          await context.runtime.handleUserMessage({
+            ...parsed,
+            payload: { ...parsed.payload, sourceJournalRef }
+          });
+        } catch (error) {
+          if (ownership) activeTraceIds.deleteOwned(ownership.traceId, ownership.owner);
           await sendAccounted(
             redactRuntimeEvent(
               createEvent(
                 "runtime.error",
                 {
-                  message: `Unsupported WebSocket event type '${parsedEnvelope.type}'.`
+                  ...(!ownership && envelope ? { rejectedTraceId: envelope.traceId } : {}),
+                  message: error instanceof Error ? error.message : "Invalid WebSocket event"
                 },
                 {
-                  traceId: parsedEnvelope.traceId,
-                  parentId: parsedEnvelope.id
+                  traceId: ownership ? envelope?.traceId : undefined,
+                  parentId: envelope?.id
                 }
               )
             )
           );
-          return;
         }
+      });
 
-        const parsed = UserMessageEventSchema.parse(parsedEnvelope);
-        app.log.info(
-          { traceId: parsed.traceId, sessionId: parsed.payload.sessionId },
-          "websocket user.message received"
-        );
-        let sourceJournalRef: JournalEventRef;
-        try {
-          const receipt = await context.conversationalReceiptAdmission.admit({
-            surface: "WEBSOCKET",
-            sessionId: parsed.payload.sessionId,
-            runtimeEventId: parsed.id,
-            content: parsed.payload.content
-          });
-          sourceJournalRef = toConversationalJournalRef(receipt.envelope);
-          app.log.info(
-            {
-              journalEventId: receipt.envelope.eventId,
-              traceId: parsed.traceId,
-              sessionId: parsed.payload.sessionId
-            },
-            "websocket conversation receipt committed"
-          );
-        } catch (error) {
-          if (!traceAlreadyActive) {
-            activeTraceIds.delete(parsed.traceId);
-          }
-          const failure = toConversationalAdmissionFailure(error);
-          app.log.error(
-            { traceId: parsed.traceId, sessionId: parsed.payload.sessionId, code: failure.code },
-            "websocket conversation receipt admission failed"
-          );
-          await sendAccounted(
-            redactRuntimeEvent(
-              createEvent(
-                "runtime.error",
-                {
-                  code: failure.code,
-                  message: "Message was not admitted for processing."
-                },
-                { traceId: parsed.traceId, parentId: parsed.id }
-              )
-            )
-          );
-          return;
-        }
-        await context.runtime.handleUserMessage({
-          ...parsed,
-          payload: { ...parsed.payload, sourceJournalRef }
-        });
-      } catch (error) {
-        if (envelope) {
-          activeTraceIds.delete(envelope.traceId);
-        }
-        await sendAccounted(
-          redactRuntimeEvent(
-            createEvent(
-              "runtime.error",
-              {
-                message: error instanceof Error ? error.message : "Invalid WebSocket event"
-              },
-              {
-                traceId: envelope?.traceId,
-                parentId: envelope?.id
-              }
-            )
-          )
-        );
-      }
-    });
-
-    socket.on("close", () => {
-      live = false;
-      unregister?.();
-      subscription.unsubscribe();
-      activeTraceIds.clear();
-    });
-  });
+      socket.on("close", () => {
+        live = false;
+        unregister?.();
+        subscription.unsubscribe();
+        activeTraceIds.clear();
+      });
+    }
+  );
 
   app.get("/v1/events", { websocket: true }, (socket) => {
     socket.close(1000, "Use /ws");

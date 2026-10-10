@@ -1,0 +1,17 @@
+{
+  "outcomes": [
+    {
+      "case": "unchanged pinned inputs",
+      "status": "PASS"
+    },
+    {
+      "case": "removed original candidate",
+      "status": "REJECTED"
+    },
+    {
+      "case": "stale source blob",
+      "status": "REJECTED"
+    }
+  ],
+  "productionMutations": 0
+}

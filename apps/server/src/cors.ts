@@ -12,11 +12,17 @@ export function desktopCorsHeaders(origin: string | undefined): Record<string, s
   };
 }
 
-function isDesktopAllowedOrigin(origin: string): boolean {
+export function isDesktopAllowedOrigin(origin: string): boolean {
   try {
     const url = new URL(origin);
     const host = url.hostname.toLowerCase();
-    if (host === "tauri.localhost" || host === "localhost" || host === "127.0.0.1" || host === "::1") {
+    if (
+      host === "tauri.localhost" ||
+      host === "localhost" ||
+      host === "127.0.0.1" ||
+      host === "::1" ||
+      host === "[::1]"
+    ) {
       return true;
     }
     if (url.protocol === "tauri:" || url.protocol === "asset:") {

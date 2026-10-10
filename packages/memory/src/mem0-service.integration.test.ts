@@ -308,8 +308,8 @@ describe("MemoryService mem0 mode", () => {
     expect(backend.add).toHaveBeenCalledOnce();
   });
 
-  it("forgets only within scope", async () => {
-    expect(detectExplicitForgetRequest("忘记我喜欢红色")).toBe(true);
+  it("requires explicit management authority instead of text-triggered forget", async () => {
+    expect(detectExplicitForgetRequest("忘记我喜欢红色")).toBe(false);
     const backend = createMockBackend({
       search: vi.fn(async () => [
         {
@@ -342,10 +342,11 @@ describe("MemoryService mem0 mode", () => {
       subjectUserId: "u",
       personaId: "p"
     });
-    expect(result.deleted).toBe(1);
-    expect(result.memoryIds).toEqual(["red-1"]);
+    expect(result.deleted).toBe(0);
+    expect(result.memoryIds).toEqual([]);
+    expect(result.status).toBe("CONFIRMATION_REQUIRED");
     expect(result.notFound).toBe(false);
-    expect(backend.delete).toHaveBeenCalledOnce();
+    expect(backend.delete).not.toHaveBeenCalled();
   });
 
   it("search timeout/offline degrades to empty without throw", async () => {

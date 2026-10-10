@@ -89,3 +89,43 @@ describe("WebSocket reply compatibility filter", () => {
     }
   });
 });
+
+describe("WebSocket trace ownership", () => {
+  it("only releases the generation actually created by a request", () => {
+    const registry = new ActiveTraceRegistry();
+    const old = registry.claim("trace", "session", "request-a")!;
+    expect(old.created).toBe(true);
+    expect(registry.claim("trace", "session", "request-a")?.created).toBe(false);
+    expect(registry.claim("trace", "foreign", "request-a")).toBeNull();
+    expect(registry.claim("trace", "session", "request-b")).toBeNull();
+    registry.deleteOwned("trace", old.owner);
+    const fresh = registry.claim("trace", "session", "request-b")!;
+    registry.deleteOwned("trace", old.owner);
+    expect(registry.has("trace")).toBe(true);
+    registry.deleteOwned("trace", fresh.owner);
+    expect(registry.has("trace")).toBe(false);
+  });
+  it("rejects foreign session terminal events and retains genuine completion/expiry", () => {
+    const registry = new ActiveTraceRegistry();
+    vi.useFakeTimers();
+    try {
+      registry.claim("trace", "session", "request");
+      registry.observe(
+        createEvent("runtime.error", { sessionId: "foreign" }, { traceId: "trace" })
+      );
+      expect(registry.has("trace")).toBe(true);
+      registry.observe(
+        createEvent("agent.reply", { sessionId: "session", content: "done" }, { traceId: "trace" })
+      );
+      vi.advanceTimersByTime(ACTIVE_TRACE_RETENTION_MS);
+      expect(registry.has("trace")).toBe(false);
+      registry.claim("trace", "session", "new-request");
+      registry.observe(
+        createEvent("runtime.error", { sessionId: "session" }, { traceId: "trace" })
+      );
+      expect(registry.has("trace")).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

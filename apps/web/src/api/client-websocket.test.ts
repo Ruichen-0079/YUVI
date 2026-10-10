@@ -49,3 +49,32 @@ describe("Runtime-bound WebSocket URL", () => {
     );
   });
 });
+
+describe("Dashboard WebSocket credentials", () => {
+  afterEach(async () => {
+    const { apiClient } = await import("./client.js");
+    apiClient.setDashboardDevToken("");
+    vi.unstubAllGlobals();
+  });
+  it("keeps the existing development token out of the URL and sends it in a browser-supported credential header", async () => {
+    const { apiClient } = await import("./client.js");
+    const open = vi.fn();
+    vi.stubGlobal(
+      "WebSocket",
+      class {
+        constructor(url: string, protocols: string[]) {
+          open(url, protocols);
+        }
+      }
+    );
+    vi.stubGlobal("window", { location: { protocol: "http:", host: "127.0.0.1:6121" } });
+    apiClient.setDashboardDevToken("dashboard-secret-令牌");
+    apiClient.createDashboardWebSocket();
+    const [url, protocols] = open.mock.calls[0]!;
+    expect(url).toBe("ws://127.0.0.1:6121/ws?dashboard=true");
+    expect(protocols[0]).toBe("yuvi-dashboard");
+    expect(
+      Buffer.from(protocols[1].slice("yuvi-dev-token.".length), "base64url").toString("utf8")
+    ).toBe("dashboard-secret-令牌");
+  });
+});
