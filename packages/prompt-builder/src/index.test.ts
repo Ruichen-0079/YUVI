@@ -136,7 +136,6 @@ describe("PromptBuilder", () => {
       "SystemIdentity",
       "RelationshipContext",
       "CurrentTime",
-      "CurrentAffect",
       "DirectContext",
       "RecentEpisodicMemory",
       "RelevantMemory",

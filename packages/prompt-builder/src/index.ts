@@ -141,7 +141,11 @@ export class PromptBuilder {
     // P8/Character owns production persona semantics. CharacterStyle remains
     // accepted only so older callers do not become an accidental second
     // authority while they are being retired.
-    const providerFacingSections = sections.filter((section) => section.name !== "CharacterStyle");
+    const providerFacingSections = sections.filter(
+      (section) =>
+        section.name !== "CharacterStyle" &&
+        (section.name !== "CurrentAffect" || Boolean(input.currentAffect?.trim()))
+    );
     const budgetedSections = [
       ...assembleCanonicalContext({
         promptSections: this.enforceBudget(providerFacingSections, maxCharacters),
@@ -343,7 +347,7 @@ export class PromptBuilder {
 }
 
 function formatCurrentAffect(currentAffect: string | undefined): string {
-  return currentAffect?.trim() || "No high-confidence immediate affect detected.";
+  return currentAffect?.trim() ?? "";
 }
 
 function formatCurrentTime(currentTime?: PromptBuildInput["currentTime"]): string {
