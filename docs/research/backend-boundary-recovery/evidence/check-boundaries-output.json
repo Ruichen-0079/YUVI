@@ -1,0 +1,68 @@
+{
+  "errors": [],
+  "ranges": {
+    "EXTERNAL_ENTRY": {
+      "indexed": 135,
+      "confirmedRegistrationsOrReviewedChains": 83,
+      "confirmedConclusions": {
+        "MITIGATED": 2,
+        "OPEN_WITH_REASON": 80,
+        "VERIFIED": 1
+      },
+      "wiringUnresolvedCandidates": 52,
+      "completeEnumeration": false
+    },
+    "MODEL_IO": {
+      "indexed": 74,
+      "confirmedRegistrationsOrReviewedChains": 5,
+      "confirmedConclusions": {
+        "MITIGATED": 3,
+        "OPEN_WITH_REASON": 2
+      },
+      "wiringUnresolvedCandidates": 69,
+      "completeEnumeration": false
+    },
+    "PERSISTENT_STATE": {
+      "indexed": 495,
+      "confirmedRegistrationsOrReviewedChains": 6,
+      "confirmedConclusions": {
+        "MITIGATED": 3,
+        "OPEN_WITH_REASON": 3
+      },
+      "wiringUnresolvedCandidates": 489,
+      "completeEnumeration": false
+    },
+    "AUTHORIZED_EFFECT": {
+      "indexed": 48,
+      "confirmedRegistrationsOrReviewedChains": 7,
+      "confirmedConclusions": {
+        "MITIGATED": 5,
+        "OPEN_WITH_REASON": 1,
+        "VERIFIED": 1
+      },
+      "wiringUnresolvedCandidates": 41,
+      "completeEnumeration": false
+    },
+    "CROSS_PROCESS_PROVIDER": {
+      "indexed": 294,
+      "confirmedRegistrationsOrReviewedChains": 3,
+      "confirmedConclusions": {
+        "MITIGATED": 2,
+        "OPEN_WITH_REASON": 1
+      },
+      "wiringUnresolvedCandidates": 291,
+      "completeEnumeration": false
+    },
+    "ASYNC_OWNERSHIP": {
+      "indexed": 126,
+      "confirmedRegistrationsOrReviewedChains": 11,
+      "confirmedConclusions": {
+        "MITIGATED": 3,
+        "OPEN_WITH_REASON": 8
+      },
+      "wiringUnresolvedCandidates": 115,
+      "completeEnumeration": false
+    }
+  },
+  "scopeComplete": false
+}

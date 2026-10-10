@@ -1,0 +1,174 @@
+{
+  "baselineSHA": "0d894cc70d42ebba0df132924f5ea181c062b431",
+  "productionTip": "7ea26d683c8e0a1001478014dac45e4b39b298d1",
+  "records": [
+    {
+      "id": "P0-A",
+      "novelty": "KNOWN",
+      "commitSHA": "e5b803fd57f1d6ac1650cfb3878623c666689568",
+      "title": "dashboard query widening and unguarded equivalent diagnostics",
+      "beforeArtifact": "p0-diagnostics-before.json",
+      "afterArtifact": "p0-diagnostics-after.json",
+      "before": {
+        "numPassedTests": 3,
+        "numFailedTests": 12,
+        "numPendingTests": 0
+      },
+      "after": {
+        "numPassedTests": 24,
+        "numFailedTests": 0,
+        "numPendingTests": 0
+      },
+      "intelligenceQualityEvidence": "NOT_MEASURED",
+      "mitigation": "Targeted fix; no implied global completeness or historical recovery"
+    },
+    {
+      "id": "P0-B",
+      "novelty": "KNOWN",
+      "commitSHA": "750eb5e920dc76f1e18052d681d616e7a5423cdf",
+      "title": "Natural language cannot authorize deletion; truthful failure/partial outcomes",
+      "beforeArtifact": "p0-memory-before.json",
+      "afterArtifact": "p0-memory-after.json",
+      "before": {
+        "numPassedTests": 0,
+        "numFailedTests": 13,
+        "numPendingTests": 0
+      },
+      "after": {
+        "numPassedTests": 52,
+        "numFailedTests": 0,
+        "numPendingTests": 0
+      },
+      "intelligenceQualityEvidence": "NOT_MEASURED",
+      "mitigation": "Targeted fix; no implied global completeness or historical recovery"
+    },
+    {
+      "id": "P1-A",
+      "novelty": "KNOWN",
+      "commitSHA": "7d1a5caf9fc2ee43708e528de41f250a68025383",
+      "title": "Legal read success becomes bounded consumable prefix, not ERROR",
+      "beforeArtifact": "p1-read-before.json",
+      "afterArtifact": "p1-read-after.json",
+      "before": {
+        "numPassedTests": 2,
+        "numFailedTests": 4,
+        "numPendingTests": 0
+      },
+      "after": {
+        "numPassedTests": 132,
+        "numFailedTests": 0,
+        "numPendingTests": 0
+      },
+      "intelligenceQualityEvidence": "NOT_MEASURED",
+      "mitigation": "Targeted fix; no implied global completeness or historical recovery"
+    },
+    {
+      "id": "P1-B",
+      "novelty": "KNOWN",
+      "commitSHA": "82e71d2fb2502a4e717b76590e2aad664df02f08",
+      "title": "Rejected duplicate packet cannot clear another request subscription",
+      "beforeArtifact": "p1-ownership-before.json",
+      "afterArtifact": "p1-ownership-after.json",
+      "before": {
+        "numPassedTests": 1,
+        "numFailedTests": 5,
+        "numPendingTests": 0
+      },
+      "after": {
+        "numPassedTests": 27,
+        "numFailedTests": 0,
+        "numPendingTests": 0
+      },
+      "intelligenceQualityEvidence": "NOT_MEASURED",
+      "mitigation": "Targeted fix; no implied global completeness or historical recovery"
+    },
+    {
+      "id": "P1-C",
+      "novelty": "KNOWN",
+      "commitSHA": "c1475daec6593e681208a9cc52150c5c06780c1f",
+      "title": "Retire wrong automatic affect label and empty label placeholder",
+      "beforeArtifact": "p1-affect-before.json",
+      "afterArtifact": "p1-affect-after.json",
+      "before": {
+        "numPassedTests": 0,
+        "numFailedTests": 6,
+        "numPendingTests": 0
+      },
+      "after": {
+        "numPassedTests": 124,
+        "numFailedTests": 0,
+        "numPendingTests": 0
+      },
+      "intelligenceQualityEvidence": "NOT_MEASURED",
+      "mitigation": "Targeted fix; no implied global completeness or historical recovery"
+    },
+    {
+      "id": "N1",
+      "novelty": "NEW_REPRODUCED",
+      "commitSHA": "a98adc3c975d81db1350397ec42d6eea74f3c3b6",
+      "title": "Read grant installed before async context capture, owner-fenced release",
+      "beforeArtifact": "read-grant-before.json",
+      "afterArtifact": "read-grant-after.json",
+      "before": {
+        "numPassedTests": 1,
+        "numFailedTests": 1,
+        "numPendingTests": 0
+      },
+      "after": {
+        "numPassedTests": 8,
+        "numFailedTests": 0,
+        "numPendingTests": 11
+      },
+      "intelligenceQualityEvidence": "NOT_MEASURED",
+      "mitigation": "Targeted fix; no implied global completeness or historical recovery"
+    },
+    {
+      "id": "N2",
+      "novelty": "NEW_REPRODUCED",
+      "commitSHA": "38ad4b9b6334dde48fb56307dc3835cb90059581",
+      "title": "A foreign website loopback client must not inherit local Dashboard trust",
+      "beforeArtifact": "diagnostic-origin-before.json",
+      "afterArtifact": "diagnostic-origin-after.json",
+      "before": {
+        "numPassedTests": 18,
+        "numFailedTests": 1,
+        "numPendingTests": 0
+      },
+      "after": {
+        "numPassedTests": 66,
+        "numFailedTests": 0,
+        "numPendingTests": 0
+      },
+      "intelligenceQualityEvidence": "NOT_MEASURED",
+      "mitigation": "Targeted fix; no implied global completeness or historical recovery",
+      "followUpCommits": [
+        "7ea26d683c8e0a1001478014dac45e4b39b298d1"
+      ],
+      "compatibilityProbe": {
+        "before": "ipv6-origin-before.json",
+        "after": "ipv6-origin-after.json",
+        "reason": "WHATWG URL.hostname returns [::1], preserve legitimate IPv6 browser origin"
+      }
+    },
+    {
+      "id": "N3",
+      "novelty": "NEW_REPRODUCED",
+      "commitSHA": "fa62e97697a796f119d6704a5af56c1a593c5e7b",
+      "title": "Rejected unowned packet gets a distinct error trace, not owned work failure",
+      "beforeArtifact": "ws-rejection-before.json",
+      "afterArtifact": "ws-rejection-after.json",
+      "before": {
+        "numPassedTests": 1,
+        "numFailedTests": 6,
+        "numPendingTests": 0
+      },
+      "after": {
+        "numPassedTests": 76,
+        "numFailedTests": 0,
+        "numPendingTests": 0
+      },
+      "intelligenceQualityEvidence": "NOT_MEASURED",
+      "mitigation": "Targeted fix; no implied global completeness or historical recovery"
+    }
+  ]
+}

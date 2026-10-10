@@ -1,0 +1,239 @@
+{
+  "seed": 3211010,
+  "method": "One unreviewed production file per package, sorted populations; platform/config/script remain in population",
+  "samples": [
+    {
+      "package": ".github",
+      "path": ".github/workflows/check.yml",
+      "review": "CONFIG_OR_BUILD_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Full text inspected; build/config inputs not runtime semantic state. Defaults/deployment are not live activation proof.",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/character-abi",
+      "path": "packages/character-abi/package.json",
+      "review": "CONFIG_OR_BUILD_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Full text inspected; build/config inputs not runtime semantic state. Defaults/deployment are not live activation proof.",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/character-harness",
+      "path": "packages/character-harness/src/embodied-soft-smile-projection.ts",
+      "review": "SOURCE_EXCERPTS_OPEN",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Revalidated proposal and canonicalizer injection; no device authority implied; remainder validation not fully reviewed",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/cognition",
+      "path": "packages/cognition/package.json",
+      "review": "CONFIG_OR_BUILD_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Full text inspected; build/config inputs not runtime semantic state. Defaults/deployment are not live activation proof.",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/config",
+      "path": "packages/config/tsconfig.json",
+      "review": "CONFIG_OR_BUILD_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Full text inspected; build/config inputs not runtime semantic state. Defaults/deployment are not live activation proof.",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/core",
+      "path": "packages/core/tsconfig.json",
+      "review": "CONFIG_OR_BUILD_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Full text inspected; build/config inputs not runtime semantic state. Defaults/deployment are not live activation proof.",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/database",
+      "path": "packages/database/tsconfig.json",
+      "review": "CONFIG_OR_BUILD_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Full text inspected; build/config inputs not runtime semantic state. Defaults/deployment are not live activation proof.",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/desktop",
+      "path": "apps/desktop/package.json",
+      "review": "CONFIG_OR_BUILD_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Full text inspected; build/config inputs not runtime semantic state. Defaults/deployment are not live activation proof.",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/desktop-supervisor",
+      "path": "packages/desktop-supervisor/src/postgres-port.ts",
+      "review": "WHOLE_SMALL_FILE_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Port occupancy never authorizes killing foreign process; selected port still subject to later bind race",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/effects",
+      "path": "packages/effects/tsconfig.json",
+      "review": "CONFIG_OR_BUILD_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Full text inspected; build/config inputs not runtime semantic state. Defaults/deployment are not live activation proof.",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/event-bus",
+      "path": "packages/event-bus/tsconfig.json",
+      "review": "CONFIG_OR_BUILD_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Full text inspected; build/config inputs not runtime semantic state. Defaults/deployment are not live activation proof.",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/host-environment",
+      "path": "packages/host-environment/src/index.ts",
+      "review": "SOURCE_EXCERPTS_OPEN",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Persistent/ephemeral checks and async file ownership identified; whole install/rollback not closed",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/journal",
+      "path": "packages/journal/package.json",
+      "review": "CONFIG_OR_BUILD_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Full text inspected; build/config inputs not runtime semantic state. Defaults/deployment are not live activation proof.",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/memory",
+      "path": "packages/memory/src/temporal-projection.ts",
+      "review": "SOURCE_EXCERPTS_OPEN",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Missing timestamps yield unknown; inventedGapEvents false. Full timezone/age semantics not established",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/p8",
+      "path": "packages/p8/src/persistence.ts",
+      "review": "SOURCE_EXCERPTS_OPEN",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Append-only correction records and explicit UNKNOWN/CONFLICT exposed; grounded authority and full polymorphic store ownership not closed",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/prompt-builder",
+      "path": "packages/prompt-builder/src/canonical-context.ts",
+      "review": "SOURCE_EXCERPTS_OPEN",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Epistemic states retained, shared context/user-role projection examined; full role and compression effects need live-model experiment",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/protocol",
+      "path": "packages/protocol/src/embodied-behavior.ts",
+      "review": "WHOLE_SMALL_FILE_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Strict bounded opaque causal references and strength enums, canonicalization is not execution authority",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/providers",
+      "path": "packages/providers/src/alibaba/DashScopeSTTProvider.ts",
+      "review": "SOURCE_EXCERPTS_OPEN",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Audio inline byte bound, transport cancellation and normalized text inspected; full remote content/HTTP response envelope still OPEN",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/server",
+      "path": "apps/server/src/speech-receipt-admission.ts",
+      "review": "WHOLE_SMALL_FILE_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Voice receipt retains code-point selectors and unresolved principal/audience without treating acoustic match as Person authority; final Journal exception commit certainty needs actual DB failure probe",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "@companion/web",
+      "path": "apps/web/src/speech-identity.ts",
+      "review": "WHOLE_SMALL_FILE_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "requestId + sequence comparison only; no persistence or effect entry",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "apps/desktop/src-tauri",
+      "path": "apps/desktop/src-tauri/icons/ios/AppIcon-20x20@2x-1.png",
+      "review": "BINARY_ASSET_METADATA_ONLY",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Image asset retained in inventory; no executable state/entry inferred; pixel presentation not audited.",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "assets",
+      "path": "assets/branding/yuvi.png",
+      "review": "BINARY_ASSET_METADATA_ONLY",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Image asset retained in inventory; no executable state/entry inferred; pixel presentation not audited.",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "infra",
+      "path": "infra/docker-compose.yml",
+      "review": "CONFIG_OR_BUILD_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Full text inspected; build/config inputs not runtime semantic state. Defaults/deployment are not live activation proof.",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "repository-root",
+      "path": ".env.example",
+      "review": "CONFIG_OR_BUILD_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Full text inspected; build/config inputs not runtime semantic state. Defaults/deployment are not live activation proof.",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "scripts",
+      "path": "scripts/accept-voice-capture.mts",
+      "review": "WHOLE_SMALL_FILE_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Existing opt-in real STT acceptance script, isolated speaker store and owned child cleanup; unavailable model/device so not executed",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "services",
+      "path": "services/dots-tts/audio_output.py",
+      "review": "WHOLE_SMALL_FILE_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Bounded RMS leading silence trim; no new risk class beyond already indexed media transform; actual audio effect unmeasured",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "services/local-stt",
+      "path": "services/local-stt/speaker_store.py",
+      "review": "SOURCE_EXCERPTS_OPEN",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Observed native receipts/fences UNKNOWN and acoustic != Person identity; concurrency/generation filesystem behavior not fully reviewed",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "services/local-stt/packaging",
+      "path": "services/local-stt/packaging/yuvi_local_stt.spec",
+      "review": "CONFIG_OR_BUILD_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Full text inspected; build/config inputs not runtime semantic state. Defaults/deployment are not live activation proof.",
+      "newHighRiskClassConfirmed": false
+    },
+    {
+      "package": "services/memory-mem0",
+      "path": "services/memory-mem0/src/yuvi_mem0/schemas.py",
+      "review": "WHOLE_SMALL_FILE_RISK_REVIEW",
+      "reason": "Sampling tests discovery method; excerpts/metadata never imply whole-file correctness",
+      "notes": "Distinct in_flight/unknown reconciliation; update scope optional and byte/domain bounds require service-handler investigation, not UNUSED",
+      "newHighRiskClassConfirmed": false
+    }
+  ],
+  "stopDecision": "Stop this repair batch after confirmed P0/P1 and direct adjacent defects; not a completed six-range audit. Excerpt-only samples and dynamic/cross-process candidates remain explicit OPEN for next batch."
+}

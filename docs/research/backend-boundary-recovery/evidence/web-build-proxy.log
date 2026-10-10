@@ -1,0 +1,27 @@
+$ pnpm prepare:cubism-framework && pnpm prepare:fonts && tsc -b tsconfig.json && vite build
+$ node ../../scripts/prepare-cubism-framework.mjs
+[prepare-cubism-framework] Cubism Framework dist ready.
+$ node ../../scripts/prepare-product-fonts.mjs
+[fonts] prepared 2 offline fonts (19481540 bytes) under /workspace/YUVI-source/apps/web/public/yuvi-fonts
+vite v5.4.21 building for production...
+transforming...
+✓ 461 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                   0.46 kB │ gzip:   0.29 kB
+dist/assets/index-YBFO2E7m.css                   65.89 kB │ gzip:  12.66 kB
+dist/assets/core-mPlcS5K-.js                      0.83 kB │ gzip:   0.45 kB
+dist/assets/event-CvlI5Nwt.js                     1.44 kB │ gzip:   0.69 kB
+dist/assets/webview-CP32MFI_.js                   3.36 kB │ gzip:   1.15 kB
+dist/assets/cubismmatrix44-BFKW7KPw.js            5.25 kB │ gzip:   2.03 kB
+dist/assets/cubismmodelsettingjson-Dd4ICStt.js    9.20 kB │ gzip:   1.72 kB
+dist/assets/window-DzOM_BN8.js                   14.22 kB │ gzip:   3.57 kB
+dist/assets/live2dcubismframework-BTECFA91.js    15.58 kB │ gzip:   4.91 kB
+dist/assets/cubismusermodel-CcCxQ39H.js         171.52 kB │ gzip:  33.18 kB
+dist/assets/index-CszrS8gQ.js                   803.55 kB │ gzip: 246.83 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.60s

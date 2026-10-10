@@ -1,0 +1,605 @@
+[
+  {
+    "id": "review:ws-diagnostic",
+    "paths": [
+      "apps/server/src/routes/websocket.ts",
+      "apps/server/src/routes/security.ts",
+      "apps/server/src/routes/events.ts",
+      "apps/server/src/routes/debug.ts",
+      "apps/server/src/cors.ts"
+    ],
+    "callees": [],
+    "categories": [
+      "EXTERNAL_ENTRY",
+      "AUTHORIZED_EFFECT",
+      "ASYNC_OWNERSHIP"
+    ],
+    "producer": "WS query + browser Origin + local/development token",
+    "consumer": "InMemoryEventBus wildcard diagnostic, HTTP replay/prompt",
+    "entryAndActivation": "Current main server composition; applicable configuration and local authority only",
+    "structures": "Exact true/false only; default false; invalid/repeated query 400; dashboard local + existing dev token + allowed Origin if present; ordinary connection owns traces, not wildcard",
+    "allowedDomainAndUnits": "Exact true/false only; default false; invalid/repeated query 400; dashboard local + existing dev token + allowed Origin if present; ordinary connection owns traces, not wildcard",
+    "risk": "See original failed probe / reason; no model quality inference",
+    "failureAndCancellation": "Preserved original failure and cancellation unless explicitly specified in domain",
+    "lifecycleOwner": "Connection subscription",
+    "staticEvidence": [
+      {
+        "path": "apps/server/src/routes/websocket.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      },
+      {
+        "path": "apps/server/src/routes/security.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      },
+      {
+        "path": "apps/server/src/routes/events.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      },
+      {
+        "path": "apps/server/src/routes/debug.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      },
+      {
+        "path": "apps/server/src/cors.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      }
+    ],
+    "positiveTests": [
+      "apps/server/src/routes/websocket-boundary.integration.test.ts"
+    ],
+    "negativeTests": [
+      "apps/server/src/routes/websocket-boundary.integration.test.ts"
+    ],
+    "counterfactualTests": [
+      "p0-diagnostics-before.json",
+      "p0-diagnostics-after.json",
+      "diagnostic-origin-before.json",
+      "diagnostic-origin-after.json",
+      "ipv6-origin-before.json",
+      "ipv6-origin-after.json"
+    ],
+    "uncoveredConditions": [
+      "Production remains existing local-trust model, not authenticated multi-tenant service",
+      "Non-browser local clients may omit Origin; general non-dashboard read API authorization is not solved"
+    ],
+    "conclusion": "MITIGATED",
+    "reason": "Bounded contract verified in production functions; fixture/DB limits are explicit"
+  },
+  {
+    "id": "review:browser-diagnostic-client",
+    "paths": [
+      "apps/web/src/api/client.ts",
+      "apps/server/src/server.ts"
+    ],
+    "callees": [],
+    "categories": [
+      "EXTERNAL_ENTRY",
+      "AUTHORIZED_EFFECT"
+    ],
+    "producer": "Dashboard client existing token",
+    "consumer": "WS handshake + HTTP diagnostic guard + logger",
+    "entryAndActivation": "Current main server composition; applicable configuration and local authority only",
+    "structures": "Token in base64url subprotocol rather than URL; header redacted; replay/prompt sends Authorization",
+    "allowedDomainAndUnits": "Token in base64url subprotocol rather than URL; header redacted; replay/prompt sends Authorization",
+    "risk": "See original failed probe / reason; no model quality inference",
+    "failureAndCancellation": "Preserved original failure and cancellation unless explicitly specified in domain",
+    "lifecycleOwner": "Dashboard WebSocket instance",
+    "staticEvidence": [
+      {
+        "path": "apps/web/src/api/client.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      },
+      {
+        "path": "apps/server/src/server.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      }
+    ],
+    "positiveTests": [
+      "apps/web/src/api/client-websocket.test.ts"
+    ],
+    "negativeTests": [
+      "apps/server/src/routes/websocket-boundary.integration.test.ts"
+    ],
+    "counterfactualTests": [
+      "p0-diagnostics-after.json"
+    ],
+    "uncoveredConditions": [
+      "Real Tauri WebView device not launched; HTTP/WS server route and client code tested separately"
+    ],
+    "conclusion": "VERIFIED",
+    "reason": "Bounded contract verified in production functions; fixture/DB limits are explicit"
+  },
+  {
+    "id": "review:ws-trace-owner",
+    "paths": [
+      "apps/server/src/routes/websocket.ts"
+    ],
+    "callees": [],
+    "categories": [
+      "EXTERNAL_ENTRY",
+      "ASYNC_OWNERSHIP",
+      "AUTHORIZED_EFFECT"
+    ],
+    "producer": "Validated event request + immutable request/session IDs",
+    "consumer": "ActiveTraceRegistry -> EventBus and Publication target",
+    "entryAndActivation": "Current main server composition; applicable configuration and local authority only",
+    "structures": "Claim only after supported payload validation; Symbol generation ownership; same trace different request/session rejected; known session must match; 256 slots and terminal expiry preserved",
+    "allowedDomainAndUnits": "Claim only after supported payload validation; Symbol generation ownership; same trace different request/session rejected; known session must match; 256 slots and terminal expiry preserved; rejected unowned packets get an independent error trace plus rejectedTraceId",
+    "risk": "See original failed probe / reason; no model quality inference",
+    "failureAndCancellation": "Preserved original failure and cancellation unless explicitly specified in domain",
+    "lifecycleOwner": "Allocating request / connection",
+    "staticEvidence": [
+      {
+        "path": "apps/server/src/routes/websocket.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      }
+    ],
+    "positiveTests": [
+      "apps/server/src/routes/websocket-ownership.integration.test.ts"
+    ],
+    "negativeTests": [
+      "apps/server/src/routes/websocket-ownership.integration.test.ts",
+      "apps/server/src/routes/websocket.test.ts"
+    ],
+    "counterfactualTests": [
+      "p1-ownership-before.json",
+      "p1-ownership-after.json",
+      "ws-rejection-before.json",
+      "ws-rejection-after.json"
+    ],
+    "uncoveredConditions": [
+      "Sessionless internal event still trusts unguessable trace",
+      "Late event after eviction/reuse has no generation field; full distributed generation fencing not proven",
+      "Actual Publication durable store not exercised in injected route fixture",
+      "Disconnect releases this connection subscription/target; it does not imply cancelling already admitted Runtime work"
+    ],
+    "conclusion": "MITIGATED",
+    "reason": "Bounded contract verified in production functions; fixture/DB limits are explicit"
+  },
+  {
+    "id": "review:chat-forget-authority",
+    "paths": [
+      "packages/memory/src/intent.ts",
+      "packages/memory/src/service.ts",
+      "packages/core/src/runtime-orchestrator.ts"
+    ],
+    "callees": [],
+    "categories": [
+      "PERSISTENT_STATE",
+      "MODEL_IO"
+    ],
+    "producer": "Natural language ordinary chat",
+    "consumer": "Runtime prompt preparation / MemoryService compatibility method",
+    "entryAndActivation": "Current main server composition; applicable configuration and local authority only",
+    "structures": "No natural-language deletion authority; direct compatibility method returns CONFIRMATION_REQUIRED / SCOPE_REQUIRED before querying; raw text retained",
+    "allowedDomainAndUnits": "No natural-language deletion authority; direct compatibility method returns CONFIRMATION_REQUIRED / SCOPE_REQUIRED before querying; raw text retained",
+    "risk": "See original failed probe / reason; no model quality inference",
+    "failureAndCancellation": "Preserved original failure and cancellation unless explicitly specified in domain",
+    "lifecycleOwner": "Explicit local controller selected-record management only",
+    "staticEvidence": [
+      {
+        "path": "packages/memory/src/intent.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      },
+      {
+        "path": "packages/memory/src/service.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      },
+      {
+        "path": "packages/core/src/runtime-orchestrator.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      }
+    ],
+    "positiveTests": [
+      "packages/core/src/runtime-destructive-memory.test.ts",
+      "packages/memory/src/destructive-boundary.test.ts"
+    ],
+    "negativeTests": [
+      "packages/memory/src/destructive-boundary.test.ts"
+    ],
+    "counterfactualTests": [
+      "p0-memory-before.json",
+      "p0-memory-after.json"
+    ],
+    "uncoveredConditions": [
+      "Automatic remember/correction and grounded supersession rules remain separately OPEN",
+      "Mem0 search-based deletion helper is no longer a production chat consumer",
+      "No rollback claimed for historical deletion; Mem0-specific management user entry unconfirmed"
+    ],
+    "conclusion": "MITIGATED",
+    "reason": "Bounded contract verified in production functions; fixture/DB limits are explicit"
+  },
+  {
+    "id": "review:memory-result-fidelity",
+    "paths": [
+      "packages/memory/src/mem0-chat.ts",
+      "apps/server/src/routes/memory.ts"
+    ],
+    "callees": [],
+    "categories": [
+      "PERSISTENT_STATE",
+      "AUTHORIZED_EFFECT",
+      "CROSS_PROCESS_PROVIDER"
+    ],
+    "producer": "Scoped Memory backend + explicit ID management request",
+    "consumer": "ForgetMemoriesResult / HTTP bulk deletion response",
+    "entryAndActivation": "Current main server composition; applicable configuration and local authority only",
+    "structures": "Search/list errors FAILED, acknowledged absent NOT_FOUND, delete error UNKNOWN, mixed PARTIAL; scope mismatches never delete; bulk HTTP207 preserves per-ID states",
+    "allowedDomainAndUnits": "Search/list errors FAILED, acknowledged absent NOT_FOUND, delete error UNKNOWN, mixed PARTIAL; scope mismatches never delete; bulk HTTP207 preserves per-ID states",
+    "risk": "See original failed probe / reason; no model quality inference",
+    "failureAndCancellation": "Preserved original failure and cancellation unless explicitly specified in domain",
+    "lifecycleOwner": "Backend operation / authorized local dashboard request",
+    "staticEvidence": [
+      {
+        "path": "packages/memory/src/mem0-chat.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      },
+      {
+        "path": "apps/server/src/routes/memory.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      }
+    ],
+    "positiveTests": [
+      "packages/memory/src/destructive-boundary.test.ts",
+      "apps/server/src/routes/memory-delete-outcome.test.ts"
+    ],
+    "negativeTests": [
+      "packages/memory/src/destructive-boundary.test.ts",
+      "apps/server/src/routes/memory-delete-outcome.test.ts"
+    ],
+    "counterfactualTests": [
+      "memory-management-before.json",
+      "p0-memory-after.json"
+    ],
+    "uncoveredConditions": [
+      "Low-level helper normal positive path is not normal-user access evidence",
+      "Live backend/network unknown-outcome recovery not exercised"
+    ],
+    "conclusion": "MITIGATED",
+    "reason": "Bounded contract verified in production functions; fixture/DB limits are explicit"
+  },
+  {
+    "id": "review:read-file-capacity",
+    "paths": [
+      "apps/server/src/read-text-effect.ts",
+      "apps/server/src/mcp-read-text-observation.ts",
+      "packages/cognition/src/capability-observation.ts",
+      "packages/cognition/src/post-capability-task.ts"
+    ],
+    "callees": [],
+    "categories": [
+      "MODEL_IO",
+      "AUTHORIZED_EFFECT",
+      "CROSS_PROCESS_PROVIDER"
+    ],
+    "producer": "Authorized UTF-8 regular file read <=64000 bytes",
+    "consumer": "MCP normalizer -> CapabilityObservation -> next production ReasoningInput",
+    "entryAndActivation": "Current main server composition; applicable configuration and local authority only",
+    "structures": "Reader bytes != UTF16 code units; Observation <=16000 UTF16; valid empty accepted; overflowing success becomes Unicode-safe prefix SUCCESS with truthful PREFIX coverage; omitted suffix explicit, source ref retained",
+    "allowedDomainAndUnits": "Reader bytes != UTF16 code units; Observation <=16000 UTF16; valid empty accepted; overflowing success becomes Unicode-safe prefix SUCCESS with truthful PREFIX coverage; omitted suffix explicit, source ref retained",
+    "risk": "See original failed probe / reason; no model quality inference",
+    "failureAndCancellation": "Preserved original failure and cancellation unless explicitly specified in domain",
+    "lifecycleOwner": "Existing admitted read effect; no larger read permission",
+    "staticEvidence": [
+      {
+        "path": "apps/server/src/read-text-effect.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      },
+      {
+        "path": "apps/server/src/mcp-read-text-observation.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      },
+      {
+        "path": "packages/cognition/src/capability-observation.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      },
+      {
+        "path": "packages/cognition/src/post-capability-task.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      }
+    ],
+    "positiveTests": [
+      "apps/server/src/read-text-boundary.integration.test.ts"
+    ],
+    "negativeTests": [
+      "apps/server/src/read-text-boundary.integration.test.ts",
+      "apps/server/src/read-text-observation.property.test.ts"
+    ],
+    "counterfactualTests": [
+      "p1-read-before.json",
+      "p1-read-after.json",
+      "p1-read-properties.json"
+    ],
+    "uncoveredConditions": [
+      "Omitted suffix unavailable; no automatic chunks introduced",
+      "Host effect authority injected in filesystem -> Cognition test; actual Journal/Postgres integration not established",
+      "Actual model interpretation remains unmeasured"
+    ],
+    "conclusion": "MITIGATED",
+    "reason": "Bounded contract verified in production functions; fixture/DB limits are explicit"
+  },
+  {
+    "id": "review:read-grant-owner",
+    "paths": [
+      "apps/server/src/read-text-effect.ts"
+    ],
+    "callees": [],
+    "categories": [
+      "ASYNC_OWNERSHIP",
+      "AUTHORIZED_EFFECT",
+      "PERSISTENT_STATE"
+    ],
+    "producer": "HostReadTextEffects.execute grant installation",
+    "consumer": "Asynchronous context capture -> admission -> dispatcher -> cleanup",
+    "entryAndActivation": "Current main server composition; applicable configuration and local authority only",
+    "structures": "Claim synchronously before await; identity/grant object and admission ID must match; only current owner releases",
+    "allowedDomainAndUnits": "Claim synchronously before await; identity/grant object and admission ID must match; only current owner releases",
+    "risk": "See original failed probe / reason; no model quality inference",
+    "failureAndCancellation": "Preserved original failure and cancellation unless explicitly specified in domain",
+    "lifecycleOwner": "Exact private grant object",
+    "staticEvidence": [
+      {
+        "path": "apps/server/src/read-text-effect.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      }
+    ],
+    "positiveTests": [
+      "apps/server/src/read-text-ownership.test.ts"
+    ],
+    "negativeTests": [
+      "apps/server/src/read-text-ownership.test.ts"
+    ],
+    "counterfactualTests": [
+      "read-grant-before.json",
+      "read-grant-after.json"
+    ],
+    "uncoveredConditions": [
+      "Store/Journal fixture only for focused race; Postgres tests gated and skipped",
+      "Global worker lease and dispatcher cancellation ownership not fully reviewed"
+    ],
+    "conclusion": "MITIGATED",
+    "reason": "Bounded contract verified in production functions; fixture/DB limits are explicit"
+  },
+  {
+    "id": "review:affect-semantics",
+    "paths": [
+      "packages/memory/src/affect.ts",
+      "packages/prompt-builder/src/index.ts",
+      "packages/core/src/runtime-orchestrator.ts"
+    ],
+    "callees": [],
+    "categories": [
+      "MODEL_IO"
+    ],
+    "producer": "Original user text + timestamp + source",
+    "consumer": "Runtime -> PromptBuilder -> model messages",
+    "entryAndActivation": "Current main server composition; applicable configuration and local authority only",
+    "structures": "Keyword affect disabled (null); omit automatic CurrentAffect and empty placeholder; explicit caller authored field remains supported; original utterance/identity/time/source remain",
+    "allowedDomainAndUnits": "Keyword affect disabled (null); omit automatic CurrentAffect and empty placeholder; explicit caller authored field remains supported; original utterance/identity/time/source remain",
+    "risk": "See original failed probe / reason; no model quality inference",
+    "failureAndCancellation": "Preserved original failure and cancellation unless explicitly specified in domain",
+    "lifecycleOwner": "No artificial emotional owner",
+    "staticEvidence": [
+      {
+        "path": "packages/memory/src/affect.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      },
+      {
+        "path": "packages/prompt-builder/src/index.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      },
+      {
+        "path": "packages/core/src/runtime-orchestrator.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      }
+    ],
+    "positiveTests": [
+      "packages/core/src/runtime-semantic-evidence.test.ts",
+      "apps/server/src/server.test.ts"
+    ],
+    "negativeTests": [
+      "packages/core/src/runtime-semantic-evidence.test.ts"
+    ],
+    "counterfactualTests": [
+      "p1-affect-before.json",
+      "p1-affect-after.json",
+      "diagnostic-origin-after.json"
+    ],
+    "uncoveredConditions": [
+      "Other control summaries and proactive keyword policies not universally validated",
+      "Removing label is not yet evidence of improved empathy/quality"
+    ],
+    "conclusion": "MITIGATED",
+    "reason": "Bounded contract verified in production functions; fixture/DB limits are explicit"
+  },
+  {
+    "id": "open:correction-supersession",
+    "paths": [
+      "packages/memory/src/intent.ts",
+      "packages/memory/src/service.ts"
+    ],
+    "callees": [],
+    "categories": [
+      "PERSISTENT_STATE"
+    ],
+    "producer": "Correction classifier and admitted grounded claim",
+    "consumer": "Claim supersession / native and Mem0 updates",
+    "entryAndActivation": "Current main server composition; applicable configuration and local authority only",
+    "structures": "OPEN: source authority does not establish interpreted correction intent; quotations and conditionals need dedicated causal probe",
+    "allowedDomainAndUnits": "OPEN: source authority does not establish interpreted correction intent; quotations and conditionals need dedicated causal probe",
+    "risk": "See original failed probe / reason; no model quality inference",
+    "failureAndCancellation": "Preserved original failure and cancellation unless explicitly specified in domain",
+    "lifecycleOwner": "Grounded Memory claim owner",
+    "staticEvidence": [
+      {
+        "path": "packages/memory/src/intent.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      },
+      {
+        "path": "packages/memory/src/service.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      }
+    ],
+    "positiveTests": [],
+    "negativeTests": [],
+    "counterfactualTests": [],
+    "uncoveredConditions": [
+      "This batch stopped direct deletion, not all automatic persistent semantic updates; do not broaden unproven patch"
+    ],
+    "conclusion": "OPEN_WITH_REASON",
+    "reason": "Bounded contract verified in production functions; fixture/DB limits are explicit"
+  },
+  {
+    "id": "open:history-projection",
+    "paths": [
+      "apps/server/src/character-runtime.ts",
+      "packages/core/src/runtime-orchestrator.ts"
+    ],
+    "callees": [],
+    "categories": [
+      "MODEL_IO"
+    ],
+    "producer": "Conversation and Memory context",
+    "consumer": "Hierarchical compression -> Character semantic protocol -> second reply model",
+    "entryAndActivation": "Current main server composition; applicable configuration and local authority only",
+    "structures": "OPEN: multiple char/token estimates and roles/history projections; original audits contain losses, not addressed with this bounded patch",
+    "allowedDomainAndUnits": "OPEN: multiple char/token estimates and roles/history projections; original audits contain losses, not addressed with this bounded patch",
+    "risk": "See original failed probe / reason; no model quality inference",
+    "failureAndCancellation": "Preserved original failure and cancellation unless explicitly specified in domain",
+    "lifecycleOwner": "Runtime turn",
+    "staticEvidence": [
+      {
+        "path": "apps/server/src/character-runtime.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      },
+      {
+        "path": "packages/core/src/runtime-orchestrator.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      }
+    ],
+    "positiveTests": [],
+    "negativeTests": [],
+    "counterfactualTests": [],
+    "uncoveredConditions": [
+      "Requires same-model direct/full/reduced comparison and targeted history markers before changes"
+    ],
+    "conclusion": "OPEN_WITH_REASON",
+    "reason": "Bounded contract verified in production functions; fixture/DB limits are explicit"
+  },
+  {
+    "id": "open:media-provider",
+    "paths": [
+      "apps/server/src/routes/media.ts",
+      "apps/server/src/voice-control-receipt-admission.ts"
+    ],
+    "callees": [],
+    "categories": [
+      "EXTERNAL_ENTRY",
+      "MODEL_IO",
+      "CROSS_PROCESS_PROVIDER",
+      "ASYNC_OWNERSHIP"
+    ],
+    "producer": "Voice/media epoch + STT/Vision/TTS",
+    "consumer": "Journal admission / Runtime / streaming output",
+    "entryAndActivation": "Current main server composition; applicable configuration and local authority only",
+    "structures": "OPEN: audio byte limits, transcript segmentation, provider duration and media epoch contract not deeply checked in this batch",
+    "allowedDomainAndUnits": "OPEN: audio byte limits, transcript segmentation, provider duration and media epoch contract not deeply checked in this batch",
+    "risk": "See original failed probe / reason; no model quality inference",
+    "failureAndCancellation": "Preserved original failure and cancellation unless explicitly specified in domain",
+    "lifecycleOwner": "Media epoch / request controllers",
+    "staticEvidence": [
+      {
+        "path": "apps/server/src/routes/media.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      },
+      {
+        "path": "apps/server/src/voice-pipeline.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      }
+    ],
+    "positiveTests": [],
+    "negativeTests": [],
+    "counterfactualTests": [],
+    "uncoveredConditions": [
+      "Actual microphone/device and local sidecars unavailable",
+      "Baseline graph candidates retained; no invented no-consumer finding"
+    ],
+    "conclusion": "OPEN_WITH_REASON",
+    "reason": "Bounded contract verified in production functions; fixture/DB limits are explicit"
+  },
+  {
+    "id": "open:worker-recovery",
+    "paths": [
+      "packages/effects/src/dispatcher.ts"
+    ],
+    "callees": [],
+    "categories": [
+      "PERSISTENT_STATE",
+      "AUTHORIZED_EFFECT",
+      "ASYNC_OWNERSHIP"
+    ],
+    "producer": "Effect intent and durable lease",
+    "consumer": "Dispatcher admission / worker recovery / outward execution",
+    "entryAndActivation": "Current main server composition; applicable configuration and local authority only",
+    "structures": "OPEN: UNKNOWN and idempotency governance retained, not removed; live DB concurrency absent",
+    "allowedDomainAndUnits": "OPEN: UNKNOWN and idempotency governance retained, not removed; live DB concurrency absent",
+    "risk": "See original failed probe / reason; no model quality inference",
+    "failureAndCancellation": "Preserved original failure and cancellation unless explicitly specified in domain",
+    "lifecycleOwner": "Worker lease / effect intent",
+    "staticEvidence": [
+      {
+        "path": "packages/effects/src/dispatcher.ts",
+        "basis": "Targeted source reading + current regression; linked to frozen AST candidates"
+      }
+    ],
+    "positiveTests": [],
+    "negativeTests": [],
+    "counterfactualTests": [],
+    "uncoveredConditions": [
+      "Path existence verified by builder; broader store ownership needs PostgreSQL and process-restart probe"
+    ],
+    "conclusion": "OPEN_WITH_REASON",
+    "reason": "Bounded contract verified in production functions; fixture/DB limits are explicit"
+  },
+  {
+    "id": "open:private-sample-retention",
+    "paths": [
+      "apps/server/src/services/voice-review.ts",
+      "packages/core/src/voice-binding-references.ts"
+    ],
+    "callees": [],
+    "categories": [
+      "PERSISTENT_STATE",
+      "ASYNC_OWNERSHIP"
+    ],
+    "producer": "retainEnrollmentSamples / disposable VoiceBindingReferences index",
+    "consumer": "readVoiceCommandSamples / native controller reconstruction",
+    "entryAndActivation": "Voice enrollment controller and persistent local private DATA store; actual sidecar and in-flight execution required",
+    "structures": "Bounded last 30 sample rows; stable refs/digests; completeness/owner watermark for separate binding index",
+    "allowedDomainAndUnits": "OPEN: eviction and migration must be compatible with pending admitted sample references; graph discovery expanded write wrappers as a class",
+    "risk": "Sampled writePrivateJson was not included in initial name heuristic; now all comparable private/file write wrappers are candidates, not only this file",
+    "failureAndCancellation": "No speculative repair; missing sample/read failure preserves error, actual admitted lifetime requires probe",
+    "lifecycleOwner": "Private DATA store versus pending enrollment command; multiwriter/index ownership OPEN",
+    "staticEvidence": [
+      {
+        "path": "apps/server/src/services/voice-review.ts",
+        "function": "retainEnrollmentSamples / readVoiceCommandSamples",
+        "basis": "Source excerpt sampling + original AST writePrivateJson calls"
+      },
+      {
+        "path": "packages/core/src/voice-binding-references.ts",
+        "function": "write / append",
+        "basis": "Whole small-file review; synchronous index writer and completeness watermark"
+      }
+    ],
+    "positiveTests": [],
+    "negativeTests": [],
+    "counterfactualTests": [],
+    "uncoveredConditions": [
+      "No reproduced lost enrollment sample; this is a hypothesis, not a confirmed defect",
+      "Multi-process private store and model/device not run"
+    ],
+    "conclusion": "OPEN_WITH_REASON",
+    "reason": "Sampling exposed an identification-rule omission; rule generalized and ledger rebuilt, no unproven production change"
+  }
+]

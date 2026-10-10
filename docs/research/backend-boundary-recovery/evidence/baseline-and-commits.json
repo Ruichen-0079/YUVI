@@ -1,0 +1,42 @@
+{
+  "baselineSHA": "0d894cc70d42ebba0df132924f5ea181c062b431",
+  "initialWorkspace": "CLEAN",
+  "targetBranch": "fix/backend-boundary-recovery-20261010",
+  "productionTip": "7ea26d683c8e0a1001478014dac45e4b39b298d1",
+  "priorGraphSourceSHA": "fb0e1e62841106c533e4edd1d7e60327dc4315b4",
+  "independentBranches": [
+    {
+      "ref": "feat/plunge-webui-20261008",
+      "sha": "adff0c70648b42a3a15ea45609adae1c45b31fc5",
+      "modified": false,
+      "fixesApplied": false,
+      "deploymentConfirmed": false
+    },
+    {
+      "ref": "salvage/desktop-presentation-20260923",
+      "sha": "4da346636be7bdaefeeb7617f1530eaedbcd0711",
+      "modified": false,
+      "fixesApplied": false,
+      "deploymentConfirmed": false
+    }
+  ],
+  "branchSource": "Reused prior build-and-branch-matrix + exact remote heads checked 2026-10-10; no new scan or mixed version chain",
+  "commits": [
+    "e5b803fd57f1d6ac1650cfb3878623c666689568 fix: scope and authorize dashboard diagnostic subscriptions",
+    "750eb5e920dc76f1e18052d681d616e7a5423cdf fix: require explicit authority for destructive memory operations",
+    "7d1a5caf9fc2ee43708e528de41f250a68025383 fix: preserve bounded authorized text observations and coverage",
+    "82e71d2fb2502a4e717b76590e2aad664df02f08 fix: fence websocket trace cleanup and session delivery",
+    "c1475daec6593e681208a9cc52150c5c06780c1f fix: retire unverified keyword affect instructions",
+    "a98adc3c975d81db1350397ec42d6eea74f3c3b6 fix: claim read-text grant before asynchronous context capture",
+    "38ad4b9b6334dde48fb56307dc3835cb90059581 fix: reject foreign browser origins at local dashboard boundaries",
+    "f23efff14b412f35b4fac8b9ca27716634378d1a test: align server prompts with removal of inferred affect labels",
+    "fa62e97697a796f119d6704a5af56c1a593c5e7b fix: separate rejected websocket packets from owned work failures",
+    "207fbcd876d4bac5f433a917bbe1906647a675fe test: type websocket rejection correlation frames",
+    "7ea26d683c8e0a1001478014dac45e4b39b298d1 fix: preserve IPv6 loopback dashboard origins"
+  ],
+  "limitations": [
+    "Main-only bounded production repair; actual Alice deployment SHA unknown",
+    "Prior completeness inventory/graphs unchanged; candidate mappings do not close old gaps"
+  ],
+  "reviewedTip": "7ea26d683c8e0a1001478014dac45e4b39b298d1"
+}
