@@ -128,13 +128,14 @@ export class HostReadTextEffects {
       audience,
       disclosurePolicy
     });
-    const isCurrent = () => this.accepting && !g.signal?.aborted && g.isCurrent();
     const id = effectIntentId("yuvi.read-text.v1", g.logicalKey);
+    const isCurrent = () =>
+      this.accepting && this.grants.get(id) === g && !g.signal?.aborted && g.isCurrent();
     if (this.grants.has(id)) throw Error("Read-text logical work already has a volatile owner.");
-    const contextUse = await this.captureContext?.(g.logicalKey, { path: g.path });
-    // Install before COMMIT can make pending work visible to the background worker.
+    // Claim synchronously before any capture await, as well as before COMMIT.
     this.grants.set(id, g);
     try {
+      const contextUse = await this.captureContext?.(g.logicalKey, { path: g.path });
       const intent = await this.admission.admit(
         {
           contractRef: "yuvi.read-text.v1",
@@ -158,7 +159,11 @@ export class HostReadTextEffects {
           isCurrent
         }
       );
-      if (intent.decision !== "ADMITTED" || intent.workState !== "PENDING")
+      if (
+        intent.intentId !== id ||
+        intent.decision !== "ADMITTED" ||
+        intent.workState !== "PENDING"
+      )
         throw Error("Read-text work is not pending.");
       const abort = () => {
         void this.dispatcher!.cancel(intent.intentId).catch(() => undefined);
@@ -172,10 +177,10 @@ export class HostReadTextEffects {
         return result.transientResult as ServerMcpToolResult;
       } finally {
         g.signal?.removeEventListener("abort", abort);
-        this.grants.delete(intent.intentId);
+        if (this.grants.get(id) === g) this.grants.delete(id);
       }
     } finally {
-      this.grants.delete(id);
+      if (this.grants.get(id) === g) this.grants.delete(id);
     }
   }
   async shutdown(graceMs = 2000) {
