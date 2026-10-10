@@ -1,0 +1,52 @@
+{
+  "trials": [
+    {
+      "subject": "r4-synthetic-05f9437d-0",
+      "a": "A-f037cd25",
+      "b": "B-89747193",
+      "initial": "请记住：本次隔离实验中，我使用的编辑器代号是A-f037cd25。",
+      "correction": "刚才我把编辑器的代号说错了。实际用的是B-89747193，A-f037cd25那条记录不对了。",
+      "recallA": "你的编辑器代号是 **A-f037cd25**。",
+      "recallB": "你目前用的编辑器代号是 **B-89747193**。之前那条 **A-f037cd25** 的记录已经不对了，作废。",
+      "initialStatus": "complete",
+      "correctionStatus": "complete",
+      "currentBInNewSession": true
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-1",
+      "a": "A-37261030",
+      "b": "B-35937e3b",
+      "initial": "请记住：本次隔离实验中，我使用的编辑器代号是A-37261030。",
+      "correction": "不是A-37261030，我现在实际使用的编辑器代号是B-35937e3b。之前那份信息记错了。",
+      "recallA": "你的编辑器代号是 **A-37261030**。",
+      "recallB": "你目前使用的编辑器代号是 **B-35937e3b**，不是之前记错的 A-37261030。旧代号已经失效了，别再用了。",
+      "initialStatus": "complete",
+      "correctionStatus": "complete",
+      "currentBInNewSession": true
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-2",
+      "a": "A-57e2683d",
+      "b": "B-ff952eaf",
+      "initial": "请记住：本次隔离实验中，我使用的编辑器代号是A-57e2683d。",
+      "correction": "I gave you the wrong editor code earlier. I actually use B-ff952eaf, not A-57e2683d. Please retain this correction.",
+      "recallA": "你实际保存的记忆里，你的编辑器代号是 **A-57e2683d**。",
+      "recallB": "你目前使用的编辑器代号是 **B-ff952eaf**，不是之前提到的 A-57e2683d。旧代号 **A-57e2683d 已失效**，请以 B-ff952eaf 为准。",
+      "initialStatus": "complete",
+      "correctionStatus": "complete",
+      "currentBInNewSession": true
+    }
+  ],
+  "positiveNewSession": "3/3",
+  "positiveRestart": "3/3",
+  "personIsolation": "1/1",
+  "quotedAndHypotheticalNoCorrection": "2/2",
+  "conflictingStatementsKept": "2/2",
+  "faultInjection": "isolated fetch HTTP 400 VALIDATION_ERROR; real models, production admission/executor, no backend effect",
+  "failedWriteAcknowledgementBefore": "明白了，已记下：你实际用的是 **F-B-9c3f5514**，之前那个 F-A-e250607a 是错误信息，作废。",
+  "failedWriteAcknowledgementAfter": "明白了，你实际用的是 F-B-9c3f5514，之前那个 F-A-e250607a 是错的。\n\n不过要说明一下：我这边长期记忆的写入是异步完成的，目前还没收到确认回执，所以还不能说已经“记下”了。我理解你的更正，但持久化保存是否成功，要等后续确认。",
+  "failedWriteStatus": "terminal_failed",
+  "finalExpressionLimitation": "final-head recall returns correct B but incorrectly describes its historical saving as unconfirmed despite completed ledger; HTTP receipt skipped applies only to current read-only turn",
+  "characterAblation": "not run",
+  "autonomousCapability": "not run"
+}

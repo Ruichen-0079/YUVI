@@ -1,4 +1,11 @@
-import { InMemoryEvidenceAdmissionStore, prepareEvidenceAdmission, memoryEffectDigest, type EvidenceAdmissionStore, type EvidenceProducer } from "../evidence-admission.js";
+import {
+  InMemoryEvidenceAdmissionStore,
+  prepareEvidenceAdmission,
+  memoryEffectDigest,
+  matchesEvidenceEffect,
+  type EvidenceAdmissionStore,
+  type EvidenceProducer
+} from "../evidence-admission.js";
 import {
   decodeMemoryLineage,
   encodeMemoryLineage,
@@ -14,8 +21,14 @@ import {
   type MemoryRecord,
   type MemoryRecordMetadata
 } from "../backend.js";
-import { deserializeClaimMetadata, serializeClaimMetadata } from "../claim.js";
+import {
+  deserializeClaimMetadata,
+  serializeClaimMetadata,
+  MEMORY_CLAIM_METADATA
+} from "../claim.js";
 import { buildMemoryScope } from "../scope.js";
+import { PROFILE_MAX_RAW_RECORDS } from "../profile-types.js";
+import { currentCorrectedMemoryEvents } from "../correction.js";
 import type {
   MemoryEvent,
   MemoryEventAssertion,
@@ -135,7 +148,8 @@ export class Mem0MemoryProvider implements MemoryProvider {
       scope: string;
       reason: "DELIVERY_OBSERVED";
     }) => Promise<void> | void,
-    readonly evidenceAdmissions: EvidenceAdmissionStore = new InMemoryEvidenceAdmissionStore()
+    readonly evidenceAdmissions: EvidenceAdmissionStore = new InMemoryEvidenceAdmissionStore(),
+    private readonly correctionOptions?: { enabled: boolean; ready?: Promise<unknown> }
   ) {
     if (backend.kind !== "mem0") {
       throw new Mem0MemoryProviderError(
@@ -147,6 +161,82 @@ export class Mem0MemoryProvider implements MemoryProvider {
 
   getProfileNotificationFailureCount(): number {
     return this.profileNotificationFailureCount;
+  }
+
+  /** One complete scoped snapshot; ranking must not hide the correcting evidence. */
+  async readCorrectionEvidence(scope: string, signal?: AbortSignal): Promise<MemoryEvent[]> {
+    await this.correctionOptions?.ready;
+    const snapshot = await this.backend.list(
+      { scope, limit: PROFILE_MAX_RAW_RECORDS, mode: "bounded_snapshot" },
+      signal
+    );
+    if (
+      snapshot.snapshot?.mode !== "bounded_snapshot" ||
+      !snapshot.snapshot.exhausted ||
+      snapshot.snapshot.rawBytesExceeded
+    ) {
+      throw new Mem0MemoryProviderError(
+        "MEMORY_CORRECTION_COVERAGE_UNPROVEN",
+        "Current evidence requires a complete scoped snapshot."
+      );
+    }
+    const admissions = await this.evidenceAdmissions.listBound(
+      scope,
+      snapshot.items.map((r) => r.id)
+    );
+    const events: MemoryEvent[] = [];
+    for (const record of snapshot.items) {
+      const event = mapMem0RecordToMemoryEvent(record, scope);
+      const admission = admissions.find((a) => a.backendRecordId === record.id);
+      if (!admission || !matchesEvidenceEffect(admission, record)) {
+        // Unadmitted metadata cannot invalidate an admitted fact.
+        if (admission)
+          throw new Mem0MemoryProviderError(
+            "MEMORY_EVIDENCE_EFFECT_MISMATCH",
+            "Evidence changed after admission."
+          );
+        continue;
+      }
+      if (
+        !event.lineage ||
+        canonicalLineageJson(event.lineage) !== canonicalLineageJson(admission.lineage)
+      )
+        throw new Mem0MemoryProviderError(
+          "MEMORY_LINEAGE_INVALID",
+          "Evidence lineage differs from admission."
+        );
+      events.push(event);
+    }
+    for (const event of events) {
+      const ids = event.metadata[MEMORY_CLAIM_METADATA.supersedes];
+      if (!Array.isArray(ids) || !ids.length) continue;
+      if (
+        event.kind !== "correction" ||
+        event.lineage?.state !== "GROUNDED" ||
+        event.lineage.origin !== "USER_ASSERTION"
+      )
+        throw new Mem0MemoryProviderError(
+          "MEMORY_CORRECTION_INVALID",
+          "Correction must be user-grounded."
+        );
+      for (const id of ids) {
+        const target = events.find((prior) => prior.id === id);
+        if (!target) continue; // An absent historical row cannot be returned as current evidence.
+        if (
+          target.id === event.id ||
+          target.lineage?.state !== "GROUNDED" ||
+          target.lineage.origin !== "USER_ASSERTION" ||
+          Date.parse(target.lineage.sourceTime.recordedAt) >=
+            Date.parse(event.lineage.sourceTime.recordedAt) ||
+          !sameCorrectionAuthority(target, event)
+        )
+          throw new Mem0MemoryProviderError(
+            "MEMORY_CORRECTION_INVALID",
+            "Correction ancestry or authority is inconsistent."
+          );
+      }
+    }
+    return events;
   }
 
   async retrieveRelevant(input: MemoryRetrievalInput): Promise<MemoryRetrievalOutcome> {
@@ -178,17 +268,53 @@ export class Mem0MemoryProvider implements MemoryProvider {
         const event = mapMem0RecordToMemoryEvent(record, scope);
         if (seen.has(event.id)) continue;
         seen.add(event.id);
-        events.push(event);
+        events.push(
+          this.correctionOptions?.enabled ? { ...event, relevanceScore: record.score } : event
+        );
+      }
+      let current = events;
+      if (this.correctionOptions?.enabled) {
+        const snapshot = await this.readCorrectionEvidence(scope, input.signal);
+        const eligible = currentCorrectedMemoryEvents(snapshot);
+        const relevantIds = new Set(events.map((event) => event.id));
+        // Follow corrections even when vector top-k returns only the rejected old value.
+        for (let step = 0; step < snapshot.length; step += 1) {
+          let changed = false;
+          for (const event of snapshot) {
+            const ids = event.metadata[MEMORY_CLAIM_METADATA.supersedes];
+            if (
+              Array.isArray(ids) &&
+              ids.some((id) => relevantIds.has(String(id))) &&
+              !relevantIds.has(event.id)
+            ) {
+              relevantIds.add(event.id);
+              changed = true;
+            }
+          }
+          if (!changed) break;
+        }
+        const eligibleById = new Map(eligible.map((event) => [event.id, event]));
+        current = events.flatMap((event) => {
+          const admitted = eligibleById.get(event.id);
+          return admitted ? [{ ...admitted, relevanceScore: event.relevanceScore }] : [];
+        });
+        for (const event of eligible) {
+          if (relevantIds.has(event.id) && !current.some((hit) => hit.id === event.id))
+            current.push({
+              ...event,
+              relevanceScore: Math.max(0, ...events.map((hit) => hit.relevanceScore ?? 0))
+            });
+        }
       }
       const limited = limit !== undefined && records.length >= limit;
       return {
-        status: events.length === 0 ? "empty" : "ok",
-        events,
+        status: current.length === 0 ? "empty" : "ok",
+        events: current,
         source: MEM0_MEMORY_SOURCE,
         limited,
         ...(limited ? { limitReason: "top-k-cap" } : {}),
         rawCount: records.length,
-        selectedCount: events.length
+        selectedCount: current.length
       };
     } catch (error) {
       return retrievalError(classifyRetrievalError(error));
@@ -309,12 +435,23 @@ export class Mem0MemoryProvider implements MemoryProvider {
     await this.evidenceAdmissions.prepare(prepareEvidenceAdmission(producer, event));
   }
 
-  private async bindPreparedEffect(scope: string, key: string, digest: string, memoryId: string): Promise<void> {
+  private async bindPreparedEffect(
+    scope: string,
+    key: string,
+    digest: string,
+    memoryId: string
+  ): Promise<void> {
     const admission = await this.evidenceAdmissions.get(scope, key);
     if (!admission) return; // Reliability is not admission.
     const record = await this.backend.get({ scope, memoryId });
-    if (admission.payloadDigest !== digest || !record || record.id !== memoryId || record.scope !== scope ||
-        admission.effectDigest !== memoryEffectDigest(record)) throw new Error("EVIDENCE_EFFECT_MISMATCH");
+    if (
+      admission.payloadDigest !== digest ||
+      !record ||
+      record.id !== memoryId ||
+      record.scope !== scope ||
+      admission.effectDigest !== memoryEffectDigest(record)
+    )
+      throw new Error("EVIDENCE_EFFECT_MISMATCH");
     await this.evidenceAdmissions.bind(scope, key, memoryId);
     await this.notifyReconciliation(scope);
   }
@@ -440,7 +577,8 @@ export class Mem0MemoryProvider implements MemoryProvider {
     }
     try {
       const result = await this.backend.reconcileIdempotency(
-        { idempotencyKey: key, payloadDigest: digest }, undefined
+        { idempotencyKey: key, payloadDigest: digest },
+        undefined
       );
       if (result.status === "applied" && result.memoryId && input.scope) {
         await this.bindPreparedEffect(input.scope, key, digest, result.memoryId);
@@ -486,6 +624,7 @@ export function buildWriteMetadata(input: MemoryWriteEventInput): MemoryRecordMe
     )
   );
   metadata["yuviEventKind"] = input.kind;
+  if (input.supersedes?.length) metadata[MEMORY_CLAIM_METADATA.supersedes] = input.supersedes;
   if (input.assertion) {
     metadata["yuviAssertionSource"] = input.assertion.source;
     metadata["yuviVerification"] = input.assertion.verification;
@@ -728,4 +867,25 @@ function assertReturnedLineage(input: MemoryWriteEventInput, event: MemoryEvent 
   ) {
     throw new MemoryLineageEncodingError();
   }
+}
+
+function sameCorrectionAuthority(left: MemoryEvent, right: MemoryEvent): boolean {
+  if (
+    left.scope !== right.scope ||
+    left.lineage?.state !== "GROUNDED" ||
+    right.lineage?.state !== "GROUNDED"
+  )
+    return false;
+  if (left.lineage.origin === "DERIVED" || right.lineage.origin === "DERIVED") return false;
+  const a = left.lineage.authority,
+    b = right.lineage.authority;
+  // An explicit identity must never be relabelled by compatibility scope metadata.
+  return (
+    (a.binding.state !== "RESOLVED" ||
+      (b.binding.state === "RESOLVED" && a.binding.personId === b.binding.personId)) &&
+    (a.principal.state !== "RESOLVED" ||
+      (b.principal.state === "RESOLVED" &&
+        a.principal.namespace === b.principal.namespace &&
+        a.principal.actorId === b.principal.actorId))
+  );
 }

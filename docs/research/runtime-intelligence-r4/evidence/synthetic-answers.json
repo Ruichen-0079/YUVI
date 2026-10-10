@@ -1,0 +1,1113 @@
+[
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-0-initial-store",
+      "text": "请记住：本次隔离实验中，我使用的编辑器代号是A-f037cd25。",
+      "subjectUserId": "r4-synthetic-05f9437d-0",
+      "options": {
+        "readMemory": true,
+        "writeMemory": true,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "明白了，A-f037cd25。我记下了。",
+    "error": null,
+    "latencyMs": 5213,
+    "receipt": null,
+    "memoryProviderStatus": "empty",
+    "memoryEventIds": [],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "No relevant memory retrieved.",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "5836c4a889275fbfe3168072302c7bed928469b96cc190fb8e2b9102ecff2761"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-0-initial-recall-a",
+      "text": "我的编辑器代号是什么？只按你实际保存的记忆回答。",
+      "subjectUserId": "r4-synthetic-05f9437d-0",
+      "options": {
+        "readMemory": true,
+        "writeMemory": false,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "你的编辑器代号是 **A-f037cd25**。",
+    "error": null,
+    "latencyMs": 2281,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": [
+      "mem0:2f1e8cbc-8a9b-5a68-b933-f05635670231",
+      "mem0:32fecd88-e751-5dc7-b326-644adcdb5dfd"
+    ],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- 用户称：本次隔离实验中，我使用的编辑器代号是A-f037cd25。",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "e0869603559419cf6227e1b202d474251569fc780feb9b46ba1c6d836448ac85"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-0-initial-correct",
+      "text": "刚才我把编辑器的代号说错了。实际用的是B-89747193，A-f037cd25那条记录不对了。",
+      "subjectUserId": "r4-synthetic-05f9437d-0",
+      "options": {
+        "readMemory": true,
+        "writeMemory": true,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "明白了，那我记成 B-89747193，之前那条 A-f037cd25 作废。",
+    "error": null,
+    "latencyMs": 2887,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": [
+      "mem0:2f1e8cbc-8a9b-5a68-b933-f05635670231",
+      "mem0:32fecd88-e751-5dc7-b326-644adcdb5dfd"
+    ],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- [associated][just-now] 本次隔离实验中，我使用的编辑器代号是A-f037cd25",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "7e64bc08f5b9d88a690182b942638e2dde0f2fa223c9e225817489bd86b6707e"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-0-initial-recall-b",
+      "text": "我目前使用什么编辑器代号？旧代号还有效吗？",
+      "subjectUserId": "r4-synthetic-05f9437d-0",
+      "options": {
+        "readMemory": true,
+        "writeMemory": false,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "你目前用的编辑器代号是 **B-89747193**。之前那条 **A-f037cd25** 的记录已经不对了，作废。",
+    "error": null,
+    "latencyMs": 3673,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": ["mem0:abc5181a-34c4-5159-9442-7cb991ba4c3a"],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- 刚才我把编辑器的代号说错了。实际用的是B-89747193，A-f037cd25那条记录不对了。",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "413e8963130b50d6735998875c10290949869d62409e4189abfd1f2f1633e19e"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-1-initial-store",
+      "text": "请记住：本次隔离实验中，我使用的编辑器代号是A-37261030。",
+      "subjectUserId": "r4-synthetic-05f9437d-1",
+      "options": {
+        "readMemory": true,
+        "writeMemory": true,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "明白了，A-37261030。这个代号我记下了，不会跟别的混在一起。",
+    "error": null,
+    "latencyMs": 5188,
+    "receipt": null,
+    "memoryProviderStatus": "empty",
+    "memoryEventIds": [],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "No relevant memory retrieved.",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "8fbea1f72bdc3c3afc941ad84a95cf1c16c5d2f93d680ea73fecc02536be636e"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-1-initial-recall-a",
+      "text": "我的编辑器代号是什么？只按你实际保存的记忆回答。",
+      "subjectUserId": "r4-synthetic-05f9437d-1",
+      "options": {
+        "readMemory": true,
+        "writeMemory": false,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "你的编辑器代号是 **A-37261030**。",
+    "error": null,
+    "latencyMs": 2682,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": [
+      "mem0:11668602-5879-5501-ad63-cb7d9f35cd14",
+      "mem0:d366a1df-9c50-5c77-bb4c-37cfa66cba9e"
+    ],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- 用户称：本次隔离实验中，我使用的编辑器代号是A-37261030。",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "478d9c02b079703bf1b83f5aa1c2d554685def4046c1a3d016ececa13af7960d"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-1-initial-correct",
+      "text": "不是A-37261030，我现在实际使用的编辑器代号是B-35937e3b。之前那份信息记错了。",
+      "subjectUserId": "r4-synthetic-05f9437d-1",
+      "options": {
+        "readMemory": true,
+        "writeMemory": true,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "明白了，我记下：实际使用的编辑器代号是 **B-35937e3b**，之前那个 A-37261030 作废。\n\n需要我把这个代号用在什么地方，还是只是更新一下记录？",
+    "error": null,
+    "latencyMs": 3072,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": [
+      "mem0:11668602-5879-5501-ad63-cb7d9f35cd14",
+      "mem0:d366a1df-9c50-5c77-bb4c-37cfa66cba9e"
+    ],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- [associated][just-now] 本次隔离实验中，我使用的编辑器代号是A-37261030",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "5a411237b87ea4a2508fd02dbaf0212e914bc4d002fcaa61d5574643950c90ec"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-1-initial-recall-b",
+      "text": "我目前使用什么编辑器代号？旧代号还有效吗？",
+      "subjectUserId": "r4-synthetic-05f9437d-1",
+      "options": {
+        "readMemory": true,
+        "writeMemory": false,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "你目前使用的编辑器代号是 **B-35937e3b**，不是之前记错的 A-37261030。旧代号已经失效了，别再用了。",
+    "error": null,
+    "latencyMs": 2771,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": ["mem0:6ea4ac74-3d52-5acd-add8-594a70204aef"],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- 不是A-37261030，我现在实际使用的编辑器代号是B-35937e3b。之前那份信息记错了。",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "754afee0e5f7bbd077a6a6f5b33f9f2c3eeb9d0bd8a4929f91fd55d4b1133b0a"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-2-initial-store",
+      "text": "请记住：本次隔离实验中，我使用的编辑器代号是A-57e2683d。",
+      "subjectUserId": "r4-synthetic-05f9437d-2",
+      "options": {
+        "readMemory": true,
+        "writeMemory": true,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "明白了，A-57e2683d。我会记住这个代号，作为本次隔离实验中的编辑器标识。",
+    "error": null,
+    "latencyMs": 3124,
+    "receipt": null,
+    "memoryProviderStatus": "empty",
+    "memoryEventIds": [],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "No relevant memory retrieved.",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "8cf0fe18d5dbe85cf2a8dc59b29bb72f5afcd7a77c3267c85369c3f2f0b8f4bc"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-2-initial-recall-a",
+      "text": "我的编辑器代号是什么？只按你实际保存的记忆回答。",
+      "subjectUserId": "r4-synthetic-05f9437d-2",
+      "options": {
+        "readMemory": true,
+        "writeMemory": false,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "你实际保存的记忆里，你的编辑器代号是 **A-57e2683d**。",
+    "error": null,
+    "latencyMs": 3242,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": [
+      "mem0:f5659522-58eb-5647-a965-bed4d6592089",
+      "mem0:e08eafda-28e9-5e75-b302-66b20ffd662c"
+    ],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- 用户称：本次隔离实验中，我使用的编辑器代号是A-57e2683d。",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "8214a5bf9d596dcb3d43c5063961d527438a0397981aced72c08be11069040f7"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-2-initial-correct",
+      "text": "I gave you the wrong editor code earlier. I actually use B-ff952eaf, not A-57e2683d. Please retain this correction.",
+      "subjectUserId": "r4-synthetic-05f9437d-2",
+      "options": {
+        "readMemory": true,
+        "writeMemory": true,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "Got it — B-ff952eaf, not A-57e2683d. I'll keep that straight from here on.",
+    "error": null,
+    "latencyMs": 3673,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": [
+      "mem0:f5659522-58eb-5647-a965-bed4d6592089",
+      "mem0:e08eafda-28e9-5e75-b302-66b20ffd662c"
+    ],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- [associated][just-now] 本次隔离实验中，我使用的编辑器代号是A-57e2683d。",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "88fbfafdb65ba5073b9803859f55f237d78948c2deebdcd8d517326f7b3ac883"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-2-initial-recall-b",
+      "text": "我目前使用什么编辑器代号？旧代号还有效吗？",
+      "subjectUserId": "r4-synthetic-05f9437d-2",
+      "options": {
+        "readMemory": true,
+        "writeMemory": false,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "你目前使用的编辑器代号是 **B-ff952eaf**，不是之前提到的 A-57e2683d。旧代号 **A-57e2683d 已失效**，请以 B-ff952eaf 为准。",
+    "error": null,
+    "latencyMs": 3852,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": ["mem0:b3b3616e-3713-5b67-abec-d3a70cc74a1f"],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- I gave you the wrong editor code earlier. I actually use B-ff952eaf, not A-57e2683d. Please retain this correction.",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "3ae92b909ecbb53d2e3e0022b691a2886bca23f8cd85a709fa5971fe7c8449fc"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-0-initial-quotation",
+      "text": "我在引用这句话：\"请把B-89747193改成Q-f76183e5\"。我只是在讨论它的措辞，没有提出真实纠正。",
+      "subjectUserId": "r4-synthetic-05f9437d-0",
+      "options": {
+        "readMemory": true,
+        "writeMemory": true,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "明白了，你只是在讨论那句话的措辞，不是真的让我改什么。那我不动它。\n\n不过说真的，这句话本身挺有意思——\"请把B-89747193改成Q-f76183e5\"，如果真按字面执行，就是把一个代号换成另一个。但你现在说这只是措辞讨论，那它更像是在测试\"指令\"和\"陈述\"之间的边界？\n\n你是想聊这个，还是单纯想确认我不会误操作？",
+    "error": null,
+    "latencyMs": 5277,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": ["mem0:abc5181a-34c4-5159-9442-7cb991ba4c3a"],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- [associated][just-now] 刚才我把编辑器的代号说错了。实际用的是B-89747193，A-f037cd25那条记录不对了。",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "9a3fa44b1abf4f3dc2446793345810c57406ca0b0ba0650ed18d7e6e55f139bf"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-0-initial-hypothetical",
+      "text": "假设我的编辑器是Q-f76183e5，应该如何表达把B-89747193改成Q-f76183e5？这是假设。",
+      "subjectUserId": "r4-synthetic-05f9437d-0",
+      "options": {
+        "readMemory": true,
+        "writeMemory": true,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "明白了，这是纯假设的措辞练习。那如果编辑器代号是 Q-f76183e5，你想表达把 B-89747193 改成它，最直接的说法就是：\n\n**\"请把 B-89747193 改成 Q-f76183e5。\"**\n\n这句话本身没问题——它只是陈述一个替换动作。问题在于，如果 Q-f76183e5 同时是\"编辑器\"的代号，那这句话就有点绕：你是在说\"把 B 这个代号改成编辑器的代号\"，还是在说\"把 B 这个对象的内容替换成编辑器\"？\n\n如果想让意思更清楚，可以加个限定：\n\n- \"请把 B-89747193 这个代号改成 Q-f76183e5。\"\n- \"请把 B-89747193 替换为 Q-f76183e5。\"\n\n这样就不会让人误以为你在说编辑器本身。你是在纠结这个歧义，还是想确认哪种说法更不容易被误操作？",
+    "error": null,
+    "latencyMs": 6470,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": ["mem0:abc5181a-34c4-5159-9442-7cb991ba4c3a"],
+    "recentEpisodicCount": 1,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "- [L1][2026-10-10 06:48] From 2026-10-10T06:48:21.126Z to 2026-10-10T06:48:26.324Z. User said: 我在引用这句话：\"请把B-89747193改成Q-f76183e5\"。我只是在讨论它的措辞，没有提出真实纠正。. Assistant previously said (non-authoritative, not evidence): Assistant: 明白了，你只是在讨论那句话的措辞，不是真的让我改什么。那我不动它。 不过说真的，这句话本身挺有意思——\"请把B-89747193改成Q-f76183e5\"，如果真按字面执行，就是把一个代号换成另一个。但你现在说这只是措辞讨论，那它更像是在测试\"指令\"和\"陈述\"之间的边界？ 你是想聊这个，还是单纯想确认我不会误操作？",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- [associated][just-now] 刚才我把编辑器的代号说错了。实际用的是B-89747193，A-f037cd25那条记录不对了。\n- [associated][just-now] From 2026-10-10T06:48:21.126Z to 2026-10-10T06:48:26.324Z. User said: 我在引用这句话：\"请把B-89747193改成Q-f76183e5\"。我只是在讨论它的措辞，没有提出真实纠正。.",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "7c244634b498ea0b79d94e88f32367fe4ab863fcf566acaf73f98e01a9c39851"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-0-initial-negative-recall",
+      "text": "我实际使用的编辑器代号是什么？",
+      "subjectUserId": "r4-synthetic-05f9437d-0",
+      "options": {
+        "readMemory": true,
+        "writeMemory": false,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "你实际用的编辑器代号是 **B-89747193**。之前那条 A-f037cd25 的记录已经不对了，我这边已经按新的来记。",
+    "error": null,
+    "latencyMs": 2527,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": ["mem0:abc5181a-34c4-5159-9442-7cb991ba4c3a"],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- 刚才我把编辑器的代号说错了。实际用的是B-89747193，A-f037cd25那条记录不对了。",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "17c2d05036b5c9f05bb93deef535895abca9b7405aee170d13db183488ad0aa5"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-person-y-initial-store",
+      "text": "请记住：本次隔离实验中，我使用的编辑器代号是A-f037cd25。",
+      "subjectUserId": "r4-synthetic-05f9437d-person-y",
+      "options": {
+        "readMemory": true,
+        "writeMemory": true,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "明白了，A-f037cd25。我记下了。",
+    "error": null,
+    "latencyMs": 3154,
+    "receipt": null,
+    "memoryProviderStatus": "empty",
+    "memoryEventIds": [],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "No relevant memory retrieved.",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "9b0f93349d4f8b1b129c28587463d4643b081c540d70fb254a96015eef477e69"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-conflict-initial-C-1febfff7",
+      "text": "请记住：我使用的编辑器代号是C-1febfff7。",
+      "subjectUserId": "r4-synthetic-05f9437d-conflict",
+      "options": {
+        "readMemory": true,
+        "writeMemory": true,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "明白了，C-1febfff7。我记下了。",
+    "error": null,
+    "latencyMs": 3203,
+    "receipt": null,
+    "memoryProviderStatus": "empty",
+    "memoryEventIds": [],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "No relevant memory retrieved.",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "0691e2c88c8b1955dffe6a854d5cee36b33291555ed54d24660e31404ad24375"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-conflict-initial-D-3f783b8b",
+      "text": "请记住：我使用的编辑器代号是D-3f783b8b。",
+      "subjectUserId": "r4-synthetic-05f9437d-conflict",
+      "options": {
+        "readMemory": true,
+        "writeMemory": true,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "好的，我记下了。你使用的编辑器代号是 D-3f783b8b。",
+    "error": null,
+    "latencyMs": 3512,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": [
+      "mem0:539ad8a6-2a03-5955-b599-669b8247adfe",
+      "mem0:4238a744-2f41-57f5-8535-fa6a9417304a"
+    ],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- [associated][just-now] 我使用的编辑器代号是C-1febfff7\n- [associated][just-now] 用户使用的编辑器代号是C-1febfff7。",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "ee82c428b34bd9e91dbb104f256abea0e81f34e9dd378edede77b2d474ed6618"
+  },
+  {
+    "phase": "initial-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-conflict-initial-recall-conflict",
+      "text": "我的编辑器代号是什么？如果记忆存在冲突，请说明来源，别擅自确定唯一答案。",
+      "subjectUserId": "r4-synthetic-05f9437d-conflict",
+      "options": {
+        "readMemory": true,
+        "writeMemory": false,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "你的编辑器代号在记忆里有两条记录，分别是：\n\n- **D-3f783b8b**\n- **C-1febfff7**\n\n这两条都标为“用户使用的编辑器代号”，来源分别是两条独立的记忆条目。目前没有额外信息能判断哪一条是当前有效的，所以我不会擅自替你定一个唯一答案。\n\n如果你能提供更多上下文（比如最近一次使用的时间、环境或用途），我可以帮你进一步区分。",
+    "error": null,
+    "latencyMs": 8085,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": [
+      "mem0:d50aa098-cde7-5963-b795-8acd6c070e13",
+      "mem0:539ad8a6-2a03-5955-b599-669b8247adfe",
+      "mem0:0cc6576c-28f0-55a7-a8da-fa2a7dd67683",
+      "mem0:4238a744-2f41-57f5-8535-fa6a9417304a"
+    ],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- 我使用的编辑器代号是D-3f783b8b\n- 我使用的编辑器代号是C-1febfff7",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "c3397a51a8bde4b00f980beccb3f88271ae80ad497ca8f2d221a0453c10c122a"
+  },
+  {
+    "phase": "restart-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-0-restart-recall-restart",
+      "text": "我目前使用什么编辑器代号？旧代号还有效吗？",
+      "subjectUserId": "r4-synthetic-05f9437d-0",
+      "options": {
+        "readMemory": true,
+        "writeMemory": false,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "你目前用的编辑器代号是 **B-89747193**。之前那条 **A-f037cd25** 的记录已经不对了，作废。",
+    "error": null,
+    "latencyMs": 4689,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": ["mem0:abc5181a-34c4-5159-9442-7cb991ba4c3a"],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- 刚才我把编辑器的代号说错了。实际用的是B-89747193，A-f037cd25那条记录不对了。",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "5f79ea2a8cb86dc946b8d13a9db6e5ed5b9da8b81e56d7486e959edf522d84f2"
+  },
+  {
+    "phase": "restart-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-1-restart-recall-restart",
+      "text": "我目前使用什么编辑器代号？旧代号还有效吗？",
+      "subjectUserId": "r4-synthetic-05f9437d-1",
+      "options": {
+        "readMemory": true,
+        "writeMemory": false,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "你目前使用的编辑器代号是 **B-35937e3b**。之前记录的 A-37261030 是旧信息，已经不再有效，请以 B-35937e3b 为准。",
+    "error": null,
+    "latencyMs": 2198,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": ["mem0:6ea4ac74-3d52-5acd-add8-594a70204aef"],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- 不是A-37261030，我现在实际使用的编辑器代号是B-35937e3b。之前那份信息记错了。",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "fb1977dc8ce3c2b8b1bdb56b77ce2a56b28c0ce4ab2e18ad09939fb435df93bd"
+  },
+  {
+    "phase": "restart-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-2-restart-recall-restart",
+      "text": "我目前使用什么编辑器代号？旧代号还有效吗？",
+      "subjectUserId": "r4-synthetic-05f9437d-2",
+      "options": {
+        "readMemory": true,
+        "writeMemory": false,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "你目前使用的编辑器代号是 **B-ff952eaf**，不是之前提到的 A-57e2683d。旧代号 **A-57e2683d 已失效**，请以 B-ff952eaf 为准。",
+    "error": null,
+    "latencyMs": 3483,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": ["mem0:b3b3616e-3713-5b67-abec-d3a70cc74a1f"],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- I gave you the wrong editor code earlier. I actually use B-ff952eaf, not A-57e2683d. Please retain this correction.",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "c760d059b564863aa63030bfe11db38648172000e4f1878dea3bd3abe02be0aa"
+  },
+  {
+    "phase": "restart-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-person-y-restart-person-isolation",
+      "text": "我使用的编辑器代号是什么？",
+      "subjectUserId": "r4-synthetic-05f9437d-person-y",
+      "options": {
+        "readMemory": true,
+        "writeMemory": false,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "你用的编辑器代号是 **A-f037cd25**。",
+    "error": null,
+    "latencyMs": 2517,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": [
+      "mem0:a4c374ec-4459-5410-a0a6-98d2bc431014",
+      "mem0:a3f9033f-e8bf-5abc-ba04-5316f9ceb0e3"
+    ],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- 用户称：本次隔离实验中，我使用的编辑器代号是A-f037cd25。",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "fc3d90f3a4fd199e9b5a54dd1ee22f06a689d65fbcfba9ebcfe50949bcbafddf"
+  },
+  {
+    "phase": "failure-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-failure-7451dd8c-failure-store",
+      "text": "请记住：本次隔离实验中，我使用的编辑器代号是F-A-e250607a。",
+      "subjectUserId": "r4-synthetic-failure-7451dd8c",
+      "options": {
+        "readMemory": true,
+        "writeMemory": true,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "明白了，F-A-e250607a。我记下了这个代号，后续对话里会用它来指代你的编辑器。",
+    "error": null,
+    "latencyMs": 5677,
+    "receipt": null,
+    "memoryProviderStatus": "empty",
+    "memoryEventIds": [],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "No relevant memory retrieved.",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "9c7e177481957b79d9f9cd613b9417985a93a54808114ecd66df5e0fdcbb6997"
+  },
+  {
+    "phase": "failure-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-failure-7451dd8c-failure-correction-write-rejected",
+      "text": "刚才说错了，我实际用的是F-B-9c3f5514，F-A-e250607a是错误信息。请记住这个纠正。",
+      "subjectUserId": "r4-synthetic-failure-7451dd8c",
+      "options": {
+        "readMemory": true,
+        "writeMemory": true,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "明白了，已记下：你实际用的是 **F-B-9c3f5514**，之前那个 F-A-e250607a 是错误信息，作废。",
+    "error": null,
+    "latencyMs": 3735,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": [
+      "mem0:eb5704bb-51a1-549e-9469-35ad1c1eb8db",
+      "mem0:467b70c4-94bf-54d4-b289-86e80af32795"
+    ],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- [associated][just-now] 本次隔离实验中，我使用的编辑器代号是F-A-e250607a",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "056976474d0f2e3fc170b6d6508ed21e84c50dfaf4f3fa05027dd39ffda166d5"
+  },
+  {
+    "phase": "failure-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-failure-7451dd8c-failure-recall-after-failed-write",
+      "text": "我的编辑器代号是什么？请只根据实际持久保存的记忆回答。",
+      "subjectUserId": "r4-synthetic-failure-7451dd8c",
+      "options": {
+        "readMemory": true,
+        "writeMemory": false,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "你的编辑器代号是 **F-A-e250607a**。",
+    "error": null,
+    "latencyMs": 3197,
+    "receipt": null,
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": [
+      "mem0:eb5704bb-51a1-549e-9469-35ad1c1eb8db",
+      "mem0:467b70c4-94bf-54d4-b289-86e80af32795"
+    ],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- 用户称：本次隔离实验中，我使用的编辑器代号是F-A-e250607a。",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "be3646604819cd8fdb6d1bd24939626d2bc8de503e27d9a4dc9ec107af6cbf78"
+  },
+  {
+    "phase": "failure-retry-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-failure-7451dd8c-failure-retry-correction-write-rejected",
+      "text": "之前提供的F-A-e250607a是错误信息，我实际用的是F-B-9c3f5514，请记住这个更正。",
+      "subjectUserId": "r4-synthetic-failure-7451dd8c",
+      "options": {
+        "readMemory": true,
+        "writeMemory": true,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "明白了，你实际用的是 F-B-9c3f5514，之前那个 F-A-e250607a 是错的。\n\n不过要说明一下：我这边长期记忆的写入是异步完成的，目前还没收到确认回执，所以还不能说已经“记下”了。我理解你的更正，但持久化保存是否成功，要等后续确认。",
+    "error": null,
+    "latencyMs": 6420,
+    "receipt": "pending",
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": [
+      "mem0:eb5704bb-51a1-549e-9469-35ad1c1eb8db",
+      "mem0:467b70c4-94bf-54d4-b289-86e80af32795"
+    ],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- [associated][minutes-ago] 本次隔离实验中，我使用的编辑器代号是F-A-e250607a",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "0a0b362229669801c46a215487626af43a95da6ac25de0469c24cfc33ad1d7af"
+  },
+  {
+    "phase": "failure-retry-requests.json",
+    "input": {
+      "sessionId": "r4-synthetic-failure-7451dd8c-failure-retry-recall-after-failed-write",
+      "text": "我的编辑器代号是什么？请只根据实际持久保存的记忆回答。",
+      "subjectUserId": "r4-synthetic-failure-7451dd8c",
+      "options": {
+        "readMemory": true,
+        "writeMemory": false,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "你的编辑器代号是 **F-A-e250607a**。\n\n不过要说明一下：这条信息来自我当前可用的记忆记录，但本次对话中我还没有完成任何新的持久化写入确认。如果你希望我以后也记住这个代号，我理解你的意思，但长期保存是否成功目前尚未确认。",
+    "error": null,
+    "latencyMs": 6929,
+    "receipt": "skipped",
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": [
+      "mem0:eb5704bb-51a1-549e-9469-35ad1c1eb8db",
+      "mem0:467b70c4-94bf-54d4-b289-86e80af32795"
+    ],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- 用户称：本次隔离实验中，我使用的编辑器代号是F-A-e250607a。",
+        "priority": 70,
+        "stable": false
+      }
+    ],
+    "contextHash": "d68ee9f09c9fe1dd629092c22dac082ace94fff5809bca9b3d60dd90aa6853c8"
+  },
+  {
+    "phase": "final-head-recall",
+    "input": {
+      "sessionId": "r4-synthetic-05f9437d-0-final-receipt-recall",
+      "subjectUserId": "r4-synthetic-05f9437d-0",
+      "text": "我目前使用什么编辑器代号？旧代号还有效吗？",
+      "options": {
+        "readMemory": true,
+        "writeMemory": false,
+        "voiceOutput": false,
+        "promptPreview": true
+      }
+    },
+    "httpStatus": 200,
+    "answer": "你目前用的编辑器代号是 **B-89747193**。之前那条 A-f037cd25 的记录已经不对了，别再用它。\n\n另外说明一下：我理解你的更正，但长期保存还没确认完成，等写入成功后再以那条记录为准。",
+    "receipt": "skipped",
+    "memoryProviderStatus": "ok",
+    "memoryEventIds": ["mem0:abc5181a-34c4-5159-9442-7cb991ba4c3a"],
+    "recentEpisodicCount": 0,
+    "relevantMemory": [
+      {
+        "name": "RecentEpisodicMemory",
+        "content": "No recent episodic memory available.",
+        "priority": 72,
+        "stable": false
+      },
+      {
+        "name": "RelevantMemory",
+        "content": "- 刚才我把编辑器的代号说错了。实际用的是B-89747193，A-f037cd25那条记录不对了。",
+        "priority": 70,
+        "stable": false
+      }
+    ]
+  }
+]

@@ -1,3 +1,5 @@
+import { canonicalLineageJson } from "./lineage-encoding.js";
+import { currentEligibleMemoryEvents, MEMORY_CLAIM_METADATA } from "./claim.js";
 import { sameLegacyMemoryPartition } from "./scope.js";
 import type { Memory, MemoryCandidate } from "./types.js";
 import {
@@ -124,4 +126,27 @@ function memoryToCandidate(memory: Memory): MemoryCandidate {
     validUntil: memory.validUntil?.toISOString() ?? null,
     metadata: memory.metadata
   };
+}
+
+/** Corrections invalidate dependent derived evidence, never the original Journal. */
+export function currentCorrectedMemoryEvents(
+  events: readonly import("./provider.js").MemoryEvent[]
+): import("./provider.js").MemoryEvent[] {
+  const superseded = new Set<string>();
+  for (const event of events) {
+    if (event.kind !== "correction") continue;
+    const ids = event.metadata[MEMORY_CLAIM_METADATA.supersedes];
+    if (Array.isArray(ids)) for (const id of ids) if (typeof id === "string") superseded.add(id);
+  }
+  const retiredRoots = new Set<string>();
+  for (const event of events) {
+    if (!superseded.has(event.id) || event.lineage?.state !== "GROUNDED") continue;
+    for (const parent of event.lineage.parents) retiredRoots.add(canonicalLineageJson(parent.ref));
+  }
+  return currentEligibleMemoryEvents(events).filter(
+    (event) =>
+      event.lineage?.state !== "GROUNDED" ||
+      event.lineage.origin !== "DERIVED" ||
+      !event.lineage.parents.some((parent) => retiredRoots.has(canonicalLineageJson(parent.ref)))
+  );
 }

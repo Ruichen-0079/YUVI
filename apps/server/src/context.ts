@@ -138,6 +138,7 @@ import { normalizeCharacterOutputLanguage } from "@companion/character-abi";
 import { PromptBuilder } from "@companion/prompt-builder";
 import {
   createProviderRegistryFromEnv,
+  withProviderWorkContext,
   type ProviderRegistry,
   type ProviderStatusMap
 } from "@companion/providers";
@@ -396,7 +397,7 @@ export async function createAppContext(
       : new InMemoryDreamJobStore();
   const finalizedIngestion = new FinalizedIngestionService(
     finalizedIngestionRepository!,
-    undefined,
+    { build: (input) => memory.getIngestionPolicy().build(input) },
     journalRepository ? new JournalMemoryGroundingResolver(journalRepository) : undefined
   );
   const ruleBasedExtractor = new RuleBasedMemoryExtractor();
@@ -410,14 +411,23 @@ export async function createAppContext(
     env: Record<string, string | undefined> = bootEnv
   ): MemoryService {
     const reasoningStatus = providers.getStatus().providers.reasoning;
-    const memoryExtractor =
+    const memoryExtractor: import("@companion/memory").MemoryExtractor =
       extractorMode === "llm"
         ? new LlmMemoryExtractor(providers.getReasoningProvider(), ruleBasedExtractor, {
             enabled: true,
             providerConfigured: Boolean(reasoningStatus.configured && !reasoningStatus.mock),
             providerName: reasoningStatus.provider,
             logger: runtimeLogger,
-            includeRawPreview: config.runtimeMode === "development"
+            includeRawPreview: config.runtimeMode === "development",
+            withSourceContext: (source, scope, call) =>
+              withProviderWorkContext(
+                {
+                  scope,
+                  cause: source.parent,
+                  isCurrent: () => memory === service
+                },
+                call
+              )
           })
         : ruleBasedExtractor;
 
@@ -451,7 +461,7 @@ export async function createAppContext(
       });
     }
 
-    const service = new MemoryService(
+    const service: MemoryService = new MemoryService(
       memoryRepository,
       undefined,
       undefined,
@@ -590,6 +600,8 @@ export async function createAppContext(
       proactiveStateStore,
       conversation: conversationRepository,
       finalizedIngestion,
+      deferFinalizedMemoryAdmission:
+        memory.getExtractorStatus().mode === "llm" && memory.getExtractorStatus().enabled,
       memoryIngestionCoordinator: coordinator,
       memoryRepository: activeMemoryRepository,
       directContext,
@@ -853,6 +865,7 @@ export async function createAppContext(
       );
       await context.profileLifecycle.replaceComposition(nextProfileComposition, () => {
         context.providers = nextProviders;
+        memory = nextMemory;
         context.memory = nextMemory;
         context.runtime = nextRuntime;
         context.runtime.startProactiveScheduler({

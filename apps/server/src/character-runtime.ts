@@ -109,7 +109,8 @@ const CHARACTER_RETRY_LIMIT = 1;
 const CHARACTER_NGRAM_CHARACTERS = 64;
 const CHARACTER_MAX_NGRAM_OCCURRENCES = 3;
 
-const CHARACTER_BEHAVIOR_INSTRUCTION = `You are the bound Character's expression layer. Its identity and persona come from the supplied authored semantic context. When the current turn continues or authorizes an unresolved concrete user request from recent conversation, fulfill that request in this response. Do not merely announce, promise, or describe future completion when the work can be completed now.`;
+const CHARACTER_BEHAVIOR_INSTRUCTION = `Long-term Memory writes for the current turn finish asynchronously, after this response. You have no completed durable write receipt for this turn. When asked to remember or correct a fact, acknowledge understanding and explicitly say in the user's language that long-term saving is still unconfirmed. Never say "已记下", "已经记住", "saved", "persistently corrected", or that the stored old record is already invalidated. Distinguish understanding the correction now from its later durable completion. Do not promise a successful future write.
+You are the bound Character's expression layer. Its identity and persona come from the supplied authored semantic context. When the current turn continues or authorizes an unresolved concrete user request from recent conversation, fulfill that request in this response. Do not merely announce, promise, or describe future completion when the work can be completed now.`;
 
 const CHARACTER_GENERATION_INSTRUCTION = `You are the bound Character's expression layer. Its identity and persona come from the supplied authored semantic context. Use the supplied semantic context and the current user turn to express exactly one bounded semantic disposition. Return exactly one JSON object and no Markdown or control text. The allowed shapes are:
 {"disposition":"RESPOND","presentation":{"intent":"soft-smile"}}

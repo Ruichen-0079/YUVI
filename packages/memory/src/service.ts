@@ -13,6 +13,7 @@ import {
 } from "./evidence-admission.js";
 import { bootstrapPostgresEvidenceAdmissions } from "./evidence-admission-bootstrap.js";
 import type { MemoryRepository } from "./repository.js";
+import { currentCorrectedMemoryEvents } from "./correction.js";
 import { RuleBasedMemoryExtractor } from "./extractor.js";
 import { MemoryRetriever } from "./retriever.js";
 import { MemoryScorer } from "./scorer.js";
@@ -140,7 +141,7 @@ const repositoryCharacterOwners = new WeakMap<object, string>();
 
 export class MemoryService {
   private characterOwner: MemoryCharacterOwner | undefined;
-  private readonly rawMemoryProvider: MemoryProvider | undefined;
+  private readonly rawMemoryProvider: Mem0MemoryProvider | undefined;
   private readonly scorer: MemoryScorer;
   private readonly retriever: MemoryRetriever;
   private readonly embeddingProvider: MemoryEmbeddingProvider | undefined;
@@ -194,14 +195,32 @@ export class MemoryService {
       ? new Mem0MemoryProvider(
           this.mem0Backend,
           backend?.onProfileMutation,
-          this.evidenceAdmissions
+          this.evidenceAdmissions,
+          { enabled: true, ready: this.evidenceAdmissionReady }
         )
       : undefined;
     this.memoryProvider = this.rawMemoryProvider
       ? characterMemoryProvider(this.rawMemoryProvider, () => this.characterOwner)
       : undefined;
     this.controllerEvidence = backend?.controllerEvidence;
-    this.memoryIngestionPolicy = backend?.ingestionPolicy ?? new MemoryIngestionPolicy();
+    this.memoryIngestionPolicy =
+      backend?.ingestionPolicy ??
+      new MemoryIngestionPolicy(
+        this.extractor,
+        this.rawMemoryProvider
+          ? async (scope) => {
+              const events = currentCorrectedMemoryEvents(
+                await this.rawMemoryProvider!.readCorrectionEvidence(scope)
+              );
+              if (
+                events.length > 64 ||
+                events.reduce((sum, event) => sum + event.content.length, 0) > 24_000
+              )
+                throw new Error("MEMORY_EXTRACTION_PRIOR_BOUND");
+              return events;
+            }
+          : undefined
+      );
     this.groundingResolver =
       backend?.groundingResolver ??
       (backend?.journalEvidenceReader
@@ -255,6 +274,10 @@ export class MemoryService {
       backendNotificationFailureCount: backend?.getProfileNotificationFailureCount?.() ?? 0,
       reconciliationNotificationFailureCount: provider?.getProfileNotificationFailureCount?.() ?? 0
     };
+  }
+
+  getIngestionPolicy(): Pick<MemoryIngestionPolicy, "build"> {
+    return this.memoryIngestionPolicy;
   }
 
   /** Runtime-facing semantic retrieval provider; legacy mode remains facade-only. */
@@ -981,24 +1004,22 @@ export class MemoryService {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.mem0SearchTimeoutMs);
     try {
-      const hits = await this.mem0Backend.search(
-        {
-          scope,
-          query: text,
-          limit: Math.min(query.limit ?? MEM0_CHAT_SEARCH_TOP_K, MEM0_CHAT_SEARCH_TOP_K)
-        },
-        controller.signal
-      );
-      if (hits.some((item) => item.scope !== scope)) {
-        this.mem0Logger?.warn?.("mem0 search returned a record outside the requested scope", {
-          code: "MEMORY_SCOPE_MISMATCH",
-          operation: "search",
-          expectedScopePresent: true
-        });
-        const empty = emptyMem0RetrievalResult(text);
-        empty.fallbackReason = "MEMORY_SCOPE_MISMATCH";
-        return empty;
-      }
+      const outcome = await this.rawMemoryProvider!.retrieveRelevant({
+        scope,
+        text,
+        limit: Math.min(query.limit ?? MEM0_CHAT_SEARCH_TOP_K, MEM0_CHAT_SEARCH_TOP_K),
+        signal: controller.signal
+      });
+      if (outcome.status === "error" || outcome.status === "unavailable")
+        throw new Error(outcome.errorCode ?? "MEMORY_RETRIEVAL_FAILED");
+      const hits = outcome.events.map((event) => ({
+        id: event.sourceRecordId,
+        scope,
+        content: event.content,
+        metadata: event.metadata,
+        ...(event.recordedAt ? { createdAt: event.recordedAt } : {}),
+        score: event.relevanceScore ?? 0.7
+      }));
       const selected = selectPromptMemories(hits);
       return buildMem0RetrievalResult(text, hits, selected);
     } catch (error) {

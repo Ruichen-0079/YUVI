@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-10",
+  "baseline": "c3f7f06cb5a728d05bc78137af3d7178a774c8f6",
+  "storageAndRestartSource": {
+    "sha": "cfd491f1e4b6f30d6983fd75eee0ea050342bcc7",
+    "files": {
+      "apps/server/src/character-runtime.ts": "76d2dfa75458951510e46534476e179af1827a93646779c3b5ca14a941f07d89",
+      "apps/server/src/context.ts": "047fecdc38e1ff55456c9533e2f27a3ccd202bd423137f8dbc2e7f2a03a1a96b",
+      "packages/core/src/runtime-contracts.ts": "02a9ee2f1538050e57dc12c49109066caf3da62ba4471777075c960a54187db0",
+      "packages/core/src/runtime-orchestrator.ts": "523fba860a4840ee487f71a803ec0c70f37626faba19dd84ecc0c16b67233b7d",
+      "packages/core/src/runtime-persistence.test.ts": "0ac170284eecfbfdd71eaf801d4ed78e3fe41aa5b8d50647f5f1f107fb7aa0dc",
+      "packages/memory/src/correction.ts": "946caf68f985504f504afec536a5ca57947af88699ad6056cb30de900acd2484",
+      "packages/memory/src/extractor.ts": "83f102f51df976f8fc6354b3e29c2cdb6b3df9a1ce7de3c17d019f21be57422d",
+      "packages/memory/src/finalized-ingestion-ledger.ts": "d7bbd809735de532591f83db5fc45ce9a260ac727109b624f5fd54504be14caa",
+      "packages/memory/src/ingestion.ts": "eb550868948fd50e8823740d19d10f583633fb3ec9a1bede6e942132cd3eb441",
+      "packages/memory/src/mem0-service.integration.test.ts": "a029cdb57e55db6a19955480b777368ff41f2ae1e77904933c9c7092e53e6920",
+      "packages/memory/src/profile-source-reader.ts": "dd0eec94ab1529c0c57cf8cc66792a1bee45bfc5ca4b7d7adf6c845adb814cf1",
+      "packages/memory/src/provider.ts": "f8588f56505b2f0aa59da59a353f9aa089ac939e8a724060eb996e8d04023302",
+      "packages/memory/src/providers/mem0-memory-provider.ts": "f61683b672c07d2a0dacc6048a279bfd542b6337b8954c74868955ea5e8bf438",
+      "packages/memory/src/semantic-correction.test.ts": "1d8e68170427857a4efc35a97d02dfbff1e19b1b3f37bde05736443c972a4f9a",
+      "packages/memory/src/service.ts": "b12a9fd32300bcb8e88b7aeda95e1b87380ad32b5800816e00515360882ae8b3",
+      "packages/memory/src/types.ts": "ee61b7477924c5f290fbadf4ca3a774c1bcbb9145b56f0b60071b2b0fa6c00dc"
+    }
+  },
+  "receiptSource": {
+    "sha": "4c6ce2921317d4e2573f6b1c1b68edfd9bec02e2"
+  },
+  "chatProvider": "openai-compatible",
+  "reasoningProvider": "openai-compatible",
+  "api": "DeepInfra OpenAI-compatible",
+  "chatModel": "deepseek-ai/DeepSeek-V4-Flash-0731",
+  "reasoningModel": "zai-org/GLM-5.3-Flash",
+  "temperature": 0,
+  "maxTokens": 2048,
+  "personaRevision": "r4-deployed-persona-copy",
+  "personaSha256": "92e40c869ab42558e20dc3cf8e45201c2b98fac73723566f57bd15d65647cd1b",
+  "database": "independent PostgreSQL database yuvi_runtime_r4_20261010",
+  "backend": "Mem0 infer=false with scoped idempotent writes; local512 embeddings",
+  "budget": {
+    "maxCalls": 120,
+    "targetUsd": 0.5,
+    "recordedCalls": 120,
+    "byStage": {
+      "character-gate": 51,
+      "character-body": 48,
+      "cognition": 1,
+      "memory-semantic": 20
+    },
+    "providerEstimatedCostUsd": 0.006105365000000001,
+    "totalTokens": 140389,
+    "costMissingCalls": 1
+  },
+  "realAliceBuildSha": "5064c29fa85da959b6a5b29a1655bfdadb2a6a3d",
+  "isolation": "private state directory, separate DB, synthetic subjects, dedicated Character instance; live Alice never restarted or deployed"
+}

@@ -111,6 +111,8 @@ export type MemoryClaimAttributionInput = {
  * metadata only and must not be treated as authoritative Runtime state.
  */
 export type MemoryEvent = {
+  /** Retrieval-only ranking hint; never part of persisted evidence or admission. */
+  relevanceScore?: number | undefined;
   id: MemoryEventId;
   kind: MemoryEventKind;
   content: string;
@@ -177,6 +179,8 @@ export type MemoryRetrievalOutcome = {
 };
 
 export type MemoryWriteEventInput = {
+  /** Host-validated correction targets; caller metadata cannot populate this field. */
+  supersedes?: MemoryEventId[] | undefined;
   kind: MemoryEventKind;
   content: string;
   scope: string;
@@ -266,7 +270,10 @@ export type MemoryConversationTurnWriteResult = {
  */
 export interface MemoryProvider {
   /** Host-only frozen producer admission; ordinary writes never call this. */
-  prepareEvidence?(producer: import("./evidence-admission.js").EvidenceProducer, event: MemoryWriteEventInput): Promise<void>;
+  prepareEvidence?(
+    producer: import("./evidence-admission.js").EvidenceProducer,
+    event: MemoryWriteEventInput
+  ): Promise<void>;
   retrieveRelevant(input: MemoryRetrievalInput): Promise<MemoryRetrievalOutcome>;
   getEvent(input: MemoryGetEventInput): Promise<MemoryEvent | null>;
   writeEvent(input: MemoryWriteEventInput): Promise<MemoryWriteEventOutcome>;
