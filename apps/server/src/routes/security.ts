@@ -1,5 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { ServerConfig } from "../config.js";
+import { isDesktopAllowedOrigin } from "../cors.js";
 
 export function requireDashboardDevToken(
   config: ServerConfig,
@@ -22,7 +23,7 @@ export function requireLocalDashboardAccess(
   request: FastifyRequest,
   reply: FastifyReply
 ): boolean {
-  if (!isLocalAddress(request.ip)) {
+  if (!isLocalRequest(request)) {
     reply.status(403).send({
       error: "forbidden",
       message: "This dashboard operation can only be requested from localhost."
@@ -35,7 +36,7 @@ export function requireLocalDashboardAccess(
 
 /** Re-evaluate local dashboard permission at a durable command's dispatch boundary. */
 export function hasLocalDashboardAccess(config: ServerConfig, request: FastifyRequest): boolean {
-  return isLocalAddress(request.ip) && hasDashboardDevTokenAccess(config, request);
+  return isLocalRequest(request) && hasDashboardDevTokenAccess(config, request);
 }
 
 /** Browser WebSockets cannot set Authorization; credentials stay out of query URLs. */
@@ -56,7 +57,14 @@ export function hasLocalDashboardWebSocketAccess(
       if (decoded.toString("base64url") === encoded) token = decoded.toString("utf8");
     }
   }
-  return isLocalAddress(request.ip) && hasDashboardDevTokenAccess(config, request, token);
+  return isLocalRequest(request) && hasDashboardDevTokenAccess(config, request, token);
+}
+
+/** A foreign website's browser also connects from loopback; CORS alone cannot
+ * protect a WebSocket or prevent a simple HTTP request's side effects. */
+function isLocalRequest(request: FastifyRequest): boolean {
+  const origin = request.headers.origin;
+  return isLocalAddress(request.ip) && (origin === undefined || isDesktopAllowedOrigin(origin));
 }
 
 function hasDashboardDevTokenAccess(
