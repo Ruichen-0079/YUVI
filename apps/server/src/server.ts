@@ -74,6 +74,7 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
       redact: [
         "req.headers.authorization",
         "req.headers.cookie",
+        "req.headers['sec-websocket-protocol']",
         "*.apiKey",
         "*.authorization",
         "*.Authorization"
@@ -237,9 +238,9 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   await registerMediaRoutes(app, context);
   await registerSpeechActivityRoutes(app, context);
   await registerMemoryRoutes(app, context, config);
-  await registerEventRoutes(app, context);
+  await registerEventRoutes(app, context, config);
   await registerDebugRoutes(app, context, config);
-  await registerWebSocketRoutes(app, context);
+  await registerWebSocketRoutes(app, context, config);
   await registerLive2DRoutes(app, config);
   await registerEmbodiedPresentationRoutes(app, context);
   await registerLive2DCoreRoute(app, config);

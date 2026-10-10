@@ -1686,7 +1686,16 @@ export const apiClient = {
   },
 
   createDashboardWebSocket(): WebSocket {
-    return new WebSocket(resolveWebSocketUrl("/ws?dashboard=true"));
+    const protocols = ["yuvi-dashboard"];
+    if (dashboardDevToken) {
+      const bytes = new TextEncoder().encode(dashboardDevToken);
+      const encoded = btoa(String.fromCharCode(...bytes))
+        .replace(/\+/gu, "-")
+        .replace(/\//gu, "_")
+        .replace(/=+$/u, "");
+      protocols.push(`yuvi-dev-token.${encoded}`);
+    }
+    return new WebSocket(resolveWebSocketUrl("/ws?dashboard=true"), protocols);
   },
 
   async acceptPresentationPermission(
@@ -2024,6 +2033,7 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 function shouldAttachDashboardDevToken(path: string, method: string | undefined): boolean {
+  if (path.startsWith("/events/recent") || path === "/debug/prompt/latest") return true;
   if (path.startsWith("/product/")) return true;
   if (path.startsWith("/memory/candidates")) {
     return true;
