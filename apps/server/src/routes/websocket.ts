@@ -23,30 +23,57 @@ export const ACTIVE_TRACE_RETENTION_MS = 15 * 60 * 1000;
 type ActiveTraceEntry = {
   lastSeenAtMs: number;
   terminal: boolean;
+  owner: symbol;
+  sessionId?: string;
+  requestId?: string;
 };
 
 export class ActiveTraceRegistry {
   private readonly entries = new Map<string, ActiveTraceEntry>();
 
   add(traceId: string): boolean {
+    return this.claim(traceId) !== null;
+  }
+
+  claim(
+    traceId: string,
+    sessionId?: string,
+    requestId?: string
+  ): { created: boolean; owner: symbol } | null {
     this.prune();
     const existing = this.entries.get(traceId);
     if (existing) {
+      if (
+        (existing.sessionId !== undefined &&
+          sessionId !== undefined &&
+          existing.sessionId !== sessionId) ||
+        (existing.requestId !== undefined &&
+          requestId !== undefined &&
+          existing.requestId !== requestId)
+      )
+        return null;
       existing.lastSeenAtMs = Date.now();
       this.entries.delete(traceId);
       this.entries.set(traceId, existing);
-      return true;
+      return { created: false, owner: existing.owner };
     }
 
     if (this.entries.size >= ACTIVE_TRACE_MAX_ENTRIES) {
       const oldestTerminal = [...this.entries.entries()].find(([, entry]) => entry.terminal);
       if (!oldestTerminal) {
-        return false;
+        return null;
       }
       this.entries.delete(oldestTerminal[0]);
     }
-    this.entries.set(traceId, { lastSeenAtMs: Date.now(), terminal: false });
-    return true;
+    const owner = Symbol(traceId);
+    this.entries.set(traceId, {
+      lastSeenAtMs: Date.now(),
+      terminal: false,
+      owner,
+      ...(sessionId === undefined ? {} : { sessionId }),
+      ...(requestId === undefined ? {} : { requestId })
+    });
+    return { created: true, owner };
   }
 
   has(traceId: string): boolean {
@@ -54,9 +81,30 @@ export class ActiveTraceRegistry {
     return this.entries.has(traceId);
   }
 
+  matches(traceId: string, sessionId: string | undefined): boolean {
+    this.prune();
+    const entry = this.entries.get(traceId);
+    return (
+      !!entry &&
+      (entry.sessionId === undefined || sessionId === undefined || entry.sessionId === sessionId)
+    );
+  }
+
+  matchesEvent(event: RuntimeEvent): boolean {
+    const session =
+      event.payload && typeof event.payload === "object"
+        ? (event.payload as Record<string, unknown>)["sessionId"]
+        : undefined;
+    return this.matches(event.traceId, typeof session === "string" ? session : undefined);
+  }
+
+  deleteOwned(traceId: string, owner: symbol): void {
+    if (this.entries.get(traceId)?.owner === owner) this.entries.delete(traceId);
+  }
+
   observe(event: RuntimeEvent): void {
     const entry = this.entries.get(event.traceId);
-    if (!entry) {
+    if (!entry || !this.matchesEvent(event)) {
       return;
     }
     if (
@@ -132,7 +180,7 @@ export async function registerWebSocketRoutes(
       };
       const unregister = context.outwardEffects?.registerTarget(
         target,
-        (_session, trace) => dashboardMode || activeTraceIds.has(trace),
+        (session, trace) => dashboardMode || activeTraceIds.matches(trace, session),
         () => live && socket.readyState === socket.OPEN,
         false
       );
@@ -160,7 +208,7 @@ export async function registerWebSocketRoutes(
           return;
         }
 
-        if (activeTraceIds.has(event.traceId) && shouldForwardEvent(event)) {
+        if (activeTraceIds.matchesEvent(event) && shouldForwardEvent(event)) {
           await sendAccounted(redactRuntimeEvent(event), event);
           activeTraceIds.observe(event);
         }
@@ -180,27 +228,13 @@ export async function registerWebSocketRoutes(
 
       socket.on("message", async (rawMessage: Buffer) => {
         let envelope: RuntimeEvent | undefined;
+        let ownership: { traceId: string; owner: symbol } | undefined;
         try {
           const parsedEnvelope = RuntimeEventSchema.parse(
             JSON.parse(rawMessage.toString())
           ) as RuntimeEvent;
           envelope = parsedEnvelope;
-          const traceAlreadyActive = activeTraceIds.has(parsedEnvelope.traceId);
-          if (!activeTraceIds.add(parsedEnvelope.traceId)) {
-            await sendAccounted(
-              redactRuntimeEvent(
-                createEvent(
-                  "runtime.error",
-                  { message: "WebSocket trace capacity is full; retry after active turns finish." },
-                  { traceId: parsedEnvelope.traceId, parentId: parsedEnvelope.id }
-                )
-              )
-            );
-            return;
-          }
-
           if (parsedEnvelope.type !== "user.message") {
-            activeTraceIds.delete(parsedEnvelope.traceId);
             await sendAccounted(
               redactRuntimeEvent(
                 createEvent(
@@ -219,6 +253,25 @@ export async function registerWebSocketRoutes(
           }
 
           const parsed = UserMessageEventSchema.parse(parsedEnvelope);
+          // Validate before claiming; a rejected packet has no resource to release.
+          const claim = activeTraceIds.claim(parsed.traceId, parsed.payload.sessionId, parsed.id);
+          if (!claim) {
+            await sendAccounted(
+              redactRuntimeEvent(
+                createEvent(
+                  "runtime.error",
+                  {
+                    message:
+                      "WebSocket trace is full or belongs to a different request/session. Use a fresh trace ID for new work."
+                  },
+                  { traceId: parsed.traceId, parentId: parsed.id }
+                )
+              )
+            );
+            return;
+          }
+          if (claim.created) ownership = { traceId: parsed.traceId, owner: claim.owner };
+
           app.log.info(
             { traceId: parsed.traceId, sessionId: parsed.payload.sessionId },
             "websocket user.message received"
@@ -241,9 +294,7 @@ export async function registerWebSocketRoutes(
               "websocket conversation receipt committed"
             );
           } catch (error) {
-            if (!traceAlreadyActive) {
-              activeTraceIds.delete(parsed.traceId);
-            }
+            if (ownership) activeTraceIds.deleteOwned(ownership.traceId, ownership.owner);
             const failure = toConversationalAdmissionFailure(error);
             app.log.error(
               { traceId: parsed.traceId, sessionId: parsed.payload.sessionId, code: failure.code },
@@ -268,9 +319,7 @@ export async function registerWebSocketRoutes(
             payload: { ...parsed.payload, sourceJournalRef }
           });
         } catch (error) {
-          if (envelope) {
-            activeTraceIds.delete(envelope.traceId);
-          }
+          if (ownership) activeTraceIds.deleteOwned(ownership.traceId, ownership.owner);
           await sendAccounted(
             redactRuntimeEvent(
               createEvent(
