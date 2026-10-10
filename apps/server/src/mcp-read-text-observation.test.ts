@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { COGNITION_6H_VERSION } from "@companion/cognition";
-import {
-  COGNITION_6N_VERSION
-} from "@companion/cognition/capability-observation";
+import { COGNITION_6N_VERSION } from "@companion/cognition/capability-observation";
 import {
   SERVER_MCP_CAPABILITY_BINDINGS_6K_VERSION,
   createServerMcpReadTextRegistration,
@@ -127,34 +125,21 @@ describe("Server 6O read-text observation adapter", () => {
     expect(JSON.stringify(result)).not.toContain("/private/path");
   });
 
-  it("fails closed to ERROR for non-text, empty, or oversized successful payloads", () => {
-    const outcomes = [
-      {
-        isError: false,
-        content: [{ type: "image", data: "abc" }]
-      },
-      {
-        isError: false,
-        content: [{ type: "text", text: "   " }]
-      },
-      {
-        isError: false,
-        content: [{ type: "text", text: "x".repeat(16_001) }]
-      }
-    ];
-
-    for (const toolResult of outcomes) {
+  it("fails closed for non-text payloads, while valid empty/long text preserves content and coverage", () => {
+    for (const [toolResult, status] of [
+      [{ isError: false, content: [{ type: "image", data: "abc" }] }, "ERROR"],
+      [{ isError: false, content: [{ type: "text", text: "   " }] }, "SUCCESS"],
+      [{ isError: false, content: [{ type: "text", text: "x".repeat(16001) }] }, "SUCCESS"]
+    ] as const) {
       const result = createServerMcpReadTextObservation({
         staticRegistry: createRegistry(),
         request: createRequest(),
-        outcome: {
-          version: SERVER_MCP_READ_TEXT_6M_VERSION,
-          status: "INVOKED",
-          result: toolResult
-        }
+        outcome: { version: SERVER_MCP_READ_TEXT_6M_VERSION, status: "INVOKED", result: toolResult }
       });
-      expect(result.observation.status).toBe("ERROR");
-      expect("content" in result.observation).toBe(false);
+      expect(result.observation.status).toBe(status);
+      if (status === "SUCCESS")
+        expect(result.observation.content!.length).toBeLessThanOrEqual(16000);
+      else expect("content" in result.observation).toBe(false);
     }
   });
 

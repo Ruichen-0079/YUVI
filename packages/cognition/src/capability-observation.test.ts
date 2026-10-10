@@ -45,7 +45,7 @@ describe("Cognition 6N capability observation", () => {
         capabilityRef: "capability://opaque/read-authorized-text",
         status: "SUCCESS"
       })
-    ).toThrow(/requires non-empty content/);
+    ).toThrow(/requires textual content/);
 
     expect(() =>
       createCognitionCapabilityObservation({
