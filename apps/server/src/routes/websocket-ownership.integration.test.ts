@@ -14,7 +14,11 @@ async function scenario(
   const app = Fastify();
   await app.register(websocket);
   const bus = new InMemoryEventBus({ development: false });
-  const frames: Array<{ type: string; payload: { content?: string } }> = [];
+  const frames: Array<{
+    type: string;
+    traceId: string;
+    payload: { content?: string; rejectedTraceId?: string };
+  }> = [];
   let started!: () => void, finish!: () => void;
   const running = new Promise<void>((r) => (started = r)),
     wait = new Promise<void>((r) => (finish = r));
