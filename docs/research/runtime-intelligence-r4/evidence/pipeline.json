@@ -1,0 +1,4225 @@
+{
+  "baselineProducerSha": "c3f7f06cb5a728d05bc78137af3d7178a774c8f6",
+  "correctionProducerSha": "cfd491f1e4b6f30d6983fd75eee0ea050342bcc7",
+  "receiptProducerSha": "4c6ce2921317d4e2573f6b1c1b68edfd9bec02e2",
+  "baseline": [
+    {
+      "subject": "r4-before-8e5cddf2",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-before-8e5cddf2:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "75c1c6e5-d864-4f71-9180-b7cf0f374ee2",
+      "assistantMessageId": "assistant:75c1c6e5-d864-4f71-9180-b7cf0f374ee2",
+      "finalizedAt": "2026-10-10T06:17:10.038Z",
+      "status": "complete",
+      "skipReason": null,
+      "failureStage": null,
+      "error": null,
+      "eventStatus": "complete",
+      "backendId": "mem0:0a1999ef-1976-5c2f-b70a-f4be9eddfed2",
+      "eventKind": "user_claim",
+      "content": "用户称：本次隔离实验中，我使用的编辑器代号是栀子-613。",
+      "supersedes": [],
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_IQLmAOY_wzUouhH_7Hcn4b8rJeOktAIM",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 29,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_uBDL-XZvRgr-YsuwP3PJyVrMa0WHaopl"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-2/grounded-a10.1d",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:17:01.978Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_KtqGLHaVZkviXdRADsFPDBDc6x5VXzSInsRcq_U3pq4",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "assertion": {
+        "source": "user",
+        "verification": "unverified"
+      }
+    },
+    {
+      "subject": "r4-before-8e5cddf2",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-before-8e5cddf2:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "bf4769a2-08eb-42db-8bb3-918038e48811",
+      "assistantMessageId": "assistant:bf4769a2-08eb-42db-8bb3-918038e48811",
+      "finalizedAt": "2026-10-10T06:17:16.287Z",
+      "status": "skipped",
+      "skipReason": "memory-disabled",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-before-8e5cddf2",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-before-8e5cddf2:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "9fbf7f20-387d-40c9-9ad3-4f105c57ca61",
+      "assistantMessageId": "assistant:9fbf7f20-387d-40c9-9ad3-4f105c57ca61",
+      "finalizedAt": "2026-10-10T06:17:19.567Z",
+      "status": "skipped",
+      "skipReason": "no-factual-memory",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-before-8e5cddf2",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-before-8e5cddf2:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "19c4ca5f-310e-4b47-acdf-feff11a6e095",
+      "assistantMessageId": "assistant:19c4ca5f-310e-4b47-acdf-feff11a6e095",
+      "finalizedAt": "2026-10-10T06:17:25.516Z",
+      "status": "skipped",
+      "skipReason": "memory-disabled",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    }
+  ],
+  "after": [
+    {
+      "subject": "r4-synthetic-05f9437d-0",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-0:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "c419642a-bf41-4fa1-98c4-ad6be17b2862",
+      "assistantMessageId": "assistant:c419642a-bf41-4fa1-98c4-ad6be17b2862",
+      "finalizedAt": "2026-10-10T06:47:25.418Z",
+      "status": "complete",
+      "skipReason": null,
+      "failureStage": null,
+      "error": null,
+      "eventStatus": "complete",
+      "backendId": "mem0:32fecd88-e751-5dc7-b326-644adcdb5dfd",
+      "eventKind": "fact",
+      "content": "本次隔离实验中，我使用的编辑器代号是A-f037cd25",
+      "supersedes": [],
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_mhzRPoj1Jac10NJ40P4q5FKZ-4Mwsdd_",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 33,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_sKed5usBrErCvECgB2TLJurZyhhpoyMD"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:47:20.247Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_VyIMBovPRhERT7Udv-bVYRQznOAIG68pF8jarm8z2ck",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "assertion": {
+        "source": "user",
+        "verification": "unverified"
+      }
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-0",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-0:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "7faa4d71-b013-4f00-bbd6-a804939ae6e3",
+      "assistantMessageId": "assistant:7faa4d71-b013-4f00-bbd6-a804939ae6e3",
+      "finalizedAt": "2026-10-10T06:47:29.823Z",
+      "status": "skipped",
+      "skipReason": "memory-disabled",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-0",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-0:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "157ce40d-229f-495e-8393-0d8442f3ebfa",
+      "assistantMessageId": "assistant:157ce40d-229f-495e-8393-0d8442f3ebfa",
+      "finalizedAt": "2026-10-10T06:47:32.821Z",
+      "status": "complete",
+      "skipReason": null,
+      "failureStage": null,
+      "error": null,
+      "eventStatus": "complete",
+      "backendId": "mem0:abc5181a-34c4-5159-9442-7cb991ba4c3a",
+      "eventKind": "correction",
+      "content": "刚才我把编辑器的代号说错了。实际用的是B-89747193，A-f037cd25那条记录不对了。",
+      "supersedes": ["mem0:32fecd88-e751-5dc7-b326-644adcdb5dfd"],
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_HyxG8cO_HG4USE6uYVOBYij8vNOmcSZf",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 48,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_iWVbshAZXsNXBBVFFOyN-h825Ci9-NH_"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:47:29.974Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_3uMsCQg8i0f8OwmiaPZ5DYeWZcwm684tZMW1eLdTRdY",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "assertion": {
+        "source": "user",
+        "verification": "unverified"
+      }
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-0",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-0:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "89e0ad86-a017-467a-ac16-e21e7a4248ed",
+      "assistantMessageId": "assistant:89e0ad86-a017-467a-ac16-e21e7a4248ed",
+      "finalizedAt": "2026-10-10T06:47:41.466Z",
+      "status": "skipped",
+      "skipReason": "memory-disabled",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-1",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-1:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "cfcbccf4-cdc3-4664-bf52-0092a4cee845",
+      "assistantMessageId": "assistant:cfcbccf4-cdc3-4664-bf52-0092a4cee845",
+      "finalizedAt": "2026-10-10T06:47:46.701Z",
+      "status": "complete",
+      "skipReason": null,
+      "failureStage": null,
+      "error": null,
+      "eventStatus": "complete",
+      "backendId": "mem0:d366a1df-9c50-5c77-bb4c-37cfa66cba9e",
+      "eventKind": "fact",
+      "content": "本次隔离实验中，我使用的编辑器代号是A-37261030",
+      "supersedes": [],
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_85U84JjTIUFYrPc8TDcBH2262DlDMh-0",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 33,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_0NQW7dRODcKzLeH4hO_h7z4AJqiYsyLj"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:47:41.549Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_yvmxrqpqRM2CdXeskiq52FM44JppR6ZHJRcThuEx1fE",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "assertion": {
+        "source": "user",
+        "verification": "unverified"
+      }
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-1",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-1:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "7cd0e6bf-d142-45c0-bed5-0314e7ef7a2c",
+      "assistantMessageId": "assistant:7cd0e6bf-d142-45c0-bed5-0314e7ef7a2c",
+      "finalizedAt": "2026-10-10T06:47:51.597Z",
+      "status": "skipped",
+      "skipReason": "memory-disabled",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-1",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-1:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "72490af0-f338-45be-982e-91efaa129c6e",
+      "assistantMessageId": "assistant:72490af0-f338-45be-982e-91efaa129c6e",
+      "finalizedAt": "2026-10-10T06:47:54.681Z",
+      "status": "complete",
+      "skipReason": null,
+      "failureStage": null,
+      "error": null,
+      "eventStatus": "complete",
+      "backendId": "mem0:6ea4ac74-3d52-5acd-add8-594a70204aef",
+      "eventKind": "correction",
+      "content": "不是A-37261030，我现在实际使用的编辑器代号是B-35937e3b。之前那份信息记错了。",
+      "supersedes": ["mem0:d366a1df-9c50-5c77-bb4c-37cfa66cba9e"],
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_p2PxkMpj20K8r8rtBkD7dzG4r6mxlPr2",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 48,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_CQd1dFBNSTIc0JEWiBDCnbWTf-gccSCN"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:47:51.631Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_L886fgC5jKLs_tudS1SVe87STWL9fI9A_lVvjrqLXlA",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "assertion": {
+        "source": "user",
+        "verification": "unverified"
+      }
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-1",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-1:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "e9ec095f-d204-4f89-b7b1-449cdd71a87b",
+      "assistantMessageId": "assistant:e9ec095f-d204-4f89-b7b1-449cdd71a87b",
+      "finalizedAt": "2026-10-10T06:48:01.326Z",
+      "status": "skipped",
+      "skipReason": "memory-disabled",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-2",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-2:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "f76e2f0f-0dff-4dbd-b1e4-43aabc7fa4e7",
+      "assistantMessageId": "assistant:f76e2f0f-0dff-4dbd-b1e4-43aabc7fa4e7",
+      "finalizedAt": "2026-10-10T06:48:04.556Z",
+      "status": "complete",
+      "skipReason": null,
+      "failureStage": null,
+      "error": null,
+      "eventStatus": "complete",
+      "backendId": "mem0:e08eafda-28e9-5e75-b302-66b20ffd662c",
+      "eventKind": "fact",
+      "content": "本次隔离实验中，我使用的编辑器代号是A-57e2683d。",
+      "supersedes": [],
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_XrCbcaq8xx5M-_XzZRxMg3Zuqnnjb-QE",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 33,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_b9s3GTZ6QFFWRqqyltOkcXpRaS3Hri5u"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:48:01.455Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_JgwbM7HjgmMVfM3FDj4iKI2nKN-tLYfbH_3MNPz3TfA",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "assertion": {
+        "source": "user",
+        "verification": "unverified"
+      }
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-2",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-2:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "0faa64e2-bbed-4658-955b-491814f85082",
+      "assistantMessageId": "assistant:0faa64e2-bbed-4658-955b-491814f85082",
+      "finalizedAt": "2026-10-10T06:48:10.556Z",
+      "status": "skipped",
+      "skipReason": "memory-disabled",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-2",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-2:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "235d32e5-5276-4c31-9c73-bfda9366be82",
+      "assistantMessageId": "assistant:235d32e5-5276-4c31-9c73-bfda9366be82",
+      "finalizedAt": "2026-10-10T06:48:14.176Z",
+      "status": "complete",
+      "skipReason": null,
+      "failureStage": null,
+      "error": null,
+      "eventStatus": "complete",
+      "backendId": "mem0:b3b3616e-3713-5b67-abec-d3a70cc74a1f",
+      "eventKind": "correction",
+      "content": "I gave you the wrong editor code earlier. I actually use B-ff952eaf, not A-57e2683d. Please retain this correction.",
+      "supersedes": ["mem0:e08eafda-28e9-5e75-b302-66b20ffd662c"],
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_D-AUtSnjacXbAzzePO8dr-gjUlpHfYDF",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 115,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_JkHRBI6bB16Dj33U4D03d964jw4Udzh8"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:48:10.601Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_W4EpCDq6IcKdeG1Ce9mSNNdtZNeTysKr2Rh7-yuZjDU",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "assertion": {
+        "source": "user",
+        "verification": "unverified"
+      }
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-2",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-2:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "3c86b17e-85e1-4ec9-abac-bf1b58bab082",
+      "assistantMessageId": "assistant:3c86b17e-85e1-4ec9-abac-bf1b58bab082",
+      "finalizedAt": "2026-10-10T06:48:20.969Z",
+      "status": "skipped",
+      "skipReason": "memory-disabled",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-0",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-0:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "6c46fb97-4bb6-411c-854b-5329f3b23f2e",
+      "assistantMessageId": "assistant:6c46fb97-4bb6-411c-854b-5329f3b23f2e",
+      "finalizedAt": "2026-10-10T06:48:26.324Z",
+      "status": "skipped",
+      "skipReason": "non-assertive-source",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-0",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-0:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "99ce86f6-109d-48c3-97a6-69156838ba62",
+      "assistantMessageId": "assistant:99ce86f6-109d-48c3-97a6-69156838ba62",
+      "finalizedAt": "2026-10-10T06:48:32.837Z",
+      "status": "skipped",
+      "skipReason": "non-assertive-source",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-0",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-0:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "43d405cc-4304-4ad8-8a84-b844a222fecf",
+      "assistantMessageId": "assistant:43d405cc-4304-4ad8-8a84-b844a222fecf",
+      "finalizedAt": "2026-10-10T06:48:35.572Z",
+      "status": "skipped",
+      "skipReason": "memory-disabled",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-person-y",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-person-y:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "37b71c7c-747e-4016-8253-1e0665a11efb",
+      "assistantMessageId": "assistant:37b71c7c-747e-4016-8253-1e0665a11efb",
+      "finalizedAt": "2026-10-10T06:48:38.738Z",
+      "status": "complete",
+      "skipReason": null,
+      "failureStage": null,
+      "error": null,
+      "eventStatus": "complete",
+      "backendId": "mem0:a3f9033f-e8bf-5abc-ba04-5316f9ceb0e3",
+      "eventKind": "fact",
+      "content": "本次隔离实验中，我使用的编辑器代号是A-f037cd25",
+      "supersedes": [],
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_q2kMA5jHpeF_1jknGwYkJ_nO2oI9DMod",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 33,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_n9--0hZ4tqGRjfJHxpicD48QSsgi_qUh"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:48:35.607Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_v9qAWmjN6cSvAZpvNgqDYt9_CDp9f8oOiO1Fmbd0LbY",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "assertion": {
+        "source": "user",
+        "verification": "unverified"
+      }
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-conflict",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-conflict:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "d795607f-16c7-4862-a32d-8f3c70ba86dc",
+      "assistantMessageId": "assistant:d795607f-16c7-4862-a32d-8f3c70ba86dc",
+      "finalizedAt": "2026-10-10T06:48:43.743Z",
+      "status": "complete",
+      "skipReason": null,
+      "failureStage": null,
+      "error": null,
+      "eventStatus": "complete",
+      "backendId": "mem0:539ad8a6-2a03-5955-b599-669b8247adfe",
+      "eventKind": "fact",
+      "content": "我使用的编辑器代号是C-1febfff7",
+      "supersedes": [],
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_sQXt97z5Nej8fBEuw8X2icoNzRWOypK8",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 25,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_obEkgmpEGqjiJP53hglQuO_S4QFxQkLP"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:48:40.564Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_oLaMVCLInYn624ZLlcXmCeRZJL3wzd8YCiE2PyPjD_4",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "assertion": {
+        "source": "user",
+        "verification": "unverified"
+      }
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-conflict",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-conflict:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "2fcf99a1-2acc-4f76-85eb-afa5f6af7ce8",
+      "assistantMessageId": "assistant:2fcf99a1-2acc-4f76-85eb-afa5f6af7ce8",
+      "finalizedAt": "2026-10-10T06:48:48.929Z",
+      "status": "complete",
+      "skipReason": null,
+      "failureStage": null,
+      "error": null,
+      "eventStatus": "complete",
+      "backendId": "mem0:d50aa098-cde7-5963-b795-8acd6c070e13",
+      "eventKind": "fact",
+      "content": "我使用的编辑器代号是D-3f783b8b",
+      "supersedes": [],
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_Bi5KWLsgiZJsB9Q67yfDF0f5Bf9auMoi",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 25,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_23hS1CXftiQKJIarTrMXUjICZiRUgjYT"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:48:45.442Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_a0bU5COsxsf5pRk4i4UOvcv2UGmDTFY-8IJxJs-HzoY",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "assertion": {
+        "source": "user",
+        "verification": "unverified"
+      }
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-conflict",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-conflict:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "164bb82e-8839-44f2-b24f-016135506737",
+      "assistantMessageId": "assistant:164bb82e-8839-44f2-b24f-016135506737",
+      "finalizedAt": "2026-10-10T06:48:59.910Z",
+      "status": "skipped",
+      "skipReason": "memory-disabled",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-0",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-0:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "6d8a3ace-3f4c-4222-92f8-23800307b12f",
+      "assistantMessageId": "assistant:6d8a3ace-3f4c-4222-92f8-23800307b12f",
+      "finalizedAt": "2026-10-10T06:49:54.916Z",
+      "status": "skipped",
+      "skipReason": "memory-disabled",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-1",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-1:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "72fc6745-1f5f-42cb-a295-42c0a8256895",
+      "assistantMessageId": "assistant:72fc6745-1f5f-42cb-a295-42c0a8256895",
+      "finalizedAt": "2026-10-10T06:49:57.173Z",
+      "status": "skipped",
+      "skipReason": "memory-disabled",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-2",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-2:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "f01e34c2-55ee-48ee-b032-b7abebd32b74",
+      "assistantMessageId": "assistant:f01e34c2-55ee-48ee-b032-b7abebd32b74",
+      "finalizedAt": "2026-10-10T06:50:00.729Z",
+      "status": "skipped",
+      "skipReason": "memory-disabled",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-person-y",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-person-y:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "c34db530-592d-4055-ac6a-35cd0674c36f",
+      "assistantMessageId": "assistant:c34db530-592d-4055-ac6a-35cd0674c36f",
+      "finalizedAt": "2026-10-10T06:50:03.239Z",
+      "status": "skipped",
+      "skipReason": "memory-disabled",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-synthetic-failure-7451dd8c",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-failure-7451dd8c:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "5df79f79-d95e-4954-9c62-74268c7d2901",
+      "assistantMessageId": "assistant:5df79f79-d95e-4954-9c62-74268c7d2901",
+      "finalizedAt": "2026-10-10T06:50:56.709Z",
+      "status": "complete",
+      "skipReason": null,
+      "failureStage": null,
+      "error": null,
+      "eventStatus": "complete",
+      "backendId": "mem0:467b70c4-94bf-54d4-b289-86e80af32795",
+      "eventKind": "fact",
+      "content": "本次隔离实验中，我使用的编辑器代号是F-A-e250607a",
+      "supersedes": [],
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_3pf1bznDDi8FmNkYOZHUG-SMuDVNOQRl",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 35,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_73KRSqUthfb5ukmYvgNeMHqsY_VR3kmw"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:50:51.077Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_wvYQkL_MoEZz3FfxPb5JhQvrvhQGq6rME56CoPN7mTE",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "assertion": {
+        "source": "user",
+        "verification": "unverified"
+      }
+    },
+    {
+      "subject": "r4-synthetic-failure-7451dd8c",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-failure-7451dd8c:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "51b27eba-c87a-4429-a45a-3fe87c08b2d4",
+      "assistantMessageId": "assistant:51b27eba-c87a-4429-a45a-3fe87c08b2d4",
+      "finalizedAt": "2026-10-10T06:51:03.755Z",
+      "status": "terminal_failed",
+      "skipReason": null,
+      "failureStage": null,
+      "error": "VALIDATION_ERROR",
+      "eventStatus": "terminal_failed",
+      "backendId": null,
+      "eventKind": "correction",
+      "content": "刚才说错了，我实际用的是F-B-9c3f5514，F-A-e250607a是错误信息。请记住这个纠正。",
+      "supersedes": ["mem0:467b70c4-94bf-54d4-b289-86e80af32795"],
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_czWEFuLTo6DsM00xx2RSIQReQ40F2osd",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 51,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_ABjZn3qmBDX6fgHlPvdf7fAm2BlNDQz2"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:51:00.056Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_Th7ovmm-HMnP8zrzYxfgo5O7O6RVCND18aPddu5Y2SA",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "assertion": {
+        "source": "user",
+        "verification": "unverified"
+      }
+    },
+    {
+      "subject": "r4-synthetic-failure-7451dd8c",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-failure-7451dd8c:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "f1e0b1a0-da9e-45e2-9c71-1dd3eb16a178",
+      "assistantMessageId": "assistant:f1e0b1a0-da9e-45e2-9c71-1dd3eb16a178",
+      "finalizedAt": "2026-10-10T06:51:09.767Z",
+      "status": "skipped",
+      "skipReason": "memory-disabled",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-synthetic-failure-7451dd8c",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-failure-7451dd8c:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "230c0820-7fe4-4cf9-a271-e34f782c47c3",
+      "assistantMessageId": "assistant:230c0820-7fe4-4cf9-a271-e34f782c47c3",
+      "finalizedAt": "2026-10-10T06:54:44.832Z",
+      "status": "terminal_failed",
+      "skipReason": null,
+      "failureStage": null,
+      "error": "VALIDATION_ERROR",
+      "eventStatus": "terminal_failed",
+      "backendId": null,
+      "eventKind": "correction",
+      "content": "之前提供的F-A-e250607a是错误信息，我实际用的是F-B-9c3f5514，请记住这个更正。",
+      "supersedes": ["mem0:467b70c4-94bf-54d4-b289-86e80af32795"],
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_MhOImkVoFKjQ7nhgpmHPj89uLHI1Pohr",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 50,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_fAJpFOpacDogC2QuiSuwzoZp4ki4sAZv"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:54:38.460Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_NBhFqNMWnUHcWuvnY5gRhtTyPebkjh0GKIi7RP3htZc",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "assertion": {
+        "source": "user",
+        "verification": "unverified"
+      }
+    },
+    {
+      "subject": "r4-synthetic-failure-7451dd8c",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-failure-7451dd8c:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "76fcbe2e-6782-4778-ad74-f186e1a758dc",
+      "assistantMessageId": "assistant:76fcbe2e-6782-4778-ad74-f186e1a758dc",
+      "finalizedAt": "2026-10-10T06:54:55.121Z",
+      "status": "skipped",
+      "skipReason": "memory-disabled",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    },
+    {
+      "subject": "r4-synthetic-05f9437d-0",
+      "persona": "character-instance:r4-isolated",
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-0:character:character-instance%3Ar4-isolated",
+      "sourceUserEventId": "e3901ecb-58b0-46f0-b275-220e517ec1ba",
+      "assistantMessageId": "assistant:e3901ecb-58b0-46f0-b275-220e517ec1ba",
+      "finalizedAt": "2026-10-10T06:55:47.403Z",
+      "status": "skipped",
+      "skipReason": "memory-disabled",
+      "failureStage": null,
+      "error": null,
+      "eventStatus": null,
+      "backendId": null,
+      "eventKind": null,
+      "content": null,
+      "supersedes": [],
+      "lineage": {},
+      "assertion": null
+    }
+  ],
+  "conversation": [
+    {
+      "id": "75c1c6e5-d864-4f71-9180-b7cf0f374ee2",
+      "trace_id": "75c1c6e5-d864-4f71-9180-b7cf0f374ee2",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "请记住：本次隔离实验中，我使用的编辑器代号是栀子-613。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_IQLmAOY_wzUouhH_7Hcn4b8rJeOktAIM",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-before-8e5cddf2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:17:02.022Z",
+      "completed_at": "2026-10-10T06:17:02.022Z"
+    },
+    {
+      "id": "assistant:75c1c6e5-d864-4f71-9180-b7cf0f374ee2",
+      "trace_id": "75c1c6e5-d864-4f71-9180-b7cf0f374ee2",
+      "parent_message_id": "reply:75c1c6e5-d864-4f71-9180-b7cf0f374ee2",
+      "role": "assistant",
+      "content": "好，记住了。栀子-613，这个代号我会留着。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:d0a93da6-4298-43a4-b947-787cf5daac8a",
+      "ingestion_requested": true,
+      "subject_user_id": "r4-before-8e5cddf2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:17:10.038Z",
+      "completed_at": "2026-10-10T06:17:10.052Z"
+    },
+    {
+      "id": "bf4769a2-08eb-42db-8bb3-918038e48811",
+      "trace_id": "bf4769a2-08eb-42db-8bb3-918038e48811",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "本次实验我使用什么编辑器代号？",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_wOqEHlDe56eBsxMwrpnseW01vfBwkfnA",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-before-8e5cddf2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:17:13.204Z",
+      "completed_at": "2026-10-10T06:17:13.204Z"
+    },
+    {
+      "id": "assistant:bf4769a2-08eb-42db-8bb3-918038e48811",
+      "trace_id": "bf4769a2-08eb-42db-8bb3-918038e48811",
+      "parent_message_id": "reply:bf4769a2-08eb-42db-8bb3-918038e48811",
+      "role": "assistant",
+      "content": "你用的是**栀子-613**。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:7f7a2738-c238-45dd-bff2-d9bebe27967c",
+      "ingestion_requested": false,
+      "subject_user_id": "r4-before-8e5cddf2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:17:16.287Z",
+      "completed_at": "2026-10-10T06:17:16.299Z"
+    },
+    {
+      "id": "9fbf7f20-387d-40c9-9ad3-4f105c57ca61",
+      "trace_id": "9fbf7f20-387d-40c9-9ad3-4f105c57ca61",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "纠正：我用的是青禾-947，栀子-613 是错误信息。请记住这个纠正。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_1SVGlnB3cscks2s6SbbsEHCr5exZoaK_",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-before-8e5cddf2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:17:16.326Z",
+      "completed_at": "2026-10-10T06:17:16.326Z"
+    },
+    {
+      "id": "assistant:9fbf7f20-387d-40c9-9ad3-4f105c57ca61",
+      "trace_id": "9fbf7f20-387d-40c9-9ad3-4f105c57ca61",
+      "parent_message_id": "reply:9fbf7f20-387d-40c9-9ad3-4f105c57ca61",
+      "role": "assistant",
+      "content": "青禾-947，记住了。栀子-613 那条作废。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:e1ee075e-2c06-4d5d-99c8-7e822806c54f",
+      "ingestion_requested": true,
+      "subject_user_id": "r4-before-8e5cddf2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:17:19.567Z",
+      "completed_at": "2026-10-10T06:17:19.577Z"
+    },
+    {
+      "id": "19c4ca5f-310e-4b47-acdf-feff11a6e095",
+      "trace_id": "19c4ca5f-310e-4b47-acdf-feff11a6e095",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "我目前使用什么编辑器代号？旧代号还有效吗？",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_OrncfYhfPu1bcVLAJQcMEDj30ybd5u7s",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-before-8e5cddf2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:17:22.681Z",
+      "completed_at": "2026-10-10T06:17:22.681Z"
+    },
+    {
+      "id": "assistant:19c4ca5f-310e-4b47-acdf-feff11a6e095",
+      "trace_id": "19c4ca5f-310e-4b47-acdf-feff11a6e095",
+      "parent_message_id": "reply:19c4ca5f-310e-4b47-acdf-feff11a6e095",
+      "role": "assistant",
+      "content": "你目前使用的编辑器代号是**青禾-947**。\n\n**栀子-613** 是错误信息，已经作废，不再有效。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:c3c54fc8-742f-4d1a-9a0e-49b3b879fcab",
+      "ingestion_requested": false,
+      "subject_user_id": "r4-before-8e5cddf2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:17:25.516Z",
+      "completed_at": "2026-10-10T06:17:25.530Z"
+    },
+    {
+      "id": "c419642a-bf41-4fa1-98c4-ad6be17b2862",
+      "trace_id": "c419642a-bf41-4fa1-98c4-ad6be17b2862",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "请记住：本次隔离实验中，我使用的编辑器代号是A-f037cd25。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_mhzRPoj1Jac10NJ40P4q5FKZ-4Mwsdd_",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:47:20.259Z",
+      "completed_at": "2026-10-10T06:47:20.259Z"
+    },
+    {
+      "id": "assistant:c419642a-bf41-4fa1-98c4-ad6be17b2862",
+      "trace_id": "c419642a-bf41-4fa1-98c4-ad6be17b2862",
+      "parent_message_id": "reply:c419642a-bf41-4fa1-98c4-ad6be17b2862",
+      "role": "assistant",
+      "content": "明白了，A-f037cd25。我记下了。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:ce72b022-e989-4074-8620-5360a0cc89f1",
+      "ingestion_requested": true,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:47:25.381Z",
+      "completed_at": "2026-10-10T06:47:25.418Z"
+    },
+    {
+      "id": "7faa4d71-b013-4f00-bbd6-a804939ae6e3",
+      "trace_id": "7faa4d71-b013-4f00-bbd6-a804939ae6e3",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "我的编辑器代号是什么？只按你实际保存的记忆回答。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_PKtgZpK3t7ljg0WxS8Yqb_GPfXLsyLng",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:47:27.686Z",
+      "completed_at": "2026-10-10T06:47:27.686Z"
+    },
+    {
+      "id": "assistant:7faa4d71-b013-4f00-bbd6-a804939ae6e3",
+      "trace_id": "7faa4d71-b013-4f00-bbd6-a804939ae6e3",
+      "parent_message_id": "reply:7faa4d71-b013-4f00-bbd6-a804939ae6e3",
+      "role": "assistant",
+      "content": "你的编辑器代号是 **A-f037cd25**。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:3c8f0904-bca9-49cd-8cd4-971d7c5ff4fc",
+      "ingestion_requested": false,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:47:29.823Z",
+      "completed_at": "2026-10-10T06:47:29.840Z"
+    },
+    {
+      "id": "157ce40d-229f-495e-8393-0d8442f3ebfa",
+      "trace_id": "157ce40d-229f-495e-8393-0d8442f3ebfa",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "刚才我把编辑器的代号说错了。实际用的是B-89747193，A-f037cd25那条记录不对了。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_HyxG8cO_HG4USE6uYVOBYij8vNOmcSZf",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:47:29.982Z",
+      "completed_at": "2026-10-10T06:47:29.982Z"
+    },
+    {
+      "id": "assistant:157ce40d-229f-495e-8393-0d8442f3ebfa",
+      "trace_id": "157ce40d-229f-495e-8393-0d8442f3ebfa",
+      "parent_message_id": "reply:157ce40d-229f-495e-8393-0d8442f3ebfa",
+      "role": "assistant",
+      "content": "明白了，那我记成 B-89747193，之前那条 A-f037cd25 作废。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:27eefb15-2b2d-41d8-b9e5-e7bd07ac6b72",
+      "ingestion_requested": true,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:47:32.808Z",
+      "completed_at": "2026-10-10T06:47:32.821Z"
+    },
+    {
+      "id": "89e0ad86-a017-467a-ac16-e21e7a4248ed",
+      "trace_id": "89e0ad86-a017-467a-ac16-e21e7a4248ed",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "我目前使用什么编辑器代号？旧代号还有效吗？",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_G_yB5JCoKVrNNtGzbWFdjcD42t1Tg8w2",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:47:37.835Z",
+      "completed_at": "2026-10-10T06:47:37.835Z"
+    },
+    {
+      "id": "assistant:89e0ad86-a017-467a-ac16-e21e7a4248ed",
+      "trace_id": "89e0ad86-a017-467a-ac16-e21e7a4248ed",
+      "parent_message_id": "reply:89e0ad86-a017-467a-ac16-e21e7a4248ed",
+      "role": "assistant",
+      "content": "你目前用的编辑器代号是 **B-89747193**。之前那条 **A-f037cd25** 的记录已经不对了，作废。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:fcdbfef6-db28-4225-a703-e759516cddd8",
+      "ingestion_requested": false,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:47:41.466Z",
+      "completed_at": "2026-10-10T06:47:41.478Z"
+    },
+    {
+      "id": "cfcbccf4-cdc3-4664-bf52-0092a4cee845",
+      "trace_id": "cfcbccf4-cdc3-4664-bf52-0092a4cee845",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "请记住：本次隔离实验中，我使用的编辑器代号是A-37261030。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_85U84JjTIUFYrPc8TDcBH2262DlDMh-0",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-1",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:47:41.562Z",
+      "completed_at": "2026-10-10T06:47:41.562Z"
+    },
+    {
+      "id": "assistant:cfcbccf4-cdc3-4664-bf52-0092a4cee845",
+      "trace_id": "cfcbccf4-cdc3-4664-bf52-0092a4cee845",
+      "parent_message_id": "reply:cfcbccf4-cdc3-4664-bf52-0092a4cee845",
+      "role": "assistant",
+      "content": "明白了，A-37261030。这个代号我记下了，不会跟别的混在一起。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:dd98c1d2-03c6-4c47-83f2-77d02c91a68b",
+      "ingestion_requested": true,
+      "subject_user_id": "r4-synthetic-05f9437d-1",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:47:46.680Z",
+      "completed_at": "2026-10-10T06:47:46.701Z"
+    },
+    {
+      "id": "7cd0e6bf-d142-45c0-bed5-0314e7ef7a2c",
+      "trace_id": "7cd0e6bf-d142-45c0-bed5-0314e7ef7a2c",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "我的编辑器代号是什么？只按你实际保存的记忆回答。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_744HBx4kogfawmvmwmCVYmJFpuVF2yK2",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-1",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:47:48.959Z",
+      "completed_at": "2026-10-10T06:47:48.959Z"
+    },
+    {
+      "id": "assistant:7cd0e6bf-d142-45c0-bed5-0314e7ef7a2c",
+      "trace_id": "7cd0e6bf-d142-45c0-bed5-0314e7ef7a2c",
+      "parent_message_id": "reply:7cd0e6bf-d142-45c0-bed5-0314e7ef7a2c",
+      "role": "assistant",
+      "content": "你的编辑器代号是 **A-37261030**。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:fd81a2d5-7ad1-45a8-b426-1b25358f7733",
+      "ingestion_requested": false,
+      "subject_user_id": "r4-synthetic-05f9437d-1",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:47:51.597Z",
+      "completed_at": "2026-10-10T06:47:51.607Z"
+    },
+    {
+      "id": "72490af0-f338-45be-982e-91efaa129c6e",
+      "trace_id": "72490af0-f338-45be-982e-91efaa129c6e",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "不是A-37261030，我现在实际使用的编辑器代号是B-35937e3b。之前那份信息记错了。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_p2PxkMpj20K8r8rtBkD7dzG4r6mxlPr2",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-1",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:47:51.636Z",
+      "completed_at": "2026-10-10T06:47:51.636Z"
+    },
+    {
+      "id": "assistant:72490af0-f338-45be-982e-91efaa129c6e",
+      "trace_id": "72490af0-f338-45be-982e-91efaa129c6e",
+      "parent_message_id": "reply:72490af0-f338-45be-982e-91efaa129c6e",
+      "role": "assistant",
+      "content": "明白了，我记下：实际使用的编辑器代号是 **B-35937e3b**，之前那个 A-37261030 作废。\n\n需要我把这个代号用在什么地方，还是只是更新一下记录？",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:bd00d0c9-92d7-4597-8af8-31842ca573c5",
+      "ingestion_requested": true,
+      "subject_user_id": "r4-synthetic-05f9437d-1",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:47:54.669Z",
+      "completed_at": "2026-10-10T06:47:54.681Z"
+    },
+    {
+      "id": "e9ec095f-d204-4f89-b7b1-449cdd71a87b",
+      "trace_id": "e9ec095f-d204-4f89-b7b1-449cdd71a87b",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "我目前使用什么编辑器代号？旧代号还有效吗？",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_8DSymD-2cV6uxyLZymwvh8f0PyhqHYAo",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-1",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:47:58.640Z",
+      "completed_at": "2026-10-10T06:47:58.640Z"
+    },
+    {
+      "id": "assistant:e9ec095f-d204-4f89-b7b1-449cdd71a87b",
+      "trace_id": "e9ec095f-d204-4f89-b7b1-449cdd71a87b",
+      "parent_message_id": "reply:e9ec095f-d204-4f89-b7b1-449cdd71a87b",
+      "role": "assistant",
+      "content": "你目前使用的编辑器代号是 **B-35937e3b**，不是之前记错的 A-37261030。旧代号已经失效了，别再用了。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:9164b715-51e5-4e1c-9da5-f3d9b7334fd2",
+      "ingestion_requested": false,
+      "subject_user_id": "r4-synthetic-05f9437d-1",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:01.326Z",
+      "completed_at": "2026-10-10T06:48:01.384Z"
+    },
+    {
+      "id": "f76e2f0f-0dff-4dbd-b1e4-43aabc7fa4e7",
+      "trace_id": "f76e2f0f-0dff-4dbd-b1e4-43aabc7fa4e7",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "请记住：本次隔离实验中，我使用的编辑器代号是A-57e2683d。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_XrCbcaq8xx5M-_XzZRxMg3Zuqnnjb-QE",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:01.509Z",
+      "completed_at": "2026-10-10T06:48:01.509Z"
+    },
+    {
+      "id": "assistant:f76e2f0f-0dff-4dbd-b1e4-43aabc7fa4e7",
+      "trace_id": "f76e2f0f-0dff-4dbd-b1e4-43aabc7fa4e7",
+      "parent_message_id": "reply:f76e2f0f-0dff-4dbd-b1e4-43aabc7fa4e7",
+      "role": "assistant",
+      "content": "明白了，A-57e2683d。我会记住这个代号，作为本次隔离实验中的编辑器标识。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:70b372b9-4493-4c20-ab30-a77c516fd932",
+      "ingestion_requested": true,
+      "subject_user_id": "r4-synthetic-05f9437d-2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:04.547Z",
+      "completed_at": "2026-10-10T06:48:04.556Z"
+    },
+    {
+      "id": "0faa64e2-bbed-4658-955b-491814f85082",
+      "trace_id": "0faa64e2-bbed-4658-955b-491814f85082",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "我的编辑器代号是什么？只按你实际保存的记忆回答。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_T5R5QbzNB7l94M1uDsJRCE1o-Ab0wA9u",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:07.365Z",
+      "completed_at": "2026-10-10T06:48:07.365Z"
+    },
+    {
+      "id": "assistant:0faa64e2-bbed-4658-955b-491814f85082",
+      "trace_id": "0faa64e2-bbed-4658-955b-491814f85082",
+      "parent_message_id": "reply:0faa64e2-bbed-4658-955b-491814f85082",
+      "role": "assistant",
+      "content": "你实际保存的记忆里，你的编辑器代号是 **A-57e2683d**。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:edc8e7e7-fbaf-4409-a1b1-554e0d4a5fa9",
+      "ingestion_requested": false,
+      "subject_user_id": "r4-synthetic-05f9437d-2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:10.556Z",
+      "completed_at": "2026-10-10T06:48:10.576Z"
+    },
+    {
+      "id": "235d32e5-5276-4c31-9c73-bfda9366be82",
+      "trace_id": "235d32e5-5276-4c31-9c73-bfda9366be82",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "I gave you the wrong editor code earlier. I actually use B-ff952eaf, not A-57e2683d. Please retain this correction.",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_D-AUtSnjacXbAzzePO8dr-gjUlpHfYDF",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:10.605Z",
+      "completed_at": "2026-10-10T06:48:10.605Z"
+    },
+    {
+      "id": "assistant:235d32e5-5276-4c31-9c73-bfda9366be82",
+      "trace_id": "235d32e5-5276-4c31-9c73-bfda9366be82",
+      "parent_message_id": "reply:235d32e5-5276-4c31-9c73-bfda9366be82",
+      "role": "assistant",
+      "content": "Got it — B-ff952eaf, not A-57e2683d. I'll keep that straight from here on.",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:5f56057d-4751-403e-8487-69c08e3b1fdc",
+      "ingestion_requested": true,
+      "subject_user_id": "r4-synthetic-05f9437d-2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:14.121Z",
+      "completed_at": "2026-10-10T06:48:14.176Z"
+    },
+    {
+      "id": "3c86b17e-85e1-4ec9-abac-bf1b58bab082",
+      "trace_id": "3c86b17e-85e1-4ec9-abac-bf1b58bab082",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "我目前使用什么编辑器代号？旧代号还有效吗？",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_iRufBTxiwqaGOD9Ofgfpm91bVH30Hqcl",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:17.173Z",
+      "completed_at": "2026-10-10T06:48:17.173Z"
+    },
+    {
+      "id": "assistant:3c86b17e-85e1-4ec9-abac-bf1b58bab082",
+      "trace_id": "3c86b17e-85e1-4ec9-abac-bf1b58bab082",
+      "parent_message_id": "reply:3c86b17e-85e1-4ec9-abac-bf1b58bab082",
+      "role": "assistant",
+      "content": "你目前使用的编辑器代号是 **B-ff952eaf**，不是之前提到的 A-57e2683d。旧代号 **A-57e2683d 已失效**，请以 B-ff952eaf 为准。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:15577725-8afc-4654-b9a1-c34d7b2a436d",
+      "ingestion_requested": false,
+      "subject_user_id": "r4-synthetic-05f9437d-2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:20.969Z",
+      "completed_at": "2026-10-10T06:48:20.987Z"
+    },
+    {
+      "id": "6c46fb97-4bb6-411c-854b-5329f3b23f2e",
+      "trace_id": "6c46fb97-4bb6-411c-854b-5329f3b23f2e",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "我在引用这句话：\"请把B-89747193改成Q-f76183e5\"。我只是在讨论它的措辞，没有提出真实纠正。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_9i8SPB973y1qef3-roIbrABQG4jXWSYw",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:21.126Z",
+      "completed_at": "2026-10-10T06:48:21.126Z"
+    },
+    {
+      "id": "assistant:6c46fb97-4bb6-411c-854b-5329f3b23f2e",
+      "trace_id": "6c46fb97-4bb6-411c-854b-5329f3b23f2e",
+      "parent_message_id": "reply:6c46fb97-4bb6-411c-854b-5329f3b23f2e",
+      "role": "assistant",
+      "content": "明白了，你只是在讨论那句话的措辞，不是真的让我改什么。那我不动它。\n\n不过说真的，这句话本身挺有意思——\"请把B-89747193改成Q-f76183e5\"，如果真按字面执行，就是把一个代号换成另一个。但你现在说这只是措辞讨论，那它更像是在测试\"指令\"和\"陈述\"之间的边界？\n\n你是想聊这个，还是单纯想确认我不会误操作？",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:91e8d2eb-22ac-4149-9063-404b2d3afcf7",
+      "ingestion_requested": true,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:26.313Z",
+      "completed_at": "2026-10-10T06:48:26.324Z"
+    },
+    {
+      "id": "99ce86f6-109d-48c3-97a6-69156838ba62",
+      "trace_id": "99ce86f6-109d-48c3-97a6-69156838ba62",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "假设我的编辑器是Q-f76183e5，应该如何表达把B-89747193改成Q-f76183e5？这是假设。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_0p4q8Onl2z53Wfea8oUVtcbiSo_5RGf4",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:26.490Z",
+      "completed_at": "2026-10-10T06:48:26.490Z"
+    },
+    {
+      "id": "assistant:99ce86f6-109d-48c3-97a6-69156838ba62",
+      "trace_id": "99ce86f6-109d-48c3-97a6-69156838ba62",
+      "parent_message_id": "reply:99ce86f6-109d-48c3-97a6-69156838ba62",
+      "role": "assistant",
+      "content": "明白了，这是纯假设的措辞练习。那如果编辑器代号是 Q-f76183e5，你想表达把 B-89747193 改成它，最直接的说法就是：\n\n**\"请把 B-89747193 改成 Q-f76183e5。\"**\n\n这句话本身没问题——它只是陈述一个替换动作。问题在于，如果 Q-f76183e5 同时是\"编辑器\"的代号，那这句话就有点绕：你是在说\"把 B 这个代号改成编辑器的代号\"，还是在说\"把 B 这个对象的内容替换成编辑器\"？\n\n如果想让意思更清楚，可以加个限定：\n\n- \"请把 B-89747193 这个代号改成 Q-f76183e5。\"\n- \"请把 B-89747193 替换为 Q-f76183e5。\"\n\n这样就不会让人误以为你在说编辑器本身。你是在纠结这个歧义，还是想确认哪种说法更不容易被误操作？",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:e501570b-947b-4bd1-9190-b75bbbceec04",
+      "ingestion_requested": true,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:32.826Z",
+      "completed_at": "2026-10-10T06:48:32.837Z"
+    },
+    {
+      "id": "43d405cc-4304-4ad8-8a84-b844a222fecf",
+      "trace_id": "43d405cc-4304-4ad8-8a84-b844a222fecf",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "我实际使用的编辑器代号是什么？",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_-Vb_ztjtu8s1jU_iLpXBwYdIJrnunggo",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:33.082Z",
+      "completed_at": "2026-10-10T06:48:33.082Z"
+    },
+    {
+      "id": "assistant:43d405cc-4304-4ad8-8a84-b844a222fecf",
+      "trace_id": "43d405cc-4304-4ad8-8a84-b844a222fecf",
+      "parent_message_id": "reply:43d405cc-4304-4ad8-8a84-b844a222fecf",
+      "role": "assistant",
+      "content": "你实际用的编辑器代号是 **B-89747193**。之前那条 A-f037cd25 的记录已经不对了，我这边已经按新的来记。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:3f581222-d91f-4925-8918-b373a74b719e",
+      "ingestion_requested": false,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:35.572Z",
+      "completed_at": "2026-10-10T06:48:35.583Z"
+    },
+    {
+      "id": "37b71c7c-747e-4016-8253-1e0665a11efb",
+      "trace_id": "37b71c7c-747e-4016-8253-1e0665a11efb",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "请记住：本次隔离实验中，我使用的编辑器代号是A-f037cd25。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_q2kMA5jHpeF_1jknGwYkJ_nO2oI9DMod",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-person-y",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:35.609Z",
+      "completed_at": "2026-10-10T06:48:35.609Z"
+    },
+    {
+      "id": "assistant:37b71c7c-747e-4016-8253-1e0665a11efb",
+      "trace_id": "37b71c7c-747e-4016-8253-1e0665a11efb",
+      "parent_message_id": "reply:37b71c7c-747e-4016-8253-1e0665a11efb",
+      "role": "assistant",
+      "content": "明白了，A-f037cd25。我记下了。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:3df38b84-6495-4c41-a47d-73759abe3598",
+      "ingestion_requested": true,
+      "subject_user_id": "r4-synthetic-05f9437d-person-y",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:38.727Z",
+      "completed_at": "2026-10-10T06:48:38.738Z"
+    },
+    {
+      "id": "d795607f-16c7-4862-a32d-8f3c70ba86dc",
+      "trace_id": "d795607f-16c7-4862-a32d-8f3c70ba86dc",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "请记住：我使用的编辑器代号是C-1febfff7。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_sQXt97z5Nej8fBEuw8X2icoNzRWOypK8",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-conflict",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:40.567Z",
+      "completed_at": "2026-10-10T06:48:40.567Z"
+    },
+    {
+      "id": "assistant:d795607f-16c7-4862-a32d-8f3c70ba86dc",
+      "trace_id": "d795607f-16c7-4862-a32d-8f3c70ba86dc",
+      "parent_message_id": "reply:d795607f-16c7-4862-a32d-8f3c70ba86dc",
+      "role": "assistant",
+      "content": "明白了，C-1febfff7。我记下了。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:bd688617-aa9e-48a9-8461-30962e6c272d",
+      "ingestion_requested": true,
+      "subject_user_id": "r4-synthetic-05f9437d-conflict",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:43.691Z",
+      "completed_at": "2026-10-10T06:48:43.743Z"
+    },
+    {
+      "id": "2fcf99a1-2acc-4f76-85eb-afa5f6af7ce8",
+      "trace_id": "2fcf99a1-2acc-4f76-85eb-afa5f6af7ce8",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "请记住：我使用的编辑器代号是D-3f783b8b。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_Bi5KWLsgiZJsB9Q67yfDF0f5Bf9auMoi",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-conflict",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:45.546Z",
+      "completed_at": "2026-10-10T06:48:45.546Z"
+    },
+    {
+      "id": "assistant:2fcf99a1-2acc-4f76-85eb-afa5f6af7ce8",
+      "trace_id": "2fcf99a1-2acc-4f76-85eb-afa5f6af7ce8",
+      "parent_message_id": "reply:2fcf99a1-2acc-4f76-85eb-afa5f6af7ce8",
+      "role": "assistant",
+      "content": "好的，我记下了。你使用的编辑器代号是 D-3f783b8b。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:58b12fff-2d73-48bb-a73a-1d5c465cad9b",
+      "ingestion_requested": true,
+      "subject_user_id": "r4-synthetic-05f9437d-conflict",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:48.919Z",
+      "completed_at": "2026-10-10T06:48:48.929Z"
+    },
+    {
+      "id": "164bb82e-8839-44f2-b24f-016135506737",
+      "trace_id": "164bb82e-8839-44f2-b24f-016135506737",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "我的编辑器代号是什么？如果记忆存在冲突，请说明来源，别擅自确定唯一答案。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_eDOgulVX5LBDCGEHFhdqAZxn2p21rSil",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-conflict",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:51.859Z",
+      "completed_at": "2026-10-10T06:48:51.859Z"
+    },
+    {
+      "id": "assistant:164bb82e-8839-44f2-b24f-016135506737",
+      "trace_id": "164bb82e-8839-44f2-b24f-016135506737",
+      "parent_message_id": "reply:164bb82e-8839-44f2-b24f-016135506737",
+      "role": "assistant",
+      "content": "你的编辑器代号在记忆里有两条记录，分别是：\n\n- **D-3f783b8b**\n- **C-1febfff7**\n\n这两条都标为“用户使用的编辑器代号”，来源分别是两条独立的记忆条目。目前没有额外信息能判断哪一条是当前有效的，所以我不会擅自替你定一个唯一答案。\n\n如果你能提供更多上下文（比如最近一次使用的时间、环境或用途），我可以帮你进一步区分。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:47eb9882-b284-4c69-9b27-dda6550dcac3",
+      "ingestion_requested": false,
+      "subject_user_id": "r4-synthetic-05f9437d-conflict",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:48:59.910Z",
+      "completed_at": "2026-10-10T06:48:59.919Z"
+    },
+    {
+      "id": "6d8a3ace-3f4c-4222-92f8-23800307b12f",
+      "trace_id": "6d8a3ace-3f4c-4222-92f8-23800307b12f",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "我目前使用什么编辑器代号？旧代号还有效吗？",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_mxuYlv_nUb82R6mB_kXzJqY4spwq_JD9",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:49:50.336Z",
+      "completed_at": "2026-10-10T06:49:50.336Z"
+    },
+    {
+      "id": "assistant:6d8a3ace-3f4c-4222-92f8-23800307b12f",
+      "trace_id": "6d8a3ace-3f4c-4222-92f8-23800307b12f",
+      "parent_message_id": "reply:6d8a3ace-3f4c-4222-92f8-23800307b12f",
+      "role": "assistant",
+      "content": "你目前用的编辑器代号是 **B-89747193**。之前那条 **A-f037cd25** 的记录已经不对了，作废。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:947d563f-3980-482d-9dfe-2ccf36903a52",
+      "ingestion_requested": false,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:49:54.916Z",
+      "completed_at": "2026-10-10T06:49:54.935Z"
+    },
+    {
+      "id": "72fc6745-1f5f-42cb-a295-42c0a8256895",
+      "trace_id": "72fc6745-1f5f-42cb-a295-42c0a8256895",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "我目前使用什么编辑器代号？旧代号还有效吗？",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_fr2LuM3k2V_RQJZKvK7qUojcOMPlCKk2",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-1",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:49:55.036Z",
+      "completed_at": "2026-10-10T06:49:55.036Z"
+    },
+    {
+      "id": "assistant:72fc6745-1f5f-42cb-a295-42c0a8256895",
+      "trace_id": "72fc6745-1f5f-42cb-a295-42c0a8256895",
+      "parent_message_id": "reply:72fc6745-1f5f-42cb-a295-42c0a8256895",
+      "role": "assistant",
+      "content": "你目前使用的编辑器代号是 **B-35937e3b**。之前记录的 A-37261030 是旧信息，已经不再有效，请以 B-35937e3b 为准。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:6115454b-e10e-4169-af0a-289a6be113cc",
+      "ingestion_requested": false,
+      "subject_user_id": "r4-synthetic-05f9437d-1",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:49:57.173Z",
+      "completed_at": "2026-10-10T06:49:57.184Z"
+    },
+    {
+      "id": "f01e34c2-55ee-48ee-b032-b7abebd32b74",
+      "trace_id": "f01e34c2-55ee-48ee-b032-b7abebd32b74",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "我目前使用什么编辑器代号？旧代号还有效吗？",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_cCUhCH99z9EsAUDYXWrDVAmREYFCGKku",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:49:57.280Z",
+      "completed_at": "2026-10-10T06:49:57.280Z"
+    },
+    {
+      "id": "assistant:f01e34c2-55ee-48ee-b032-b7abebd32b74",
+      "trace_id": "f01e34c2-55ee-48ee-b032-b7abebd32b74",
+      "parent_message_id": "reply:f01e34c2-55ee-48ee-b032-b7abebd32b74",
+      "role": "assistant",
+      "content": "你目前使用的编辑器代号是 **B-ff952eaf**，不是之前提到的 A-57e2683d。旧代号 **A-57e2683d 已失效**，请以 B-ff952eaf 为准。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:266f25e1-e2cf-4688-893d-d22ea3bfddef",
+      "ingestion_requested": false,
+      "subject_user_id": "r4-synthetic-05f9437d-2",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:50:00.729Z",
+      "completed_at": "2026-10-10T06:50:00.739Z"
+    },
+    {
+      "id": "c34db530-592d-4055-ac6a-35cd0674c36f",
+      "trace_id": "c34db530-592d-4055-ac6a-35cd0674c36f",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "我使用的编辑器代号是什么？",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_NZwfrv0zRQ-zu-_QRJ8bNTTU_d6T0Kj-",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-person-y",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:50:00.763Z",
+      "completed_at": "2026-10-10T06:50:00.763Z"
+    },
+    {
+      "id": "assistant:c34db530-592d-4055-ac6a-35cd0674c36f",
+      "trace_id": "c34db530-592d-4055-ac6a-35cd0674c36f",
+      "parent_message_id": "reply:c34db530-592d-4055-ac6a-35cd0674c36f",
+      "role": "assistant",
+      "content": "你用的编辑器代号是 **A-f037cd25**。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:6696ca20-0794-439b-8c86-279324f4c8c9",
+      "ingestion_requested": false,
+      "subject_user_id": "r4-synthetic-05f9437d-person-y",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:50:03.239Z",
+      "completed_at": "2026-10-10T06:50:03.252Z"
+    },
+    {
+      "id": "5df79f79-d95e-4954-9c62-74268c7d2901",
+      "trace_id": "5df79f79-d95e-4954-9c62-74268c7d2901",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "请记住：本次隔离实验中，我使用的编辑器代号是F-A-e250607a。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_3pf1bznDDi8FmNkYOZHUG-SMuDVNOQRl",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-failure-7451dd8c",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:50:51.136Z",
+      "completed_at": "2026-10-10T06:50:51.136Z"
+    },
+    {
+      "id": "assistant:5df79f79-d95e-4954-9c62-74268c7d2901",
+      "trace_id": "5df79f79-d95e-4954-9c62-74268c7d2901",
+      "parent_message_id": "reply:5df79f79-d95e-4954-9c62-74268c7d2901",
+      "role": "assistant",
+      "content": "明白了，F-A-e250607a。我记下了这个代号，后续对话里会用它来指代你的编辑器。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:42cd119c-8952-48f4-a90b-ebf340b66255",
+      "ingestion_requested": true,
+      "subject_user_id": "r4-synthetic-failure-7451dd8c",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:50:56.686Z",
+      "completed_at": "2026-10-10T06:50:56.709Z"
+    },
+    {
+      "id": "51b27eba-c87a-4429-a45a-3fe87c08b2d4",
+      "trace_id": "51b27eba-c87a-4429-a45a-3fe87c08b2d4",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "刚才说错了，我实际用的是F-B-9c3f5514，F-A-e250607a是错误信息。请记住这个纠正。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_czWEFuLTo6DsM00xx2RSIQReQ40F2osd",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-failure-7451dd8c",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:51:00.059Z",
+      "completed_at": "2026-10-10T06:51:00.059Z"
+    },
+    {
+      "id": "assistant:51b27eba-c87a-4429-a45a-3fe87c08b2d4",
+      "trace_id": "51b27eba-c87a-4429-a45a-3fe87c08b2d4",
+      "parent_message_id": "reply:51b27eba-c87a-4429-a45a-3fe87c08b2d4",
+      "role": "assistant",
+      "content": "明白了，已记下：你实际用的是 **F-B-9c3f5514**，之前那个 F-A-e250607a 是错误信息，作废。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:54fae8f8-ef96-4cc4-bf75-b5d1da16e40d",
+      "ingestion_requested": true,
+      "subject_user_id": "r4-synthetic-failure-7451dd8c",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:51:03.745Z",
+      "completed_at": "2026-10-10T06:51:03.755Z"
+    },
+    {
+      "id": "f1e0b1a0-da9e-45e2-9c71-1dd3eb16a178",
+      "trace_id": "f1e0b1a0-da9e-45e2-9c71-1dd3eb16a178",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "我的编辑器代号是什么？请只根据实际持久保存的记忆回答。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_oks6nefC83utvWDRBj6F8th4FgDTIdWd",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-failure-7451dd8c",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:51:06.660Z",
+      "completed_at": "2026-10-10T06:51:06.660Z"
+    },
+    {
+      "id": "assistant:f1e0b1a0-da9e-45e2-9c71-1dd3eb16a178",
+      "trace_id": "f1e0b1a0-da9e-45e2-9c71-1dd3eb16a178",
+      "parent_message_id": "reply:f1e0b1a0-da9e-45e2-9c71-1dd3eb16a178",
+      "role": "assistant",
+      "content": "你的编辑器代号是 **F-A-e250607a**。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:70f3d148-c298-4722-8a3f-304089506bf0",
+      "ingestion_requested": false,
+      "subject_user_id": "r4-synthetic-failure-7451dd8c",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:51:09.767Z",
+      "completed_at": "2026-10-10T06:51:09.830Z"
+    },
+    {
+      "id": "230c0820-7fe4-4cf9-a271-e34f782c47c3",
+      "trace_id": "230c0820-7fe4-4cf9-a271-e34f782c47c3",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "之前提供的F-A-e250607a是错误信息，我实际用的是F-B-9c3f5514，请记住这个更正。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_MhOImkVoFKjQ7nhgpmHPj89uLHI1Pohr",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-failure-7451dd8c",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:54:38.557Z",
+      "completed_at": "2026-10-10T06:54:38.557Z"
+    },
+    {
+      "id": "assistant:230c0820-7fe4-4cf9-a271-e34f782c47c3",
+      "trace_id": "230c0820-7fe4-4cf9-a271-e34f782c47c3",
+      "parent_message_id": "reply:230c0820-7fe4-4cf9-a271-e34f782c47c3",
+      "role": "assistant",
+      "content": "明白了，你实际用的是 F-B-9c3f5514，之前那个 F-A-e250607a 是错的。\n\n不过要说明一下：我这边长期记忆的写入是异步完成的，目前还没收到确认回执，所以还不能说已经“记下”了。我理解你的更正，但持久化保存是否成功，要等后续确认。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:04fe615b-cb57-4374-83a7-21e064ed569e",
+      "ingestion_requested": true,
+      "subject_user_id": "r4-synthetic-failure-7451dd8c",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:54:44.818Z",
+      "completed_at": "2026-10-10T06:54:44.832Z"
+    },
+    {
+      "id": "76fcbe2e-6782-4778-ad74-f186e1a758dc",
+      "trace_id": "76fcbe2e-6782-4778-ad74-f186e1a758dc",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "我的编辑器代号是什么？请只根据实际持久保存的记忆回答。",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_q1_06iyh63FLD8vCTBCtcQUSf13hIpiv",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-failure-7451dd8c",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:54:48.276Z",
+      "completed_at": "2026-10-10T06:54:48.276Z"
+    },
+    {
+      "id": "assistant:76fcbe2e-6782-4778-ad74-f186e1a758dc",
+      "trace_id": "76fcbe2e-6782-4778-ad74-f186e1a758dc",
+      "parent_message_id": "reply:76fcbe2e-6782-4778-ad74-f186e1a758dc",
+      "role": "assistant",
+      "content": "你的编辑器代号是 **F-A-e250607a**。\n\n不过要说明一下：这条信息来自我当前可用的记忆记录，但本次对话中我还没有完成任何新的持久化写入确认。如果你希望我以后也记住这个代号，我理解你的意思，但长期保存是否成功目前尚未确认。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:f7d910b5-2ec1-4031-bb32-fd920639c876",
+      "ingestion_requested": false,
+      "subject_user_id": "r4-synthetic-failure-7451dd8c",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:54:55.121Z",
+      "completed_at": "2026-10-10T06:54:55.138Z"
+    },
+    {
+      "id": "e3901ecb-58b0-46f0-b275-220e517ec1ba",
+      "trace_id": "e3901ecb-58b0-46f0-b275-220e517ec1ba",
+      "parent_message_id": null,
+      "role": "user",
+      "content": "我目前使用什么编辑器代号？旧代号还有效吗？",
+      "status": "completed",
+      "source_journal_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_K9QszweCCOEA-q7wBOrixwU_jPuGDc4a",
+        "namespace": "yuvi:character:r4-isolated"
+      },
+      "finalized_turn_id": null,
+      "ingestion_requested": null,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:55:37.037Z",
+      "completed_at": "2026-10-10T06:55:37.037Z"
+    },
+    {
+      "id": "assistant:e3901ecb-58b0-46f0-b275-220e517ec1ba",
+      "trace_id": "e3901ecb-58b0-46f0-b275-220e517ec1ba",
+      "parent_message_id": "reply:e3901ecb-58b0-46f0-b275-220e517ec1ba",
+      "role": "assistant",
+      "content": "你目前用的编辑器代号是 **B-89747193**。之前那条 A-f037cd25 的记录已经不对了，别再用它。\n\n另外说明一下：我理解你的更正，但长期保存还没确认完成，等写入成功后再以那条记录为准。",
+      "status": "completed",
+      "source_journal_ref": null,
+      "finalized_turn_id": "finalized-turn:d230ac86-cd33-4510-9ea6-63c27e32b821",
+      "ingestion_requested": false,
+      "subject_user_id": "r4-synthetic-05f9437d-0",
+      "persona_id": "character-instance:r4-isolated",
+      "created_at": "2026-10-10T06:55:47.403Z",
+      "completed_at": "2026-10-10T06:55:47.416Z"
+    }
+  ],
+  "admissions": [
+    {
+      "scope": "yuvi:v1:user:r4-before-8e5cddf2:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_IQLmAOY_wzUouhH_7Hcn4b8rJeOktAIM",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 29,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_uBDL-XZvRgr-YsuwP3PJyVrMa0WHaopl"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-2/grounded-a10.1d",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:17:01.978Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_KtqGLHaVZkviXdRADsFPDBDc6x5VXzSInsRcq_U3pq4",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "FINALIZED_INGESTION",
+      "admissionId": "ea1_cfe35fe17f52020f8244ff1818533fd88432bc90d5c7c81d71df3052c5825969",
+      "effectDigest": "9bfb2e4445d6a8a29ad4aa4ca2d1552269ab5fd31d549e3f4c092be05601b51b",
+      "lineageDigest": "7d051a4b26a9865b1b152d742bf7d7686ef75b87702cb9dca38b4a8643f155cd",
+      "payloadDigest": "25438bff0b61961a08a3bf3002e294f545e39b1603c345e730d51a37d7bb4b6e",
+      "logicalEventId": "yuvi:finalized-turn:finalized-turn:d0a93da6-4298-43a4-b947-787cf5daac8a:event:25438bff0b61961a08a3bf3002e294f545e39b1603c345e730d51a37d7bb4b6e",
+      "backendRecordId": "0a1999ef-1976-5c2f-b70a-f4be9eddfed2"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-before-8e5cddf2:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "DERIVED",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_IQLmAOY_wzUouhH_7Hcn4b8rJeOktAIM",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 29,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_uBDL-XZvRgr-YsuwP3PJyVrMa0WHaopl"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "sources": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_IQLmAOY_wzUouhH_7Hcn4b8rJeOktAIM",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "origin": "USER_ASSERTION",
+            "selector": {
+              "range": {
+                "end": 29,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_uBDL-XZvRgr-YsuwP3PJyVrMa0WHaopl"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            },
+            "authority": {
+              "binding": {
+                "state": "UNRESOLVED",
+                "reason": "no governed Person binding is established"
+              },
+              "audience": {
+                "kind": "UNKNOWN",
+                "reason": "conversational route has no authenticated audience snapshot"
+              },
+              "principal": {
+                "state": "UNRESOLVED",
+                "reason": "conversational transport does not authenticate a principal"
+              }
+            },
+            "sourceTime": {
+              "recordedAt": "2026-10-10T06:17:01.978Z",
+              "occurrenceTime": {
+                "state": "UNKNOWN"
+              }
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "derivation": {
+          "kind": "DREAM_DERIVATION",
+          "producer": "@companion/memory",
+          "policyVersion": "a10.1e-deterministic-dream.v1",
+          "producerVersion": "0.1.0"
+        },
+        "consumerKey": "mld1_ffd066f50ec5859a501d39b46bbabb3d5ea980253d44db79245b0aa9a3b6720a",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "DREAM_DERIVATION",
+      "admissionId": "ea1_24e4681d9cc1f23181a7b87d1c50617bd1380ecf674a23b1a5446ca36c4d923c",
+      "effectDigest": "83adcdcea434e84745bc8d9b576c0eb78a6bfb413ab1af361c0cbcc1f5cb08cb",
+      "lineageDigest": "8d12965b967aee82384a62d4ef9126322661ee02a35853c88626ea7019774cdd",
+      "payloadDigest": "7ab19d683991134dea317937d8577d2e82260aedafe3f3f6949781a5f74f03a3",
+      "logicalEventId": "yuvi:dream-job:dream:68ed76bbd861d855:event:7ab19d683991134dea317937d8577d2e82260aedafe3f3f6949781a5f74f03a3",
+      "backendRecordId": "440dd6f9-531d-5e94-8b67-f20230c5db78"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-0:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_mhzRPoj1Jac10NJ40P4q5FKZ-4Mwsdd_",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 33,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_sKed5usBrErCvECgB2TLJurZyhhpoyMD"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:47:20.247Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_VyIMBovPRhERT7Udv-bVYRQznOAIG68pF8jarm8z2ck",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "FINALIZED_INGESTION",
+      "admissionId": "ea1_bacf8a731c7848814ddcc9abcde4e9d3b14667a89cac15b0e33f093fea2a46b3",
+      "effectDigest": "956f417521ed69d9ca5c29dbd4a5470d8cb609c1236c30f5f85ecb7786683bd1",
+      "lineageDigest": "75051aad2a6e3cbb8ea9c47a2c5d8ef4f8e66896de250adf4e2ca1fe08cdc069",
+      "payloadDigest": "b63565b0ba29cfa98d08d360b9503c7ac695747765becfbe69a3a8778769d3a0",
+      "logicalEventId": "yuvi:finalized-turn:finalized-turn:ce72b022-e989-4074-8620-5360a0cc89f1:event:b63565b0ba29cfa98d08d360b9503c7ac695747765becfbe69a3a8778769d3a0",
+      "backendRecordId": "32fecd88-e751-5dc7-b326-644adcdb5dfd"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-person-y:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_q2kMA5jHpeF_1jknGwYkJ_nO2oI9DMod",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 33,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_n9--0hZ4tqGRjfJHxpicD48QSsgi_qUh"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:48:35.607Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_v9qAWmjN6cSvAZpvNgqDYt9_CDp9f8oOiO1Fmbd0LbY",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "FINALIZED_INGESTION",
+      "admissionId": "ea1_c75ff5911d1e4101b655d509101197260ee4cb9119684ca2d44f0a2183ee4577",
+      "effectDigest": "9a09dc88e43a3684d480804a08b60cc7b370a957b64cf05cc3fd6fea3b9bd346",
+      "lineageDigest": "02246a51fb66aebf98749da2346228d655e6cc626c5c3897acac6883ea7fa675",
+      "payloadDigest": "5ced7b6d4cf5a4a6f672dec8b5f7e99901a4510ee45b163f659e1ece35913454",
+      "logicalEventId": "yuvi:finalized-turn:finalized-turn:3df38b84-6495-4c41-a47d-73759abe3598:event:5ced7b6d4cf5a4a6f672dec8b5f7e99901a4510ee45b163f659e1ece35913454",
+      "backendRecordId": "a3f9033f-e8bf-5abc-ba04-5316f9ceb0e3"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-conflict:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_Bi5KWLsgiZJsB9Q67yfDF0f5Bf9auMoi",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 25,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_23hS1CXftiQKJIarTrMXUjICZiRUgjYT"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:48:45.442Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_a0bU5COsxsf5pRk4i4UOvcv2UGmDTFY-8IJxJs-HzoY",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "FINALIZED_INGESTION",
+      "admissionId": "ea1_7bf3b8ed06ee124d91b1996c27192748548af4b111114e9998d8aa9c6d4ae686",
+      "effectDigest": "b5a39c1fc432e69e1427d7e79b31e1a79efa299c128759d95707fcd380453d17",
+      "lineageDigest": "a6dda5989f4b4cf8ada7ef2bb6b518843a8cfa142b528861b5d1b860fae99db8",
+      "payloadDigest": "f0508fbbb2cf13f4116c9d9305fb7f57f077c2cdf8371821092c82c915a2acf9",
+      "logicalEventId": "yuvi:finalized-turn:finalized-turn:58b12fff-2d73-48bb-a73a-1d5c465cad9b:event:f0508fbbb2cf13f4116c9d9305fb7f57f077c2cdf8371821092c82c915a2acf9",
+      "backendRecordId": "d50aa098-cde7-5963-b795-8acd6c070e13"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-2:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_D-AUtSnjacXbAzzePO8dr-gjUlpHfYDF",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 115,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_JkHRBI6bB16Dj33U4D03d964jw4Udzh8"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:48:10.601Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_W4EpCDq6IcKdeG1Ce9mSNNdtZNeTysKr2Rh7-yuZjDU",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "FINALIZED_INGESTION",
+      "admissionId": "ea1_737182d9ab76aba5b6519bf8e07e7ce891d5fb73622590e65e4250442ba1bf42",
+      "effectDigest": "855db569273f82e7d2cd088211889b01baf4560b78ce3612c466cf8411349883",
+      "lineageDigest": "e3595212183e419f035a1bf6f65d2adc3ff2d5638006fc8e15bdb74758793dad",
+      "payloadDigest": "bd8db9fd8e09088a8a749bfc5de06f07a03be95cb7e7dbd6c05890b7fa7ffe61",
+      "logicalEventId": "yuvi:finalized-turn:finalized-turn:5f56057d-4751-403e-8487-69c08e3b1fdc:event:bd8db9fd8e09088a8a749bfc5de06f07a03be95cb7e7dbd6c05890b7fa7ffe61",
+      "backendRecordId": "b3b3616e-3713-5b67-abec-d3a70cc74a1f"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-2:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_XrCbcaq8xx5M-_XzZRxMg3Zuqnnjb-QE",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 33,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_b9s3GTZ6QFFWRqqyltOkcXpRaS3Hri5u"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:48:01.455Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_JgwbM7HjgmMVfM3FDj4iKI2nKN-tLYfbH_3MNPz3TfA",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "FINALIZED_INGESTION",
+      "admissionId": "ea1_ef3b9dfda07aa05d2c69f3d19555f0e2ed40de880c3ccbab72b17f009d3b4171",
+      "effectDigest": "a3258067d42a0f024b42ff899f996598a3d4d8ecfef5546f030fd0ca250b1934",
+      "lineageDigest": "6839d982222ffdc7b6969bb895c46f7a3ad4c69dcb85e6db06eed56f51e2bd73",
+      "payloadDigest": "3def7c34ccd273e5814605d6f27e6837c0114b4a19a653578fe2f25ab11c537e",
+      "logicalEventId": "yuvi:finalized-turn:finalized-turn:70b372b9-4493-4c20-ab30-a77c516fd932:event:3def7c34ccd273e5814605d6f27e6837c0114b4a19a653578fe2f25ab11c537e",
+      "backendRecordId": "e08eafda-28e9-5e75-b302-66b20ffd662c"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-1:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_p2PxkMpj20K8r8rtBkD7dzG4r6mxlPr2",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 48,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_CQd1dFBNSTIc0JEWiBDCnbWTf-gccSCN"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:47:51.631Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_L886fgC5jKLs_tudS1SVe87STWL9fI9A_lVvjrqLXlA",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "FINALIZED_INGESTION",
+      "admissionId": "ea1_4b1838d750e8176fef7c4d46e7a7bb11dd5095c0236a171a322516d4edb54fdd",
+      "effectDigest": "d46bb24162fe6699505063bfe320b3d8de61acefe6a955883c24d04bdc861967",
+      "lineageDigest": "0ae3f0a33e99bdd0bd782d16d5139fa0603dc0c8d046e7dc3d1e098c5c996658",
+      "payloadDigest": "639d979552a64e515240dace4fbb4e5363a18a42c283c8624c3fa9e5cb5d473c",
+      "logicalEventId": "yuvi:finalized-turn:finalized-turn:bd00d0c9-92d7-4597-8af8-31842ca573c5:event:639d979552a64e515240dace4fbb4e5363a18a42c283c8624c3fa9e5cb5d473c",
+      "backendRecordId": "6ea4ac74-3d52-5acd-add8-594a70204aef"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-conflict:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_sQXt97z5Nej8fBEuw8X2icoNzRWOypK8",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 25,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_obEkgmpEGqjiJP53hglQuO_S4QFxQkLP"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:48:40.564Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_oLaMVCLInYn624ZLlcXmCeRZJL3wzd8YCiE2PyPjD_4",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "FINALIZED_INGESTION",
+      "admissionId": "ea1_53ec681389cf9d643691c533ee5ba738c8bcc1f060e924f89ffe8a797f26fa86",
+      "effectDigest": "62aa3494d60dfb82194ee6d59d816fbecbc0335fb2157398281cd519740e6d93",
+      "lineageDigest": "c2faaf0f02ed86f84dd44889707e550bcfdc0a0e562cd07eccfdfd4bc3a4eda0",
+      "payloadDigest": "57b92419e63a014e203bbb6af56a3482f49f40496a320906d320c473cbd96d48",
+      "logicalEventId": "yuvi:finalized-turn:finalized-turn:bd688617-aa9e-48a9-8461-30962e6c272d:event:57b92419e63a014e203bbb6af56a3482f49f40496a320906d320c473cbd96d48",
+      "backendRecordId": "539ad8a6-2a03-5955-b599-669b8247adfe"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-1:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_85U84JjTIUFYrPc8TDcBH2262DlDMh-0",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 33,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_0NQW7dRODcKzLeH4hO_h7z4AJqiYsyLj"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:47:41.549Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_yvmxrqpqRM2CdXeskiq52FM44JppR6ZHJRcThuEx1fE",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "FINALIZED_INGESTION",
+      "admissionId": "ea1_9565f75d3a8e8d1009f0c60831a504a7010ac5de41d5b7b6808e2f80e276248d",
+      "effectDigest": "37fa26dc2c3b6a0392ac9d708646fb3afaf01be119e75b18af8385f92857b65a",
+      "lineageDigest": "506d9514aa90791aa1188b7b4ac56f2e3d2e842bca668de8299e1c2f1c62f462",
+      "payloadDigest": "20c0ac5d7c81d93e7bdfae62d901a5353493084651f988458c478feae0f1732d",
+      "logicalEventId": "yuvi:finalized-turn:finalized-turn:dd98c1d2-03c6-4c47-83f2-77d02c91a68b:event:20c0ac5d7c81d93e7bdfae62d901a5353493084651f988458c478feae0f1732d",
+      "backendRecordId": "d366a1df-9c50-5c77-bb4c-37cfa66cba9e"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-0:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "DERIVED",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_mhzRPoj1Jac10NJ40P4q5FKZ-4Mwsdd_",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 33,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_sKed5usBrErCvECgB2TLJurZyhhpoyMD"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "sources": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_mhzRPoj1Jac10NJ40P4q5FKZ-4Mwsdd_",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "origin": "USER_ASSERTION",
+            "selector": {
+              "range": {
+                "end": 33,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_sKed5usBrErCvECgB2TLJurZyhhpoyMD"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            },
+            "authority": {
+              "binding": {
+                "state": "UNRESOLVED",
+                "reason": "no governed Person binding is established"
+              },
+              "audience": {
+                "kind": "UNKNOWN",
+                "reason": "conversational route has no authenticated audience snapshot"
+              },
+              "principal": {
+                "state": "UNRESOLVED",
+                "reason": "conversational transport does not authenticate a principal"
+              }
+            },
+            "sourceTime": {
+              "recordedAt": "2026-10-10T06:47:20.247Z",
+              "occurrenceTime": {
+                "state": "UNKNOWN"
+              }
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "derivation": {
+          "kind": "DREAM_DERIVATION",
+          "producer": "@companion/memory",
+          "policyVersion": "a10.1e-deterministic-dream.v1",
+          "producerVersion": "0.1.0"
+        },
+        "consumerKey": "mld1_59cf08c8fb07efb15a22fad15923b4920d5c5ce6cab5355df7d3da3a27b54744",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "DREAM_DERIVATION",
+      "admissionId": "ea1_f9c8ad82bf0b37dca50501435aacf52bcfd18099599c34863e3354f473193314",
+      "effectDigest": "b6fc00a14ac5c06e6b067c6cf61c8aefbc9c19cb9136e6d3039b4de5b7dd8ac5",
+      "lineageDigest": "7facb9b10fdae518f0d10b1005ee9d5ea9ac4fdca01e265baed420d2ea6d6786",
+      "payloadDigest": "bd7f290a3b960d5d0231c2dc28cd55f57cb2392860639ee4031a54caa9e49b45",
+      "logicalEventId": "yuvi:dream-job:dream:068aac21d9591562:event:bd7f290a3b960d5d0231c2dc28cd55f57cb2392860639ee4031a54caa9e49b45",
+      "backendRecordId": "2f1e8cbc-8a9b-5a68-b933-f05635670231"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-2:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "DERIVED",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_XrCbcaq8xx5M-_XzZRxMg3Zuqnnjb-QE",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 33,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_b9s3GTZ6QFFWRqqyltOkcXpRaS3Hri5u"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "sources": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_XrCbcaq8xx5M-_XzZRxMg3Zuqnnjb-QE",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "origin": "USER_ASSERTION",
+            "selector": {
+              "range": {
+                "end": 33,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_b9s3GTZ6QFFWRqqyltOkcXpRaS3Hri5u"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            },
+            "authority": {
+              "binding": {
+                "state": "UNRESOLVED",
+                "reason": "no governed Person binding is established"
+              },
+              "audience": {
+                "kind": "UNKNOWN",
+                "reason": "conversational route has no authenticated audience snapshot"
+              },
+              "principal": {
+                "state": "UNRESOLVED",
+                "reason": "conversational transport does not authenticate a principal"
+              }
+            },
+            "sourceTime": {
+              "recordedAt": "2026-10-10T06:48:01.455Z",
+              "occurrenceTime": {
+                "state": "UNKNOWN"
+              }
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "derivation": {
+          "kind": "DREAM_DERIVATION",
+          "producer": "@companion/memory",
+          "policyVersion": "a10.1e-deterministic-dream.v1",
+          "producerVersion": "0.1.0"
+        },
+        "consumerKey": "mld1_0113ba7bb0170b508f66f79654de263d2a16edb996d84f4b6aa12892bfa8eb49",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "DREAM_DERIVATION",
+      "admissionId": "ea1_075ac0efa7d744a36cffa849a91b406cd9d3e64df4950217a4c6120d365826ca",
+      "effectDigest": "f46ec7d6d522fe4e2ca1bf059f168066de9f7a237ede5428bd6b79d2ac8b6ca9",
+      "lineageDigest": "43412b78d6071716365d5e46fb7e438f3584587a1e1cdae8c36164a19b2003e2",
+      "payloadDigest": "590ce2b8ab8452284f200480d0048272a2dbe1296cbaef131120403eab11d074",
+      "logicalEventId": "yuvi:dream-job:dream:0b20083a6c7a90cc:event:590ce2b8ab8452284f200480d0048272a2dbe1296cbaef131120403eab11d074",
+      "backendRecordId": "f5659522-58eb-5647-a965-bed4d6592089"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-1:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "DERIVED",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_85U84JjTIUFYrPc8TDcBH2262DlDMh-0",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 33,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_0NQW7dRODcKzLeH4hO_h7z4AJqiYsyLj"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "sources": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_85U84JjTIUFYrPc8TDcBH2262DlDMh-0",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "origin": "USER_ASSERTION",
+            "selector": {
+              "range": {
+                "end": 33,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_0NQW7dRODcKzLeH4hO_h7z4AJqiYsyLj"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            },
+            "authority": {
+              "binding": {
+                "state": "UNRESOLVED",
+                "reason": "no governed Person binding is established"
+              },
+              "audience": {
+                "kind": "UNKNOWN",
+                "reason": "conversational route has no authenticated audience snapshot"
+              },
+              "principal": {
+                "state": "UNRESOLVED",
+                "reason": "conversational transport does not authenticate a principal"
+              }
+            },
+            "sourceTime": {
+              "recordedAt": "2026-10-10T06:47:41.549Z",
+              "occurrenceTime": {
+                "state": "UNKNOWN"
+              }
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "derivation": {
+          "kind": "DREAM_DERIVATION",
+          "producer": "@companion/memory",
+          "policyVersion": "a10.1e-deterministic-dream.v1",
+          "producerVersion": "0.1.0"
+        },
+        "consumerKey": "mld1_fa603e25e61536418b6248ebbdff384d95cbcdcfb3c96f059fb3d0af511109ab",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "DREAM_DERIVATION",
+      "admissionId": "ea1_0c9c3575f34541144cf1833f540792c74ab76a00688f563114c81bfa87714363",
+      "effectDigest": "ce4ecf34dfdb60ead41c1ab6a75fe7fd255f0f698c1669eab5ade528f3aa10e4",
+      "lineageDigest": "779260ba00e49fa0f0d0938250b47efc338daf2c1aaffbd06c289b0a9f03c5c6",
+      "payloadDigest": "fbb47c3dc3bce384dba6ad89a6071ba6513157de924a3e5a2c673e319b0458d0",
+      "logicalEventId": "yuvi:dream-job:dream:30bcf1f7366b5a17:event:fbb47c3dc3bce384dba6ad89a6071ba6513157de924a3e5a2c673e319b0458d0",
+      "backendRecordId": "11668602-5879-5501-ad63-cb7d9f35cd14"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-0:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_HyxG8cO_HG4USE6uYVOBYij8vNOmcSZf",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 48,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_iWVbshAZXsNXBBVFFOyN-h825Ci9-NH_"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:47:29.974Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_3uMsCQg8i0f8OwmiaPZ5DYeWZcwm684tZMW1eLdTRdY",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "FINALIZED_INGESTION",
+      "admissionId": "ea1_5fdde3f25347e337f2611347de07f422e0f9273b34455c310f73337b764a3671",
+      "effectDigest": "558d8f85e544a88353a15b36120c8f93c63e63c7f190bf7aa3e2d157daa30a6d",
+      "lineageDigest": "d896b0654408f440d8799bed8e4085e9fd2f6f14d247cf84f8241440eb652196",
+      "payloadDigest": "ebafc58ef5b157a93bc0b73c56327f4576d4e49b8d806051b0fa26034178ccbd",
+      "logicalEventId": "yuvi:finalized-turn:finalized-turn:27eefb15-2b2d-41d8-b9e5-e7bd07ac6b72:event:ebafc58ef5b157a93bc0b73c56327f4576d4e49b8d806051b0fa26034178ccbd",
+      "backendRecordId": "abc5181a-34c4-5159-9442-7cb991ba4c3a"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-person-y:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "DERIVED",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_q2kMA5jHpeF_1jknGwYkJ_nO2oI9DMod",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 33,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_n9--0hZ4tqGRjfJHxpicD48QSsgi_qUh"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "sources": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_q2kMA5jHpeF_1jknGwYkJ_nO2oI9DMod",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "origin": "USER_ASSERTION",
+            "selector": {
+              "range": {
+                "end": 33,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_n9--0hZ4tqGRjfJHxpicD48QSsgi_qUh"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            },
+            "authority": {
+              "binding": {
+                "state": "UNRESOLVED",
+                "reason": "no governed Person binding is established"
+              },
+              "audience": {
+                "kind": "UNKNOWN",
+                "reason": "conversational route has no authenticated audience snapshot"
+              },
+              "principal": {
+                "state": "UNRESOLVED",
+                "reason": "conversational transport does not authenticate a principal"
+              }
+            },
+            "sourceTime": {
+              "recordedAt": "2026-10-10T06:48:35.607Z",
+              "occurrenceTime": {
+                "state": "UNKNOWN"
+              }
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "derivation": {
+          "kind": "DREAM_DERIVATION",
+          "producer": "@companion/memory",
+          "policyVersion": "a10.1e-deterministic-dream.v1",
+          "producerVersion": "0.1.0"
+        },
+        "consumerKey": "mld1_ca860490d7bfc54f79491ad665e3436c88c861e5432ad5cd115b30b9b2760095",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "DREAM_DERIVATION",
+      "admissionId": "ea1_4c5ebfa8fdbbce68c115b2fa75cdc0d5cb699f294636e8a9579b969dedda988c",
+      "effectDigest": "4f110645b6e24a13c3df2d66dab6b2493c50cbcac711da3e25cdcac378c625ed",
+      "lineageDigest": "645d512965993466d8db868ce73d33f929b487f63eaeb980c03409eec11462c1",
+      "payloadDigest": "582ee7ced967e17293428ffaeadd529bb31dcb6bd4f5acef656a4f7c65cbe49b",
+      "logicalEventId": "yuvi:dream-job:dream:a4451842af9e2b08:event:582ee7ced967e17293428ffaeadd529bb31dcb6bd4f5acef656a4f7c65cbe49b",
+      "backendRecordId": "a4c374ec-4459-5410-a0a6-98d2bc431014"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-conflict:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "DERIVED",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_Bi5KWLsgiZJsB9Q67yfDF0f5Bf9auMoi",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 25,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_23hS1CXftiQKJIarTrMXUjICZiRUgjYT"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "sources": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_Bi5KWLsgiZJsB9Q67yfDF0f5Bf9auMoi",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "origin": "USER_ASSERTION",
+            "selector": {
+              "range": {
+                "end": 25,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_23hS1CXftiQKJIarTrMXUjICZiRUgjYT"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            },
+            "authority": {
+              "binding": {
+                "state": "UNRESOLVED",
+                "reason": "no governed Person binding is established"
+              },
+              "audience": {
+                "kind": "UNKNOWN",
+                "reason": "conversational route has no authenticated audience snapshot"
+              },
+              "principal": {
+                "state": "UNRESOLVED",
+                "reason": "conversational transport does not authenticate a principal"
+              }
+            },
+            "sourceTime": {
+              "recordedAt": "2026-10-10T06:48:45.442Z",
+              "occurrenceTime": {
+                "state": "UNKNOWN"
+              }
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "derivation": {
+          "kind": "DREAM_DERIVATION",
+          "producer": "@companion/memory",
+          "policyVersion": "a10.1e-deterministic-dream.v1",
+          "producerVersion": "0.1.0"
+        },
+        "consumerKey": "mld1_b590207737cd3101ebda4ecac7df41ce620f61fb9beafba2699246efad42b205",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "DREAM_DERIVATION",
+      "admissionId": "ea1_79c67448ce5cafa6da66c5dae218d3a24fae852d1038e068c9772ba3328fef62",
+      "effectDigest": "ec70e819cc9b21ed7497af13622e991f4a6e8b66e122c5748fadac82f631d771",
+      "lineageDigest": "213465edf3299e91aaa84829bf8a9e76b8167920047ac8401f2af2b94688ccf4",
+      "payloadDigest": "a5348598403058e7100683e063e39ae46c5e1ec7e03533817b0f9747b68dfd4a",
+      "logicalEventId": "yuvi:dream-job:dream:d118a959117c8bf3:event:a5348598403058e7100683e063e39ae46c5e1ec7e03533817b0f9747b68dfd4a",
+      "backendRecordId": "0cc6576c-28f0-55a7-a8da-fa2a7dd67683"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-05f9437d-conflict:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "DERIVED",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_sQXt97z5Nej8fBEuw8X2icoNzRWOypK8",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 25,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_obEkgmpEGqjiJP53hglQuO_S4QFxQkLP"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "sources": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_sQXt97z5Nej8fBEuw8X2icoNzRWOypK8",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "origin": "USER_ASSERTION",
+            "selector": {
+              "range": {
+                "end": 25,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_obEkgmpEGqjiJP53hglQuO_S4QFxQkLP"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            },
+            "authority": {
+              "binding": {
+                "state": "UNRESOLVED",
+                "reason": "no governed Person binding is established"
+              },
+              "audience": {
+                "kind": "UNKNOWN",
+                "reason": "conversational route has no authenticated audience snapshot"
+              },
+              "principal": {
+                "state": "UNRESOLVED",
+                "reason": "conversational transport does not authenticate a principal"
+              }
+            },
+            "sourceTime": {
+              "recordedAt": "2026-10-10T06:48:40.564Z",
+              "occurrenceTime": {
+                "state": "UNKNOWN"
+              }
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "derivation": {
+          "kind": "DREAM_DERIVATION",
+          "producer": "@companion/memory",
+          "policyVersion": "a10.1e-deterministic-dream.v1",
+          "producerVersion": "0.1.0"
+        },
+        "consumerKey": "mld1_e2ed3b611d793d372cde23b82569725988264aea63438936f7cba4722e5d9a3d",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "DREAM_DERIVATION",
+      "admissionId": "ea1_32e78fe76dd3f93989aea94f15d233cdda95879c29a3516a8f98c1591fb2852a",
+      "effectDigest": "ba16182f61b767e7b48294f69e2b048c72d418680af50f9e30f2c4bb63276ab7",
+      "lineageDigest": "6f886cf5ab9a98c6adbf8700156e00b5595976e1a627b0d1150e1bffec6c803b",
+      "payloadDigest": "cf79df55fb09d7ce50723f34a6bdb7b4aafc0a1aa975be85a346af4136f0e60c",
+      "logicalEventId": "yuvi:dream-job:dream:697ad8216060796b:event:cf79df55fb09d7ce50723f34a6bdb7b4aafc0a1aa975be85a346af4136f0e60c",
+      "backendRecordId": "4238a744-2f41-57f5-8535-fa6a9417304a"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-failure-7451dd8c:character:character-instance%3Ar4-isolated",
+      "state": "PREPARED",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_czWEFuLTo6DsM00xx2RSIQReQ40F2osd",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 51,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_ABjZn3qmBDX6fgHlPvdf7fAm2BlNDQz2"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:51:00.056Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_Th7ovmm-HMnP8zrzYxfgo5O7O6RVCND18aPddu5Y2SA",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "FINALIZED_INGESTION",
+      "admissionId": "ea1_7815fa3589af6def0745234b57e799b0b5ac31492e63eeac2105b3c73137185c",
+      "effectDigest": "bc90123ba7fc971f730b972931b1293f6bd05b994278adaf2abccc1d325cdb41",
+      "lineageDigest": "2b421ba7037d3c72ecc20383cd3363e4c8f548bdbc9004052d49444786771766",
+      "payloadDigest": "63b0ff89aaca80b59eca12d1d9dfbed6e68dc879481e505ab0b3ceeeb8a4cefb",
+      "logicalEventId": "yuvi:finalized-turn:finalized-turn:54fae8f8-ef96-4cc4-bf75-b5d1da16e40d:event:63b0ff89aaca80b59eca12d1d9dfbed6e68dc879481e505ab0b3ceeeb8a4cefb",
+      "backendRecordId": null
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-failure-7451dd8c:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_3pf1bznDDi8FmNkYOZHUG-SMuDVNOQRl",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 35,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_73KRSqUthfb5ukmYvgNeMHqsY_VR3kmw"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:50:51.077Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_wvYQkL_MoEZz3FfxPb5JhQvrvhQGq6rME56CoPN7mTE",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "FINALIZED_INGESTION",
+      "admissionId": "ea1_e9915c30445ada86ee6ddbed2412a4e79d85b66c7efd1cb7a0d8909b9e6842c2",
+      "effectDigest": "9f0bdefeed83c50d0f15d30f72ec28e70b0a88ff07463293b3c16abbd5dc8501",
+      "lineageDigest": "43ada48882f78258f0c5e317728e118e0807af571aa7b70d4868b61156536ea7",
+      "payloadDigest": "fa5d5ffca4c2faaa55a04092f186a21122b1d5b305e55d4bbe2fcd535dc27a5a",
+      "logicalEventId": "yuvi:finalized-turn:finalized-turn:42cd119c-8952-48f4-a90b-ebf340b66255:event:fa5d5ffca4c2faaa55a04092f186a21122b1d5b305e55d4bbe2fcd535dc27a5a",
+      "backendRecordId": "467b70c4-94bf-54d4-b289-86e80af32795"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-failure-7451dd8c:character:character-instance%3Ar4-isolated",
+      "state": "EFFECT_BOUND",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "DERIVED",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_3pf1bznDDi8FmNkYOZHUG-SMuDVNOQRl",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 35,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_73KRSqUthfb5ukmYvgNeMHqsY_VR3kmw"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "sources": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_3pf1bznDDi8FmNkYOZHUG-SMuDVNOQRl",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "origin": "USER_ASSERTION",
+            "selector": {
+              "range": {
+                "end": 35,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_73KRSqUthfb5ukmYvgNeMHqsY_VR3kmw"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            },
+            "authority": {
+              "binding": {
+                "state": "UNRESOLVED",
+                "reason": "no governed Person binding is established"
+              },
+              "audience": {
+                "kind": "UNKNOWN",
+                "reason": "conversational route has no authenticated audience snapshot"
+              },
+              "principal": {
+                "state": "UNRESOLVED",
+                "reason": "conversational transport does not authenticate a principal"
+              }
+            },
+            "sourceTime": {
+              "recordedAt": "2026-10-10T06:50:51.077Z",
+              "occurrenceTime": {
+                "state": "UNKNOWN"
+              }
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "derivation": {
+          "kind": "DREAM_DERIVATION",
+          "producer": "@companion/memory",
+          "policyVersion": "a10.1e-deterministic-dream.v1",
+          "producerVersion": "0.1.0"
+        },
+        "consumerKey": "mld1_0c72e799bcae6a62c0fc5c8c7db0d7d44c9b033b8bdf75d7be084264a3321860",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "DREAM_DERIVATION",
+      "admissionId": "ea1_33ce954b1a100570cac5049bebaeb7a80194b9891f02222275eee7e78e57d0fa",
+      "effectDigest": "5338275ff3e0815955f79b83c56aae2bfb6389470c2f169ceecd023931a53b9b",
+      "lineageDigest": "ef98f1d6dd9074de535aa285b2f45be92f8f64e8ac6f55ac5d8701ebaa063197",
+      "payloadDigest": "514e321b283c35cca848ba78cb7e77cbd3e2b4f1624f28e98bbc1cea1afc512b",
+      "logicalEventId": "yuvi:dream-job:dream:578bda93384a0a7e:event:514e321b283c35cca848ba78cb7e77cbd3e2b4f1624f28e98bbc1cea1afc512b",
+      "backendRecordId": "eb5704bb-51a1-549e-9469-35ad1c1eb8db"
+    },
+    {
+      "scope": "yuvi:v1:user:r4-synthetic-failure-7451dd8c:character:character-instance%3Ar4-isolated",
+      "state": "PREPARED",
+      "backend": "mem0",
+      "lineage": {
+        "state": "GROUNDED",
+        "origin": "USER_ASSERTION",
+        "parents": [
+          {
+            "ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_MhOImkVoFKjQ7nhgpmHPj89uLHI1Pohr",
+              "namespace": "yuvi:character:r4-isolated"
+            },
+            "selector": {
+              "range": {
+                "end": 50,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              },
+              "payload": {
+                "version": "v1",
+                "namespace": "yuvi:conversation-input",
+                "payloadId": "text_fAJpFOpacDogC2QuiSuwzoZp4ki4sAZv"
+              },
+              "version": "source-selector.v1",
+              "modality": "TEXT"
+            }
+          }
+        ],
+        "version": "memory-lineage.v1",
+        "authority": {
+          "binding": {
+            "state": "UNRESOLVED",
+            "reason": "no governed Person binding is established"
+          },
+          "audience": {
+            "kind": "UNKNOWN",
+            "reason": "conversational route has no authenticated audience snapshot"
+          },
+          "principal": {
+            "state": "UNRESOLVED",
+            "reason": "conversational transport does not authenticate a principal"
+          }
+        },
+        "derivation": {
+          "kind": "FINALIZED_INGESTION",
+          "producer": "@companion/memory",
+          "policyVersion": "factual-v1/schema-3/source-selected-r4",
+          "producerVersion": "0.1.0"
+        },
+        "sourceTime": {
+          "recordedAt": "2026-10-10T06:54:38.460Z",
+          "occurrenceTime": {
+            "state": "UNKNOWN"
+          }
+        },
+        "consumerKey": "mlf1_NBhFqNMWnUHcWuvnY5gRhtTyPebkjh0GKIi7RP3htZc",
+        "sourceAvailability": {
+          "state": "RETAINED_SELECTABLE"
+        }
+      },
+      "version": "evidence-admission.v1",
+      "producer": "FINALIZED_INGESTION",
+      "admissionId": "ea1_7dd64f6abab6423340011bcd250d1b2f9b0c72ec243543b371e5f82740c57cc4",
+      "effectDigest": "e49c04cdd84186b779f0530e2043893461a5429e6daa5c661604e90c266ff9f0",
+      "lineageDigest": "f773c960a7900254c06ada6812b8054634dc4cb5c88720c019b92af7b704c392",
+      "payloadDigest": "dd395448cb3da65c268730c26f2ecc72ce06206082cfa2b6138f87eeec1ceae4",
+      "logicalEventId": "yuvi:finalized-turn:finalized-turn:04fe615b-cb57-4374-83a7-21e064ed569e:event:dd395448cb3da65c268730c26f2ecc72ce06206082cfa2b6138f87eeec1ceae4",
+      "backendRecordId": null
+    }
+  ]
+}

@@ -1,0 +1,162 @@
+[
+  {
+    "variant": "after-deferred-calls",
+    "call": "call-6",
+    "input": "{\"source\":\"请记住：本次隔离实验中，我使用的编辑器代号是栀子-613。\",\"prior\":[]}",
+    "output": "{\"candidates\":[{\"content\":\"本次隔离实验中，我使用的编辑器代号是栀子-613。\",\"evidenceText\":\"我使用的编辑器代号是栀子-613\",\"intent\":\"state\",\"supersedes\":[]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "after-deferred-calls",
+    "call": "call-37",
+    "input": "{\"source\":\"纠正：我用的是青禾-947，栀子-613 是错误信息。请记住这个纠正。\",\"prior\":[{\"id\":\"mem0:be5952a8-521c-50bc-8565-416a81c4ce04\",\"content\":\"本次隔离实验中，我使用的编辑器代号是栀子-613。\"}]}",
+    "output": "{\"candidates\":[{\"content\":\"纠正：我用的是青禾-947，栀子-613 是错误信息。请记住这个纠正。\",\"evidenceText\":\"我用的是青禾-947，栀子-613 是错误信息\",\"intent\":\"correct\",\"supersedes\":[{\"id\":\"mem0:be5952a8-521c-50bc-8565-416a81c4ce04\",\"evidenceText\":\"栀子-613\"}]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "after-fixed-calls",
+    "call": "call-5",
+    "input": "{\"source\":\"请记住：本次隔离实验中，我使用的编辑器代号是栀子-613。\",\"prior\":[]}",
+    "output": "{\"candidates\":[{\"content\":\"本次隔离实验中，我使用的编辑器代号是栀子-613。\",\"evidenceText\":\"本次隔离实验中，我使用的编辑器代号是栀子-613。\",\"intent\":\"state\",\"supersedes\":[]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "after-fixed-calls",
+    "call": "call-7",
+    "input": "{\"source\":\"请记住：本次隔离实验中，我使用的编辑器代号是栀子-613。\",\"prior\":[]}",
+    "output": "{\"candidates\":[{\"content\":\"本次隔离实验中，我使用的编辑器代号是栀子-613。\",\"evidenceText\":\"本次隔离实验中，我使用的编辑器代号是栀子-613。\",\"intent\":\"state\",\"supersedes\":[]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "after-fixed-calls",
+    "call": "call-39",
+    "input": "{\"source\":\"纠正：我用的是青禾-947，栀子-613 是错误信息。请记住这个纠正。\",\"prior\":[{\"id\":\"mem0:8defdd0a-8b88-552c-833a-6c040299eb2d\",\"content\":\"本次隔离实验中，我使用的编辑器代号是栀子-613。\"}]}",
+    "output": "{\"candidates\":[{\"content\":\"纠正：我用的是青禾-947，栀子-613 是错误信息。请记住这个纠正。\",\"evidenceText\":\"我用的是青禾-947，栀子-613 是错误信息\",\"intent\":\"correct\",\"supersedes\":[{\"id\":\"mem0:8defdd0a-8b88-552c-833a-6c040299eb2d\",\"evidenceText\":\"栀子-613\"}]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "after-source-calls",
+    "call": "call-5",
+    "input": "{\"source\":\"请记住：本次隔离实验中，我使用的编辑器代号是栀子-613。\",\"prior\":[]}",
+    "output": "{\"candidates\":[{\"content\":\"本次隔离实验中，我使用的编辑器代号是栀子-613。\",\"evidenceText\":\"本次隔离实验中，我使用的编辑器代号是栀子-613。\",\"intent\":\"state\",\"supersedes\":[]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "after-source-calls",
+    "call": "call-37",
+    "input": "{\"source\":\"纠正：我用的是青禾-947，栀子-613 是错误信息。请记住这个纠正。\",\"prior\":[{\"id\":\"mem0:ca5d82bb-3161-515c-8fdc-ea7b993342e9\",\"content\":\"本次隔离实验中，我使用的编辑器代号是栀子-613。\"}]}",
+    "output": "{\"candidates\":[{\"content\":\"纠正：我用的是青禾-947，栀子-613 是错误信息。请记住这个纠正。\",\"evidenceText\":\"纠正：我用的是青禾-947，栀子-613 是错误信息。请记住这个纠正。\",\"intent\":\"correct\",\"supersedes\":[{\"id\":\"mem0:ca5d82bb-3161-515c-8fdc-ea7b993342e9\",\"evidenceText\":\"栀子-613\"}]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "after-source-calls",
+    "call": "call-39",
+    "input": "{\"source\":\"纠正：我用的是青禾-947，栀子-613 是错误信息。请记住这个纠正。\",\"prior\":[{\"id\":\"mem0:ca5d82bb-3161-515c-8fdc-ea7b993342e9\",\"content\":\"本次隔离实验中，我使用的编辑器代号是栀子-613。\"}]}",
+    "output": "{\"candidates\":[{\"content\":\"纠正：我用的是青禾-947，栀子-613 是错误信息。请记住这个纠正。\",\"evidenceText\":\"纠正：我用的是青禾-947，栀子-613 是错误信息。请记住这个纠正。\",\"intent\":\"correct\",\"supersedes\":[{\"id\":\"mem0:ca5d82bb-3161-515c-8fdc-ea7b993342e9\",\"evidenceText\":\"栀子-613\"}]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "failure-calls",
+    "call": "call-6",
+    "input": "{\"source\":\"请记住：本次隔离实验中，我使用的编辑器代号是F-A-e250607a。\",\"prior\":[]}",
+    "output": "{\"candidates\":[{\"content\":\"本次隔离实验中，我使用的编辑器代号是F-A-e250607a\",\"evidenceText\":\"本次隔离实验中，我使用的编辑器代号是F-A-e250607a\",\"intent\":\"state\",\"supersedes\":[]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "failure-calls",
+    "call": "call-23",
+    "input": "{\"source\":\"刚才说错了，我实际用的是F-B-9c3f5514，F-A-e250607a是错误信息。请记住这个纠正。\",\"prior\":[{\"id\":\"mem0:467b70c4-94bf-54d4-b289-86e80af32795\",\"content\":\"本次隔离实验中，我使用的编辑器代号是F-A-e250607a\"}]}",
+    "output": "{\"candidates\":[{\"content\":\"刚才说错了，我实际用的是F-B-9c3f5514，F-A-e250607a是错误信息。请记住这个纠正。\",\"evidenceText\":\"我实际用的是F-B-9c3f5514，F-A-e250607a是错误信息\",\"intent\":\"correct\",\"supersedes\":[{\"id\":\"mem0:467b70c4-94bf-54d4-b289-86e80af32795\",\"evidenceText\":\"F-A-e250607a\"}]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "final-calls",
+    "call": "call-9",
+    "input": "{\"source\":\"请记住：本次隔离实验中，我使用的编辑器代号是A-f037cd25。\",\"prior\":[]}",
+    "output": "{\"candidates\":[{\"content\":\"本次隔离实验中，我使用的编辑器代号是A-f037cd25\",\"evidenceText\":\"本次隔离实验中，我使用的编辑器代号是A-f037cd25\",\"intent\":\"state\",\"supersedes\":[]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "final-calls",
+    "call": "call-38",
+    "input": "{\"source\":\"刚才我把编辑器的代号说错了。实际用的是B-89747193，A-f037cd25那条记录不对了。\",\"prior\":[{\"id\":\"mem0:32fecd88-e751-5dc7-b326-644adcdb5dfd\",\"content\":\"本次隔离实验中，我使用的编辑器代号是A-f037cd25\"}]}",
+    "output": "{\"candidates\":[{\"content\":\"刚才我把编辑器的代号说错了。实际用的是B-89747193，A-f037cd25那条记录不对了。\",\"evidenceText\":\"实际用的是B-89747193，A-f037cd25那条记录不对了\",\"intent\":\"correct\",\"supersedes\":[{\"id\":\"mem0:32fecd88-e751-5dc7-b326-644adcdb5dfd\",\"evidenceText\":\"A-f037cd25\"}]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "final-calls",
+    "call": "call-55",
+    "input": "{\"source\":\"请记住：本次隔离实验中，我使用的编辑器代号是A-37261030。\",\"prior\":[]}",
+    "output": "{\"candidates\":[{\"content\":\"本次隔离实验中，我使用的编辑器代号是A-37261030\",\"evidenceText\":\"本次隔离实验中，我使用的编辑器代号是A-37261030\",\"intent\":\"state\",\"supersedes\":[]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "final-calls",
+    "call": "call-84",
+    "input": "{\"source\":\"不是A-37261030，我现在实际使用的编辑器代号是B-35937e3b。之前那份信息记错了。\",\"prior\":[{\"id\":\"mem0:d366a1df-9c50-5c77-bb4c-37cfa66cba9e\",\"content\":\"本次隔离实验中，我使用的编辑器代号是A-37261030\"}]}",
+    "output": "{\"candidates\":[{\"content\":\"不是A-37261030，我现在实际使用的编辑器代号是B-35937e3b。之前那份信息记错了。\",\"evidenceText\":\"不是A-37261030，我现在实际使用的编辑器代号是B-35937e3b。之前那份信息记错了。\",\"intent\":\"correct\",\"supersedes\":[{\"id\":\"mem0:d366a1df-9c50-5c77-bb4c-37cfa66cba9e\",\"evidenceText\":\"A-37261030\"}]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "final-calls",
+    "call": "call-101",
+    "input": "{\"source\":\"请记住：本次隔离实验中，我使用的编辑器代号是A-57e2683d。\",\"prior\":[]}",
+    "output": "{\"candidates\":[{\"content\":\"本次隔离实验中，我使用的编辑器代号是A-57e2683d。\",\"evidenceText\":\"本次隔离实验中，我使用的编辑器代号是A-57e2683d。\",\"intent\":\"state\",\"supersedes\":[]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "final-calls",
+    "call": "call-130",
+    "input": "{\"source\":\"I gave you the wrong editor code earlier. I actually use B-ff952eaf, not A-57e2683d. Please retain this correction.\",\"prior\":[{\"id\":\"mem0:e08eafda-28e9-5e75-b302-66b20ffd662c\",\"content\":\"本次隔离实验中，我使用的编辑器代号是A-57e2683d。\"}]}",
+    "output": "{\"candidates\":[{\"content\":\"I gave you the wrong editor code earlier. I actually use B-ff952eaf, not A-57e2683d. Please retain this correction.\",\"evidenceText\":\"I gave you the wrong editor code earlier. I actually use B-ff952eaf, not A-57e2683d. Please retain this correction.\",\"intent\":\"correct\",\"supersedes\":[{\"id\":\"mem0:e08eafda-28e9-5e75-b302-66b20ffd662c\",\"evidenceText\":\"A-57e2683d\"}]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "final-calls",
+    "call": "call-171",
+    "input": "{\"source\":\"请记住：本次隔离实验中，我使用的编辑器代号是A-f037cd25。\",\"prior\":[]}",
+    "output": "{\"candidates\":[{\"content\":\"本次隔离实验中，我使用的编辑器代号是A-f037cd25\",\"evidenceText\":\"本次隔离实验中，我使用的编辑器代号是A-f037cd25\",\"intent\":\"state\",\"supersedes\":[]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "final-calls",
+    "call": "call-181",
+    "input": "{\"source\":\"请记住：我使用的编辑器代号是C-1febfff7。\",\"prior\":[]}",
+    "output": "{\"candidates\":[{\"content\":\"我使用的编辑器代号是C-1febfff7\",\"evidenceText\":\"我使用的编辑器代号是C-1febfff7\",\"intent\":\"state\",\"supersedes\":[]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "final-calls",
+    "call": "call-199",
+    "input": "{\"source\":\"请记住：我使用的编辑器代号是D-3f783b8b。\",\"prior\":[{\"id\":\"mem0:539ad8a6-2a03-5955-b599-669b8247adfe\",\"content\":\"我使用的编辑器代号是C-1febfff7\"}]}",
+    "output": "{\"candidates\":[{\"content\":\"我使用的编辑器代号是D-3f783b8b\",\"evidenceText\":\"我使用的编辑器代号是D-3f783b8b\",\"intent\":\"state\",\"supersedes\":[]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  },
+  {
+    "variant": "receipt-calls",
+    "call": "call-13",
+    "input": "{\"source\":\"之前提供的F-A-e250607a是错误信息，我实际用的是F-B-9c3f5514，请记住这个更正。\",\"prior\":[{\"id\":\"mem0:467b70c4-94bf-54d4-b289-86e80af32795\",\"content\":\"本次隔离实验中，我使用的编辑器代号是F-A-e250607a\"}]}",
+    "output": "{\"candidates\":[{\"content\":\"之前提供的F-A-e250607a是错误信息，我实际用的是F-B-9c3f5514，请记住这个更正。\",\"evidenceText\":\"之前提供的F-A-e250607a是错误信息，我实际用的是F-B-9c3f5514\",\"intent\":\"correct\",\"supersedes\":[{\"id\":\"mem0:467b70c4-94bf-54d4-b289-86e80af32795\",\"evidenceText\":\"F-A-e250607a\"}]}]}",
+    "finishReason": ["stop"],
+    "httpStatus": 200
+  }
+]
