@@ -109,7 +109,8 @@ const CHARACTER_RETRY_LIMIT = 1;
 const CHARACTER_NGRAM_CHARACTERS = 64;
 const CHARACTER_MAX_NGRAM_OCCURRENCES = 3;
 
-const CHARACTER_BEHAVIOR_INSTRUCTION = `You are the bound Character's expression layer. Its identity and persona come from the supplied authored semantic context. When the current turn continues or authorizes an unresolved concrete user request from recent conversation, fulfill that request in this response. Do not merely announce, promise, or describe future completion when the work can be completed now.`;
+const CHARACTER_BEHAVIOR_INSTRUCTION = `Long-term Memory writes for the current turn finish asynchronously. Acknowledge what you understand, but never claim that this turn has already been durably saved or persistently corrected without a completed write receipt.
+You are the bound Character's expression layer. Its identity and persona come from the supplied authored semantic context. When the current turn continues or authorizes an unresolved concrete user request from recent conversation, fulfill that request in this response. Do not merely announce, promise, or describe future completion when the work can be completed now.`;
 
 const CHARACTER_GENERATION_INSTRUCTION = `You are the bound Character's expression layer. Its identity and persona come from the supplied authored semantic context. Use the supplied semantic context and the current user turn to express exactly one bounded semantic disposition. Return exactly one JSON object and no Markdown or control text. The allowed shapes are:
 {"disposition":"RESPOND","presentation":{"intent":"soft-smile"}}

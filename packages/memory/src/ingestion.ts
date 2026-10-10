@@ -1,17 +1,16 @@
 import type { GroundedMemorySource } from "./lineage.js";
-import {
-  admitDurableMemoryClaim,
-  serializeClaimMetadata
-} from "./claim.js";
+import { admitDurableMemoryClaim, serializeClaimMetadata } from "./claim.js";
 import type {
   MemoryClaimAttributionInput,
   MemoryEventKind,
   MemoryWriteEventInput
 } from "./provider.js";
-import type { MemoryCandidate } from "./types.js";
+import type { MemoryCandidate, MemoryExtractor } from "./types.js";
 import { classifyMem0Turn, type Mem0TurnKind } from "./mem0-chat.js";
 import { stripExplicitRememberPrefix } from "./intent.js";
-import { RuleBasedMemoryExtractor } from "./extractor.js";
+import { RuleBasedMemoryExtractor, isNonAssertiveMemoryInput } from "./extractor.js";
+import { MEMORY_CLAIM_METADATA } from "./claim.js";
+import type { MemoryEvent } from "./provider.js";
 
 export type MemoryIngestionInput = {
   userMessage: string;
@@ -46,7 +45,10 @@ export type MemoryIngestionResult = {
  * prose is context and never a source of long-term memory.
  */
 export class MemoryIngestionPolicy {
-  constructor(private readonly extractor = new RuleBasedMemoryExtractor()) {}
+  constructor(
+    private readonly extractor: MemoryExtractor = new RuleBasedMemoryExtractor(),
+    private readonly readPrior?: (scope: string) => Promise<MemoryEvent[]>
+  ) {}
 
   ingest(input: MemoryIngestionInput): Promise<MemoryIngestionResult> {
     return this.build(input);
@@ -71,6 +73,44 @@ export class MemoryIngestionPolicy {
     }
     if (turnKind === "explicit_forget") {
       return { turnKind, events: [], skippedReason: "explicit-forget-skips-add" };
+    }
+    if (input.groundedSource && isNonAssertiveMemoryInput(userMessage)) {
+      return { turnKind, events: [], skippedReason: "non-assertive-source" };
+    }
+    if (
+      input.groundedSource &&
+      this.extractor.getStatus?.().mode === "llm" &&
+      this.extractor.getStatus?.().enabled
+    ) {
+      const prior = this.readPrior ? await this.readPrior(input.scope) : [];
+      const candidates = await this.extractor.extractCandidates({
+        userMessage: input.userMessage,
+        assistantMessage,
+        groundedSource: input.groundedSource,
+        priorEvents: prior,
+        memoryScope: input.scope,
+        sourceTraceId: input.traceId,
+        timestamp: input.observedAt,
+        personaId: input.personaId,
+        subjectUserId: input.subjectUserId
+      });
+      const events = dedupeEvents(
+        candidates
+          .filter(isFactualCandidate)
+          .map((candidate) => this.eventForCandidate(candidate, input))
+          .filter((event): event is MemoryWriteEventInput => event !== null)
+      );
+      const status = this.extractor.getStatus?.();
+      if (status?.error) return { turnKind, events: [], skippedReason: status.error };
+      return {
+        turnKind,
+        events,
+        ...(events.length
+          ? {}
+          : {
+              skippedReason: status?.error ?? status?.skippedReason ?? "no-factual-memory"
+            })
+      };
     }
     if (turnKind === "normal" && !assistantMessage) {
       return { turnKind, events: [], skippedReason: "empty-assistant" };
@@ -236,7 +276,11 @@ export class MemoryIngestionPolicy {
     candidate: MemoryCandidate,
     input: MemoryIngestionInput
   ): MemoryWriteEventInput | null {
-    const kind: MemoryEventKind = candidate.type === "episodic" ? "episodic" : "fact";
+    const kind: MemoryEventKind = candidate.correctionRequested
+      ? "correction"
+      : candidate.type === "episodic"
+        ? "episodic"
+        : "fact";
     const observedAt = toTimestamp(candidate.observedAt);
     const occurredAt = toTimestamp(candidate.eventTime);
     const event: MemoryWriteEventInput = {
@@ -268,6 +312,16 @@ export class MemoryIngestionPolicy {
       }),
       ...(input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : {})
     };
+    if (candidate.metadata?.["generatedBy"] === "source-selected-semantic-extraction") {
+      const ids = candidate.metadata[MEMORY_CLAIM_METADATA.supersedes];
+      if (candidate.correctionRequested && Array.isArray(ids))
+        event.supersedes = ids.filter((id): id is string => typeof id === "string");
+      event.metadata = {
+        ...event.metadata,
+        correctionReason: candidate.correctionRequested ? "explicit-user-source-correction" : null,
+        extractionMethod: "source-selected-semantic-extraction"
+      };
+    }
     return this.applyDefaultClaim(event, input);
   }
 

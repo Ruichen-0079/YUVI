@@ -5,6 +5,7 @@ import {
   type MemoryBackend,
   type MemoryRecord
 } from "./backend.js";
+import { currentCorrectedMemoryEvents } from "./correction.js";
 import { deserializeClaimMetadata } from "./claim.js";
 import { MemoryLineageV1Schema, type GroundedMemoryLineageV1, type MemoryLineageV1 } from "./lineage.js";
 import { canonicalLineageJson, lineageDigest as sha256Text, MemoryLineageEncodingError } from "./lineage-encoding.js";
@@ -378,6 +379,7 @@ function classifyMem0Records(records: MemoryRecord[], subject: ProfileSubjectV1,
   const state = emptyCounts();
   const admissionsById = new Map(admissions.map((entry) => [entry.backendRecordId, entry]));
   const sources: ProfileEvidenceSourceV1[] = [];
+  const admittedEvents: MemoryEvent[] = [];
   const reasons = [...initialReasons];
   let eligibleCount = 0;
   let partialBytes = false;
@@ -425,6 +427,7 @@ function classifyMem0Records(records: MemoryRecord[], subject: ProfileSubjectV1,
       partialBytes = true;
       continue;
     }
+    admittedEvents.push(event);
     const source: ProfileEvidenceSourceV1 = ProfileEvidenceSourceV1Schema.parse({
       version: "yuvi-profile-evidence-source.v1",
       memory: { memoryId: `mem0:${event.sourceRecordId}`, backend: "mem0", sourceRecordId: event.sourceRecordId },
@@ -446,7 +449,11 @@ function classifyMem0Records(records: MemoryRecord[], subject: ProfileSubjectV1,
     keptBytes += bytes;
     sources.push(source);
   }
-  const sorted = sortSources(sources);
+  const currentIds = new Set(currentCorrectedMemoryEvents(admittedEvents).map((event) => event.id));
+  const sorted = sortSources(sources.filter((source) => currentIds.has(source.memory.memoryId)));
+  const correctedCount = admittedEvents.filter((event) => !currentIds.has(event.id)).length;
+  state.SUPERSEDED += correctedCount;
+  eligibleCount -= correctedCount;
   const status = reasons.length || partialBytes ? "PARTIAL" : "COMPLETE";
   return {
     state: status,

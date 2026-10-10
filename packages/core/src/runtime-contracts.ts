@@ -73,6 +73,8 @@ export type RuntimeOrchestratorOptions = {
   providers: ProviderResolver;
   conversation?: ConversationRepository | undefined;
   finalizedIngestion?: FinalizedIngestionPort | undefined;
+  /** Model extraction uses the persisted finalized turn and existing recovery worker. */
+  deferFinalizedMemoryAdmission?: boolean | undefined;
   memoryIngestionCoordinator?: MemoryIngestionCoordinatorPort | undefined;
   memoryRepository?: string | undefined;
   directContext?: Partial<DirectContextConfig> | undefined;

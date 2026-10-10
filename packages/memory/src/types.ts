@@ -263,6 +263,11 @@ export type MemoryExtractorStatus = {
 };
 
 export type MemoryExtractionInput = {
+  /** Supplied only after host resolution of the exact committed user source. */
+  groundedSource?: import("./lineage.js").GroundedMemorySource | undefined;
+  /** Host-validated prior evidence in the same subject × persona scope. */
+  priorEvents?: import("./provider.js").MemoryEvent[] | undefined;
+  memoryScope?: string | undefined;
   sessionId?: string | undefined;
   userMessage: string;
   assistantMessage?: string | undefined;

@@ -2655,22 +2655,23 @@ export class RuntimeOrchestrator {
           agentReplyId
         );
         try {
-          await this.ensureFinalizedAdmission({
-            finalizedTurnId,
-            assistantMessageId,
-            sourceUserEventId: userEvent.id,
-            sourceJournalRef: userEvent.payload.sourceJournalRef,
-            sourceText: userEvent.payload.content,
-            conversationId: userEvent.payload.sessionId,
-            traceId: userEvent.traceId,
-            personaId: userEvent.payload.personaId,
-            subjectUserId: userEvent.payload.subjectUserId,
-            finalizedAt: reply.timestamp,
-            ingestionRequested: ingestionDecision.requested === true,
-            userMessage: userEvent.payload.content,
-            assistantMessage: reply.payload.content,
-            sessionId: userEvent.payload.sessionId
-          });
+          if (!this.options.deferFinalizedMemoryAdmission || ingestionDecision.requested !== true)
+            await this.ensureFinalizedAdmission({
+              finalizedTurnId,
+              assistantMessageId,
+              sourceUserEventId: userEvent.id,
+              sourceJournalRef: userEvent.payload.sourceJournalRef,
+              sourceText: userEvent.payload.content,
+              conversationId: userEvent.payload.sessionId,
+              traceId: userEvent.traceId,
+              personaId: userEvent.payload.personaId,
+              subjectUserId: userEvent.payload.subjectUserId,
+              finalizedAt: reply.timestamp,
+              ingestionRequested: ingestionDecision.requested === true,
+              userMessage: userEvent.payload.content,
+              assistantMessage: reply.payload.content,
+              sessionId: userEvent.payload.sessionId
+            });
         } catch (error) {
           await this.publishRuntimeError("Durable ingestion admission failed.", error, {
             traceId: reply.traceId,
@@ -4835,7 +4836,9 @@ export class RuntimeOrchestrator {
           traceId: sourceEvent.traceId,
           personaId: sourceEvent.payload.personaId,
           subjectUserId: sourceEvent.payload.subjectUserId,
-          finalizedAt: reply.timestamp,
+          finalizedAt:
+            (await this.options.conversation?.getMessageById?.(canonicalAssistantId))
+              ?.completedAt ?? reply.timestamp,
           ingestionRequested: true,
           userMessage: sourceEvent.payload.content,
           assistantMessage: assistantText,
@@ -5373,7 +5376,12 @@ export class RuntimeOrchestrator {
       );
     }
 
-    if (finalizedTurnId && ingestionRequested !== null && ingestionRequested !== undefined) {
+    if (
+      finalizedTurnId &&
+      ingestionRequested !== null &&
+      ingestionRequested !== undefined &&
+      (!this.options.deferFinalizedMemoryAdmission || ingestionRequested !== true)
+    ) {
       try {
         await this.ensureFinalizedAdmission({
           finalizedTurnId,

@@ -24,7 +24,7 @@ import type {
   MemoryWriteEventOutcome
 } from "./provider.js";
 
-export const FINALIZED_INGESTION_POLICY_VERSION = "factual-v1/schema-2/grounded-a10.1d";
+export const FINALIZED_INGESTION_POLICY_VERSION = "factual-v1/schema-3/source-selected-r4";
 
 export type FinalizedIngestionTurnStatus =
   | "pending"
@@ -1467,6 +1467,11 @@ export class InMemoryFinalizedIngestionRepository implements FinalizedIngestionR
 }
 
 export class FinalizedIngestionService implements FinalizedIngestionPort {
+  private readonly materializations = new Map<
+    string,
+    { digest: string; result: Promise<FinalizedIngestionAdmission> }
+  >();
+
   constructor(
     private readonly repository: FinalizedIngestionRepository,
     private readonly ingestionPolicy: Pick<
@@ -1481,6 +1486,27 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
   }
 
   async admit(input: FinalizedIngestionAdmissionInput): Promise<FinalizedIngestionAdmission> {
+    const identity = resolveMem0ChatIdentity(input);
+    const digest = digestSource(
+      input,
+      identity.ok ? buildChatMemoryScope(identity.identity) : null
+    );
+    const existing = this.materializations.get(input.finalizedTurnId);
+    if (existing) {
+      if (existing.digest !== digest) throw new Error("FINALIZED_INGESTION_SOURCE_CONFLICT");
+      return existing.result;
+    }
+    if (this.materializations.size >= 64) throw new Error("MEMORY_MATERIALIZATION_BUSY");
+    const result = this.admitOnce(input).finally(() =>
+      this.materializations.delete(input.finalizedTurnId)
+    );
+    this.materializations.set(input.finalizedTurnId, { digest, result });
+    return result;
+  }
+
+  private async admitOnce(
+    input: FinalizedIngestionAdmissionInput
+  ): Promise<FinalizedIngestionAdmission> {
     const identity = resolveMem0ChatIdentity({
       subjectUserId: input.subjectUserId,
       personaId: input.personaId
@@ -1650,7 +1676,15 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
         turn: {
           ...baseTurn,
           status: "skipped",
-          ingestionSkipReason: extraction.skippedReason ?? "no-factual-memory"
+          ingestionSkipReason: extraction.skippedReason ?? "no-factual-memory",
+          ...(extraction.skippedReason === "MEMORY_SEMANTIC_EXTRACTION_FAILED"
+            ? {
+                status: "terminal_failed" as const,
+                failureStage: "materialization" as const,
+                lastErrorCode: extraction.skippedReason,
+                lastErrorMessage: "Semantic extraction failed; existing evidence preserved."
+              }
+            : {})
         },
         events: []
       });
