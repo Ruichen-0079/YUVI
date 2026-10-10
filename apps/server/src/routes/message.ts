@@ -14,6 +14,35 @@ import {
   type ConversationalReceiptSurface
 } from "../conversational-receipt-admission.js";
 
+/** Read the existing ledger for this exact reply; enablement is never a write receipt. */
+export async function currentReplyMemoryWriteStatus(
+  context: Pick<AppContext, "conversationRepository" | "finalizedIngestion">,
+  input: { sessionId: string; traceId: string; replyId: string }
+): Promise<string> {
+  try {
+    const messages = await context.conversationRepository.listRecentMessages(input.sessionId, {
+      limit: 20
+    });
+    const message = messages.find(
+      (row) =>
+        row.role === "assistant" &&
+        row.traceId === input.traceId &&
+        row.parentMessageId === input.replyId &&
+        row.status === "completed"
+    );
+    if (!message || message.ingestionRequested == null) return "unknown";
+    if (!message.ingestionRequested) return "skipped";
+    if (!message.finalizedTurnId) return "unknown";
+    const turn = await context.finalizedIngestion.getTurn(message.finalizedTurnId);
+    return turn && turn.assistantMessageId === message.id && turn.traceId === input.traceId
+      ? turn.status
+      : "pending";
+  } catch {
+    // Optional receipt observation must not discard a valid chat response.
+    return "unknown";
+  }
+}
+
 const MESSAGE_IMAGE_MAX_BYTES = 20 * 1024 * 1024;
 /** 20 MiB raw image expands to ~26.7 MiB in base64 plus the JSON envelope. */
 export const MESSAGE_REQUEST_BODY_LIMIT = 30 * 1024 * 1024;
@@ -231,6 +260,11 @@ export async function registerMessageRoutes(
         });
       }
       const provider = response.payload.provider;
+      const writeStatus = await currentReplyMemoryWriteStatus(context, {
+        sessionId: response.payload.sessionId,
+        traceId: response.traceId,
+        replyId: response.id
+      });
       const payload = {
         ...response,
         reply: response.payload.content,
@@ -241,7 +275,8 @@ export async function registerMessageRoutes(
           readMemory: memoryOptions.readMemory,
           writeMemory: memoryOptions.writeMemory,
           memoryReadEnabled: memoryOptions.readMemory,
-          memoryWriteEnabled: memoryOptions.writeMemory
+          memoryWriteEnabled: memoryOptions.writeMemory,
+          writeStatus
         },
         promptPreview: input.data.options?.promptPreview
           ? context.runtime.getLatestPromptPreview()
