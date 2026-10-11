@@ -16,6 +16,7 @@ import {
   JournalMemoryGroundingResolver,
   buildMemoryScope,
   readSqlMigrations,
+  applySqlMigrations,
   rebuildMemoryProjection
 } from "@companion/memory";
 import type { MemoryWriteEventInput } from "@companion/memory";
@@ -52,8 +53,7 @@ describe.skipIf(!url)(
     const audit = new MemoryIntegrityAudit(authority, journal);
     let token: string;
     beforeAll(async () => {
-      for (const m of (await readSqlMigrations()).filter((m) => m.name >= "027"))
-        await pool.query(m.sql);
+      await applySqlMigrations(pool, await readSqlMigrations());
       token = (await host.issue(personId)).token;
     });
     afterAll(() => pool.end());

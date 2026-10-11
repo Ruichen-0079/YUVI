@@ -5,7 +5,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeAll, afterAll, describe, it, expect } from "vitest";
 import { createPostgresPool, type PostgresPool } from "@companion/database";
-import { readSqlMigrations, PostgresContextUseRepository } from "@companion/memory";
+import {
+  readSqlMigrations,
+  applySqlMigrations,
+  PostgresContextUseRepository
+} from "@companion/memory";
 import { PostgresEffectDispatchStore, EffectDispatcher } from "@companion/effects";
 import { PostgresJournalRepository } from "@companion/journal";
 import { waitForCheckpoint } from "../../../scripts/conformance/fault-surface.mjs";
@@ -51,7 +55,7 @@ describe.skipIf(!url)("A11.2 retained host chain SIGKILL/reopen conformance", ()
     admin = createPostgresPool(url!);
     await admin.query(`create schema "${schema}"`);
     pool = createPostgresPool(url!, { options: `-c search_path=${schema},public` });
-    for (const m of await readSqlMigrations()) await pool.query(m.sql);
+    await applySqlMigrations(pool, await readSqlMigrations());
   });
   afterAll(async () => {
     await pool?.end();
@@ -248,7 +252,7 @@ describe.skipIf(!url)("A11.2 retained host chain SIGKILL/reopen conformance", ()
     const before = await pool.query(
       "select intent_id,intent from effect_intents order by intent_id"
     );
-    for (const migration of await readSqlMigrations()) await pool.query(migration.sql);
+    await applySqlMigrations(pool, await readSqlMigrations());
     expect(
       (await pool.query("select intent_id,intent from effect_intents order by intent_id")).rows
     ).toEqual(before.rows);

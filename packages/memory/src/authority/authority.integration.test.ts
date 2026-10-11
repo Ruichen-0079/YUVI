@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { readSqlMigrations } from "../migrations.js";
+import { readSqlMigrations, applySqlMigrations } from "../migrations.js";
 import { finalizedTestResolver, finalizedTestParent } from "../finalized-test-fixture.js";
 import { freezeFinalizedMemoryEvent } from "../finalized-memory-lineage.js";
 import { canonicalLineageJson, lineageDigest } from "../lineage-encoding.js";
@@ -9,6 +9,7 @@ import type { GroundedMemorySource } from "../lineage.js";
 import type { MemoryWriteEventInput } from "../provider.js";
 import { PostgresMemoryAuthority } from "./store.js";
 import { PostgresMemoryProvider } from "./provider.js";
+import { MemoryProjectionRebuild } from "./projection-rebuild.js";
 import { verifyMemoryProjection, rebuildMemoryProjection } from "./maintenance.js";
 import { importLegacyMemoryBatch } from "./migration.js";
 import { MemoryVectorIndexer, embeddingModelTag, enqueueVectorIndexBatch } from "./vector.js";
@@ -29,7 +30,7 @@ describe.skipIf(!url)("R5 PostgreSQL authority invariants", () => {
   const scope = `yuvi:v1:user:r5-${randomUUID()}:character:r5`;
   beforeAll(async () => {
     const migrations = await readSqlMigrations();
-    for (const migration of migrations.filter(m=>m.name >= "026")) await pool.query(migration.sql);
+    await applySqlMigrations(pool, migrations);
   });
   afterAll(() => pool.end());
   async function event(
@@ -640,5 +641,81 @@ describe.skipIf(!url)("R5 PostgreSQL authority invariants", () => {
         ])
       ).rows[0]?.["status"]
     ).toBe("terminal_failed");
+  });
+  it("keeps reads and correction writes online while bounded shadow batches pause, reopen, catch up and switch", async () => {
+    const a = await write(await event("Shadow editor A", 100));
+    const tea = await write(await event("Shadow independent tea", 100));
+    const rebuild = new MemoryProjectionRebuild(authority),
+      id = "test-" + randomUUID();
+    const first = await rebuild.start(scope, id, "synthetic-operator");
+    expect((await rebuild.start(scope, id, "synthetic-operator")).generation).toBe(
+      first.generation
+    );
+    await expect(
+      rebuild.start(scope, "other-" + randomUUID(), "synthetic-operator")
+    ).rejects.toThrow("MEMORY_REBUILD_BUSY");
+    const oldGeneration = (
+      await pool.query("select projection_generation from memory_authority_scopes where scope=$1", [
+        scope
+      ])
+    ).rows[0]!.projection_generation;
+    await rebuild.advance(scope, id, 2);
+    await rebuild.pause(scope, id, true);
+    expect((await rebuild.advance(scope, id, 2)).status).toBe("PAUSED");
+    const b = await write(
+      await event("Shadow editor B", 101, { supersedes: [a.eventId!], kind: "correction" })
+    );
+    expect(b.status).toBe("written");
+    expect((await provider.knowledge.detail(scope, a.eventId!))?.state).toBe("superseded");
+    expect((await provider.knowledge.detail(scope, tea.eventId!))?.state).toBe("current");
+    expect(
+      (
+        await pool.query(
+          "select projection_generation from memory_authority_scopes where scope=$1",
+          [scope]
+        )
+      ).rows[0]!.projection_generation
+    ).toBe(oldGeneration);
+    const freshPool = new pg.Pool({ connectionString: url });
+    try {
+      const reopened = new MemoryProjectionRebuild(new PostgresMemoryAuthority(freshPool));
+      expect((await reopened.status(scope, id))?.checkpoint).not.toBe("0");
+      await reopened.pause(scope, id, false);
+      let state = first;
+      for (let i = 0; i < 100 && state.status !== "ACTIVE"; i++) {
+        const results = await Promise.all([
+          reopened.advance(scope, id, 2),
+          rebuild.advance(scope, id, 2)
+        ]);
+        state = results.at(-1)!;
+      }
+      expect(state.status).toBe("ACTIVE");
+      expect((await verifyMemoryProjection(pool, scope)).mismatches).toEqual([]);
+      expect((await provider.knowledge.detail(scope, a.eventId!))?.state).toBe("superseded");
+      expect((await provider.knowledge.detail(scope, b.eventId!))?.state).toBe("current");
+      const counts = (
+        await pool.query(
+          "select record_count, (select count(*) from memory_authority_current where scope=$1) as actual from memory_authority_scopes where scope=$1",
+          [scope]
+        )
+      ).rows[0]!;
+      expect(counts.record_count).toBe(counts.actual);
+      await expect(rebuild.retire(scope, id)).rejects.toThrow("MEMORY_REBUILD_RETIRE_FORBIDDEN");
+      // The previous completed generation is removed in bounded batches, never authority records.
+      const previous = (
+        await pool.query(
+          "select build_id from memory_projection_rebuilds where scope=$1 and generation=$2",
+          [scope, oldGeneration]
+        )
+      ).rows[0]!.build_id;
+      for (let i = 0; i < 100; i++) {
+        const r = await rebuild.retire(scope, previous, 2);
+        if (r.status === "RETIRED") break;
+      }
+      expect((await verifyMemoryProjection(pool, scope)).mismatches).toEqual([]);
+      expect((await provider.knowledge.detail(scope, a.eventId!))?.state).toBe("superseded");
+    } finally {
+      await freshPool.end();
+    }
   });
 });

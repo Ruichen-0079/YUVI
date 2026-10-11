@@ -10,7 +10,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createPostgresPool, type PostgresPool } from "@companion/database";
 import { defineCharacter, characterPersonaId } from "@companion/core";
 import { buildMemoryScope } from "@companion/memory";
-import { readSqlMigrations } from "../../../packages/memory/src/migrations.js";
+import { readSqlMigrations, applySqlMigrations } from "../../../packages/memory/src/migrations.js";
 import {
   characterComposition,
   fileProductPersonSource,
@@ -120,7 +120,7 @@ describe.skipIf(!databaseUrl)("Core multi-Character durable composition acceptan
       await admin.query('create schema "' + schemas[index] + '"');
       const pool = createPostgresPool(environment(index).DATABASE_URL);
       try {
-        for (const migration of migrations) await pool.query(migration.sql);
+        await applySqlMigrations(pool, await readSqlMigrations());
       } finally {
         await pool.end();
       }

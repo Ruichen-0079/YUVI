@@ -19,7 +19,7 @@ import { join } from "node:path";
 import { randomBytes } from "node:crypto";
 import { beforeAll, afterAll, afterEach, describe, it, expect, vi } from "vitest";
 import { createPostgresPool, type PostgresPool } from "@companion/database";
-import { readSqlMigrations } from "@companion/memory";
+import { readSqlMigrations, applySqlMigrations } from "@companion/memory";
 import { createEvent } from "@companion/protocol";
 import { createAppContext, type AppContext } from "./context.js";
 import { loadServerConfig } from "./config.js";
@@ -117,7 +117,7 @@ describe.skipIf(!databaseUrl)(
       admin = createPostgresPool(databaseUrl!);
       await admin.query(`create schema "${schema}"`);
       pool = createPostgresPool(databaseUrl!, { options: `-c search_path=${schema},public` });
-      for (const m of await readSqlMigrations()) await pool.query(m.sql);
+      await applySqlMigrations(pool, await readSqlMigrations());
       const u = new URL(databaseUrl!);
       u.searchParams.set("options", `-c search_path=${schema},public`);
       scopedUrl = u.toString();

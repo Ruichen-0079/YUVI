@@ -8,10 +8,13 @@ import {
   PostgresMemoryProvider,
   PostgresMemoryAuthority,
   buildMemoryScope,
+  MemoryIntegrityAudit,
   importLegacyMemoryBatch
 } from "@companion/memory";
 import { loadServerConfig } from "../config.js";
 import type { AppContext } from "../context.js";
+import { PostgresJournalRepository } from "@companion/journal";
+import { registerMemoryOperationRoutes } from "./memory-operations.js";
 import { registerMemoryKnowledgeRoutes } from "./memory-knowledge.js";
 const db = process.env["YUVI_MEMORY_R5_TEST_DATABASE_URL"];
 describe.skipIf(!db)("R5 product API actual PostgreSQL routes", () => {
@@ -65,6 +68,22 @@ describe.skipIf(!db)("R5 product API actual PostgreSQL routes", () => {
         )
       ]
     });
+    await registerMemoryOperationRoutes(
+      app,
+      {
+        memory,
+        memoryIntegrity: new MemoryIntegrityAudit(
+          provider.authority,
+          new PostgresJournalRepository(pool, {
+            namespace: "r5-api",
+            authorityBuilder() {
+              throw Error("Host required");
+            }
+          })
+        )
+      } as unknown as AppContext,
+      loadServerConfig({ RUNTIME_MODE: "development", DASHBOARD_DEV_TOKEN: token })
+    );
     recordId = (await provider.knowledge.timeline({ scope })).records[0]!.id;
     await registerMemoryKnowledgeRoutes(
       app,
@@ -101,6 +120,26 @@ describe.skipIf(!db)("R5 product API actual PostgreSQL routes", () => {
     expect((await get(query("processing", scope, "&id=" + recordId))).json().schema).toBe(
       "memory.processing.v1"
     );
+  });
+  it("operates through the actual admitted service facade, not instanceof the Runtime wrapper", async () => {
+    expect(memory.getMemoryProvider()).not.toBe(provider);
+    expect(memory.getAuthorityInfrastructure()).toBe(provider);
+    const response = await app.inject({
+      method: "POST",
+      url: "/memory/v1/operations",
+      remoteAddress: "127.0.0.1",
+      headers: { authorization: `Bearer ${token}` },
+      payload: { scope, operation: "PROJECTION_VERIFY" }
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({ schema: "memory.verify.v1", mismatches: [] });
+    const unauthorized = await app.inject({
+      method: "POST",
+      url: "/memory/v1/operations",
+      remoteAddress: "127.0.0.1",
+      payload: { scope, operation: "PROJECTION_VERIFY" }
+    });
+    expect(unauthorized.statusCode).toBe(401);
   });
   it("rejects remote, foreign Origin, missing token, foreign Persona and invalid cursor", async () => {
     expect((await get(query("overview"), {}, "127.0.0.1")).statusCode).toBe(401);
