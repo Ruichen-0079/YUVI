@@ -29,7 +29,7 @@ describe.skipIf(!url)("R5 PostgreSQL authority invariants", () => {
   const scope = `yuvi:v1:user:r5-${randomUUID()}:character:r5`;
   beforeAll(async () => {
     const migrations = await readSqlMigrations();
-    await pool.query(migrations.find((m) => m.name === "026_memory_authority_v1.sql")!.sql);
+    for (const migration of migrations.filter(m=>m.name >= "026")) await pool.query(migration.sql);
   });
   afterAll(() => pool.end());
   async function event(
