@@ -88,3 +88,11 @@ jobs:
         run: |
           pnpm db:migrate
           pnpm smoke
+
+      - name: R5 Memory PostgreSQL invariants and product routes
+        env:
+          DATABASE_URL: postgres://yuvi_smoke:yuvi_smoke_ci@127.0.0.1:5432/yuvi_smoke
+          YUVI_MEMORY_R5_TEST_DATABASE_URL: postgres://yuvi_smoke:yuvi_smoke_ci@127.0.0.1:5432/yuvi_smoke
+        run: |
+          pnpm --filter @companion/memory exec vitest run src/authority/authority.integration.test.ts src/finalized-ingestion-ledger.test.ts src/finalized-ingestion-executor.test.ts
+          pnpm --filter @companion/server exec vitest run src/routes/memory-knowledge.integration.test.ts
