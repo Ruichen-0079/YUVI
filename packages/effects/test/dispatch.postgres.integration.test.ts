@@ -515,6 +515,61 @@ describe.skipIf(!url)("A9.2 real PostgreSQL dispatch and crash certainty", () =>
     expect((await store.diagnostic(i.intentId))?.evidence?.reason).toBe("SHUTDOWN");
     expect((await worker.run(i.intentId)).invoked).toBe(false);
   });
+  it("shutdown fences a delayed post-start snapshot before invocation or a false recording receipt", async () => {
+    const i = await admit();
+    let release!: () => void,
+      ready!: () => void,
+      delayPostStart = false,
+      calls = 0;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const reached = new Promise<void>((resolve) => (ready = resolve));
+    const wrapped: EffectDispatchStore = {
+      discover: (...args) => store.discover(...args),
+      observations: (id) => store.observations(id),
+      cancel: (id) => store.cancel(id),
+      claim: (...args) => store.claim(...args),
+      async record(attempt, evidence) {
+        const status = await store.record(attempt, evidence);
+        if (evidence.reason === "SHUTDOWN") {
+          // Resume the old snapshot after UNKNOWN commits but before shutdown
+          // detaches the caller. Its stale receipt must not claim success.
+          release();
+          await running;
+        }
+        return status;
+      },
+      async start(...args) {
+        const started = await store.start(...args);
+        delayPostStart = started;
+        return started;
+      },
+      async diagnostic(id) {
+        const snapshot = await store.diagnostic(id);
+        if (delayPostStart) {
+          delayPostStart = false;
+          ready();
+          await gate;
+        }
+        return snapshot;
+      }
+    };
+    const worker = new EffectDispatcher(wrapped, [
+      adapter(async () => {
+        calls++;
+        return { evidence: applied };
+      })
+    ]);
+    const running = worker.run(i.intentId);
+    await reached;
+    expect(await worker.shutdown(1)).toEqual({ drained: false });
+    const before = await store.diagnostic(i.intentId);
+    expect(before?.evidence?.reason).toBe("SHUTDOWN");
+    expect(before?.evidence?.certainty).toBe("UNKNOWN");
+    release();
+    expect(await running).toEqual({ invoked: false, recorded: false });
+    expect(calls).toBe(0);
+    expect((await store.diagnostic(i.intentId))?.evidence).toEqual(before?.evidence);
+  });
   it("diagnostic never returns payload, authorization, or transient contents", async () => {
     const i = await admit();
     const json = JSON.stringify(await store.diagnostic(i.intentId));
