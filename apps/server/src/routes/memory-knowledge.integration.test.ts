@@ -176,4 +176,50 @@ describe.skipIf(!db)("R5 product API actual PostgreSQL routes", () => {
     expect((await get(query("ingestion", scope, "&id=nonexistent"))).json().status).toBe("UNKNOWN");
     expect((await get(query("current", scope, "&limit=1000"))).statusCode).toBe(400);
   });
+  it("runs authenticated checkpoint migration operations and exposes a bounded source-free status", async () => {
+    const id = randomUUID(),
+      legacyPerson = "legacy-api-" + randomUUID(),
+      legacyPersona = "legacy-fixture";
+    await pool.query(
+      "insert into memories(type,source,content,subject_user_id,persona_id,metadata) values('semantic','fixture','Legacy retained API example',$1,$2,'{\"privateRawSource\":\"never disclose\"}'::jsonb)",
+      [legacyPerson, legacyPersona]
+    );
+    const op = (operation: string, body: Record<string, unknown> = {}) =>
+      app.inject({
+        method: "POST",
+        url: "/memory/v1/operations",
+        headers: { authorization: `Bearer ${token}` },
+        payload: { operation, scope, id, ...body }
+      });
+    const denied = await app.inject({
+      method: "POST",
+      url: "/memory/v1/operations",
+      payload: { operation: "MIGRATION_PREPARE", scope, id, legacyPerson, legacyPersona }
+    });
+    expect(denied.statusCode).toBe(401);
+    const first = await op("MIGRATION_PREPARE", { legacyPerson, legacyPersona });
+    expect(first.statusCode).toBe(200);
+    expect(first.json().status).toBe("SNAPSHOTTING");
+    expect((await op("MIGRATION_PAUSE")).json().status).toBe("PAUSED");
+    expect((await op("MIGRATION_ADVANCE")).json().status).toBe("PAUSED");
+    await op("MIGRATION_RESUME");
+    for (let i = 0; i < 3; i++) expect((await op("MIGRATION_ADVANCE")).statusCode).toBe(200);
+    const status = await get(query("migration", scope, "&id=" + id));
+    expect(status.json()).toMatchObject({
+      status: "IMPORT_VERIFIED",
+      expected: "1",
+      imported: "1",
+      verified: "1",
+      activation: "BLOCKED_SOURCE_REVIEW_REQUIRED"
+    });
+    expect(JSON.stringify(status.json())).not.toContain("privateRawSource");
+    expect(JSON.stringify(status.json())).not.toContain("never disclose");
+    expect(
+      (
+        await get(
+          query("migration", buildMemoryScope(person, "character-instance:another"), "&id=" + id)
+        )
+      ).statusCode
+    ).toBe(403);
+  });
 });
