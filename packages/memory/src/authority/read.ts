@@ -278,7 +278,9 @@ function mapRecord(row: Record<string, unknown>): KnowledgeRecord {
   };
 }
 function publicTime(value: unknown): string | null {
-  return typeof value === "string" && Number.isFinite(Date.parse(value)) ? value : null;
+  return typeof value === "string" && Number.isFinite(Date.parse(value))
+    ? new Date(value).toISOString()
+    : null;
 }
 function selectedSpan(value: unknown): KnowledgeRecord["evidence"]["selectedSpan"] {
   if (!value || typeof value !== "object") return null;
