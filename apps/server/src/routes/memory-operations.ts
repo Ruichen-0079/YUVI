@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import {
+  MemoryProjectionRebuild,
   retryStaleFinalizedDecision,
   PostgresMemoryProvider,
   verifyMemoryProjection,
@@ -26,7 +27,13 @@ export async function registerMemoryOperationRoutes(
         "AUDIT_STATUS",
         "PROJECTION_VERIFY",
         "VECTOR_REQUEUE",
-        "RETRY_FINALIZED"
+        "RETRY_FINALIZED",
+        "REBUILD_START",
+        "REBUILD_ADVANCE",
+        "REBUILD_STATUS",
+        "REBUILD_PAUSE",
+        "REBUILD_RESUME",
+        "REBUILD_RETIRE"
       ]),
       id: z.string().min(1).max(160).optional(),
       actionId: z.string().min(1).max(160).optional(),
@@ -57,9 +64,20 @@ export async function registerMemoryOperationRoutes(
     try {
       const i = parsed.data;
       context.memory.getKnowledgeReader(i.scope);
-      const provider = context.memory.getMemoryProvider();
+      const provider = context.memory.getAuthorityInfrastructure();
       if (!(provider instanceof PostgresMemoryProvider) || !context.memoryIntegrity)
         throw new MemoryAuthorityError("MEMORY_AUTHORITY_NOT_ENABLED");
+      if (i.operation.startsWith("REBUILD_")) {
+        if (!i.id) throw new MemoryAuthorityError("MEMORY_OPERATION_ID_REQUIRED");
+        const rebuild = new MemoryProjectionRebuild(provider.authority);
+        if (i.operation === "REBUILD_START")
+          return await rebuild.start(i.scope, i.id, "authenticated-local-operator");
+        if (i.operation === "REBUILD_ADVANCE") return await rebuild.advance(i.scope, i.id, i.limit);
+        if (i.operation === "REBUILD_PAUSE" || i.operation === "REBUILD_RESUME")
+          return await rebuild.pause(i.scope, i.id, i.operation === "REBUILD_PAUSE");
+        if (i.operation === "REBUILD_RETIRE") return await rebuild.retire(i.scope, i.id, i.limit);
+        return await rebuild.status(i.scope, i.id);
+      }
       if (i.operation === "RETRY_FINALIZED") {
         if (!i.id || !i.actionId) throw new MemoryAuthorityError("MEMORY_OPERATION_ID_REQUIRED");
         return await retryStaleFinalizedDecision(provider.authority, {

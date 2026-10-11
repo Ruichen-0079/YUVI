@@ -330,6 +330,7 @@ export {
   readSqlMigrations,
   resolveDatabaseUrl,
   runPostgresMigrations,
+  applySqlMigrations,
   type SqlMigration
 } from "./migrations.js";
 export {
@@ -482,3 +483,8 @@ export * from "./authority/integrity-audit.js";
 export * from "./authority/reassessment.js";
 
 export * from "./authority/operations.js";
+
+export {
+  MemoryProjectionRebuild,
+  type ProjectionRebuildState
+} from "./authority/projection-rebuild.js";

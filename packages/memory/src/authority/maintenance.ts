@@ -1,7 +1,7 @@
 import { PostgresMemoryAuthority } from "./store.js";
 import type { AuthorityQuery } from "./types.js";
 
-const expectedState = `case
+export const expectedState = `case
  when r.classification='LEGACY_UNVERIFIED' then 'legacy_unverified'
  when r.event->'lineage'->'authority'->'principal'->>'state' is distinct from 'RESOLVED' or r.event->'lineage'->'authority'->'binding'->>'state' is distinct from 'RESOLVED' or r.event->'lineage'->'authority'->'audience'->>'kind' is distinct from 'PRIVATE' then 'unattributed'
  when exists(select 1 from memory_authority_relations e where e.scope=r.scope and e.to_id=r.id and e.kind='supersedes') then 'superseded'
@@ -38,29 +38,18 @@ export async function verifyMemoryProjection(
     exhausted: rows.rows.length < limit
   };
 }
-/** Atomic rebuild: interruption rolls back the entire replacement; authority is untouched.
- * This maintenance operation takes a scope writer lock and can be long at 1M rows.
+/** Compatibility maintenance entry point. Uses the resumable production rebuild.
+ * Operators normally advance bounded batches through the operations API.
  */
 export async function rebuildMemoryProjection(authority: PostgresMemoryAuthority, scope: string) {
-  return authority.transaction(async (tx) => {
-    await tx.query("select version from memory_authority_scopes where scope=$1 for update", [
-      scope
-    ]);
-    await tx.query("delete from memory_authority_current where scope=$1", [scope]);
-    await tx.query(
-      `insert into memory_authority_current(scope,id,version,state,search)
-      select r.scope,r.id,r.version,${expectedState},to_tsvector('simple',r.search_terms)
-      from memory_authority_records r where r.scope=$1`,
-      [scope]
-    );
-    await tx.query(
-      `update memory_authority_scopes set projection_version=version,
-      record_count=(select count(*) from memory_authority_records where scope=$1),
-      current_count=(select count(*) from memory_authority_current where scope=$1 and state in ('current','conflicted')),
-      legacy_count=(select count(*) from memory_authority_current where scope=$1 and state='legacy_unverified'),
-      unattributed_count=(select count(*) from memory_authority_current where scope=$1 and state='unattributed') where scope=$1`,
-      [scope]
-    );
-    return { status: "COMMITTED" as const };
-  });
+  const { MemoryProjectionRebuild } = await import("./projection-rebuild.js");
+  const rebuild = new MemoryProjectionRebuild(authority);
+  const id = "mpr_" + crypto.randomUUID();
+  await rebuild.start(scope, id, "host-maintenance");
+  for (;;) {
+    const result = await rebuild.advance(scope, id, 1000);
+    if (result.status === "ACTIVE") return { status: "COMMITTED" as const };
+    if (result.status !== "SCANNING" && result.status !== "CATCHING_UP")
+      throw Error(result.errorCode ?? "MEMORY_REBUILD_INCOMPLETE");
+  }
 }

@@ -197,7 +197,7 @@ export class MemoryIntegrityAudit {
     if (rows.length) {
       const edges = (
         await this.authority.pool.query(
-          `select e.from_id,e.to_id,e.kind,e.version,f.source_at as from_time,t.source_at as to_time,f.version as from_version,t.version as to_version,f.event->'lineage'->'authority' as from_authority,t.event->'lineage'->'authority' as to_authority from memory_authority_relations e join memory_authority_records f on f.scope=e.scope and f.id=e.from_id join memory_authority_records t on t.scope=e.scope and t.id=e.to_id where e.scope=$1 and e.from_id=any($2::text[])`,
+          `select e.from_id,e.to_id,e.kind,e.version,f.source_at as from_time,t.source_at as to_time,f.version as from_version,t.version as to_version,f.event->'lineage'->'sourceTime'->>'commitSeq' as from_seq,t.event->'lineage'->'sourceTime'->>'commitSeq' as to_seq,f.event->'lineage'->'parents'->0->'ref'->>'namespace' as from_namespace,t.event->'lineage'->'parents'->0->'ref'->>'namespace' as to_namespace,f.event->'lineage'->'authority' as from_authority,t.event->'lineage'->'authority' as to_authority from memory_authority_relations e join memory_authority_records f on f.scope=e.scope and f.id=e.from_id join memory_authority_records t on t.scope=e.scope and t.id=e.to_id where e.scope=$1 and e.from_id=any($2::text[])`,
           [scope, rows.map((r) => r["id"])]
         )
       ).rows;
@@ -206,7 +206,11 @@ export class MemoryIntegrityAudit {
           String(edge["version"]) !== String(edge["from_version"]) ||
           BigInt(edge["to_version"]) >= BigInt(edge["from_version"]) ||
           (edge["kind"] === "supersedes" &&
-            new Date(edge["from_time"]).getTime() <= new Date(edge["to_time"]).getTime()) ||
+            !(edge["from_namespace"] === edge["to_namespace"] &&
+            /^\d+$/.test(String(edge["from_seq"])) &&
+            /^\d+$/.test(String(edge["to_seq"]))
+              ? BigInt(edge["from_seq"]) > BigInt(edge["to_seq"])
+              : new Date(edge["from_time"]).getTime() > new Date(edge["to_time"]).getTime())) ||
           canonicalLineageJson((edge["from_authority"] as any)?.principal) !==
             canonicalLineageJson((edge["to_authority"] as any)?.principal) ||
           (edge["from_authority"] as any)?.binding?.personId !==

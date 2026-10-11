@@ -928,9 +928,9 @@ export async function createAppContext(
     conversationalReceiptAdmission,
     conversationHost,
     memoryIntegrity:
-      memory.getMemoryProvider() instanceof PostgresMemoryProvider && journalRepository
+      memory.getAuthorityInfrastructure() && journalRepository
         ? new MemoryIntegrityAudit(
-            (memory.getMemoryProvider() as PostgresMemoryProvider).authority,
+            memory.getAuthorityInfrastructure()!.authority,
             journalRepository
           )
         : undefined,

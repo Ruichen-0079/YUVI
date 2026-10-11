@@ -320,6 +320,11 @@ export class MemoryService {
     await this.postgresProvider?.vectors?.stop();
   }
 
+  /** Host composition/maintenance only; Runtime uses the admitted provider facade. */
+  getAuthorityInfrastructure() {
+    return this.postgresProvider;
+  }
+
   getRetrievalEvidence(scope: string) {
     this.getKnowledgeReader(scope);
     return this.postgresProvider?.retrievalEvidence;
