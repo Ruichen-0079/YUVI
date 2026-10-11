@@ -96,6 +96,45 @@ describe.skipIf(!url)("R5 PostgreSQL authority invariants", () => {
       (await provider.knowledge.search(scope, "Editor", 20)).records.map((r) => r.id)
     ).not.toContain(a.eventId);
   });
+  it("resolves candidates again when a correction commits during embedding and records the excluded old proposition", async () => {
+    const label = "flight-" + randomUUID(),
+      a = await write(await event(label + " Editor A", 30));
+    let fired = false,
+      bId: string | undefined;
+    const vector = new MemoryVectorIndexer(authority, {
+      name: "synthetic-interleaving-contract",
+      dimensions: 512,
+      mock: false,
+      async embedText() {
+        if (!fired) {
+          fired = true;
+          const b = await write(
+            await event(label + " Editor B", 31, { kind: "correction", supersedes: [a.eventId!] })
+          );
+          bId = b.eventId;
+        }
+        return Array.from({ length: 512 }, (_, i) => Math.sin(i + 1));
+      }
+    });
+    const facade = new PostgresMemoryProvider(authority, vector),
+      personId = scope.split(":user:")[1]!.split(":character:")[0]!;
+    const result = await facade.retrieveRelevant({
+      scope,
+      text: label + " Editor",
+      limit: 100,
+      traceId: randomUUID(),
+      access: { principal: { namespace: "r5-test", actorId: "x" }, personId }
+    });
+    expect(result.events.some((e) => e.id === a.eventId)).toBe(false);
+    expect(result.events.some((e) => e.id === bId)).toBe(true);
+    expect(result.watermark).toBe((await facade.knowledge.overview(scope)).version);
+    const evidence = await facade.retrievalEvidence.detail(scope, result.retrievalId!);
+    expect(evidence?.candidates.find((c) => c.id === a.eventId)).toMatchObject({
+      state: "superseded",
+      selected: false,
+      reason: "NO_LONGER_CURRENT"
+    });
+  });
   it("rejects unadmitted, altered payload and cross-scope targets", async () => {
     const input = await event("No permission", 3);
     expect((await provider.writeEventIdempotent(input)).errorCode).toBe(
