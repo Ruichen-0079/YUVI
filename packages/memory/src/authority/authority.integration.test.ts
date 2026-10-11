@@ -24,15 +24,25 @@ import { SemanticMemoryPolicy } from "./semantic-policy.js";
 
 const url = process.env["YUVI_MEMORY_R5_TEST_DATABASE_URL"];
 describe.skipIf(!url)("R5 PostgreSQL authority invariants", () => {
-  const pool = new pg.Pool({ connectionString: url, max: 8 });
+  // A pending semantic fixture must never be claimed by a legacy coordinator
+  // running concurrently in another integration suite's database namespace.
+  const schema = `r5_authority_${randomUUID().replaceAll("-", "")}`;
+  const admin = new pg.Pool({ connectionString: url });
+  const connection = { connectionString: url, options: `-c search_path=${schema},public` };
+  const pool = new pg.Pool({ ...connection, max: 8 });
   const authority = new PostgresMemoryAuthority(pool);
   const provider = new PostgresMemoryProvider(authority);
   const scope = `yuvi:v1:user:r5-${randomUUID()}:character:r5`;
   beforeAll(async () => {
+    await admin.query(`create schema "${schema}"`);
     const migrations = await readSqlMigrations();
     await applySqlMigrations(pool, migrations);
   });
-  afterAll(() => pool.end());
+  afterAll(async () => {
+    await pool.end();
+    await admin.query(`drop schema if exists "${schema}" cascade`);
+    await admin.end();
+  });
   async function event(
     content: string,
     seconds: number,
@@ -272,7 +282,7 @@ describe.skipIf(!url)("R5 PostgreSQL authority invariants", () => {
     expect((await verifyMemoryProjection(pool, scope)).mismatches).toHaveLength(1);
     await rebuildMemoryProjection(authority, scope);
     expect((await verifyMemoryProjection(pool, scope)).mismatches).toHaveLength(0);
-    const fresh = new pg.Pool({ connectionString: url });
+    const fresh = new pg.Pool(connection);
     try {
       expect(
         (
@@ -715,7 +725,7 @@ describe.skipIf(!url)("R5 PostgreSQL authority invariants", () => {
         )
       ).rows[0]!.projection_generation
     ).toBe(oldGeneration);
-    const freshPool = new pg.Pool({ connectionString: url });
+    const freshPool = new pg.Pool(connection);
     try {
       const reopened = new MemoryProjectionRebuild(new PostgresMemoryAuthority(freshPool));
       expect((await reopened.status(scope, id))?.checkpoint).not.toBe("0");
