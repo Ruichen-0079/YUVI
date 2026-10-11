@@ -1,0 +1,24 @@
+{
+  "before": {
+    "version": "11",
+    "integrity": "NOT_VERIFIED",
+    "records": "11"
+  },
+  "state": {
+    "schema": "memory.integrity.v1",
+    "id": "audit-final-1c21f80b-fc8d-4308-b529-fd9f6337929d",
+    "status": "VERIFIED",
+    "anchor": "11",
+    "checkpoint": "11",
+    "checked": "11",
+    "issues": "0",
+    "incomplete": "0",
+    "problems": [],
+    "problemsLimited": false
+  },
+  "after": {
+    "version": "11",
+    "integrity": "VERIFIED",
+    "records": "11"
+  }
+}

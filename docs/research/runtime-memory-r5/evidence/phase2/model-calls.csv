@@ -54,3 +54,5 @@ retrieval-consumer-runtime-calls,call-4,deepseek-ai/DeepSeek-V4-Flash-0731,0,204
 retrieval-consumer-runtime-calls,call-5,deepseek-ai/DeepSeek-V4-Flash-0731,0,2048,200,2074,49,0.00013326,722.9213600000367,1425.8585480000474,
 retrieval-consumer-runtime-calls,call-7,deepseek-ai/DeepSeek-V4-Flash-0731,0,2048,200,487,69,4.164e-05,,2696.2422730000108,
 retrieval-consumer-runtime-calls,call-9,deepseek-ai/DeepSeek-V4-Flash-0731,0,2048,200,2532,20,0.00015552,,2122.0967470000032,
+secondary/persona-isolation-scoped-calls,call-1,deepseek-ai/DeepSeek-V4-Flash-0731,0,2048,200,1117,18,7.026e-05,,3610.419544999997,
+secondary/persona-isolation-scoped-calls,call-2,deepseek-ai/DeepSeek-V4-Flash-0731,0,2048,200,719,44,5.106e-05,870.3149819999999,2536.4438980000014,

@@ -34,7 +34,7 @@ Host 凭据由带显式 operator bearer 的本地管理请求签发，绑定实�
 
 SQL 027–032 接入身份、检索、来源审计、重评与受认证恢复；033 建立在线 shadow 投影，034 索引实际 context→effect 查找，035 持久旧数据工作流，036 明确检索证据完整性。schema migration 使用专用连接、schema advisory lock、SQL+摘要回执同事务，不再每次重播所有历史 SQL；应用启动只读核对 required receipts。部署须先迁移后启动，旧 runner/旧代码不能直接操作 033 后的同名 view。
 
-投影重建按历史版本扫描 shadow、捕获 active 写入的增量、持久检查点/暂停恢复、追赶后以短 writer lock 原子切换 generation；旧 generation 分批退休。权威历史不修改。来源审计检查 Admission/摘要/Journal selector/身份/时间/关系/投影/索引/回执，证书仅对应已验证版本，后来修改撤销证书。当前没有持续写入场景下完整增量来源水位和全域自动修复，Overview 不伪造 VERIFIED。
+投影重建按历史版本扫描 shadow、捕获 active 写入的增量、持久检查点/暂停恢复、追赶后以短 writer lock 原子切换 generation；旧 generation 分批退休。权威历史不修改。来源审计检查 Admission/摘要/Journal selector/身份/时间/关系/投影/索引/回执，证书仅对应已验证版本，后来修改撤销证书。最新11条正常 Runtime 历史的来源点检证书为 VERIFIED、issues/incomplete=0；新知识形成前的旧证书失效，[水位证据](evidence/phase2/source-audit-final.json)。当前没有持续写入场景下完整增量来源水位和全域自动修复，Overview 不伪造 VERIFIED。
 
 受限应用角色与 schema owner/migrator 分离。独立 `operations/provision-roles.sql` 只由另行授权的 operator 执行，不属于自动迁移。生产 Authority 拒绝超级用户、建表/建角色或能修改权威历史的数据库身份。实际应用角色可以提交 Authority 和切换 shadow，不能 UPDATE/DELETE/TRUNCATE 历史、DDL 或伪造迁移回执。正常纠正不等于隐私删除；完整清除合同尚未验收。
 
@@ -44,9 +44,9 @@ SQL 027–032 接入身份、检索、来源审计、重评与受认证恢复；
 
 ## 实际实验
 
-- 正常 `/message`，自然提及 A + 独立茶叶偏好 →持久任务完成 →独立会话 →自然纠正 B →新进程、空短期上下文仍使用 B、知道 A 无效。另一个 Person 不得到 X 的记忆。GLM 实机 429 保持失败；仅隔离 Reasoning 改为已有 DeepSeek，原任务恢复。并发旧目标的真实失败保留，通过正式重试和重评收敛为支持关系。[结果与原失败](evidence/phase2/runtime-results.json)、[关系状态](evidence/phase2/runtime-quality-state.json)、[过期任务恢复](evidence/phase2/reassessment-recovery.json)。
+- 正常 `/message`，自然提及 A + 独立茶叶偏好 →持久任务完成 →独立会话 →自然纠正 B →新进程、空短期上下文仍使用 B、知道 A 无效。另一个 Person 不得到 X 的记忆。同 Person 在另一 Character/Persona 的合法隔离 schema 下，正常真实模型回答没有证据、无原标记泄露；错误使用已有 Character 数据视图则在模型调用前拒绝启动。[Persona 实机隔离](evidence/phase2/persona-isolation.json)。GLM 实机 429 保持失败；仅隔离 Reasoning 改为已有 DeepSeek，原任务恢复。并发旧目标的真实失败保留，通过正式重试和重评收敛为支持关系。[结果与原失败](evidence/phase2/runtime-results.json)、[关系状态](evidence/phase2/runtime-quality-state.json)、[过期任务恢复](evidence/phase2/reassessment-recovery.json)。
 - 连续正常 Runtime：稳定偏好、项目决定、重复偏好、分支变化、混合猜测/引用。五个有价值回合正式完成；重复事实形成 supports；猜测/引用回合 skipped。另起新进程后，以不共享中文关键词的英文提问正确召回偏好与当前分支。不是工具结果学习或多年质量证明。早期 dirty 实现实验与最终 `03e60e2` Server 复测分开标记。
-- DeepInfra Chat 与恢复后的 Reasoning：`deepseek-ai/DeepSeek-V4-Flash-0731`，temperature=0、max_tokens=2048；初始 `zai-org/GLM-5.3-Flash` 不可用。实际本机 Qwen 512 维用于正常 Runtime。55 次远端调用中 53 次有 usage，共 90,838 输入 / 2,577 输出 token；Provider estimated_cost 合计 0.00522294，两个错误调用费用未知，不能当作最终账单。120 次调用上限；原子费用预算账本未实现。[逐调用元数据](evidence/phase2/model-calls.csv)。2026-10-11 官方标准价格为输入 $0.06、输出 $0.18、缓存输入 $0.015 / 百万 token；只作核对，账单以 Provider 为准。[官方价格](https://deepinfra.com/deepseek-ai/DeepSeek-V4-Flash-0731)
+- DeepInfra Chat 与恢复后的 Reasoning：`deepseek-ai/DeepSeek-V4-Flash-0731`，temperature=0、max_tokens=2048；初始 `zai-org/GLM-5.3-Flash` 不可用。实际本机 Qwen 512 维用于正常 Runtime。57 次远端调用中 55 次有 usage，共 92,674 输入 / 2,639 输出 token；Provider estimated_cost 合计 0.00534426，两个错误调用费用未知，不能当作最终账单。120 次调用上限；原子费用预算账本未实现。[逐调用元数据](evidence/phase2/model-calls.csv)。2026-10-11 官方标准价格为输入 $0.06、输出 $0.18、缓存输入 $0.015 / 百万 token；只作核对，账单以 Provider 为准。[官方价格](https://deepinfra.com/deepseek-ai/DeepSeek-V4-Flash-0731)
 - 真实 PG16.15 + pgvector0.8.6，10k/100k/1M **合成** 512D 向量。旧 JOIN 在百万级全量计划出现数秒查询，停止无意义重复，未捏造最终 p95。首次 ANN 近邻 4/5 的失败保留；ef_search 调整后为 5/5，零旧命题泄露。百万级热缓存分页 p95 2.76ms、向量 p95 13.62ms，4 reader 的 200 请求 1.29s。[失败](evidence/phase2/vector-first-ann.json)、[修复测量/计划](evidence/phase2/vector-ef200.json)。百万向量不是百万真实 LLM embedding，也不是广泛 Recall@K 验收。
 - 百万历史在线重建约 48.1s，读 1,724 次 p95 2.50ms、并发正式写 50 次 p95 11.08ms、max 24.10ms；暂停后重新构造组件恢复，增量追赶/切换后 1,000,050 条、全部投影状态对照差异 0。[在线负载](evidence/phase2/online-million.json)。不是强停过程中在线重建恢复验收。
 - **自己的** 31508 PostgreSQL cluster 两次 immediate 强停：COMMIT 前中断 → down 时 UNKNOWN →恢复后 not_applied；COMMIT 已执行、回执被注入丢失并强停 →UNKNOWN→恢复后 applied，同键 unchanged。两个最终当前记录均在；vector Provider 失败保留 retryable，删除派生 vector 后正式 requeue 恢复。[最终持久状态](evidence/phase2/database-faults.json)。回执丢失属于注入 transport seam，并非所有真实网络分区故障已验证。
@@ -56,7 +56,7 @@ SQL 027–032 接入身份、检索、来源审计、重评与受认证恢复；
 
 | 合同           | 实际进展                                                                      | 仍阻断整体关闭的事项                                                     |
 | -------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| A 正常生产链   | 可信 HTTP/SSE/WS 合同、正常 `/message` 主动形成/纠正/重启召回；实际模型和回执 | 各 Host 正式产品配置/QQ/语音合同、不同 Persona 全入口实机、多消费者接管  |
+| A 正常生产链   | 可信 HTTP/SSE/WS 合同、正常 `/message` 主动形成/纠正/重启召回；实际模型和回执 | 各 Host 正式产品配置/QQ/语音合同、Persona 的各入口实机、多消费者接管     |
 | B 单一当前认识 | Authority Runtime 与 v1 共投影；Embedding 竞态重验；Authority 下旧 CRUD 退役  | 全产品迁移完成，Dream/Profile/旧 API 及各客户端消费者收敛                |
 | C 可靠迁移     | PostgreSQL 隔离副本分批、检查点、digest/count 对账、暂停恢复                  | raw Mem0/派生/未知身份全资产、影子读取差异、真正切换/回退演练            |
 | D 语义责任     | 新路径无关键词 veto/规则 fallback；不可用保留任务                             | 旧后端与派生通道正式退役，所有可信观察消费者语义接入                     |
