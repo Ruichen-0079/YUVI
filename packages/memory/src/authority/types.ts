@@ -37,7 +37,7 @@ export type KnowledgeRecord = {
   evidence: {
     sourceOrigin: string;
     interpretation: "MODEL_PROPOSED" | "HOST_OR_LEGACY";
-    selectedSpan: unknown;
+    selectedSpan: { unit: "UNICODE_CODE_POINT"; start: number; end: number } | null;
   };
 };
 export type KnowledgePage = {

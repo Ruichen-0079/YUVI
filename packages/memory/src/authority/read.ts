@@ -1,4 +1,5 @@
 import type { MemoryEvent } from "../provider.js";
+import { MemoryLineageV1Schema } from "../lineage.js";
 import {
   canonicalScope,
   MemoryAuthorityError,
@@ -217,6 +218,42 @@ export class MemoryKnowledgeReader {
 }
 function mapRecord(row: Record<string, unknown>): KnowledgeRecord {
   const event = row["event"] as MemoryEvent;
+  if (
+    typeof event.content !== "string" ||
+    ![
+      "episodic",
+      "fact",
+      "user_claim",
+      "interaction",
+      "correction",
+      "commitment_evidence"
+    ].includes(event.kind)
+  )
+    throw new MemoryAuthorityError("MEMORY_PRODUCT_RECORD_INVALID");
+  // Authority payload is protected history, not a product DTO. Never spread an
+  // old/provider JSON object into the API: it can carry arbitrary source bodies.
+  const parsedLineage =
+    row["classification"] === "GROUNDED" ? MemoryLineageV1Schema.safeParse(event.lineage) : null;
+  const publicEvent: MemoryEvent = {
+    id: String(row["id"]),
+    kind: event.kind,
+    content: event.content,
+    source: "postgres",
+    sourceRecordId: String(row["id"]),
+    scope: String(row["scope"]),
+    ...(publicTime(event.recordedAt) ? { recordedAt: publicTime(event.recordedAt)! } : {}),
+    ...(publicTime(event.observedAt) ? { observedAt: publicTime(event.observedAt)! } : {}),
+    ...(parsedLineage?.success ? { lineage: parsedLineage.data } : {}),
+    ...(row["classification"] === "GROUNDED" &&
+    event.assertion &&
+    ["user", "assistant", "mixed", "system", "unknown"].includes(event.assertion.source) &&
+    ["unverified", "verified", "unknown"].includes(event.assertion.verification)
+      ? {
+          assertion: { source: event.assertion.source, verification: event.assertion.verification }
+        }
+      : {}),
+    metadata: { knowledgeState: row["state"], knowledgeVersion: String(row["version"]) }
+  };
   return {
     schema: "memory.knowledge.v1",
     id: String(row["id"]),
@@ -226,15 +263,37 @@ function mapRecord(row: Record<string, unknown>): KnowledgeRecord {
     sourceAt: new Date(String(row["source_at"])).toISOString(),
     committedAt: new Date(String(row["committed_at"])).toISOString(),
     evidence: {
-      sourceOrigin: event.lineage?.state === "GROUNDED" ? event.lineage.origin : "UNKNOWN",
-      interpretation: event.metadata["semanticPolicy"] ? "MODEL_PROPOSED" : "HOST_OR_LEGACY",
-      selectedSpan: event.metadata["evidenceSelection"] ?? null
+      sourceOrigin:
+        publicEvent.lineage?.state === "GROUNDED" ? publicEvent.lineage.origin : "UNKNOWN",
+      interpretation:
+        row["classification"] === "GROUNDED" && event.metadata["semanticPolicy"]
+          ? "MODEL_PROPOSED"
+          : "HOST_OR_LEGACY",
+      selectedSpan:
+        row["classification"] === "GROUNDED"
+          ? selectedSpan(event.metadata["evidenceSelection"])
+          : null
     },
-    event: {
-      ...event,
-      metadata: { knowledgeState: row["state"], knowledgeVersion: String(row["version"]) }
-    }
+    event: publicEvent
   };
+}
+function publicTime(value: unknown): string | null {
+  return typeof value === "string" && Number.isFinite(Date.parse(value)) ? value : null;
+}
+function selectedSpan(value: unknown): KnowledgeRecord["evidence"]["selectedSpan"] {
+  if (!value || typeof value !== "object") return null;
+  const selection = value as Record<string, unknown>;
+  const start = selection["start"],
+    end = selection["end"];
+  return selection["unit"] === "UNICODE_CODE_POINT" &&
+    typeof start === "number" &&
+    typeof end === "number" &&
+    Number.isSafeInteger(start) &&
+    Number.isSafeInteger(end) &&
+    start >= 0 &&
+    end >= start
+    ? { unit: "UNICODE_CODE_POINT", start, end }
+    : null;
 }
 function boundLimit(n?: number): number {
   if (n !== undefined && (!Number.isInteger(n) || n < 1 || n > 100))

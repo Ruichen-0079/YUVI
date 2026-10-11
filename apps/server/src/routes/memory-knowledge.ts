@@ -107,16 +107,16 @@ export async function registerMemoryKnowledgeRoutes(
             .send({ schema: "memory.error.v1", status: "UNKNOWN", error: "MEMORY_NOT_FOUND" })
         );
       } catch (error) {
-        return reply
-          .status(
-            error instanceof MemoryAuthorityError && error.code.includes("INVALID") ? 400 : 503
-          )
-          .send({
-            schema: "memory.error.v1",
-            status: "UNKNOWN",
-            error:
-              error instanceof MemoryAuthorityError ? error.code : "MEMORY_AUTHORITY_READ_FAILED"
-          });
+        const invalidQuery =
+          error instanceof MemoryAuthorityError &&
+          ["MEMORY_CURSOR_INVALID", "MEMORY_LIMIT_INVALID", "MEMORY_SCOPE_INVALID"].includes(
+            error.code
+          );
+        return reply.status(invalidQuery ? 400 : 503).send({
+          schema: "memory.error.v1",
+          status: invalidQuery ? "FAILED" : "UNKNOWN",
+          error: error instanceof MemoryAuthorityError ? error.code : "MEMORY_AUTHORITY_READ_FAILED"
+        });
       }
     });
   }
