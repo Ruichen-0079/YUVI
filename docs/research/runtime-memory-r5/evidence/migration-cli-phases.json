@@ -1,0 +1,25 @@
+[
+  {
+    "stage": "migration-cli-stop-final.log",
+    "result": {
+      "status": "STOPPED_AT_CHECKPOINT",
+      "migrationId": "legacy:yuvi:v1:user:r5-cli-6169f3e3-d44f-487a-9b47-2fbc0ea5cace:character:r5-cli:jsonl-export:2092e007e210733a8fda54358802333c6bd672361dd15155a03c1cd75ec32e0b",
+      "checkpoint": "100"
+    }
+  },
+  {
+    "stage": "migration-cli-resume-final.log",
+    "result": {
+      "status": "COMMITTED",
+      "migrationId": "legacy:yuvi:v1:user:r5-cli-6169f3e3-d44f-487a-9b47-2fbc0ea5cace:character:r5-cli:jsonl-export:2092e007e210733a8fda54358802333c6bd672361dd15155a03c1cd75ec32e0b",
+      "checkpoint": "250"
+    }
+  },
+  {
+    "stage": "migration-cli-replay-final.log",
+    "result": {
+      "status": "ALREADY_COMPLETE",
+      "migrationId": "legacy:yuvi:v1:user:r5-cli-6169f3e3-d44f-487a-9b47-2fbc0ea5cace:character:r5-cli:jsonl-export:2092e007e210733a8fda54358802333c6bd672361dd15155a03c1cd75ec32e0b"
+    }
+  }
+]

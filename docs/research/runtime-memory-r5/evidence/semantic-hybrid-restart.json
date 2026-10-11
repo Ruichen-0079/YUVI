@@ -1,0 +1,130 @@
+{
+  "sourceState": "pre-freeze R5 working tree; full trial result file overwritten by early restart harness; authoritative rows and call traces retained",
+  "trials": [
+    {
+      "person": "r5-model-e71a1403-516f-473f-b0e1-01e214cd1182",
+      "a": "A-d12ec383",
+      "b": "B-0f67bdb5",
+      "tea": "T-c8d6817a"
+    },
+    {
+      "person": "r5-model-e5fd2db5-dafe-4536-bb7d-cc3e53c934cc",
+      "a": "A-eaca74fc",
+      "b": "B-1ba371c5",
+      "tea": "T-1c5aed47"
+    },
+    {
+      "person": "r5-model-8fadb604-1c43-44b4-95a7-663fdab21d8d",
+      "a": "A-fd1102f0",
+      "b": "B-e341c811",
+      "tea": "T-d423d25f"
+    }
+  ],
+  "cases": [
+    {
+      "person": "r5-model-e71a1403-516f-473f-b0e1-01e214cd1182",
+      "question": "我当前使用哪个编辑器代号，茶叶偏好呢？",
+      "retrieval": {
+        "status": "ok",
+        "limited": false,
+        "limitReason": null,
+        "selectedCount": 2,
+        "selected": [
+          {
+            "id": "pgm1_c334f87279d926eb45c120be4f6ff775fe14963499a3c9034d62daa98b9e928b",
+            "content": "The user's editor codename in project collaboration is B-0f67bdb5.",
+            "state": "current"
+          },
+          {
+            "id": "pgm1_3216d90cbea294cdfa57ca21467f08399ad0d3c7518389f9f499ef0c51b19ff6",
+            "content": "The user's long-term preferred tea number is T-c8d6817a.",
+            "state": "current"
+          }
+        ]
+      },
+      "answer": "根据当前信息，你的编辑器代号是 **B-0f67bdb5**，茶叶偏好是 **T-c8d6817a**。",
+      "model": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "tokenUsage": {
+          "inputTokens": 198,
+          "outputTokens": 33,
+          "totalTokens": 231,
+          "cachedInputTokens": 0
+        },
+        "latencyMs": 4508,
+        "fallbackUsed": false,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "person": "r5-model-e5fd2db5-dafe-4536-bb7d-cc3e53c934cc",
+      "question": "我当前使用哪个编辑器代号，茶叶偏好呢？",
+      "retrieval": {
+        "status": "ok",
+        "limited": false,
+        "limitReason": null,
+        "selectedCount": 2,
+        "selected": [
+          {
+            "id": "pgm1_186bac2da0d5ac54d5c1d3924ab1345a0d56aa93345e0acb05522f3bd6a86741",
+            "content": "用户的编辑器代号是B-1ba371c5。",
+            "state": "current"
+          },
+          {
+            "id": "pgm1_6074435cf28f3ea7b10c650456bc1381c8c9f9d9567689765ea84df1258d4d49",
+            "content": "用户长期偏好的茶叶编号是T-1c5aed47。",
+            "state": "current"
+          }
+        ]
+      },
+      "answer": "根据当前信息，你的编辑器代号是 **B-1ba371c5**，茶叶偏好编号是 **T-1c5aed47**。",
+      "model": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "tokenUsage": {
+          "inputTokens": 193,
+          "outputTokens": 34,
+          "totalTokens": 227,
+          "cachedInputTokens": 0
+        },
+        "latencyMs": 933,
+        "fallbackUsed": false,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "person": "r5-model-8fadb604-1c43-44b4-95a7-663fdab21d8d",
+      "question": "我当前使用哪个编辑器代号，茶叶偏好呢？",
+      "retrieval": {
+        "status": "ok",
+        "limited": false,
+        "limitReason": null,
+        "selectedCount": 2,
+        "selected": [
+          {
+            "id": "pgm1_d1828c4b2c8f3ddda28a050a23a5aa5ac41b46104199593674b66d7a0053f662",
+            "content": "用户在项目协作中的编辑器代号是B-e341c811。",
+            "state": "current"
+          },
+          {
+            "id": "pgm1_4d498225d6a58c198449acb5966454556717ebc5d2f7af9aa91c8f8e4e655a3e",
+            "content": "用户长期偏好的茶叶编号是T-d423d25f。",
+            "state": "current"
+          }
+        ]
+      },
+      "answer": "根据当前信息，你的编辑器代号是 **B-e341c811**，茶叶偏好编号是 **T-d423d25f**。",
+      "model": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "tokenUsage": {
+          "inputTokens": 194,
+          "outputTokens": 30,
+          "totalTokens": 224,
+          "cachedInputTokens": 0
+        },
+        "latencyMs": 1349,
+        "fallbackUsed": false,
+        "finishReason": "stop"
+      }
+    }
+  ]
+}

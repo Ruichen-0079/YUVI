@@ -1,0 +1,160 @@
+{
+  "trials": [
+    {
+      "person": "r5-model-e71a1403-516f-473f-b0e1-01e214cd1182",
+      "a": "A-d12ec383",
+      "b": "B-0f67bdb5",
+      "tea": "T-c8d6817a"
+    },
+    {
+      "person": "r5-model-e5fd2db5-dafe-4536-bb7d-cc3e53c934cc",
+      "a": "A-eaca74fc",
+      "b": "B-1ba371c5",
+      "tea": "T-1c5aed47"
+    },
+    {
+      "person": "r5-model-8fadb604-1c43-44b4-95a7-663fdab21d8d",
+      "a": "A-fd1102f0",
+      "b": "B-e341c811",
+      "tea": "T-d423d25f"
+    }
+  ],
+  "records": [
+    {
+      "scope": "yuvi:v1:user:r5-model-8fadb604-1c43-44b4-95a7-663fdab21d8d:character:character-instance%3Ar5-isolated",
+      "id": "pgm1_63bae315820efa10d82149b29bff1b5cb4876c5ef63db65e1eec1c57245d97c4",
+      "version": "1",
+      "state": "superseded",
+      "source_at": "2026-10-10T08:22:31.358Z",
+      "committed_at": "2026-10-10T08:22:34.139Z",
+      "content": "用户在项目协作中的编辑器代号是A-fd1102f0。"
+    },
+    {
+      "scope": "yuvi:v1:user:r5-model-8fadb604-1c43-44b4-95a7-663fdab21d8d:character:character-instance%3Ar5-isolated",
+      "id": "pgm1_4d498225d6a58c198449acb5966454556717ebc5d2f7af9aa91c8f8e4e655a3e",
+      "version": "2",
+      "state": "current",
+      "source_at": "2026-10-10T08:22:31.358Z",
+      "committed_at": "2026-10-10T08:22:34.152Z",
+      "content": "用户长期偏好的茶叶编号是T-d423d25f。"
+    },
+    {
+      "scope": "yuvi:v1:user:r5-model-8fadb604-1c43-44b4-95a7-663fdab21d8d:character:character-instance%3Ar5-isolated",
+      "id": "pgm1_d1828c4b2c8f3ddda28a050a23a5aa5ac41b46104199593674b66d7a0053f662",
+      "version": "3",
+      "state": "current",
+      "source_at": "2026-10-10T08:22:35.115Z",
+      "committed_at": "2026-10-10T08:22:37.858Z",
+      "content": "用户在项目协作中的编辑器代号是B-e341c811。"
+    },
+    {
+      "scope": "yuvi:v1:user:r5-model-e5fd2db5-dafe-4536-bb7d-cc3e53c934cc:character:character-instance%3Ar5-isolated",
+      "id": "pgm1_6074435cf28f3ea7b10c650456bc1381c8c9f9d9567689765ea84df1258d4d49",
+      "version": "1",
+      "state": "current",
+      "source_at": "2026-10-10T08:22:21.756Z",
+      "committed_at": "2026-10-10T08:22:23.499Z",
+      "content": "用户长期偏好的茶叶编号是T-1c5aed47。"
+    },
+    {
+      "scope": "yuvi:v1:user:r5-model-e5fd2db5-dafe-4536-bb7d-cc3e53c934cc:character:character-instance%3Ar5-isolated",
+      "id": "pgm1_ce789663d341b5ab17758a1b41b403ef30fcd584ffc7d73e0eee1c5a4e38d8f7",
+      "version": "2",
+      "state": "superseded",
+      "source_at": "2026-10-10T08:22:21.756Z",
+      "committed_at": "2026-10-10T08:22:23.511Z",
+      "content": "用户的编辑器代号是A-eaca74fc。"
+    },
+    {
+      "scope": "yuvi:v1:user:r5-model-e5fd2db5-dafe-4536-bb7d-cc3e53c934cc:character:character-instance%3Ar5-isolated",
+      "id": "pgm1_afbc65f191f20c97ddfeeea0236f7e0ad76582f94860eecaaccaeaef683c59c1",
+      "version": "3",
+      "state": "supporting",
+      "source_at": "2026-10-10T08:22:25.764Z",
+      "committed_at": "2026-10-10T08:22:30.092Z",
+      "content": "用户长期偏好的茶叶编号仍是T-1c5aed47。"
+    },
+    {
+      "scope": "yuvi:v1:user:r5-model-e5fd2db5-dafe-4536-bb7d-cc3e53c934cc:character:character-instance%3Ar5-isolated",
+      "id": "pgm1_186bac2da0d5ac54d5c1d3924ab1345a0d56aa93345e0acb05522f3bd6a86741",
+      "version": "4",
+      "state": "current",
+      "source_at": "2026-10-10T08:22:25.764Z",
+      "committed_at": "2026-10-10T08:22:30.105Z",
+      "content": "用户的编辑器代号是B-1ba371c5。"
+    },
+    {
+      "scope": "yuvi:v1:user:r5-model-e71a1403-516f-473f-b0e1-01e214cd1182:character:character-instance%3Ar5-isolated",
+      "id": "pgm1_b6050110704b4b8c80a4bd19ef370740595936b7e9fa86cdfaa4290c6ead7c4a",
+      "version": "1",
+      "state": "superseded",
+      "source_at": "2026-10-10T08:22:11.500Z",
+      "committed_at": "2026-10-10T08:22:14.874Z",
+      "content": "The user's editor codename in project collaboration is A-d12ec383."
+    },
+    {
+      "scope": "yuvi:v1:user:r5-model-e71a1403-516f-473f-b0e1-01e214cd1182:character:character-instance%3Ar5-isolated",
+      "id": "pgm1_3216d90cbea294cdfa57ca21467f08399ad0d3c7518389f9f499ef0c51b19ff6",
+      "version": "2",
+      "state": "current",
+      "source_at": "2026-10-10T08:22:11.500Z",
+      "committed_at": "2026-10-10T08:22:14.893Z",
+      "content": "The user's long-term preferred tea number is T-c8d6817a."
+    },
+    {
+      "scope": "yuvi:v1:user:r5-model-e71a1403-516f-473f-b0e1-01e214cd1182:character:character-instance%3Ar5-isolated",
+      "id": "pgm1_c334f87279d926eb45c120be4f6ff775fe14963499a3c9034d62daa98b9e928b",
+      "version": "3",
+      "state": "current",
+      "source_at": "2026-10-10T08:22:16.839Z",
+      "committed_at": "2026-10-10T08:22:19.955Z",
+      "content": "The user's editor codename in project collaboration is B-0f67bdb5."
+    },
+    {
+      "scope": "yuvi:v1:user:r5-model-e71a1403-516f-473f-b0e1-01e214cd1182:character:character-instance%3Ar5-isolated",
+      "id": "pgm1_96dcf1f760fd9c3e99575322134018fd495a9a143764a4ed26c80fff11886fcc",
+      "version": "4",
+      "state": "supporting",
+      "source_at": "2026-10-10T08:22:42.585Z",
+      "committed_at": "2026-10-10T08:22:44.836Z",
+      "content": "The user's long-term preferred tea number is T-c8d6817a."
+    }
+  ],
+  "relations": [
+    {
+      "scope": "yuvi:v1:user:r5-model-e71a1403-516f-473f-b0e1-01e214cd1182:character:character-instance%3Ar5-isolated",
+      "from_id": "pgm1_c334f87279d926eb45c120be4f6ff775fe14963499a3c9034d62daa98b9e928b",
+      "to_id": "pgm1_b6050110704b4b8c80a4bd19ef370740595936b7e9fa86cdfaa4290c6ead7c4a",
+      "kind": "supersedes",
+      "version": "3"
+    },
+    {
+      "scope": "yuvi:v1:user:r5-model-e5fd2db5-dafe-4536-bb7d-cc3e53c934cc:character:character-instance%3Ar5-isolated",
+      "from_id": "pgm1_afbc65f191f20c97ddfeeea0236f7e0ad76582f94860eecaaccaeaef683c59c1",
+      "to_id": "pgm1_6074435cf28f3ea7b10c650456bc1381c8c9f9d9567689765ea84df1258d4d49",
+      "kind": "supports",
+      "version": "3"
+    },
+    {
+      "scope": "yuvi:v1:user:r5-model-e5fd2db5-dafe-4536-bb7d-cc3e53c934cc:character:character-instance%3Ar5-isolated",
+      "from_id": "pgm1_186bac2da0d5ac54d5c1d3924ab1345a0d56aa93345e0acb05522f3bd6a86741",
+      "to_id": "pgm1_ce789663d341b5ab17758a1b41b403ef30fcd584ffc7d73e0eee1c5a4e38d8f7",
+      "kind": "supersedes",
+      "version": "4"
+    },
+    {
+      "scope": "yuvi:v1:user:r5-model-8fadb604-1c43-44b4-95a7-663fdab21d8d:character:character-instance%3Ar5-isolated",
+      "from_id": "pgm1_d1828c4b2c8f3ddda28a050a23a5aa5ac41b46104199593674b66d7a0053f662",
+      "to_id": "pgm1_63bae315820efa10d82149b29bff1b5cb4876c5ef63db65e1eec1c57245d97c4",
+      "kind": "supersedes",
+      "version": "3"
+    },
+    {
+      "scope": "yuvi:v1:user:r5-model-e71a1403-516f-473f-b0e1-01e214cd1182:character:character-instance%3Ar5-isolated",
+      "from_id": "pgm1_96dcf1f760fd9c3e99575322134018fd495a9a143764a4ed26c80fff11886fcc",
+      "to_id": "pgm1_3216d90cbea294cdfa57ca21467f08399ad0d3c7518389f9f499ef0c51b19ff6",
+      "kind": "supports",
+      "version": "4"
+    }
+  ]
+}

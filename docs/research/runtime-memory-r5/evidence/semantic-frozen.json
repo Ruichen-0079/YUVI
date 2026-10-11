@@ -1,0 +1,286 @@
+{
+  "productionSHA": "c33214c",
+  "experimentSHA": "2d6367332e7011f462cea54059d582f8092e105d",
+  "trials": [
+    {
+      "person": "r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a",
+      "a": "A-719c34b6",
+      "b": "B-1845703e",
+      "tea": "T-2d8a8a59"
+    }
+  ],
+  "providerFailure": [
+    {
+      "sourceSHA": "2d6367332e7011f462cea54059d582f8092e105d",
+      "person": "r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a",
+      "text": "项目协作中，我的编辑器代号是A-719c34b6，长期偏好的茶叶编号是T-2d8a8a59。",
+      "source": {
+        "kind": "JOURNAL_EVENT",
+        "namespace": "r5:synthetic-host",
+        "eventId": "jev1_9GS2tKPU4iKMFpkaXsc3VfOVnQCCWEie"
+      },
+      "ingestion": {
+        "finalizedTurnId": "r5-finalized-524ec924-5494-42f8-b790-01afdf136ef6",
+        "status": "retryable_failed",
+        "failureStage": "materialization",
+        "policyVersion": "memory.semantic.v1/finalized-authority-v1",
+        "eligibleEventCount": 0,
+        "completeEventCount": 0,
+        "pendingEventCount": 0,
+        "failedEventCount": 0,
+        "lastErrorCode": "MEMORY_MATERIALIZATION_FAILED",
+        "nextAttemptAt": "2026-10-11T02:52:16.598Z",
+        "completedAt": null
+      },
+      "knowledge": []
+    },
+    {
+      "sourceSHA": "2d6367332e7011f462cea54059d582f8092e105d",
+      "person": "r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a",
+      "question": "我使用什么编辑器代号？",
+      "retrieval": {
+        "status": "empty",
+        "limited": false,
+        "limitReason": null,
+        "selectedCount": 0,
+        "selected": []
+      },
+      "answer": "根据当前提供的信息，我无法确定你使用的编辑器代号。知识库中没有相关内容，且检索结果为空。",
+      "model": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "tokenUsage": {
+          "inputTokens": 55,
+          "outputTokens": 24,
+          "totalTokens": 79,
+          "cachedInputTokens": 0
+        },
+        "latencyMs": 1505,
+        "fallbackUsed": false,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "sourceSHA": "2d6367332e7011f462cea54059d582f8092e105d",
+      "person": "r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a",
+      "text": "刚才编辑器那个说错了，现在实际是B-1845703e。茶叶那项保持原样。",
+      "source": {
+        "kind": "JOURNAL_EVENT",
+        "namespace": "r5:synthetic-host",
+        "eventId": "jev1_WjQNXhJHki0NxoNAE0dCa07wNOuQv9JR"
+      },
+      "ingestion": {
+        "finalizedTurnId": "r5-finalized-5ae7293a-7f96-4f8b-9353-1b5e293a91eb",
+        "status": "retryable_failed",
+        "failureStage": "materialization",
+        "policyVersion": "memory.semantic.v1/finalized-authority-v1",
+        "eligibleEventCount": 0,
+        "completeEventCount": 0,
+        "pendingEventCount": 0,
+        "failedEventCount": 0,
+        "lastErrorCode": "MEMORY_MATERIALIZATION_FAILED",
+        "nextAttemptAt": "2026-10-11T02:52:18.496Z",
+        "completedAt": null
+      },
+      "knowledge": []
+    },
+    {
+      "sourceSHA": "2d6367332e7011f462cea54059d582f8092e105d",
+      "person": "r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a",
+      "question": "我当前使用哪个编辑器代号，茶叶偏好呢？",
+      "retrieval": {
+        "status": "empty",
+        "limited": false,
+        "limitReason": null,
+        "selectedCount": 0,
+        "selected": []
+      },
+      "answer": "根据当前提供的信息，我无法确定你使用的编辑器代号和茶叶偏好。这些信息未在知识库中提供，且没有历史记录可参考。如果你能提供相关细节，我可以帮你确认。",
+      "model": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "tokenUsage": {
+          "inputTokens": 60,
+          "outputTokens": 43,
+          "totalTokens": 103,
+          "cachedInputTokens": 0
+        },
+        "latencyMs": 931,
+        "fallbackUsed": false,
+        "finishReason": "stop"
+      }
+    }
+  ],
+  "recoveredWithExplicitAlternateReasoningModel": [
+    {
+      "sourceSHA": "2d6367332e7011f462cea54059d582f8092e105d",
+      "person": "r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a",
+      "text": "项目协作中，我的编辑器代号是A-719c34b6，长期偏好的茶叶编号是T-2d8a8a59。",
+      "source": {
+        "kind": "JOURNAL_EVENT",
+        "namespace": "r5:synthetic-host",
+        "eventId": "jev1_9GS2tKPU4iKMFpkaXsc3VfOVnQCCWEie"
+      },
+      "ingestion": {
+        "finalizedTurnId": "r5-finalized-524ec924-5494-42f8-b790-01afdf136ef6",
+        "status": "complete",
+        "failureStage": null,
+        "policyVersion": "memory.semantic.v1/finalized-authority-v1",
+        "eligibleEventCount": 2,
+        "completeEventCount": 2,
+        "pendingEventCount": 0,
+        "failedEventCount": 0,
+        "lastErrorCode": null,
+        "nextAttemptAt": null,
+        "completedAt": "2026-10-11T02:54:05.619Z"
+      },
+      "knowledge": [
+        {
+          "id": "pgm1_7eefdfb4f1a0f5cdfb0afcc7d9bd40a2ce5a524684463f0e10e86fbf874b3902",
+          "version": "2",
+          "state": "current",
+          "sourceAt": "2026-10-11T02:51:45.000Z",
+          "committedAt": "2026-10-11T02:54:05.000Z",
+          "content": "用户长期偏好的茶叶编号是T-2d8a8a59"
+        },
+        {
+          "id": "pgm1_4042b31bd9f4bba80876774cb91ea1c15a9a4f13cc33cf771b5f68163fb9bc09",
+          "version": "1",
+          "state": "current",
+          "sourceAt": "2026-10-11T02:51:45.000Z",
+          "committedAt": "2026-10-11T02:54:05.000Z",
+          "content": "用户编辑器代号为A-719c34b6"
+        }
+      ]
+    },
+    {
+      "sourceSHA": "2d6367332e7011f462cea54059d582f8092e105d",
+      "person": "r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a",
+      "text": "刚才编辑器那个说错了，现在实际是B-1845703e。茶叶那项保持原样。",
+      "source": {
+        "kind": "JOURNAL_EVENT",
+        "namespace": "r5:synthetic-host",
+        "eventId": "jev1_WjQNXhJHki0NxoNAE0dCa07wNOuQv9JR"
+      },
+      "ingestion": {
+        "finalizedTurnId": "r5-finalized-5ae7293a-7f96-4f8b-9353-1b5e293a91eb",
+        "status": "complete",
+        "failureStage": null,
+        "policyVersion": "memory.semantic.v1/finalized-authority-v1",
+        "eligibleEventCount": 2,
+        "completeEventCount": 2,
+        "pendingEventCount": 0,
+        "failedEventCount": 0,
+        "lastErrorCode": null,
+        "nextAttemptAt": null,
+        "completedAt": "2026-10-11T02:54:07.976Z"
+      },
+      "knowledge": [
+        {
+          "id": "pgm1_a10d63647a7793612932ebaeb89267c0811b70be944532dc4a9204a96ef50d69",
+          "version": "4",
+          "state": "current",
+          "sourceAt": "2026-10-11T02:51:48.000Z",
+          "committedAt": "2026-10-11T02:54:07.000Z",
+          "content": "用户编辑器代号为B-1845703e"
+        },
+        {
+          "id": "pgm1_e0ecf2e42fd5f387bdb53fd47a737c4848d51ec7c73bcff3d057f6f3e3713fd1",
+          "version": "3",
+          "state": "supporting",
+          "sourceAt": "2026-10-11T02:51:48.000Z",
+          "committedAt": "2026-10-11T02:54:07.000Z",
+          "content": "用户长期偏好的茶叶编号是T-2d8a8a59"
+        },
+        {
+          "id": "pgm1_7eefdfb4f1a0f5cdfb0afcc7d9bd40a2ce5a524684463f0e10e86fbf874b3902",
+          "version": "2",
+          "state": "current",
+          "sourceAt": "2026-10-11T02:51:45.000Z",
+          "committedAt": "2026-10-11T02:54:05.000Z",
+          "content": "用户长期偏好的茶叶编号是T-2d8a8a59"
+        },
+        {
+          "id": "pgm1_4042b31bd9f4bba80876774cb91ea1c15a9a4f13cc33cf771b5f68163fb9bc09",
+          "version": "1",
+          "state": "superseded",
+          "sourceAt": "2026-10-11T02:51:45.000Z",
+          "committedAt": "2026-10-11T02:54:05.000Z",
+          "content": "用户编辑器代号为A-719c34b6"
+        }
+      ]
+    },
+    {
+      "sourceSHA": "2d6367332e7011f462cea54059d582f8092e105d",
+      "person": "r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a",
+      "question": "我当前使用哪个编辑器代号，茶叶偏好呢？",
+      "retrieval": {
+        "status": "ok",
+        "limited": false,
+        "limitReason": null,
+        "selectedCount": 2,
+        "selected": [
+          {
+            "id": "pgm1_a10d63647a7793612932ebaeb89267c0811b70be944532dc4a9204a96ef50d69",
+            "content": "用户编辑器代号为B-1845703e",
+            "state": "current"
+          },
+          {
+            "id": "pgm1_7eefdfb4f1a0f5cdfb0afcc7d9bd40a2ce5a524684463f0e10e86fbf874b3902",
+            "content": "用户长期偏好的茶叶编号是T-2d8a8a59",
+            "state": "current"
+          }
+        ]
+      },
+      "answer": "根据当前信息，你的编辑器代号是 **B-1845703e**，茶叶偏好编号是 **T-2d8a8a59**。",
+      "model": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "tokenUsage": {
+          "inputTokens": 190,
+          "outputTokens": 34,
+          "totalTokens": 224,
+          "cachedInputTokens": 0
+        },
+        "latencyMs": 889,
+        "fallbackUsed": false,
+        "finishReason": "stop"
+      }
+    }
+  ],
+  "newProcess": [
+    {
+      "sourceSHA": "2d6367332e7011f462cea54059d582f8092e105d",
+      "person": "r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a",
+      "question": "我当前使用哪个编辑器代号，茶叶偏好呢？",
+      "retrieval": {
+        "status": "ok",
+        "limited": false,
+        "limitReason": null,
+        "selectedCount": 2,
+        "selected": [
+          {
+            "id": "pgm1_a10d63647a7793612932ebaeb89267c0811b70be944532dc4a9204a96ef50d69",
+            "content": "用户编辑器代号为B-1845703e",
+            "state": "current"
+          },
+          {
+            "id": "pgm1_7eefdfb4f1a0f5cdfb0afcc7d9bd40a2ce5a524684463f0e10e86fbf874b3902",
+            "content": "用户长期偏好的茶叶编号是T-2d8a8a59",
+            "state": "current"
+          }
+        ]
+      },
+      "answer": "根据当前信息，你的编辑器代号是 **B-1845703e**，茶叶偏好编号是 **T-2d8a8a59**。",
+      "model": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "tokenUsage": {
+          "inputTokens": 190,
+          "outputTokens": 34,
+          "totalTokens": 224,
+          "cachedInputTokens": 0
+        },
+        "latencyMs": 1879,
+        "fallbackUsed": false,
+        "finishReason": "stop"
+      }
+    }
+  ]
+}

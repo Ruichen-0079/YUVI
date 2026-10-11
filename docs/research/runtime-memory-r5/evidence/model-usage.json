@@ -1,0 +1,16 @@
+{
+  "capturedRemoteCalls": 60,
+  "httpStatuses": {
+    "200": 57,
+    "429": 2,
+    "TRANSPORT_ERROR": 1
+  },
+  "inputTokensWithUsage": 16539,
+  "outputTokensWithUsage": 3044,
+  "responsesWithEstimatedCost": 57,
+  "providerEstimatedCostUSD": 0.001826385,
+  "traceLimitation": "One early trace directory was reused before unique directory names were enforced; complete billed-call count is not proven. A successful early GLM semantic attempt may be missing. Budget enforcement counted 60 retained remote attempts; cannot claim a perfect complete billing ledger.",
+  "declaredCostCeilingUSD": 0.25,
+  "modelCallCeilingRetained": 60,
+  "budgetReached": true
+}
