@@ -199,8 +199,11 @@ export class EffectDispatcher {
             // A synchronous currentness check is the last host boundary before invocation. If revoked,
             // this worker knows it did NOT invoke; a restart without that observation knows only UNKNOWN.
             if (!current(intent)) {
-              await this.store.record(claim.attempt, protocolEvidence("AUTHORITY_REVOKED", false));
-              return { invoked: false, recorded: true };
+              const status = await this.store.record(
+                claim.attempt,
+                protocolEvidence("AUTHORITY_REVOKED", false)
+              );
+              return { invoked: false, recorded: status === "RECORDED" || status === "REPLAY" };
             }
             let result: { evidence: EffectEvidence; transientResult?: unknown };
             let renewalBusy = false;
