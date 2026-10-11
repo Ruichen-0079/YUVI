@@ -1,5 +1,6 @@
 import { assertCharacterMemoryScope } from "./character-scope.js";
 import { PostgresMemoryProvider } from "./authority/provider.js";
+import { MemoryAuthorityError } from "./authority/types.js";
 import { legacyMemoryContextRevision } from "./context-use-repository.js";
 import { sameLegacyMemoryPartition } from "./scope.js";
 import {
@@ -125,7 +126,12 @@ export type MemoryServiceBackendConfig = {
   controllerEvidence?: MemoryProvider | undefined;
   searchTimeoutMs?: number | undefined;
   writeTimeoutMs?: number | undefined;
-  ingestionPolicy?: Pick<MemoryIngestionPolicy, "build"> | undefined;
+  ingestionPolicy?:
+    | (Pick<MemoryIngestionPolicy, "build"> & {
+        readonly semanticOnly?: boolean;
+        getStatus?(): MemoryExtractorStatus;
+      })
+    | undefined;
   groundingResolver?: MemoryGroundingResolver | undefined;
   journalEvidenceReader?: CommittedJournalEvidenceReader | undefined;
   logger?:
@@ -160,7 +166,9 @@ export class MemoryService {
   private readonly memoryProvider: MemoryProvider | undefined;
   private readonly evidenceAdmissions: EvidenceAdmissionStore;
   private readonly evidenceAdmissionReady: Promise<unknown>;
-  private readonly memoryIngestionPolicy: Pick<MemoryIngestionPolicy, "build">;
+  private readonly memoryIngestionPolicy: NonNullable<
+    MemoryServiceBackendConfig["ingestionPolicy"]
+  >;
   private readonly groundingResolver: MemoryGroundingResolver | undefined;
 
   constructor(
@@ -217,23 +225,41 @@ export class MemoryService {
       : undefined;
     this.controllerEvidence = backend?.controllerEvidence;
     this.memoryIngestionPolicy =
-      backend?.ingestionPolicy ??
-      new MemoryIngestionPolicy(
-        this.extractor,
-        this.rawMemoryProvider
-          ? async (scope) => {
-              const events = currentCorrectedMemoryEvents(
-                await this.rawMemoryProvider!.readCorrectionEvidence(scope)
-              );
-              if (
-                events.length > 64 ||
-                events.reduce((sum, event) => sum + event.content.length, 0) > 24_000
-              )
-                throw new Error("MEMORY_EXTRACTION_PRIOR_BOUND");
-              return events;
+      backend?.kind === "postgres"
+        ? backend.ingestionPolicy?.semanticOnly === true
+          ? backend.ingestionPolicy
+          : {
+              semanticOnly: true,
+              async build() {
+                throw new MemoryAuthorityError("MEMORY_SEMANTIC_POLICY_NOT_CONFIGURED");
+              },
+              getStatus() {
+                return {
+                  mode: "llm",
+                  active: "disabled",
+                  enabled: false,
+                  fallbackUsed: false,
+                  error: "MEMORY_SEMANTIC_POLICY_NOT_CONFIGURED"
+                };
+              }
             }
-          : undefined
-      );
+        : (backend?.ingestionPolicy ??
+          new MemoryIngestionPolicy(
+            this.extractor,
+            this.rawMemoryProvider
+              ? async (scope) => {
+                  const events = currentCorrectedMemoryEvents(
+                    await this.rawMemoryProvider!.readCorrectionEvidence(scope)
+                  );
+                  if (
+                    events.length > 64 ||
+                    events.reduce((sum, event) => sum + event.content.length, 0) > 24_000
+                  )
+                    throw new Error("MEMORY_EXTRACTION_PRIOR_BOUND");
+                  return events;
+                }
+              : undefined
+          ));
     this.groundingResolver =
       backend?.groundingResolver ??
       (backend?.journalEvidenceReader
@@ -548,13 +574,15 @@ export class MemoryService {
 
   getExtractorStatus(): MemoryExtractorStatus {
     if (this.backendKind === "postgres")
-      return {
-        mode: "llm",
-        active: "llm",
-        enabled: true,
-        provider: "reasoning-route",
-        fallbackUsed: false
-      };
+      return (
+        this.memoryIngestionPolicy.getStatus?.() ?? {
+          mode: "llm",
+          active: "disabled",
+          enabled: false,
+          fallbackUsed: false,
+          error: "MEMORY_SEMANTIC_POLICY_STATUS_UNAVAILABLE"
+        }
+      );
     return (
       this.extractor.getStatus?.() ?? {
         mode: "rule-based",

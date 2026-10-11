@@ -4,6 +4,7 @@ import type { AuthorityQuery } from "./types.js";
 import { z } from "zod";
 import type { MemoryExtractionReasoner, LlmMemoryExtractorOptions } from "../extractor.js";
 import type { MemoryIngestionInput, MemoryIngestionResult } from "../ingestion.js";
+import type { MemoryExtractorStatus } from "../types.js";
 import type { MemoryEvent, MemoryWriteEventInput } from "../provider.js";
 import { MemoryAuthorityError } from "./types.js";
 
@@ -32,6 +33,16 @@ export class SemanticMemoryPolicy {
     private readonly options: LlmMemoryExtractorOptions = {},
     private readonly jobs?: AuthorityQuery
   ) {}
+  getStatus(): MemoryExtractorStatus {
+    return {
+      mode: "llm",
+      active: this.options.providerConfigured ? "llm" : "disabled",
+      enabled: Boolean(this.options.providerConfigured),
+      provider: this.options.providerName ?? this.reasoner.name ?? "reasoning-route",
+      fallbackUsed: false,
+      ...(this.options.providerConfigured ? {} : { error: "MEMORY_SEMANTIC_PROVIDER_UNAVAILABLE" })
+    };
+  }
   async build(input: MemoryIngestionInput): Promise<MemoryIngestionResult> {
     const source = input.groundedSource;
     if (!source || source.selectedText !== input.userMessage)
