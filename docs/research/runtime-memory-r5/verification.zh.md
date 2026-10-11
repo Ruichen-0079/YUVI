@@ -49,6 +49,6 @@ PR 复核后又收紧产品 DTO 白名单，并增加实际旧 JSON 的未知顶
 
 ## Phase 2 验证范围
 
-新增实际PG覆盖可信Host session所有权、来源审计/撤证、原始digest保留的重评及最终映射、在线shadow暂停/重开/并发推进/退休、schema receipt原子性、受限role实际commit/cutover、防DDL/历史编辑、旧副本250条恢复/并发批次/摘要对账/源变化/注入事务失败、实际HTTP维护和读取、Character子调用context关联/A9消费者，以及Embedding期间纠正不泄露旧事实。实际PG指定套件67项（新增竞态、重评保护与 production 披露边界后），完整仓库test/check/build单独运行；数量不是成熟度声明。
+新增实际PG覆盖可信Host session所有权、来源审计/撤证、原始digest保留的重评及最终映射、在线shadow暂停/重开/并发推进/退休、schema receipt原子性、受限role实际commit/cutover、防DDL/历史编辑、旧副本250条恢复/并发批次/摘要对账/源变化/注入事务失败、实际HTTP维护和读取、Character子调用context关联/A9消费者，以及Embedding期间纠正不泄露旧事实。实际PG指定套件68项（新增竞态、重评保护、production 披露与 Person revision 边界后），完整仓库test/check/build单独运行；数量不是成熟度声明。
 
 实机正常Server质量、million向量/在线writer与两次own-PG强停分别在 [Phase 2](phase2.zh.md) 和 [证据目录](evidence/phase2/)；确定性故障fixture不冒充模型判断。初次远端Linux/Conformance因旧P8测试仍期望重播migration名称而失败，修正为第一次有receipt、第二次no-op，并保留完整authority读写隔离断言；旧失败不隐藏。最终CI结果以PR最新SHA为准。

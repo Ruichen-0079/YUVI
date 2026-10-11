@@ -22,7 +22,7 @@ flowchart LR
   E --> O
 ```
 
-Host 凭据由带显式 operator bearer 的本地管理请求签发，绑定实际存在、有 revision 的 Person 与当前 Character。它证明 Host 认可的传输主体关联，不宣称生物身份认证。凭据仅签发时返回明文、库中保存摘要；轮换共享稳定 principal，撤销/过期失效。消息名字、subjectUserId、sessionId 和模型均不能生成权限。Memory 产品读取和维护在所有模式均需显式本地 operator bearer；production loopback 或普通会话 Host token 不赋予管理披露权。全局 session 归属行防止短期 Conversation 历史被另一主体复用。匿名仍 UNKNOWN；已有匿名会话不能被静默认领。语音入口还没有可信 Host 接入，保持限制。
+Host 凭据由带显式 operator bearer 的本地管理请求签发，绑定实际存在、有 revision 的 Person 与当前 Character。它证明 Host 认可的传输主体关联，不宣称生物身份认证。凭据仅签发时返回明文、库中保存摘要；轮换共享稳定 principal，撤销/过期失效；Person revision 不再匹配时也失去传输和当前读取授权，需要重新签发绑定，原 Journal 历史不删。消息名字、subjectUserId、sessionId 和模型均不能生成权限。Memory 产品读取和维护在所有模式均需显式本地 operator bearer；production loopback 或普通会话 Host token 不赋予管理披露权。全局 session 归属行防止短期 Conversation 历史被另一主体复用。匿名仍 UNKNOWN；已有匿名会话不能被静默认领。语音入口还没有可信 Host 接入，保持限制。
 
 正常完成来源通过 Journal 原始文本进入持久语义任务；提取前已有稳定任务身份。新 Authority 不采用关键词 veto 或规则 fallback。模型失败保持可检查的等待/失败，聊天不等待远端提取。纠正命题、来源时间/commitSeq、关系及投影同事务提交；原任务 digest 不被重写。冻结目标过期后最多三代真实语义重评，独立租约、最终映射与正式提交同事务；支持关系不会增加当前知识副本。晚到旧来源不能按 worker 完成时间覆盖后来认识。重评如果丢失原纠正关系、变成无关 new fact，会保持 UNRESOLVED 并留下可重试状态，不能偷偷创建另一个现行认识。
 
