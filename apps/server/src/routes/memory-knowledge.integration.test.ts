@@ -40,16 +40,29 @@ describe.skipIf(!db)("R5 product API actual PostgreSQL routes", () => {
       nextCheckpoint: "1",
       complete: true,
       records: [
-        {
-          id: "old",
-          kind: "fact",
-          content: "Synthetic preserved history",
-          source: "mem0",
-          sourceRecordId: "old",
-          scope,
-          recordedAt: "2026-10-01T00:00:00Z",
-          metadata: { secretRawSource: "must not disclose" }
-        }
+        JSON.parse(
+          JSON.stringify({
+            id: "old",
+            kind: "fact",
+            content: "Synthetic preserved history",
+            source: "mem0",
+            sourceRecordId: "old",
+            scope,
+            recordedAt: "2026-10-01T00:00:00Z",
+            metadata: {
+              secretRawSource: "must not disclose",
+              evidenceSelection: {
+                unit: "UNICODE_CODE_POINT",
+                start: 0,
+                end: 1,
+                rawSourceBody: "must not disclose"
+              }
+            },
+            rawSourceBody: "must not disclose",
+            observedAt: { rawSourceBody: "must not disclose" },
+            lineage: { rawJournalBody: "must not disclose" }
+          })
+        )
       ]
     });
     recordId = (await provider.knowledge.timeline({ scope })).records[0]!.id;
@@ -105,7 +118,9 @@ describe.skipIf(!db)("R5 product API actual PostgreSQL routes", () => {
     expect(
       (await get(query("overview", buildMemoryScope(person, "other-persona")))).statusCode
     ).toBe(403);
-    expect((await get(query("timeline", scope, "&cursor=invalid"))).statusCode).toBe(400);
+    const invalidCursor = await get(query("timeline", scope, "&cursor=invalid"));
+    expect(invalidCursor.statusCode).toBe(400);
+    expect(invalidCursor.json().status).toBe("FAILED");
   });
   it("does not disclose other scope IDs, reports unknown ingestion and validates limits", async () => {
     expect(

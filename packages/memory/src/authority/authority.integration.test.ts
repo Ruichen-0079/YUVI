@@ -75,6 +75,12 @@ describe.skipIf(!url)("R5 PostgreSQL authority invariants", () => {
       await event("Editor B", 2, { kind: "correction", supersedes: [a.eventId!] })
     );
     expect(b.status).toBe("written");
+    await expect(
+      pool.query("delete from memory_authority_records where scope=$1 and id=$2", [
+        scope,
+        a.eventId
+      ])
+    ).rejects.toThrow("MEMORY_AUTHORITY_APPEND_ONLY");
     expect((await provider.knowledge.detail(scope, a.eventId!))?.state).toBe("superseded");
     expect((await provider.knowledge.detail(scope, independent.eventId!))?.state).toBe("current");
     expect((await provider.knowledge.relations(scope, a.eventId!)).relations[0]?.fromId).toBe(
