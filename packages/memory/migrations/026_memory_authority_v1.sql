@@ -140,3 +140,6 @@ alter table memory_authority_migrations drop constraint if exists memory_authori
 alter table memory_authority_migrations add constraint memory_authority_migrations_state_check check(state in ('running','complete','failed','reconcile_required'));
 
 create index if not exists memory_authority_index_pending_scope_idx on memory_authority_index_jobs(scope,model_tag,id) where status!='complete';
+
+create index if not exists memory_finalized_owner_status_idx on finalized_ingestion_turns(persona_id,status,updated_at);
+create index if not exists memory_conversation_owner_ingestion_idx on conversation_messages(persona_id,completed_at) where role='assistant' and status='completed' and ingestion_requested=true;

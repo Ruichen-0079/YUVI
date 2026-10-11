@@ -371,7 +371,10 @@ export async function createAppContext(
     conversationRepository?.setPublicationAdmission?.(outwardEffects.admitReplyPublications);
     finalizedIngestionRepository = createFinalizedIngestionRepositoryFromEnv(
       bootEnv,
-      databasePool ?? memoryRepository.getDatabaseClient?.()
+      databasePool ?? memoryRepository.getDatabaseClient?.(),
+      parseRuntimeConfig(bootEnv).memory.backend === "postgres"
+        ? characterPersonaId(composition?.binding ?? PRIMARY_CHARACTER)
+        : undefined
     );
   } catch (error) {
     await conversationRepository?.close?.();
