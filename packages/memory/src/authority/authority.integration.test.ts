@@ -17,6 +17,8 @@ import {
   FinalizedIngestionService,
   PostgresFinalizedIngestionRepository
 } from "../finalized-ingestion-ledger.js";
+import { MemoryService } from "../service.js";
+import { InMemoryMemoryRepository } from "../repository.js";
 import { SemanticMemoryPolicy } from "./semantic-policy.js";
 
 const url = process.env["YUVI_MEMORY_R5_TEST_DATABASE_URL"];
@@ -572,6 +574,36 @@ describe.skipIf(!url)("R5 PostgreSQL authority invariants", () => {
     await policy.build({ scope, userMessage: groundedSource.selectedText, groundedSource });
     expect(captured).toContain("My original preference");
     expect(captured).not.toContain("Another principal's private fact");
+  });
+  it("never defaults a PostgreSQL service to keyword extraction when the semantic policy is missing", async () => {
+    const service = new MemoryService(
+      new InMemoryMemoryRepository(),
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      { kind: "postgres", postgres: provider }
+    );
+    expect(service.getExtractorStatus()).toMatchObject({
+      active: "disabled",
+      enabled: false,
+      fallbackUsed: false
+    });
+    await expect(
+      service.getIngestionPolicy().build({ scope, userMessage: "请记住：我偏好咖啡。" })
+    ).rejects.toThrow("MEMORY_SEMANTIC_POLICY_NOT_CONFIGURED");
+    expect(
+      new SemanticMemoryPolicy(
+        {
+          async generateReasoning() {
+            throw new Error("unavailable");
+          }
+        },
+        async () => [],
+        { providerConfigured: false },
+        pool
+      ).getStatus()
+    ).toMatchObject({ active: "disabled", enabled: false, fallbackUsed: false });
   });
   it("finishes expired last-attempt semantic lease as terminal failure instead of pending forever", async () => {
     const source = await finalizedTestResolver.resolve({
