@@ -18,7 +18,7 @@ limit 默认 20、允许 1..100。游标包含 scope、首次读取版本 anchor
 
 不同状态不会混淆：排队 pending ≠ complete；提取任务 complete ≠ authority 写入 complete；vector complete ≠用户知识已经被模型使用；UNKNOWN ≠失败后安全重试。找不到 detail 返回 404 UNKNOWN；未知 ingestion 返回 404 UNKNOWN。无语义任务且无 index rows 的 processing 返回 null/空数组，不声称已处理。
 
-产品 DTO 去除内部 arbitrary metadata 和原始保留 payload；内容是命题，来源为稳定 Journal ref 和 Unicode 选区。展示来源时不能自行加载原始私人 Journal，需要相同 Host 披露边界。`MODEL_PROPOSED` 不表示 verified truth。`integrity=NOT_VERIFIED` 明确缺少全域审计证明，即使版本相同。
+产品 DTO 使用显式字段白名单，去除 arbitrary metadata、旧导出的未知顶层字段和未校验 lineage；legacy lineage 仅保留在保护的 authority payload，不伪装为新验证来源。内容是命题，来源为稳定 Journal ref 和 Unicode 选区。展示来源时不能自行加载原始私人 Journal，需要相同 Host 披露边界。`MODEL_PROPOSED` 不表示 verified truth。`integrity=NOT_VERIFIED` 明确缺少全域审计证明，即使版本相同。
 
 TypeScript Client 位于 `packages/memory/src/authority/client.ts`，由 memory 包导出。传入现有已认证 HTTP transport，HTTP 非 2xx 必须由 transport 抛出/解析 `MemoryProductError`。例如：
 

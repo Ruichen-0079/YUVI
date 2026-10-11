@@ -24,6 +24,8 @@ Schema 位于 `packages/memory/migrations/026_memory_authority_v1.sql`。
 | `memory_authority_vectors`            | 512 维可替换语义索引                                           | scope/id/model；authority version；HNSW，不能决定命题有效性      |
 | `memory_authority_migrations/batches` | 迁移身份、检查点、批次摘要和提交回执                           | 检查点、导入记录、批次回执同一事务                               |
 
+Records、relations、admissions 有 PostgreSQL append-only UPDATE/DELETE trigger；不是只靠应用约定。DB 管理角色仍可 DDL/TRUNCATE，最小权限与正式隐私删除另需设计。
+
 当前状态包括 `current/superseded/conflicted/supporting/legacy_unverified/unattributed`。来源分类 GROUNDED 表示可追溯，**不表示用户自述已被外部验证或模型解释一定正确**。产品读取另标 `MODEL_PROPOSED`。旧数据不被伪造为新 Admission；无真实身份的来源保留为 unattributed，不进入当前知识。
 
 ## 形成与提交
@@ -50,4 +52,4 @@ Runtime 读取必须由 Host 提供 `MemoryReadAuthority`，验证 Private audie
 
 投影可按版本 keyset 分批校验；重建取 scope writer 锁，在一个事务中替换投影并重算计数，失败回滚保留原投影。百万条重建实际耗时 17.12s，会阻塞该 scope 的写入，仍需在线增量重建设计。
 
-水位能说明事务处理到哪个持久版本，不能自动证明摘要、来源和所有关系完整。Overview 始终显示 `integrity=NOT_VERIFIED`；已实现校验只覆盖当前状态/文本投影，不冒充完整证明。全量审计水位、DB append-only 权限、索引损坏自动检测和迁移政策升级仍在下一阶段。
+水位能说明事务处理到哪个持久版本，不能自动证明摘要、来源和所有关系完整。Overview 始终显示 `integrity=NOT_VERIFIED`；已实现校验只覆盖当前状态/文本投影，不冒充完整证明。全量审计水位、DB 最小权限角色与 TRUNCATE/DDL 防护、索引损坏自动检测和迁移政策升级仍在下一阶段。

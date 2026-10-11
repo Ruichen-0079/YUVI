@@ -42,3 +42,5 @@
 最终 `pnpm check`、`pnpm build`、`pnpm test` 通过；普通无 DB 全仓测试中 PG suites skipped，不能把 skipped 计为已执行。实际 PG 回归单独执行，并在 GitHub Check 增加必跑步骤。完整故障矩阵、持久审计水位和长期 soak 未完成，详见 [阻断台账](open-gates.zh.md)。
 
 仓库级 `pnpm format:check` 失败：405 个未修改的既有文件有格式差异；与本 PR 修改文件无交集。未越界批量改写这些文件。本 PR 的全部修改/新增 TS、MJS、Markdown、JSON、workflow 单独 Prettier 检查通过。
+
+PR 复核后又收紧产品 DTO 白名单，并增加实际旧 JSON 的未知顶层/lineage 字段不披露回归；无效游标明确 FAILED，不混淆数据 UNKNOWN。此前模型/负载证据的 SHA 保留原值，不把读 DTO 修复伪装为重新模型实验。
