@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { ServerConfig } from "../config.js";
 import { isDesktopAllowedOrigin } from "../cors.js";
@@ -32,6 +33,42 @@ export function requireLocalDashboardAccess(
   }
 
   return requireDashboardDevToken(config, request, reply);
+}
+
+/** Memory management is a privileged product surface in EVERY runtime mode.
+ * A loopback request or a conversational Host bearer does not grant operator disclosure.
+ */
+export function requireAuthenticatedLocalOperator(
+  config: ServerConfig,
+  request: FastifyRequest,
+  reply: FastifyReply
+): boolean {
+  if (!isLocalRequest(request)) {
+    reply
+      .code(403)
+      .send({
+        schema: "memory.error.v1",
+        status: "FAILED",
+        error: "MEMORY_OPERATOR_ORIGIN_FORBIDDEN"
+      });
+    return false;
+  }
+  const token = request.headers.authorization?.match(/^Bearer\s+(.+)$/u)?.[1],
+    expected = config.dashboardDevToken;
+  if (
+    !token ||
+    !expected ||
+    Buffer.byteLength(token) !== Buffer.byteLength(expected) ||
+    !timingSafeEqual(Buffer.from(token), Buffer.from(expected))
+  ) {
+    reply.code(401).send({
+      schema: "memory.error.v1",
+      status: "FAILED",
+      error: "MEMORY_OPERATOR_CREDENTIAL_REQUIRED"
+    });
+    return false;
+  }
+  return true;
 }
 
 /** Re-evaluate local dashboard permission at a durable command's dispatch boundary. */

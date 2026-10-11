@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -43,20 +44,80 @@ export async function runPostgresMigrations(input: {
   });
 
   try {
-    for (const [key, value] of Object.entries(input.settings ?? {})) {
-      if (value !== undefined) {
-        await pool.query("select set_config($1, $2, false)", [key, value]);
-      }
-    }
-
-    for (const migration of migrations) {
-      await pool.query(migration.sql);
-      input.logger?.log(`Applied migration: ${migration.name}`);
-    }
-
-    return migrations.map((migration) => migration.name);
+    return await applySqlMigrations(pool, migrations, input.settings, input.logger);
   } finally {
     await pool.end();
+  }
+}
+
+/** A dedicated connection owns both the schema lock and each SQL+receipt transaction.
+ * Old installations without a ledger replay the historical idempotent migrations once.
+ * Never edit an applied file: add a new migration instead.
+ */
+export async function applySqlMigrations(
+  pool: ReturnType<typeof createPostgresPool>,
+  migrations: SqlMigration[],
+  settings: Record<string, string | undefined> = {},
+  logger?: Pick<Console, "log">
+): Promise<string[]> {
+  const client = await pool.connect();
+  const ignoreDisconnect = () => {};
+  client.on("error", ignoreDisconnect);
+  let lock: string | undefined;
+  try {
+    for (const [key, value] of Object.entries(settings)) {
+      if (value !== undefined) await client.query("select set_config($1,$2,false)", [key, value]);
+    }
+    const schema = (await client.query("select current_schema() as schema")).rows[0]?.["schema"] as
+      | string
+      | undefined;
+    if (!schema) throw Error("MIGRATION_SCHEMA_UNRESOLVED");
+    const ledger = '"' + schema.replaceAll('"', '""') + '".yuvi_schema_migrations';
+    lock = "yuvi-schema-migrations:" + schema;
+    await client.query("select pg_advisory_lock(hashtextextended($1,0))", [lock]);
+    await client.query(
+      `create table if not exists ${ledger}(name text primary key,digest text not null,applied_at timestamptz not null default now())`
+    );
+    const applied: string[] = [];
+    for (const migration of migrations) {
+      const digest = createHash("sha256").update(migration.sql).digest("hex");
+      const old = (
+        await client.query(`select digest from ${ledger} where name=$1`, [migration.name])
+      ).rows[0];
+      if (old) {
+        if (old["digest"] !== digest) throw Error("MIGRATION_DIGEST_MISMATCH:" + migration.name);
+        continue;
+      }
+      // 010 predates the ledger and owns an outer BEGIN/COMMIT. The runner now owns it.
+      const sql =
+        migration.name === "010_embedding_mrl_512_v1.sql"
+          ? migration.sql.replace(/^begin;\s*$/im, "").replace(/^commit;\s*$/im, "")
+          : migration.sql;
+      if (/^(?:begin|commit|rollback)\s*;/im.test(sql))
+        throw Error("MIGRATION_TRANSACTION_CONTROL_UNSUPPORTED:" + migration.name);
+      await client.query("begin");
+      try {
+        await client.query(sql);
+        await client.query(`insert into ${ledger}(name,digest) values($1,$2)`, [
+          migration.name,
+          digest
+        ]);
+        await client.query("commit");
+      } catch (error) {
+        await client.query("rollback").catch(() => {});
+        throw error;
+      }
+      applied.push(migration.name);
+      logger?.log(`Applied migration: ${migration.name}`);
+    }
+    return applied;
+  } finally {
+    if (lock)
+      await client
+        .query("select pg_advisory_unlock(hashtextextended($1,0))", [lock])
+        .catch(() => {});
+    client.off("error", ignoreDisconnect);
+    client.release();
   }
 }
 

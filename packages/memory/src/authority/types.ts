@@ -62,7 +62,7 @@ export type KnowledgeOverview = {
   current: string;
   legacy: string;
   unattributed: string;
-  integrity: "NOT_VERIFIED";
+  integrity: "NOT_VERIFIED" | "VERIFIED";
   compatibility: "NO_LEGACY_IMPORT" | "LEGACY_UNVERIFIED_PRESENT";
 };
 export class MemoryAuthorityError extends Error {

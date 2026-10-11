@@ -13,6 +13,7 @@ import { MEMORY_CLAIM_METADATA } from "./claim.js";
 import type { MemoryEvent } from "./provider.js";
 
 export type MemoryIngestionInput = {
+  reassessment?: { proposition: string; originalKey: string } | undefined;
   userMessage: string;
   assistantMessage?: string | null | undefined;
   scope: string;

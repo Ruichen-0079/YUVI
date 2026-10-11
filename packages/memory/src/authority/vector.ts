@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { MemoryEvent } from "../provider.js";
 import type { MemoryEmbeddingProvider } from "../service.js";
 import { PostgresMemoryAuthority } from "./store.js";
-import { MemoryAuthorityError } from "./types.js";
+import { canonicalScope, MemoryAuthorityError } from "./types.js";
 
 export function embeddingModelTag(provider: MemoryEmbeddingProvider) {
   return `${provider.name}:${provider.model ?? "unknown"}:${provider.dimensions}`;
@@ -110,6 +110,9 @@ export class MemoryVectorIndexer {
         if (vector.length !== 512 || !vector.every(Number.isFinite) || vector.every((v) => v === 0))
           throw new MemoryAuthorityError("MEMORY_VECTOR_INVALID");
         await this.authority.transaction(async (tx) => {
+          await tx.query("select version from memory_authority_scopes where scope=$1 for share", [
+            event.scope
+          ]);
           const fenced = await tx.query(
             `select id from memory_authority_index_jobs where scope=$1 and id=$2 and model_tag=$3 and lease_owner=$4 and lease_until>now() for update`,
             [event.scope, event.id, this.modelTag, owner]
@@ -156,16 +159,44 @@ export class MemoryVectorIndexer {
     return result.rows[0]?.["pending"] === true;
   }
   async search(scope: string, text: string, limit = 20): Promise<string[]> {
+    return (await this.searchWithEvidence(scope, text, limit)).ids;
+  }
+  async searchWithEvidence(scope: string, text: string, limit = 20) {
+    canonicalScope(scope);
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100)
+      throw new MemoryAuthorityError("MEMORY_VECTOR_QUERY_BOUND");
     const vector = await this.provider.embedText(text);
-    if (vector.length !== 512 || !vector.every(Number.isFinite))
+    if (vector.length !== 512 || !vector.every(Number.isFinite) || vector.every((v) => v === 0))
       throw new MemoryAuthorityError("MEMORY_VECTOR_INVALID");
-    const rows = await this.authority.pool.query(
-      `select v.id from memory_authority_vectors v join memory_authority_current c using(scope,id)
-      where v.scope=$1 and v.model_tag=$2 and c.state in ('current','conflicted') and v.authority_version=c.version
-      order by v.embedding <=> $3::vector limit $4`,
-      [scope, this.modelTag, JSON.stringify(vector), limit]
-    );
-    return rows.rows.map((r) => String(r["id"]));
+    const bound = Math.min(512, Math.max(64, limit * 8));
+    return this.authority.transaction(async (tx) => {
+      await tx.query("set local hnsw.iterative_scan='strict_order'");
+      await tx.query("select set_config('hnsw.ef_search',$1,true)", [String(Math.max(200, bound))]);
+      await tx.query("set local hnsw.max_scan_tuples=20000");
+      const rows = (
+        await tx.query(
+          `with nearest as materialized (
+        select scope,id,authority_version,embedding <=> $3::vector as distance from memory_authority_vectors
+        where scope=$1 and model_tag=$2 order by embedding <=> $3::vector limit $4
+      ), selected as (
+        select n.id,n.distance from nearest n join memory_authority_projection_rows c using(scope,id)
+        where c.generation=(select projection_generation from memory_authority_scopes where scope=$1)
+        and c.state in ('current','conflicted') and n.authority_version=c.version
+        order by n.distance,n.id limit $5
+      ) select (select coalesce(jsonb_agg(id order by distance,id),'[]'::jsonb) from selected) as ids,
+        (select count(*) from nearest) as candidate_count,
+        (select current_count from memory_authority_scopes where scope=$1) as current_count`,
+          [scope, this.modelTag, JSON.stringify(vector), bound, limit]
+        )
+      ).rows[0]!;
+      const ids = rows["ids"] as string[];
+      return {
+        ids,
+        candidateCount: Number(rows["candidate_count"]),
+        limited: ids.length < Math.min(limit, Number(rows["current_count"] ?? 0)),
+        modelTag: this.modelTag
+      };
+    });
   }
 }
 /** Explicit model-change/rebuild entry: bounded keyset batch, idempotent outbox insertion.

@@ -1,0 +1,40 @@
+{
+  "retrieval": [
+    {
+      "retrieval_id": "mre_34ec5125-96b3-48b4-a95f-b90887321d03",
+      "scope": "yuvi:v1:user:r5p2-person-x:character:character-instance%3Ar5p2-isolated",
+      "status": "ok",
+      "watermark": "5",
+      "candidates": [
+        {
+          "id": "pgm1_a5875a047f297c8a9ad7a93e92798631aee1cf28a71ffe68f6f806da098c93f1",
+          "state": "current",
+          "reason": "SELECTED",
+          "content": "用户当前项目使用的编辑器代号是澄野-08f07e",
+          "version": "4",
+          "channels": ["TEXT", "VECTOR"],
+          "selected": true
+        },
+        {
+          "id": "pgm1_bd56d6718496781b5aef2a678d33458bcd4f6b86cd71bfc7b8be41e931e32442",
+          "state": "current",
+          "reason": "SELECTED",
+          "content": "用户的饮茶偏好是岩露-d3741b",
+          "version": "1",
+          "channels": ["TEXT", "VECTOR"],
+          "selected": true
+        }
+      ]
+    }
+  ],
+  "contexts": [],
+  "recovery": [
+    {
+      "finalized_turn_id": "finalized-turn:b1597af5-354d-44d3-8ec6-6d8119db20ff",
+      "status": "complete",
+      "complete_event_count": 2,
+      "unchanged_event_count": 0,
+      "last_error_code": null
+    }
+  ]
+}

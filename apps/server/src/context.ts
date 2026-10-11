@@ -1,4 +1,8 @@
+import { ConversationHostIdentity } from "./conversation-host-identity.js";
 import {
+  MemoryDecisionReassessment,
+  assertMemoryAuthorityDatabase,
+  MemoryIntegrityAudit,
   PostgresMemoryAuthority,
   PostgresMemoryProvider,
   SemanticMemoryPolicy,
@@ -192,6 +196,8 @@ export type AppContext = {
   conversationRepository: ConversationRepository;
   finalizedIngestionRepository: FinalizedIngestionRepository;
   conversationalReceiptAdmission: ConversationalReceiptAdmission;
+  conversationHost?: ConversationHostIdentity | undefined;
+  memoryIntegrity?: MemoryIntegrityAudit | undefined;
   speechReceiptAdmission: SpeechReceiptAdmission;
   visionReceiptAdmission: VisionReceiptAdmission;
   productControlReceiptAdmission: ProductControlReceiptAdmission;
@@ -340,7 +346,32 @@ export async function createAppContext(
     journalRepository,
     journalNamespace
   );
-  const conversationalReceiptAdmission = new HostConversationalReceiptAdmission(journalRepository);
+  const conversationHost =
+    databasePool && journalRepository && parseRuntimeConfig(bootEnv).memory.backend === "postgres"
+      ? new ConversationHostIdentity(
+          databasePool as AuthorityPool,
+          journalRepository,
+          {
+            instanceId: composition?.binding.instanceId ?? PRIMARY_CHARACTER.instanceId,
+            personaId: composition
+              ? characterPersonaId(composition.binding)
+              : (parseRuntimeConfig(bootEnv).memory.personaId ??
+                characterPersonaId(PRIMARY_CHARACTER))
+          },
+          (id) => {
+            if (composition?.people) return composition.people.readPerson(id)?.revision ?? null;
+            const settings = readProductSettings(bootEnv);
+            return settings?.people.some((p) => p.id === id)
+              ? (settings.personRevisionById?.[id] ?? null)
+              : null;
+          }
+        )
+      : undefined;
+  const conversationalReceiptAdmission = new HostConversationalReceiptAdmission(
+    journalRepository,
+    undefined,
+    conversationHost
+  );
   const speechReceiptAdmission = new HostSpeechReceiptAdmission(journalRepository);
   const visionReceiptAdmission = new HostVisionReceiptAdmission(journalRepository);
   const productControlReceiptAdmission = new HostProductControlReceiptAdmission(journalRepository);
@@ -535,6 +566,12 @@ export async function createAppContext(
           postgresProvider.authority.pool
         )
       : undefined;
+    if (postgresProvider && semanticPolicy && journalRepository)
+      postgresProvider.reassessment = new MemoryDecisionReassessment(
+        postgresProvider.authority,
+        semanticPolicy,
+        journalRepository
+      );
     // Runtime must not require Sidecar healthy at boot — Mem0 client is lazy HTTP.
     const mem0Backend =
       backendKind === "mem0"
@@ -662,6 +699,9 @@ export async function createAppContext(
     const nextRuntime = new RuntimeOrchestrator({
       ...(composition ? { characterBinding: composition.binding } : {}),
       contextOwnerSources,
+      resolveMemoryReadAuthority: conversationHost
+        ? (ref, scope) => conversationHost.readAuthority(ref, scope)
+        : undefined,
       verifyContextOwners: async () => {
         if (!productDependency) return true;
         if (composition?.people) {
@@ -812,6 +852,10 @@ export async function createAppContext(
     );
     providers = createProviderRegistryFromEnv(bootEnv);
     providers.setAccounting(outwardEffects);
+    if (parseRuntimeConfig(bootEnv).memory.backend === "postgres") {
+      if (!databasePool) throw new Error("MEMORY_AUTHORITY_DATABASE_REQUIRED");
+      await assertMemoryAuthorityDatabase(databasePool, config.runtimeMode === "production");
+    }
     memory = createMemoryService(providers);
     const initialComposition = captureProfileComposition(memory, profileSnapshotStore);
     await profileLifecycleCoordinator.replaceComposition(initialComposition);
@@ -887,6 +931,14 @@ export async function createAppContext(
     conversationRepository: conversationRepository!,
     finalizedIngestionRepository: finalizedIngestionRepository!,
     conversationalReceiptAdmission,
+    conversationHost,
+    memoryIntegrity:
+      memory.getAuthorityInfrastructure() && journalRepository
+        ? new MemoryIntegrityAudit(
+            memory.getAuthorityInfrastructure()!.authority,
+            journalRepository
+          )
+        : undefined,
     speechReceiptAdmission,
     visionReceiptAdmission,
     productControlReceiptAdmission,
@@ -940,6 +992,10 @@ export async function createAppContext(
       const extractorMode = parseMemoryExtractorDriver(reloadEnv["MEMORY_EXTRACTOR"]);
       const nextProviders = createProviderRegistryFromEnv(reloadEnv);
       nextProviders.setAccounting(outwardEffects);
+      if (parseRuntimeConfig(reloadEnv).memory.backend === "postgres") {
+        if (!databasePool) throw new Error("MEMORY_AUTHORITY_DATABASE_REQUIRED");
+        await assertMemoryAuthorityDatabase(databasePool, config.runtimeMode === "production");
+      }
       await memory.stopAuthorityIndexing();
       const nextMemory = createMemoryService(nextProviders, extractorMode, reloadEnv);
       const nextProfileComposition = captureProfileComposition(nextMemory, profileSnapshotStore);

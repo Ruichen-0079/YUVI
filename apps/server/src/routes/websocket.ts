@@ -277,10 +277,12 @@ export async function registerWebSocketRoutes(
             { traceId: parsed.traceId, sessionId: parsed.payload.sessionId },
             "websocket user.message received"
           );
+          const hostIdentity = await context.conversationHost?.authorize(request, parsed.payload);
           let sourceJournalRef: JournalEventRef;
           try {
             const receipt = await context.conversationalReceiptAdmission.admit({
               surface: "WEBSOCKET",
+              ...(hostIdentity ? { hostIdentity } : {}),
               sessionId: parsed.payload.sessionId,
               runtimeEventId: parsed.id,
               content: parsed.payload.content
@@ -318,7 +320,13 @@ export async function registerWebSocketRoutes(
           }
           await context.runtime.handleUserMessage({
             ...parsed,
-            payload: { ...parsed.payload, sourceJournalRef }
+            payload: {
+              ...parsed.payload,
+              sourceJournalRef,
+              ...(hostIdentity
+                ? { subjectUserId: hostIdentity.personId, personaId: hostIdentity.personaId }
+                : {})
+            }
           });
         } catch (error) {
           if (ownership) activeTraceIds.deleteOwned(ownership.traceId, ownership.owner);

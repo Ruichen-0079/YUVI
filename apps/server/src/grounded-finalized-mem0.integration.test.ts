@@ -30,7 +30,7 @@ import {
   canonicalDreamSources,
   stampDreamWriteEvent
 } from "@companion/memory";
-import { readSqlMigrations } from "../../../packages/memory/src/migrations.js";
+import { readSqlMigrations, applySqlMigrations } from "../../../packages/memory/src/migrations.js";
 import { decodeMemoryLineage } from "../../../packages/memory/src/lineage-encoding.js";
 
 const databaseUrl = process.env["YUVI_JOURNAL_TEST_DATABASE_URL"];
@@ -204,7 +204,7 @@ describe.skipIf(!databaseUrl || (!python && !executable))(
       admin = createPostgresPool(databaseUrl!);
       await admin.query(`create schema ${schema}`);
       pool = createPostgresPool(databaseUrl!, { options: `-c search_path=${schema},public` });
-      for (const migration of await readSqlMigrations()) await pool.query(migration.sql);
+      await applySqlMigrations(pool, await readSqlMigrations());
       journal = new PostgresJournalRepository(pool, {
         namespace: `journal:${schema}`,
         now: () => new Date("2026-09-30T08:00:00.000Z"),

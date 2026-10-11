@@ -91,6 +91,67 @@ export class PostgresContextUseRepository {
             "Exposure identity reused with different submitted projection."
           );
       }
+      if (e && eid)
+        for (const source of m.sources.filter(
+          (s) => s.owner === "MEMORY" && s.reference.startsWith("retrieval:")
+        )) {
+          const retrievalId = source.reference.slice("retrieval:".length);
+          const memoryBlocks = m.blocks.filter(
+            (b) => b.key === "MEMORY_EVIDENCE" || b.key === "RelevantMemory"
+          );
+          const memoryExposure = e.blocks.filter(
+            (b) => b.key === "MEMORY_EVIDENCE" || b.key === "RelevantMemory"
+          );
+          await client.query(
+            `insert into memory_retrieval_contexts(scope,retrieval_id,manifest_id,exposure_id,consumer_operation,memory_blocks,exposure)
+          select scope,retrieval_id,$2,$3,$4,$5,$6 from memory_retrieval_runs
+          where retrieval_id=$1 and (
+            trace_id=$7 or (source_ref is not null and source_ref->>'namespace'=$8 and source_ref=any($9::jsonb[])
+              and ('session:'||session_id=$10 or scope=$10))
+          )
+          on conflict do nothing`,
+            [
+              retrievalId,
+              mid,
+              eid,
+              e.consumerOperationSlot,
+              JSON.stringify(memoryBlocks),
+              JSON.stringify({
+                boundary: e.boundary,
+                inputDigest: e.inputDigest,
+                blocks: memoryExposure
+              }),
+              m.executionId,
+              m.namespace,
+              m.sources
+                .filter(
+                  (s) =>
+                    s.owner === "JOURNAL" &&
+                    s.availability === "AVAILABLE" &&
+                    s.revisionKind === "NATIVE"
+                )
+                .flatMap((s) => {
+                  try {
+                    const ref = JSON.parse(s.reference);
+                    return ref?.kind === "JOURNAL_EVENT" &&
+                      ref.namespace === m.namespace &&
+                      typeof ref.eventId === "string"
+                      ? [
+                          JSON.stringify({
+                            kind: ref.kind,
+                            namespace: ref.namespace,
+                            eventId: ref.eventId
+                          })
+                        ]
+                      : [];
+                  } catch {
+                    return [];
+                  }
+                }),
+              m.scope
+            ]
+          );
+        }
       await client.query("commit");
       return { manifestId: mid, exposureId: eid };
     } catch (error) {

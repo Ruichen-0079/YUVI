@@ -2,7 +2,7 @@ import { beforeAll, afterAll, describe, it, expect } from "vitest";
 import { randomBytes } from "node:crypto";
 import { createPostgresPool, type PostgresPool } from "@companion/database";
 import type { ContextManifest, ContextExposure, ContextSourceUse } from "@companion/protocol";
-import { readSqlMigrations } from "./index.js";
+import { readSqlMigrations, applySqlMigrations } from "./index.js";
 import { PostgresProfileSnapshotStore } from "./profile-snapshot-store.js";
 import { materializeProfileSnapshot, rootsForLineage } from "./profile-materializer.js";
 import { MemoryLineageV1Schema, type GroundedMemoryLineageV1 } from "./lineage.js";
@@ -94,7 +94,7 @@ describe.skipIf(!url)("A10.3 immutable historical use PostgreSQL", () => {
     admin = createPostgresPool(url!);
     await admin.query(`create schema "${schema}"`);
     pool = createPostgresPool(url!, { options: `-c search_path=${schema},public` });
-    for (const migration of await readSqlMigrations()) await pool.query(migration.sql);
+    await applySqlMigrations(pool, await readSqlMigrations());
     repo = new PostgresContextUseRepository(pool);
   });
   afterAll(async () => {

@@ -11,7 +11,7 @@ import {
   effectRequest,
   fixtureIdentity
 } from "../../../packages/effects/src/test-fixture.js";
-import { readSqlMigrations } from "../../../packages/memory/src/migrations.js";
+import { readSqlMigrations, applySqlMigrations } from "../../../packages/memory/src/migrations.js";
 import { createAppContext, type AppContext } from "./context.js";
 import { loadServerConfig } from "./config.js";
 
@@ -27,7 +27,7 @@ describe.skipIf(!databaseUrl)("A9.1 production AppContext shared PostgreSQL comp
     admin = createPostgresPool(databaseUrl!);
     await admin.query(`create schema "${schema}"`);
     pool = createPostgresPool(databaseUrl!, { options: `-c search_path=${schema},public` });
-    for (const migration of await readSqlMigrations()) await pool.query(migration.sql);
+    await applySqlMigrations(pool, await readSqlMigrations());
     directory = await mkdtemp(join(tmpdir(), "yuvi-a91-composition-"));
     const scopedUrl = new URL(databaseUrl!);
     scopedUrl.searchParams.set("options", `-c search_path=${schema},public`);

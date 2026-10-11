@@ -65,6 +65,12 @@ export type RuntimeOrchestratorOptions = {
   characterBinding?: import("./character-identity.js").CharacterBinding | undefined;
   /** Host admission port only. Concrete read-text dispatch stays in server composition. */
   effectIntents?: EffectIntentAdmissionPort | undefined;
+  resolveMemoryReadAuthority?:
+    | ((
+        ref: import("@companion/protocol").JournalEventRef | undefined,
+        scope: string
+      ) => Promise<import("@companion/memory").MemoryReadAuthority | undefined>)
+    | undefined;
   contextOwnerSources?: readonly import("@companion/protocol").ContextSourceUse[] | undefined;
   verifyContextOwners?: (() => Promise<boolean>) | undefined;
   eventBus: EventBus;

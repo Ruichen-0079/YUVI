@@ -1,0 +1,73 @@
+{
+  "sha": "00f4ad88b10f48ace9edfc6108a6aeaa4398f227",
+  "fixture": "deterministic delivery only; no semantic model",
+  "cases": [
+    {
+      "stage": "before-commit",
+      "result": {
+        "status": "rejected",
+        "failureClass": "ambiguous",
+        "errorCode": "MEMORY_AUTHORITY_COMMIT_UNKNOWN"
+      },
+      "down": {
+        "status": "unknown",
+        "errorCode": "MEMORY_AUTHORITY_QUERY_FAILED"
+      },
+      "reconciled": {
+        "status": "not_applied"
+      },
+      "replay": {
+        "status": "written",
+        "eventId": "pgm1_271ae1cbec24e1957b910e414e46fe2bf90a2ce5bd089e4b35ca5e55ecef670a"
+      }
+    },
+    {
+      "stage": "after-commit",
+      "result": {
+        "status": "rejected",
+        "failureClass": "ambiguous",
+        "errorCode": "MEMORY_AUTHORITY_COMMIT_UNKNOWN"
+      },
+      "down": {
+        "status": "unknown",
+        "errorCode": "MEMORY_AUTHORITY_QUERY_FAILED"
+      },
+      "reconciled": {
+        "status": "applied",
+        "eventId": "pgm1_3cdfb304e979ae58f59f4865794dd3647be67536f7251c8535dfbbcac6498ad7"
+      },
+      "replay": {
+        "status": "unchanged",
+        "eventId": "pgm1_3cdfb304e979ae58f59f4865794dd3647be67536f7251c8535dfbbcac6498ad7"
+      }
+    },
+    {
+      "stage": "vector-unavailable-and-corruption-repair",
+      "jobs": [
+        {
+          "status": "retryable_failed",
+          "error_code": "MEMORY_VECTOR_PROVIDER_FAILED"
+        },
+        {
+          "status": "retryable_failed",
+          "error_code": "MEMORY_VECTOR_PROVIDER_FAILED"
+        }
+      ],
+      "before": "2",
+      "after": "2"
+    }
+  ],
+  "final": {
+    "schema": "memory.overview.v1",
+    "status": "OK",
+    "version": "2",
+    "projectionVersion": "2",
+    "records": "2",
+    "current": "2",
+    "legacy": "0",
+    "unattributed": "0",
+    "integrity": "NOT_VERIFIED",
+    "compatibility": "NO_LEGACY_IMPORT"
+  },
+  "status": "VERIFIED_ISOLATED_PROCESS_CRASH_AND_REPLAY"
+}

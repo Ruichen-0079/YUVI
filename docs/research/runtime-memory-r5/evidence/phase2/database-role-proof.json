@@ -1,0 +1,35 @@
+{
+  "contract": {
+    "schema": "memory.database-contract.v1",
+    "schemaReady": true,
+    "leastPrivilege": true
+  },
+  "checks": [
+    {
+      "operation": "delete-history",
+      "rejected": true,
+      "code": "42501"
+    },
+    {
+      "operation": "update-history",
+      "rejected": true,
+      "code": "42501"
+    },
+    {
+      "operation": "truncate-history",
+      "rejected": true,
+      "code": "42501"
+    },
+    {
+      "operation": "ddl",
+      "rejected": true,
+      "code": "42501"
+    },
+    {
+      "operation": "schema-receipt-edit",
+      "rejected": true,
+      "code": "42501"
+    }
+  ],
+  "historyStillReadable": 1000000
+}

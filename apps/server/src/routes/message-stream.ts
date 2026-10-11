@@ -1,3 +1,7 @@
+import {
+  ConversationHostIdentityError,
+  type AuthenticatedConversationHost
+} from "../conversation-host-identity.js";
 import { ConversationPersistenceError, type RuntimeReplyStreamEvent } from "@companion/core";
 import { createEvent } from "@companion/protocol";
 import type { JournalEventRef } from "@companion/protocol";
@@ -46,7 +50,24 @@ export async function registerMessageStreamRoutes(
         input.data.voiceOutput ?? input.data.options?.voiceOutput ?? input.data.options?.tts
       );
       const memoryOptions = normalizeMessageMemoryOptions(input.data.options);
-      const identity = resolveMessageIdentity(input.data, context.activeRuntimeEnv);
+      let identity = resolveMessageIdentity(input.data, context.activeRuntimeEnv);
+      let hostIdentity: AuthenticatedConversationHost | undefined;
+      try {
+        hostIdentity = await context.conversationHost?.authorize(request, input.data);
+        if (hostIdentity) {
+          if (input.data.speechObservationId)
+            throw new ConversationHostIdentityError("HOST_SPEECH_AUTHORITY_UNRESOLVED");
+          identity = { subjectUserId: hostIdentity.personId, personaId: hostIdentity.personaId };
+        }
+      } catch (e) {
+        return reply
+          .code(e instanceof ConversationHostIdentityError ? e.statusCode : 503)
+          .send({
+            schema: "host.error.v1",
+            status: e instanceof ConversationHostIdentityError ? "FAILED" : "UNKNOWN",
+            error: e instanceof ConversationHostIdentityError ? e.code : "HOST_IDENTITY_UNAVAILABLE"
+          });
+      }
       let userEvent;
       let runtimeEventId: string | undefined;
       let sourceJournalRef: JournalEventRef | undefined;
@@ -106,6 +127,7 @@ export async function registerMessageStreamRoutes(
           try {
             const receipt = await context.conversationalReceiptAdmission.admit({
               surface: "HTTP_SSE",
+              ...(hostIdentity ? { hostIdentity } : {}),
               sessionId: input.data.sessionId,
               runtimeEventId,
               content,

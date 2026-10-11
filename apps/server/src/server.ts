@@ -1,3 +1,5 @@
+import { registerMemoryOperationRoutes } from "./routes/memory-operations.js";
+import { registerConversationHostRoutes } from "./routes/conversation-host.js";
 import { registerMemoryKnowledgeRoutes } from "./routes/memory-knowledge.js";
 import type { CharacterComposition } from "./character-composition.js";
 import { registerConversationHistoryRoutes } from "./routes/conversation-history.js";
@@ -239,6 +241,7 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   if (!options.characterComposition) await registerProductRoutes(app, context, config);
   if (!options.characterComposition) await registerPeopleVoiceRoutes(app, context, config);
   if (!options.characterComposition) await registerSystemRoutes(app, config);
+  await registerConversationHostRoutes(app, context, config);
   await registerMessageRoutes(app, context);
   await registerConversationHistoryRoutes(app, context);
   await registerMessageStreamRoutes(app, context);
@@ -247,6 +250,7 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   await registerSpeechActivityRoutes(app, context);
   await registerMemoryRoutes(app, context, config);
   await registerMemoryKnowledgeRoutes(app, context, config);
+  await registerMemoryOperationRoutes(app, context, config);
   await registerEventRoutes(app, context, config);
   await registerDebugRoutes(app, context, config);
   await registerWebSocketRoutes(app, context, config);

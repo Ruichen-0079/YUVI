@@ -84,7 +84,10 @@ export class PostgresMemoryAuthority {
     const kinds = [input.supersedes, input.conflicts, input.supports].filter((ids) => ids?.length);
     if (kinds.length > 1) throw new MemoryAuthorityError("MEMORY_RELATION_AMBIGUOUS");
   }
-  async commit(input: MemoryWriteEventInput): Promise<{ event: MemoryEvent; inserted: boolean }> {
+  async commit(
+    input: MemoryWriteEventInput,
+    reassessment?: { logicalKey: string; leaseOwner: string }
+  ): Promise<{ event: MemoryEvent; inserted: boolean }> {
     this.validate(input);
     return this.transaction(async (tx) => {
       const admission = await tx.query(
@@ -100,6 +103,19 @@ export class PostgresMemoryAuthority {
       await tx.query("select version from memory_authority_scopes where scope=$1 for update", [
         input.scope
       ]);
+      if (reassessment) {
+        const fenced = await tx.query(
+          `select logical_key from memory_decision_reassessments where scope=$1 and logical_key=$2 and lease_owner=$3 and lease_until>now() and resolved_key=$4 and resolved_digest=$5 for update`,
+          [
+            input.scope,
+            reassessment.logicalKey,
+            reassessment.leaseOwner,
+            input.idempotencyKey,
+            input.payloadDigest
+          ]
+        );
+        if (!fenced.rows.length) throw new MemoryAuthorityError("MEMORY_REASSESSMENT_LEASE_LOST");
+      }
       const old = await tx.query(
         "select digest,event from memory_authority_records where scope=$1 and logical_key=$2",
         [input.scope, input.idempotencyKey]
@@ -117,7 +133,7 @@ export class PostgresMemoryAuthority {
         )
       ).rows[0]!["version"] as string;
       const id = authorityId(input.scope, input.idempotencyKey!);
-      const event = toEvent(input, id);
+      const event = authorityEvent(input, id);
       const terms = searchTerms(event.content).join(" ");
       await tx.query(
         `insert into memory_authority_records(scope,id,logical_key,digest,version,source_at,classification,event,search_terms,semantic_payload)
@@ -171,11 +187,16 @@ export class PostgresMemoryAuthority {
             target.kind === "supersedes" ? "superseded" : "conflicted"
           ]);
       }
-      if (input.supersedes?.length)
+      if (input.supersedes?.length) {
         await tx.query(
           "delete from memory_authority_vectors where scope=$1 and id=any($2::text[])",
           [input.scope, input.supersedes]
         );
+        await tx.query(
+          `update memory_authority_index_jobs set status='complete',completed_at=now(),error_code='MEMORY_VECTOR_SOURCE_SUPERSEDED',lease_owner=null,lease_until=null,next_attempt_at=null where scope=$1 and id=any($2::text[])`,
+          [input.scope, input.supersedes]
+        );
+      }
       await tx.query(
         `update memory_authority_scopes set record_count=record_count+1,
         current_count=current_count+$2, unattributed_count=unattributed_count+$3, projection_version=version where scope=$1`,
@@ -185,6 +206,11 @@ export class PostgresMemoryAuthority {
           state === "unattributed" ? 1 : 0
         ]
       );
+      if (reassessment)
+        await tx.query(
+          `update memory_decision_reassessments set status='complete',resolved_event_id=$3,error_code=null,lease_owner=null,lease_until=null,updated_at=now() where scope=$1 and logical_key=$2`,
+          [input.scope, reassessment.logicalKey, id]
+        );
       return { event, inserted: true };
     });
   }
@@ -225,7 +251,14 @@ export class PostgresMemoryAuthority {
         prior.authority.binding.personId !== source.authority.binding.personId
       )
         throw new MemoryAuthorityError("MEMORY_TARGET_AUTHORITY_MISMATCH");
-      if (new Date(String(row["source_at"])).getTime() >= Date.parse(source.sourceTime.recordedAt))
+      const sourceSeq = source.sourceTime.commitSeq,
+        priorSeq = prior.sourceTime.commitSeq;
+      const sameJournal = source.parents[0]?.ref.namespace === prior.parents[0]?.ref.namespace;
+      const later =
+        sameJournal && sourceSeq && priorSeq
+          ? sourceSeq > priorSeq
+          : new Date(String(row["source_at"])).getTime() < Date.parse(source.sourceTime.recordedAt);
+      if (target.kind === "supersedes" && !later)
         throw new MemoryAuthorityError("MEMORY_TARGET_TIME_ORDER");
     }
     return targets;
@@ -343,7 +376,7 @@ export function authorityId(scope: string, key: string): string {
     .update(canonicalLineageJson([scope, key]))
     .digest("hex")}`;
 }
-function toEvent(input: MemoryWriteEventInput, id: string): MemoryEvent {
+export function authorityEvent(input: MemoryWriteEventInput, id: string): MemoryEvent {
   const {
     signal: _signal,
     idempotencyKey: _key,

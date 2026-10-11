@@ -3,7 +3,7 @@ vi.mock("./media-effects.js", () => import("./test-support/offline-media-effects
 vi.mock("./presentation-effects.js", () => import("./test-support/offline-media-effects.js"));
 import { createHash } from "node:crypto";
 import { createPostgresPool } from "@companion/database";
-import { readSqlMigrations } from "../../../packages/memory/src/migrations.js";
+import { readSqlMigrations, applySqlMigrations } from "../../../packages/memory/src/migrations.js";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -583,7 +583,7 @@ it.skipIf(!originalEnv["YUVI_EFFECT_TEST_DATABASE_URL"]).each([false, true])(
     const admin = createPostgresPool(databaseUrl);
     await admin.query(`create schema "${schema}"`);
     const pool = createPostgresPool(databaseUrl, { options: `-c search_path=${schema},public` });
-    for (const migration of await readSqlMigrations()) await pool.query(migration.sql);
+    await applySqlMigrations(pool, await readSqlMigrations());
     const scoped = new URL(databaseUrl);
     scoped.searchParams.set("options", `-c search_path=${schema},public`);
     const env = {

@@ -124,11 +124,6 @@ describe("P8-1E PostgreSQL correction persistence", () => {
       const setupPool = createPool();
       try {
         await setupPool.query(`create schema ${quoteIdentifier(schema)}`);
-        await runPostgresMigrations({
-          databaseUrl: DATABASE_URL!,
-          migrations: [migration],
-          settings: { search_path: `${quoteIdentifier(schema)}, public` }
-        });
         await expect(
           runPostgresMigrations({
             databaseUrl: DATABASE_URL!,
@@ -136,6 +131,13 @@ describe("P8-1E PostgreSQL correction persistence", () => {
             settings: { search_path: `${quoteIdentifier(schema)}, public` }
           })
         ).resolves.toEqual([migration.name]);
+        await expect(
+          runPostgresMigrations({
+            databaseUrl: DATABASE_URL!,
+            migrations: [migration],
+            settings: { search_path: `${quoteIdentifier(schema)}, public` }
+          })
+        ).resolves.toEqual([]); // Durable receipt prevents SQL from being reapplied.
 
         const client = await setupPool.connect();
         try {

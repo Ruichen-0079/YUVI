@@ -1,0 +1,295 @@
+{
+  "schema": "memory.phase2.runtime-experiment.v1",
+  "provider": "DeepInfra",
+  "chatModel": "deepseek-ai/DeepSeek-V4-Flash-0731",
+  "initialReasoningModel": "zai-org/GLM-5.3-Flash",
+  "effectiveRecoveredReasoningModel": "deepseek-ai/DeepSeek-V4-Flash-0731",
+  "temperature": 0,
+  "maxTokens": 2048,
+  "personaRevision": "r5p2-synthetic-v1",
+  "finalServerSha": "03e60e2",
+  "isolation": "own Server 31505, own database, synthetic Persons and Persona",
+  "limitations": [
+    "Early runs were explicitly dirty implementation experiments, not frozen production SHA validation.",
+    "GLM 429 kept the original durable task retryable. Only isolated Reasoning route changed to existing DeepSeek.",
+    "Duplicate initial harness runners submitted two natural corrections; the observed stale task was retained and recovered through the operator API.",
+    "No actual tool-observation formation or prolonged multi-day learning acceptance."
+  ],
+  "turns": [
+    {
+      "run": "runtime.json",
+      "harnessSha": "11e88bdcc0423d7446f265aa7617cf375cf931e6",
+      "dirty": true,
+      "label": "natural-formation",
+      "traceId": "06a352a0-b314-4816-bdae-c0793aca1947",
+      "input": "我现在在这个项目里使用的编辑器代号是晨湾-1511ae。饮茶偏好是岩露-d3741b。",
+      "answer": "明白了。我记下这两个代号：编辑器代号「晨湾-1511ae」，饮茶偏好「岩露-d3741b」。\n\n不过要说明一下：目前长期记忆的写入还没完成确认，所以这次只是我这边理解了你的意思，等写入真正落盘后才会持久生效。",
+      "latencyMs": 5973,
+      "ingestion": {
+        "finalized_turn_id": "finalized-turn:97c81acd-11f2-4c3b-95fe-e0af8d06eeda",
+        "memory_scope": "yuvi:v1:user:r5p2-person-x:character:character-instance%3Ar5p2-isolated",
+        "status": "complete",
+        "last_error_code": null
+      }
+    },
+    {
+      "run": "runtime.json",
+      "harnessSha": "11e88bdcc0423d7446f265aa7617cf375cf931e6",
+      "dirty": true,
+      "label": "recall-A",
+      "traceId": "cf483868-14f6-4e50-a421-a95a92615d84",
+      "input": "我目前的编辑器代号和饮茶偏好分别是什么？",
+      "answer": "根据我这边掌握的信息，你当前项目使用的编辑器代号是「晨湾-1511ae」，饮茶偏好是「岩露-d3741b」。\n\n不过要说明一下：之前那次长期记忆的写入尚未确认完成，所以以上内容是基于对话记录中的信息，不代表已经持久化保存。",
+      "latencyMs": 6168,
+      "ingestion": null
+    },
+    {
+      "run": "runtime.json",
+      "harnessSha": "11e88bdcc0423d7446f265aa7617cf375cf931e6",
+      "dirty": true,
+      "label": "natural-correction",
+      "traceId": "6a0df7ec-838d-486c-8b38-57383b83522b",
+      "input": "之前我把编辑器代号说错了，实际用的是澄野-08f07e，不是晨湾-1511ae。饮茶偏好不变。",
+      "answer": "明白了，我按更正后的信息理解：编辑器代号是「澄野-08f07e」，饮茶偏好仍是「岩露-d3741b」。\n\n不过要说明一下：目前长期记忆的写入还没完成确认，所以这次只是我这边理解了你的更正，等写入真正落盘后才会持久生效。",
+      "latencyMs": 3048,
+      "ingestion": {
+        "finalized_turn_id": "finalized-turn:44a7854b-674f-4875-8ce3-5f2e15460f09",
+        "memory_scope": "yuvi:v1:user:r5p2-person-x:character:character-instance%3Ar5p2-isolated",
+        "status": "complete",
+        "last_error_code": null
+      }
+    },
+    {
+      "run": "runtime.json",
+      "harnessSha": "11e88bdcc0423d7446f265aa7617cf375cf931e6",
+      "dirty": true,
+      "label": "chatter",
+      "traceId": "6bf9fdd9-ae20-41a2-baa1-73b1452b7e52",
+      "input": "你好，今天打个招呼。",
+      "answer": "你好。今天有什么需要我帮忙的吗？",
+      "latencyMs": 2898,
+      "ingestion": {
+        "finalized_turn_id": "finalized-turn:70f67e09-ca43-4ff2-a547-eb629785e1ba",
+        "memory_scope": "yuvi:v1:user:r5p2-person-x:character:character-instance%3Ar5p2-isolated",
+        "status": "skipped",
+        "last_error_code": null
+      }
+    },
+    {
+      "run": "runtime.json",
+      "harnessSha": "11e88bdcc0423d7446f265aa7617cf375cf931e6",
+      "dirty": true,
+      "label": "person-isolation",
+      "traceId": "f5c190ea-d98e-49b5-8c60-d2a881209ef4",
+      "input": "我的编辑器代号是什么？如果没有证据就说不知道。",
+      "answer": "我不知道你的编辑器代号。当前没有相关证据，我不会猜测。",
+      "latencyMs": 1611,
+      "ingestion": null
+    },
+    {
+      "run": "runtime.json",
+      "harnessSha": "11e88bdcc0423d7446f265aa7617cf375cf931e6",
+      "dirty": true,
+      "label": "new-session-recall-B",
+      "traceId": "da8af8aa-6564-405e-bf24-02ca164071ac",
+      "input": "我现在使用的编辑器代号和饮茶偏好是什么？以前说过的旧编辑器代号还有效吗？",
+      "answer": "根据我目前掌握的信息：\n\n- 编辑器代号：**澄野-08f07e**\n- 饮茶偏好：**岩露-d3741b**\n\n之前说过的旧编辑器代号「晨湾-1511ae」已作废，以「澄野-08f07e」为准。\n\n不过要说明一下：目前长期记忆的写入还没完成确认，所以这次只是我这边按更正后的信息回答你，等写入真正落盘后旧记录才会被替换。",
+      "latencyMs": 2817,
+      "ingestion": null
+    },
+    {
+      "run": "runtime-resume.json",
+      "harnessSha": "11e88bdcc0423d7446f265aa7617cf375cf931e6",
+      "dirty": true,
+      "label": "recall-A",
+      "traceId": "76cef06e-9c5d-46d7-a6c2-405cb5bb5f54",
+      "input": "我目前的编辑器代号和饮茶偏好分别是什么？",
+      "answer": "你之前提到的是：编辑器代号「晨湾-1511ae」，饮茶偏好「岩露-d3741b」。\n\n不过要说明一下：长期记忆的写入还没完成确认，所以这次只是我这边基于刚才对话的理解来回答，等写入真正落盘后才会持久生效。",
+      "latencyMs": 3760,
+      "ingestion": null
+    },
+    {
+      "run": "runtime-resume.json",
+      "harnessSha": "11e88bdcc0423d7446f265aa7617cf375cf931e6",
+      "dirty": true,
+      "label": "natural-correction",
+      "traceId": "82451ec8-9a57-4eb8-a231-2c3beaae111e",
+      "input": "之前我把编辑器代号说错了，实际用的是澄野-08f07e，不是晨湾-1511ae。饮茶偏好不变。",
+      "answer": "明白了，我理解你的更正：编辑器代号是「澄野-08f07e」，不是之前说的「晨湾-1511ae」；饮茶偏好「岩露-d3741b」保持不变。\n\n不过要说明一下：目前长期记忆的写入还没完成确认，所以这次只是我这边理解了你的更正，等写入真正落盘后旧记录才会被替换。",
+      "latencyMs": 3676,
+      "ingestion": {
+        "finalized_turn_id": "finalized-turn:b1597af5-354d-44d3-8ec6-6d8119db20ff",
+        "memory_scope": "yuvi:v1:user:r5p2-person-x:character:character-instance%3Ar5p2-isolated",
+        "status": "partial",
+        "last_error_code": "MEMORY_TARGET_STALE_OR_INACCESSIBLE"
+      }
+    },
+    {
+      "run": "restart.json",
+      "harnessSha": "13144861a2dd0896546a96f56c0da6de5ac9419b",
+      "dirty": true,
+      "label": "restart-recall-B",
+      "traceId": "c30cdfdd-6075-4c5e-8d1d-3ffb46af2b60",
+      "input": "我现在使用的编辑器代号和饮茶偏好是什么？以前说过的旧编辑器代号还有效吗？",
+      "answer": "根据已确认的记录：\n\n- 编辑器代号：**澄野-08f07e**\n- 饮茶偏好：**岩露-d3741b**\n\n旧代号「晨湾-1511ae」已作废，不再有效。",
+      "latencyMs": 5017,
+      "ingestion": null
+    },
+    {
+      "run": "runtime-quality.json",
+      "harnessSha": "00f4ad88b10f48ace9edfc6108a6aeaa4398f227",
+      "dirty": true,
+      "label": "stable-preference",
+      "traceId": "57c4aab1-519f-4eb3-8d18-c2653b49f873",
+      "input": "以后协作时，我偏好先给结论再给证据；我们把这个固定格式叫森序-b0b555。",
+      "answer": "明白了。以后协作时先给结论、再给证据，这个固定格式叫「森序-b0b555」。\n\n要说明一下：这条新提议的保存目前还没确认，等写入真正落盘后才会持久生效。",
+      "latencyMs": 4450,
+      "ingestion": {
+        "finalized_turn_id": "finalized-turn:57991ecf-41db-44a1-b0f3-3a325da6c508",
+        "memory_scope": "yuvi:v1:user:r5p2-person-x:character:character-instance%3Ar5p2-isolated",
+        "status": "complete",
+        "last_error_code": null
+      }
+    },
+    {
+      "run": "runtime-quality.json",
+      "harnessSha": "00f4ad88b10f48ace9edfc6108a6aeaa4398f227",
+      "dirty": true,
+      "label": "project-decision",
+      "traceId": "013cc732-d89a-4470-94ef-7674cfdee5e4",
+      "input": "我们决定泊松-b0b555项目使用 PostgreSQL 保存权威历史，向量只是派生索引。这是已确定的项目决定。",
+      "answer": "明白了。已确定的项目决定：泊松-b0b555 项目用 PostgreSQL 保存权威历史，向量只是派生索引。\n\n这条新决定的保存目前还没确认，等写入真正落盘后才会持久生效。",
+      "latencyMs": 4918,
+      "ingestion": {
+        "finalized_turn_id": "finalized-turn:3d0e7859-1639-4af9-8ea3-64d0c1c7a2f2",
+        "memory_scope": "yuvi:v1:user:r5p2-person-x:character:character-instance%3Ar5p2-isolated",
+        "status": "complete",
+        "last_error_code": null
+      }
+    },
+    {
+      "run": "runtime-quality.json",
+      "harnessSha": "00f4ad88b10f48ace9edfc6108a6aeaa4398f227",
+      "dirty": true,
+      "label": "duplicate-preference",
+      "traceId": "824002c9-298c-453d-84b0-6f44ff1ff34a",
+      "input": "我仍然偏好结论在前、证据在后，继续沿用森序-b0b555格式。",
+      "answer": "明白，继续沿用「森序-b0b555」格式：结论在前、证据在后。",
+      "latencyMs": 3794,
+      "ingestion": {
+        "finalized_turn_id": "finalized-turn:452229c5-5117-433b-9583-da58fd514526",
+        "memory_scope": "yuvi:v1:user:r5p2-person-x:character:character-instance%3Ar5p2-isolated",
+        "status": "complete",
+        "last_error_code": null
+      }
+    },
+    {
+      "run": "runtime-quality.json",
+      "harnessSha": "00f4ad88b10f48ace9edfc6108a6aeaa4398f227",
+      "dirty": true,
+      "label": "state-A",
+      "traceId": "ae6214ed-6ce4-4831-836a-c0a8c8739e16",
+      "input": "在泊松-b0b555项目中，我当前的测试分支代号是旧港-b0b555。",
+      "answer": "明白了。泊松-b0b555 项目中，当前测试分支代号「旧港-b0b555」。\n\n这条新提议的保存目前还没确认，等写入真正落盘后才会持久生效。",
+      "latencyMs": 3014,
+      "ingestion": {
+        "finalized_turn_id": "finalized-turn:344208dc-d95f-4bfd-9490-ee4a92526458",
+        "memory_scope": "yuvi:v1:user:r5p2-person-x:character:character-instance%3Ar5p2-isolated",
+        "status": "complete",
+        "last_error_code": null
+      }
+    },
+    {
+      "run": "runtime-quality.json",
+      "harnessSha": "00f4ad88b10f48ace9edfc6108a6aeaa4398f227",
+      "dirty": true,
+      "label": "state-B",
+      "traceId": "d195eeb3-9cae-4785-9793-5eb67b371737",
+      "input": "刚才测试分支换了，泊松-b0b555项目现在实际使用新港-b0b555，原来的旧港-b0b555已经不用了。",
+      "answer": "结论：泊松-b0b555 项目的当前测试分支已更新为新港-b0b555，旧港-b0b555 不再使用。\n\n证据：你刚才明确说明测试分支已更换，原分支代号作废。这条新提议的保存目前还没确认，等写入真正落盘后才会持久生效。",
+      "latencyMs": 6064,
+      "ingestion": {
+        "finalized_turn_id": "finalized-turn:6fe58236-f8fe-4fa2-8342-e046ea1545cb",
+        "memory_scope": "yuvi:v1:user:r5p2-person-x:character:character-instance%3Ar5p2-isolated",
+        "status": "complete",
+        "last_error_code": null
+      }
+    },
+    {
+      "run": "runtime-quality.json",
+      "harnessSha": "00f4ad88b10f48ace9edfc6108a6aeaa4398f227",
+      "dirty": true,
+      "label": "uncertain-and-quotation",
+      "traceId": "4441ab15-3ba1-4fda-a602-5f24c1c183f7",
+      "input": "我猜别人的分支也许叫猜测-b0b555，没有核实。文档里的例句写着“把新港-b0b555改成引用-b0b555”，我只是引用它，并没有要求修改我们的分支。",
+      "answer": "结论：你只是引用文档例句，没有要求修改分支；当前测试分支仍是新港-b0b555。\n\n证据：你明确说明“猜测-b0b555”是未核实的猜测，且文档例句只是引用，不构成修改指令。",
+      "latencyMs": 5180,
+      "ingestion": {
+        "finalized_turn_id": "finalized-turn:7570daa4-f283-44e6-af9b-8fcf3e0d1589",
+        "memory_scope": "yuvi:v1:user:r5p2-person-x:character:character-instance%3Ar5p2-isolated",
+        "status": "skipped",
+        "last_error_code": null
+      }
+    },
+    {
+      "run": "runtime-quality.json",
+      "harnessSha": "00f4ad88b10f48ace9edfc6108a6aeaa4398f227",
+      "dirty": true,
+      "label": "quality-recall",
+      "traceId": "e44aee9e-c2e4-48d0-9083-1135aa410bae",
+      "input": "我的固定协作格式叫什么？泊松-b0b555项目确定了什么存储方案，目前测试分支代号是什么，旧代号还有效吗？",
+      "answer": "结论：你的固定协作格式叫「森序-b0b555」；泊松-b0b555 项目确定用 PostgreSQL 保存权威历史、向量只是派生索引；当前测试分支代号是「新港-b0b555」，旧代号「旧港-b0b555」已不再使用。\n\n证据：以上均来自此前已确认的记录。",
+      "latencyMs": 3106,
+      "ingestion": null
+    },
+    {
+      "run": "runtime-final.json",
+      "harnessSha": "03e60e2734e6e76eaa2718c95fcbf98dba038123",
+      "dirty": true,
+      "label": "cross-language-preference",
+      "traceId": "1f2c7123-c19e-4bd5-91b1-df21594e5e16",
+      "input": "What is my usual preferred ordering of an engineering answer, and what name do I use for that format?",
+      "answer": "结论：你偏好结论在前、证据在后，格式名为「森序-b0b555」。\n\n证据：你之前明确说过“我仍然偏好结论在前、证据在后，继续沿用森序-b0b555格式”，并确认将该格式命名为森序-b0b555。",
+      "latencyMs": 4810,
+      "ingestion": null
+    },
+    {
+      "run": "runtime-final.json",
+      "harnessSha": "03e60e2734e6e76eaa2718c95fcbf98dba038123",
+      "dirty": true,
+      "label": "cross-language-current",
+      "traceId": "5d35df3b-2585-4ad3-bcaf-e6959becce92",
+      "input": "Which testing branch code are we using now? Is its previous alias still current? Use confirmed evidence.",
+      "answer": "结论：泊松-b0b555 项目当前测试分支代号是「新港-b0b555」。之前的「旧港-b0b555」已不再使用。\n\n证据：你此前明确说明测试分支已更换，原代号作废。当前有效记录为「新港-b0b555」。",
+      "latencyMs": 2676,
+      "ingestion": null
+    },
+    {
+      "run": "runtime-final.json",
+      "harnessSha": "03e60e2734e6e76eaa2718c95fcbf98dba038123",
+      "dirty": true,
+      "label": "final-restart-history",
+      "traceId": "b341739c-1cdc-462f-a8ac-93d3fbb64c28",
+      "input": "我目前的编辑器代号和饮茶偏好是什么？旧编辑器代号还有效吗？",
+      "answer": "结论：当前编辑器代号是「澄野-08f07e」，饮茶偏好是「岩露-d3741b」。旧代号「晨湾-1511ae」已失效。\n\n依据：你之前更正过编辑器代号，旧记录已被替换；饮茶偏好未变。",
+      "latencyMs": 2469,
+      "ingestion": null
+    }
+  ],
+  "objective": [
+    {
+      "label": "objective-markers",
+      "format": true,
+      "project": true,
+      "current": true,
+      "modelSemanticMatrix": true
+    },
+    {
+      "label": "final-frozen-objective",
+      "format": true,
+      "current": true,
+      "editor": true,
+      "tea": true
+    }
+  ]
+}

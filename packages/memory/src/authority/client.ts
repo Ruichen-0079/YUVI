@@ -1,3 +1,5 @@
+import type { MemoryLegacyWorkflowView } from "./legacy-workflow.js";
+import type { MemoryRetrievalPage, MemoryRetrievalDetail } from "./retrieval-evidence.js";
 import type {
   KnowledgeOverview,
   KnowledgePage,
@@ -42,6 +44,15 @@ export class MemoryKnowledgeClient {
       status: string;
       errorCode?: string | null;
     }>(this.url("ingestion", { scope, id }));
+  }
+  retrievals(input: { scope: string; traceId?: string; limit?: number; cursor?: string }) {
+    return this.request<MemoryRetrievalPage>(this.url("retrievals", input));
+  }
+  retrieval(scope: string, id: string) {
+    return this.request<MemoryRetrievalDetail>(this.url("retrieval", { scope, id }));
+  }
+  migration(scope: string, id: string) {
+    return this.request<MemoryLegacyWorkflowView>(this.url("migration", { scope, id }));
   }
   private url(operation: string, input: Record<string, string | number | undefined>) {
     const qs = new URLSearchParams(

@@ -35,7 +35,7 @@ import {
   type ProfileSubjectV1,
   type ConversationMessage
 } from "@companion/memory";
-import { readSqlMigrations } from "../../../packages/memory/src/migrations.js";
+import { readSqlMigrations, applySqlMigrations } from "../../../packages/memory/src/migrations.js";
 import { stampDreamWriteEvent } from "../../../packages/memory/src/dream-delivery.js";
 import { freezeDerivedDreamEvent } from "../../../packages/memory/src/dream-source.js";
 
@@ -261,7 +261,7 @@ describe.skipIf(!databaseUrl || !sidecarUrl)(
       await admin.query(`create schema ${schema}`);
       pool = createPostgresPool(databaseUrl!, { options: `-c search_path=${schema},public` });
       const migrations = await readSqlMigrations();
-      for (const migration of migrations) await pool.query(migration.sql);
+      await applySqlMigrations(pool, await readSqlMigrations());
       await pool.query(migrations.find((entry) => entry.name.startsWith("019"))!.sql);
       journal = new PostgresJournalRepository(pool, {
         namespace: schema,
@@ -412,7 +412,15 @@ describe.skipIf(!databaseUrl || !sidecarUrl)(
       scopes.add(wrongScope);
       for (const unowned of [
         { ...f.event.eventPayload, content: "Changed unsupported content." },
-        { ...f.event.eventPayload, metadata: { ...f.event.eventPayload.metadata, sourceRole: "assistant", model: "Cognition", confidence: 1 } },
+        {
+          ...f.event.eventPayload,
+          metadata: {
+            ...f.event.eventPayload.metadata,
+            sourceRole: "assistant",
+            model: "Cognition",
+            confidence: 1
+          }
+        },
         { ...f.event.eventPayload, scope: wrongScope }
       ]) {
         const copied = await provider.writeEvent(unowned);
@@ -421,7 +429,10 @@ describe.skipIf(!databaseUrl || !sidecarUrl)(
         effects.push({ scope: unowned.scope!, memoryId: uuid });
         expect(await admissions.listBound(unowned.scope!, [uuid])).toEqual([]);
       }
-      const wrongRead = await f.reader.listEligibleSources({ subject: { kind: "MEMORY_SCOPE", scope: wrongScope }, asOf: new Date().toISOString() });
+      const wrongRead = await f.reader.listEligibleSources({
+        subject: { kind: "MEMORY_SCOPE", scope: wrongScope },
+        asOf: new Date().toISOString()
+      });
       expect(wrongRead.state).toBe("COMPLETE");
       expect(wrongRead.sources).toEqual([]);
       expect((await f.read()).sources).toHaveLength(1);
@@ -475,13 +486,29 @@ describe.skipIf(!databaseUrl || !sidecarUrl)(
       await f.deliver();
       const m = await model(f.reader, f.subject);
       expect((await m.read()).state).toBe("AVAILABLE");
-      const offline = new Mem0ProfileMemorySourceReader(new Mem0MemoryBackend({ baseUrl: "http://127.0.0.1:1" }), admissions);
-      expect((await offline.listEligibleSources({ subject: f.subject, asOf: new Date().toISOString() })).state).toBe("UNAVAILABLE");
+      const offline = new Mem0ProfileMemorySourceReader(
+        new Mem0MemoryBackend({ baseUrl: "http://127.0.0.1:1" }),
+        admissions
+      );
+      expect(
+        (await offline.listEligibleSources({ subject: f.subject, asOf: new Date().toISOString() }))
+          .state
+      ).toBe("UNAVAILABLE");
       for (const reader of [offline, new UnavailableProfileMemorySourceReader()]) {
-        const profiles = new LocalProfileProvider({ resolveSourceReader: () => reader, store: new PostgresProfileSnapshotStore(pool) });
-        await m.coordinator.replaceComposition({ reader, provider: profiles, backend: "mem0", compositionToken: {} });
+        const profiles = new LocalProfileProvider({
+          resolveSourceReader: () => reader,
+          store: new PostgresProfileSnapshotStore(pool)
+        });
+        await m.coordinator.replaceComposition({
+          reader,
+          provider: profiles,
+          backend: "mem0",
+          compositionToken: {}
+        });
         expect((await m.read()).model).toBeNull();
-        expect(await profiles.getProfile({ subject: f.subject })).toMatchObject({ freshness: "UNCHECKED" });
+        expect(await profiles.getProfile({ subject: f.subject })).toMatchObject({
+          freshness: "UNCHECKED"
+        });
         expect((await profiles.generate({ subject: f.subject })).state).toBe("UNAVAILABLE");
       }
       await m.coordinator.shutdown({ graceMs: 2_000 });
@@ -490,7 +517,9 @@ describe.skipIf(!databaseUrl || !sidecarUrl)(
         const result = await recovered.read();
         expect(result.state).toBe("AVAILABLE");
         expect(result.model!.freshness.state).toBe("VERIFIED_AT_SOURCE_READ");
-      } finally { await recovered.coordinator.shutdown({ graceMs: 2_000 }); }
+      } finally {
+        await recovered.coordinator.shutdown({ graceMs: 2_000 });
+      }
     }, 60_000);
 
     it("reopens PostgreSQL and reconstructs provable finalized and Dream effects only; unsupported effects stay unsupported", async () => {

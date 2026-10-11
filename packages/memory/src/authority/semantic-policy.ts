@@ -54,11 +54,13 @@ export class SemanticMemoryPolicy {
     const db = this.jobs!;
     const jobId = input.idempotencyKey;
     if (!jobId) throw new MemoryAuthorityError("MEMORY_SEMANTIC_JOB_ID_REQUIRED");
+    const { commitSeq: _sequence, ...digestSource } = input.groundedSource!;
     const digest = lineageDigest(
       canonicalLineageJson({
         scope: input.scope,
-        source: input.groundedSource,
-        policy: "memory.semantic.v1"
+        source: digestSource,
+        policy: "memory.semantic.v1",
+        ...(input.reassessment ? { reassessment: input.reassessment } : {})
       })
     );
     await db.query(
@@ -155,15 +157,29 @@ export class SemanticMemoryPolicy {
           temperature: 0,
           maxTokens: 2048,
           messages: [
-            { role: "system", content: INSTRUCTION },
+            {
+              role: "system",
+              content:
+                INSTRUCTION +
+                (input.reassessment
+                  ? ` Reassess ONLY this original proposition: ${JSON.stringify(input.reassessment.proposition)}. Return exactly one proposition with that identical content and a newly evaluated relation/targetIds based on the current prior and the original source. Do not produce other propositions from the source. If current prior already represents the same fact, propose supports. Source event order matters: an older source cannot retract a later current assertion. Preserve conflict or uncertainty rather than treating worker completion order as user chronology.`
+                  : "")
+            },
             {
               role: "user",
               content: JSON.stringify({
                 source: source.selectedText,
+                sourceAt: source.recordedAt,
+                sourceCommitSeq: source.commitSeq ?? null,
                 origin: source.origin,
                 prior: prior.map((e) => ({
                   id: e.id,
                   content: e.content,
+                  sourceAt: e.recordedAt,
+                  sourceCommitSeq:
+                    e.lineage?.state === "GROUNDED" && "sourceTime" in e.lineage
+                      ? (e.lineage.sourceTime.commitSeq ?? null)
+                      : null,
                   state: e.metadata["knowledgeState"]
                 }))
               })
@@ -193,6 +209,11 @@ export class SemanticMemoryPolicy {
       ""
     );
     const proposals = proposalSchema.parse(JSON.parse(text)).propositions;
+    if (
+      input.reassessment &&
+      (proposals.length !== 1 || proposals[0]!.content !== input.reassessment.proposition)
+    )
+      throw new MemoryAuthorityError("MEMORY_REASSESSMENT_UNRESOLVED");
     const events: MemoryWriteEventInput[] = [];
     for (const p of proposals) {
       if (!source.selectedText.includes(p.evidenceText))

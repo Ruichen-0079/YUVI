@@ -32,3 +32,13 @@ const detail = await memory.detail(scope, page.records[0]!.id);
 Current 与 Timeline 的游标虽使用同格式，但消费者应使用各自响应的游标，不复用不同查询的分页位置。Client 当前 Overview 类型只声明基础字段，扩展的 migrations/workers 尚需统一 schema；Ingestion Client 类型也仍需收紧。当前样例接口不能视为所有未来 WebUI 功能完备。
 
 完整隔离 Server 实际响应见 [http-example.json](evidence/http-example.json)。路由测试使用真实 PostgreSQL，覆盖 foreign Persona/ID、remote、Origin、token、游标及 metadata redaction。未提供 Retrieval Evidence 的持久选择/排除 trace、完整关系图、偏好/目标类别筛选、真正删除/隐私清除或后台操作 mutation API；这些是正式阻断，而不是由前端推断补齐。
+
+## Phase 2 产品接口增量
+
+GET `/memory/v1/retrievals?scope&traceId&limit&cursor` 返回 `memory.retrieval.page.v1`，条目名 `items`，游标绑定 scope 与 trace。GET `/memory/v1/retrieval?scope&id` 返回 `memory.retrieval.v1`：query（<=4000）、watermark、status/error/limited、TEXT/VECTOR 候选的有界快照、选择/失效/结果预算原因、context exposure 和真实 A9 consumer terminal certainty。候选最多64、context最多100、每个context consumer最多20；`candidateCount/candidateEvidenceLimited/contextsLimited/consumersLimited` 表达证据截断。旧 run 的候选完整性为 null/UNKNOWN，不伪造完整。PREPARED_FOR_USE 不表示模型已执行；只有对应 Provider effect 结果才证明 APPLIED。读取遵循现有 operator disclosure 与 Character scope，不公开 grant bearer、整个模型 prompt、原始 source body 或任意 Debug JSON。
+
+GET `/memory/v1/migration?scope&id` 与 `MemoryKnowledgeClient.migration` 返回 `memory.migration-workflow.v1`，expected/snapshot/imported/verified/checkpoint/hash/error/classification/activation。IMPORT_VERIFIED 不等于 grounded/current 或可以部署。维护动作见[升级与运维](migration-operations.zh.md#phase-2-正式升级与隔离副本工作流)。现有 TypeScript Client 还支持 typed retrievals/retrieval；调用方提供认证 transport，不把 token 写入 URL。
+
+Authority backend 下旧 `/memory`、`/memory/search` 和旧 CRUD/提取/失效接口统一 410 `MEMORY_LEGACY_API_RETIRED`，带 successor `/memory/v1`，不会继续给前端提供第二套 current knowledge。显式 legacy backend 的旧客户端行为保留到正式迁移；不能自动切换在线 Alice。
+
+所有新 Memory v1 读取/维护在 development/test/production 均要求显式 operator bearer（constant-time 检查）和合法 loopback/Origin。未配置 operator credential 时 fail-closed。普通 Host 会话 token 不赋予管理披露权。401/403 返回 `memory.error.v1`；不会在 production 因 localhost 而自动允许查看其他 Person。

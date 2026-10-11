@@ -1,0 +1,12 @@
+{
+  "cpuModel": "Intel(R) Core(TM) Ultra 9 275HX",
+  "logicalCPUs": 24,
+  "ramKiB": 48969412,
+  "availableRAMKiB": 24918372,
+  "clusterProcesses": 6,
+  "clusterPssKiB": 49526,
+  "clusterSumRssKiB": 121128,
+  "freeDiskBytes": 17666232320,
+  "at": "2026-10-11T14:29:56+0800",
+  "measurement": "snapshot after recovered vector query; NOT build peak; summed RSS double-counts shared mappings"
+}

@@ -1,0 +1,14 @@
+{
+  "calls": 57,
+  "reportedUsage": 55,
+  "promptTokens": 92674,
+  "completionTokens": 2639,
+  "providerEstimatedCost": 0.00534426,
+  "unreportedCostCalls": 2,
+  "currencyEvidence": "Provider estimated_cost; see official DeepInfra USD pricing, not final billed invoice",
+  "budget": {
+    "modelCallCap": 120,
+    "plannedUsdCeiling": 0.25,
+    "atomicCostLedgerImplemented": false
+  }
+}
