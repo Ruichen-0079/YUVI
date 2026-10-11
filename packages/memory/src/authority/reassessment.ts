@@ -109,7 +109,14 @@ export class MemoryDecisionReassessment {
         idempotencyKey: jobId,
         reassessment: { proposition: input.content, originalKey: key }
       });
-      if (evaluation.events.length !== 1)
+      if (
+        evaluation.events.length !== 1 ||
+        ![
+          evaluation.events[0]?.supersedes,
+          evaluation.events[0]?.conflicts,
+          evaluation.events[0]?.supports
+        ].some((ids) => ids?.length)
+      )
         throw new MemoryAuthorityError("MEMORY_REASSESSMENT_UNRESOLVED");
       const semantic = freezeFinalizedMemoryEvent(
         source,
