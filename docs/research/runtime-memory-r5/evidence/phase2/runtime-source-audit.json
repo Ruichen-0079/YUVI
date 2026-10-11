@@ -1,0 +1,32 @@
+[
+  {
+    "http": 200,
+    "body": {
+      "schema": "memory.integrity.v1",
+      "id": "real-source-audit-001",
+      "status": "RUNNING",
+      "anchor": "6",
+      "checkpoint": "0",
+      "checked": "0",
+      "issues": "0",
+      "incomplete": "0",
+      "problems": [],
+      "problemsLimited": false
+    }
+  },
+  {
+    "http": 200,
+    "body": {
+      "schema": "memory.integrity.v1",
+      "id": "real-source-audit-001",
+      "status": "VERIFIED",
+      "anchor": "6",
+      "checkpoint": "6",
+      "checked": "6",
+      "issues": "0",
+      "incomplete": "0",
+      "problems": [],
+      "problemsLimited": false
+    }
+  }
+]

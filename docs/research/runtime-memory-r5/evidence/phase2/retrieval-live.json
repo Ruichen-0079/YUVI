@@ -1,0 +1,219 @@
+{
+  "traceId": "fea203d3-2b3e-48cc-b9f1-0107606ea4c1",
+  "answer": "根据已确认的记录：编辑器代号是「澄野-08f07e」，饮茶偏好是「岩露-d3741b」。",
+  "runs": {
+    "schema": "memory.retrieval.page.v1",
+    "items": [
+      {
+        "id": "mre_2819be56-0d43-4995-93f4-afba2940ab41",
+        "traceId": "fea203d3-2b3e-48cc-b9f1-0107606ea4c1",
+        "sessionId": "r5p2-context-18eb282a-40f7-4d1e-9fc3-efb1bf1ac25e",
+        "status": "ok",
+        "errorCode": null,
+        "limited": false,
+        "watermark": "6",
+        "modelTag": "local:Qwen3-Embedding-0.6B-Q8_0.gguf:512",
+        "at": "2026-10-11T06:13:29.404Z"
+      }
+    ],
+    "nextCursor": null
+  },
+  "details": [
+    {
+      "schema": "memory.retrieval.v1",
+      "id": "mre_2819be56-0d43-4995-93f4-afba2940ab41",
+      "traceId": "fea203d3-2b3e-48cc-b9f1-0107606ea4c1",
+      "query": "我目前的编辑器代号和饮茶偏好是什么？请使用已经确认的记录。",
+      "status": "ok",
+      "errorCode": null,
+      "limited": false,
+      "watermark": "6",
+      "modelTag": "local:Qwen3-Embedding-0.6B-Q8_0.gguf:512",
+      "candidates": [
+        {
+          "id": "pgm1_a5875a047f297c8a9ad7a93e92798631aee1cf28a71ffe68f6f806da098c93f1",
+          "version": "4",
+          "state": "current",
+          "channels": ["TEXT", "VECTOR"],
+          "selected": true,
+          "reason": "SELECTED",
+          "content": "用户当前项目使用的编辑器代号是澄野-08f07e"
+        },
+        {
+          "id": "pgm1_bd56d6718496781b5aef2a678d33458bcd4f6b86cd71bfc7b8be41e931e32442",
+          "version": "1",
+          "state": "current",
+          "channels": ["TEXT", "VECTOR"],
+          "selected": true,
+          "reason": "SELECTED",
+          "content": "用户的饮茶偏好是岩露-d3741b"
+        }
+      ],
+      "contexts": [
+        {
+          "manifestId": "cm1_0e3718667646f2b1bd0e24d4b52ed40cf358980628b12d3ada692f96ea9d2793",
+          "exposureId": "ce1_b2b9d61d494d981b2a2bcfe2f2e3d1bcaa95006aba24af48fc85039c0b335b09",
+          "consumerOperation": "generateReply:37e9c913-508e-44dc-a45d-a896a7980261",
+          "memoryBlocks": [
+            {
+              "key": "MEMORY_EVIDENCE",
+              "epistemicState": "KNOWN",
+              "digest": "1780ab07abbe49d8c5fe82e203b31575d4314c7cbd265cfd2d334624fd2a1322",
+              "characters": 1264,
+              "sourceReferences": [
+                "pgm1_a5875a047f297c8a9ad7a93e92798631aee1cf28a71ffe68f6f806da098c93f1",
+                "pgm1_bd56d6718496781b5aef2a678d33458bcd4f6b86cd71bfc7b8be41e931e32442",
+                "episode:r5p2-natural-formation-45170a13-ba31-48f2-825f-79b2af7b9c58:06a352a0-b314-4816-bdae-c0793aca1947",
+                "episode:r5p2-natural-correction-2398f6ae-7710-4bf5-af42-56deaa36a518:82451ec8-9a57-4eb8-a231-2c3beaae111e",
+                "episode:r5p2-natural-correction-8aa7f54f-f688-48b4-86a8-81ce9d4fb63f:6a0df7ec-838d-486c-8b38-57383b83522b",
+                "episode:r5p2-chatter-40e27e9b-8c19-4c46-9685-0f92674cc14e:6bf9fdd9-ae20-41a2-baa1-73b1452b7e52"
+              ],
+              "stability": "VOLATILE"
+            },
+            {
+              "key": "RelevantMemory",
+              "digest": "2cb969a531840dcefb6699b962451a360115bf555e23c8ff8bcb8782e958b2de",
+              "characters": 46,
+              "sourceReferences": [
+                "episode:r5p2-chatter-40e27e9b-8c19-4c46-9685-0f92674cc14e:6bf9fdd9-ae20-41a2-baa1-73b1452b7e52",
+                "episode:r5p2-natural-correction-8aa7f54f-f688-48b4-86a8-81ce9d4fb63f:6a0df7ec-838d-486c-8b38-57383b83522b",
+                "episode:r5p2-natural-correction-2398f6ae-7710-4bf5-af42-56deaa36a518:82451ec8-9a57-4eb8-a231-2c3beaae111e",
+                "episode:r5p2-natural-formation-45170a13-ba31-48f2-825f-79b2af7b9c58:06a352a0-b314-4816-bdae-c0793aca1947",
+                "pgm1_a5875a047f297c8a9ad7a93e92798631aee1cf28a71ffe68f6f806da098c93f1",
+                "pgm1_bd56d6718496781b5aef2a678d33458bcd4f6b86cd71bfc7b8be41e931e32442",
+                "retrieval:mre_2819be56-0d43-4995-93f4-afba2940ab41"
+              ],
+              "stability": "VOLATILE"
+            }
+          ],
+          "exposure": {
+            "boundary": "PREPARED_FOR_USE",
+            "inputDigest": "65502b1a1036bd4715bed488bccb7cdd631a4b8cdf8dabcc806964ed3b65cdde",
+            "blocks": [
+              {
+                "key": "MEMORY_EVIDENCE",
+                "epistemicState": "KNOWN",
+                "state": "EXPOSED",
+                "digest": "5f262e8b581dcadb7c5d7a34f231739470292d11567e41692c3ac43d428492d1",
+                "characters": 1269,
+                "field": "input.messages.0.content",
+                "offset": 4119,
+                "sourceReferences": [
+                  "pgm1_a5875a047f297c8a9ad7a93e92798631aee1cf28a71ffe68f6f806da098c93f1",
+                  "pgm1_bd56d6718496781b5aef2a678d33458bcd4f6b86cd71bfc7b8be41e931e32442",
+                  "episode:r5p2-natural-formation-45170a13-ba31-48f2-825f-79b2af7b9c58:06a352a0-b314-4816-bdae-c0793aca1947",
+                  "episode:r5p2-natural-correction-2398f6ae-7710-4bf5-af42-56deaa36a518:82451ec8-9a57-4eb8-a231-2c3beaae111e",
+                  "episode:r5p2-natural-correction-8aa7f54f-f688-48b4-86a8-81ce9d4fb63f:6a0df7ec-838d-486c-8b38-57383b83522b",
+                  "episode:r5p2-chatter-40e27e9b-8c19-4c46-9685-0f92674cc14e:6bf9fdd9-ae20-41a2-baa1-73b1452b7e52"
+                ]
+              },
+              {
+                "key": "RelevantMemory",
+                "state": "OMITTED",
+                "digest": null,
+                "characters": 0,
+                "field": null,
+                "offset": null,
+                "sourceReferences": []
+              }
+            ]
+          },
+          "consumers": [
+            {
+              "intentId": "ei1_1fbd465eb6528cb0d7ec21fa7c30c541f194a76deb2fbdb3fe222d5bc3d5fa77",
+              "admissionState": "ADMITTED",
+              "attemptId": "ea1_82fc586275ef30faa8bbd77ca02c62808d35dedcefea025ae44a8c776f6c3550",
+              "dispatchStartedAt": "2026-10-11T14:13:29.472711+08:00",
+              "certainty": "APPLIED",
+              "layer": "PROVIDER_RESPONSE"
+            }
+          ],
+          "consumersLimited": false
+        },
+        {
+          "manifestId": "cm1_0e3718667646f2b1bd0e24d4b52ed40cf358980628b12d3ada692f96ea9d2793",
+          "exposureId": "ce1_463ab980dd8f79f51765a084437b8d43139361a3b052884242898bb99d62890f",
+          "consumerOperation": "streamReply:c76567b8-66cb-403b-b879-85b4d0685858",
+          "memoryBlocks": [
+            {
+              "key": "MEMORY_EVIDENCE",
+              "epistemicState": "KNOWN",
+              "digest": "1780ab07abbe49d8c5fe82e203b31575d4314c7cbd265cfd2d334624fd2a1322",
+              "characters": 1264,
+              "sourceReferences": [
+                "pgm1_a5875a047f297c8a9ad7a93e92798631aee1cf28a71ffe68f6f806da098c93f1",
+                "pgm1_bd56d6718496781b5aef2a678d33458bcd4f6b86cd71bfc7b8be41e931e32442",
+                "episode:r5p2-natural-formation-45170a13-ba31-48f2-825f-79b2af7b9c58:06a352a0-b314-4816-bdae-c0793aca1947",
+                "episode:r5p2-natural-correction-2398f6ae-7710-4bf5-af42-56deaa36a518:82451ec8-9a57-4eb8-a231-2c3beaae111e",
+                "episode:r5p2-natural-correction-8aa7f54f-f688-48b4-86a8-81ce9d4fb63f:6a0df7ec-838d-486c-8b38-57383b83522b",
+                "episode:r5p2-chatter-40e27e9b-8c19-4c46-9685-0f92674cc14e:6bf9fdd9-ae20-41a2-baa1-73b1452b7e52"
+              ],
+              "stability": "VOLATILE"
+            },
+            {
+              "key": "RelevantMemory",
+              "digest": "2cb969a531840dcefb6699b962451a360115bf555e23c8ff8bcb8782e958b2de",
+              "characters": 46,
+              "sourceReferences": [
+                "episode:r5p2-chatter-40e27e9b-8c19-4c46-9685-0f92674cc14e:6bf9fdd9-ae20-41a2-baa1-73b1452b7e52",
+                "episode:r5p2-natural-correction-8aa7f54f-f688-48b4-86a8-81ce9d4fb63f:6a0df7ec-838d-486c-8b38-57383b83522b",
+                "episode:r5p2-natural-correction-2398f6ae-7710-4bf5-af42-56deaa36a518:82451ec8-9a57-4eb8-a231-2c3beaae111e",
+                "episode:r5p2-natural-formation-45170a13-ba31-48f2-825f-79b2af7b9c58:06a352a0-b314-4816-bdae-c0793aca1947",
+                "pgm1_a5875a047f297c8a9ad7a93e92798631aee1cf28a71ffe68f6f806da098c93f1",
+                "pgm1_bd56d6718496781b5aef2a678d33458bcd4f6b86cd71bfc7b8be41e931e32442",
+                "retrieval:mre_2819be56-0d43-4995-93f4-afba2940ab41"
+              ],
+              "stability": "VOLATILE"
+            }
+          ],
+          "exposure": {
+            "boundary": "PREPARED_FOR_USE",
+            "inputDigest": "376efb3ca8a9101ad9b4d5b4db6fc3df2aa773ccc2bbbdf461ec1c66aedc7f32",
+            "blocks": [
+              {
+                "key": "MEMORY_EVIDENCE",
+                "epistemicState": "KNOWN",
+                "state": "EXPOSED",
+                "digest": "5f262e8b581dcadb7c5d7a34f231739470292d11567e41692c3ac43d428492d1",
+                "characters": 1269,
+                "field": "input.messages.0.content",
+                "offset": 2657,
+                "sourceReferences": [
+                  "pgm1_a5875a047f297c8a9ad7a93e92798631aee1cf28a71ffe68f6f806da098c93f1",
+                  "pgm1_bd56d6718496781b5aef2a678d33458bcd4f6b86cd71bfc7b8be41e931e32442",
+                  "episode:r5p2-natural-formation-45170a13-ba31-48f2-825f-79b2af7b9c58:06a352a0-b314-4816-bdae-c0793aca1947",
+                  "episode:r5p2-natural-correction-2398f6ae-7710-4bf5-af42-56deaa36a518:82451ec8-9a57-4eb8-a231-2c3beaae111e",
+                  "episode:r5p2-natural-correction-8aa7f54f-f688-48b4-86a8-81ce9d4fb63f:6a0df7ec-838d-486c-8b38-57383b83522b",
+                  "episode:r5p2-chatter-40e27e9b-8c19-4c46-9685-0f92674cc14e:6bf9fdd9-ae20-41a2-baa1-73b1452b7e52"
+                ]
+              },
+              {
+                "key": "RelevantMemory",
+                "state": "OMITTED",
+                "digest": null,
+                "characters": 0,
+                "field": null,
+                "offset": null,
+                "sourceReferences": []
+              }
+            ]
+          },
+          "consumers": [
+            {
+              "intentId": "ei1_1b37ef3c6dd165b09b92c05751432e3598fe375e1ebdb98b72b19cc8f0d171ce",
+              "admissionState": "ADMITTED",
+              "attemptId": "ea1_be0f8e9c17f145469410c930a67053ef7144772333545a1f64764e84fa6c3228",
+              "dispatchStartedAt": "2026-10-11T14:13:31.083537+08:00",
+              "certainty": "APPLIED",
+              "layer": "PROVIDER_RESPONSE"
+            }
+          ],
+          "consumersLimited": false
+        }
+      ],
+      "contextsLimited": false
+    }
+  ],
+  "serverSha": "00f4ad8",
+  "note": "Prepared exposures and actual A9 terminal Provider response are separate evidence; no raw prompt/archive or Host bearer published."
+}

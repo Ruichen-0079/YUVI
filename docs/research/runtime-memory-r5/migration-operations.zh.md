@@ -47,3 +47,15 @@ Finalized worker 在新后端 boot 时限制 owner Persona；vector worker 另�
 已提供 scope 计数/水位、来源分类、semantic 每任务模型/usage/duration/重试/错误、index job 状态/模型空间/投影、worker 最近扫描/错误次数、DB pool idle error 计数、Finalized 正式状态和最近迁移 manifest。计数来自提交，不使用 HTTP200/口头承认代替写入。
 
 每日接纳/合并/纠正率、最老积压年龄、全域不一致数、检索 histogram、Provider invoice reconciliation、验证持久水位等仍未形成完整产品指标。读取 API 无原始 source body；运维下载/披露原始来源仍需 Host policy，禁止把私人 dump/模型输入放 Git。
+
+## Phase 2 正式升级与隔离副本工作流
+
+最新实现见 [Phase 2](phase2.zh.md)。以上“完整事务重建/尚无 Host 审计”等段落属于 Phase 1 历史记录。现在 migration runner 有持久 digest ledger，033 将旧当前表迁成 physical generations + active view；不得用旧 runner 重播 026，也不得用旧二进制对升级 schema 写入。没有验证可逆 DDL 降级；升级失败按已提交 receipt 续跑，已正式写入的新历史必须保留。
+
+新安装或隔离副本先由 schema owner 跑 027–036，再用独立 `packages/memory/operations/provision-roles.sql` 配置应用角色及序列/表权限。生产 `MEMORY_BACKEND=postgres` 启动会拒绝缺失/变更的迁移回执和过宽数据库角色。应用连接凭据不应能迁移 schema；不向聊天 Host 或模型赋予 maintenance 权限。角色脚本不处理 login 密码、PUBLIC 权限或备份，operator 必须检查继承权限；不能给 app 授予 owner/superuser。
+
+POST `/memory/v1/operations` 需要显式本地 operator bearer，scope 必须属于当前 Character。`MIGRATION_PREPARE` 传稳定 id、scope、legacyPerson、legacyPersona，明确对应隔离旧副本的原绑定；默认伪身份拒绝。`MIGRATION_ADVANCE` 每批最多100，数据库事务内记录原始 payload/digest、target 和 checkpoint；`MIGRATION_PAUSE/RESUME/STATUS` 允许停机后同 ID 继续。GET `/memory/v1/migration` 返回稳定状态、不返回原 payload。快照与核对期间来源变更、摘要不同或数量不符都会阻断。此工作流只处理 `memories` PostgreSQL 副本，**不自动调用真实 Mem0 或进行上线切换**。
+
+`IMPORT_VERIFIED` 证明这次归档的行数、源 hash chain 和目标摘要；全部 legacy_unverified，activation 仍 BLOCKED_SOURCE_REVIEW_REQUIRED。错误/缺来源不能统一提升成 grounded。源数据保留，反向切换不能通过删除 Authority 表完成。raw Mem0、Profile/Dream/旧纠正、pending ingestion 和不明身份的全资产 catalog/兼容/回退仍是正式阻断。
+
+REBUILD_START/ADVANCE/PAUSE/RESUME/STATUS/RETIRE 使用持久 shadow generation 和增量追赶，百万条在线实测已替代旧17秒 writer 锁路径。AUDIT_START/ADVANCE/STATUS 证书是版本点检；RETRY_FINALIZED 只允许已证明未生效的旧目标/时间顺序失败，QUEUED 是 UNCONFIRMED；VECTOR_REQUEUE 只修复派生模型空间。强停数据库时 query failure 仍 UNKNOWN，不将其解释为空或允许盲目安全重试。模型空间退休、持续审计/对账及所有 worker 的运维暂停仍未完成。

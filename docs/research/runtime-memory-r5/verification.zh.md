@@ -46,3 +46,9 @@
 PR 复核后又收紧产品 DTO 白名单，并增加实际旧 JSON 的未知顶层/lineage 字段不披露回归；无效游标明确 FAILED，不混淆数据 UNKNOWN。此前模型/负载证据的 SHA 保留原值，不把读 DTO 修复伪装为重新模型实验。
 
 配置装配回归还验证：只提供 PostgreSQL provider、缺少 semantic Policy 时，MemoryService 明确 disabled，Keyword 输入也不能触发默认规则写入。此补充只改变缺失配置分支，Server 实际 Policy 继续使用既有语义实现。并发“单胜者”测试证明事务不重叠，不证明较晚纠正自动重新规划后最终收敛；后者仍为阻断。
+
+## Phase 2 验证范围
+
+新增实际PG覆盖可信Host session所有权、来源审计/撤证、原始digest保留的重评及最终映射、在线shadow暂停/重开/并发推进/退休、schema receipt原子性、受限role实际commit/cutover、防DDL/历史编辑、旧副本250条恢复/并发批次/摘要对账/源变化/注入事务失败、实际HTTP维护和读取、Character子调用context关联/A9消费者，以及Embedding期间纠正不泄露旧事实。实际PG指定套件66项（新增竞态与重评保护后），完整仓库test/check/build单独运行；数量不是成熟度声明。
+
+实机正常Server质量、million向量/在线writer与两次own-PG强停分别在 [Phase 2](phase2.zh.md) 和 [证据目录](evidence/phase2/)；确定性故障fixture不冒充模型判断。初次远端Linux/Conformance因旧P8测试仍期望重播migration名称而失败，修正为第一次有receipt、第二次no-op，并保留完整authority读写隔离断言；旧失败不隐藏。最终CI结果以PR最新SHA为准。

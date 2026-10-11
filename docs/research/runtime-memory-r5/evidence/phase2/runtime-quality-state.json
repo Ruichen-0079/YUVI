@@ -1,0 +1,108 @@
+{
+  "states": [
+    {
+      "id": "pgm1_bd56d6718496781b5aef2a678d33458bcd4f6b86cd71bfc7b8be41e931e32442",
+      "content": "用户的饮茶偏好是岩露-d3741b",
+      "state": "current",
+      "version": "1"
+    },
+    {
+      "id": "pgm1_78bd535c1d7a4d61ec15b30ef4c0398d62c9efca873ebcccef557225242e544e",
+      "content": "用户当前项目使用的编辑器代号是晨湾-1511ae",
+      "state": "superseded",
+      "version": "2"
+    },
+    {
+      "id": "pgm1_15f001275d8f31310f357897618d7cf2401e596dea49f26c0d05d274769c2ba9",
+      "content": "用户的饮茶偏好是岩露-d3741b",
+      "state": "supporting",
+      "version": "3"
+    },
+    {
+      "id": "pgm1_a5875a047f297c8a9ad7a93e92798631aee1cf28a71ffe68f6f806da098c93f1",
+      "content": "用户当前项目使用的编辑器代号是澄野-08f07e",
+      "state": "current",
+      "version": "4"
+    },
+    {
+      "id": "pgm1_0696501cc69dce09d5da344436fb6c8b4a8ed696f49dbcb4db93ddcbfece60b9",
+      "content": "用户的饮茶偏好是岩露-d3741b",
+      "state": "supporting",
+      "version": "5"
+    },
+    {
+      "id": "pgm1_c95c2a961e446dfa006cd528ee65f8f93d97956d2e696c6c28e5e45f4611581e",
+      "content": "用户当前项目使用的编辑器代号是澄野-08f07e",
+      "state": "supporting",
+      "version": "6"
+    },
+    {
+      "id": "pgm1_2558656852b2d35c24bce5b3fb579e11435d562335aca50b92964e0b65298f3e",
+      "content": "用户偏好协作时先给结论再给证据，并将此格式命名为森序-b0b555",
+      "state": "current",
+      "version": "7"
+    },
+    {
+      "id": "pgm1_8507d999f793ad46aa7de95309ebb4d8b8726a1003d61bcdebdb939c61f730a8",
+      "content": "泊松-b0b555项目决定使用PostgreSQL保存权威历史，向量只是派生索引",
+      "state": "current",
+      "version": "8"
+    },
+    {
+      "id": "pgm1_31727e958f0b121ec2e6ab571da7b1f2aec39f3b96b82aa60b34c2c5575e6687",
+      "content": "用户偏好协作时先给结论再给证据，并将此格式命名为森序-b0b555",
+      "state": "supporting",
+      "version": "9"
+    },
+    {
+      "id": "pgm1_69e34affcc6595da6a6f0f5503930be6408a65fbf9eb8ea27166803af1cccd5c",
+      "content": "在泊松-b0b555项目中，用户当前的测试分支代号是旧港-b0b555",
+      "state": "superseded",
+      "version": "10"
+    },
+    {
+      "id": "pgm1_b561b98555bf9fb5266789fd9a1eafa7078b2f7ab16a98f213f1aa1f53b4795d",
+      "content": "在泊松-b0b555项目中，用户当前的测试分支代号已从旧港-b0b555改为新港-b0b555",
+      "state": "current",
+      "version": "11"
+    }
+  ],
+  "rels": [
+    {
+      "kind": "supports",
+      "from_id": "pgm1_15f001275d8f31310f357897618d7cf2401e596dea49f26c0d05d274769c2ba9",
+      "to_id": "pgm1_bd56d6718496781b5aef2a678d33458bcd4f6b86cd71bfc7b8be41e931e32442",
+      "version": "3"
+    },
+    {
+      "kind": "supersedes",
+      "from_id": "pgm1_a5875a047f297c8a9ad7a93e92798631aee1cf28a71ffe68f6f806da098c93f1",
+      "to_id": "pgm1_78bd535c1d7a4d61ec15b30ef4c0398d62c9efca873ebcccef557225242e544e",
+      "version": "4"
+    },
+    {
+      "kind": "supports",
+      "from_id": "pgm1_0696501cc69dce09d5da344436fb6c8b4a8ed696f49dbcb4db93ddcbfece60b9",
+      "to_id": "pgm1_bd56d6718496781b5aef2a678d33458bcd4f6b86cd71bfc7b8be41e931e32442",
+      "version": "5"
+    },
+    {
+      "kind": "supports",
+      "from_id": "pgm1_c95c2a961e446dfa006cd528ee65f8f93d97956d2e696c6c28e5e45f4611581e",
+      "to_id": "pgm1_a5875a047f297c8a9ad7a93e92798631aee1cf28a71ffe68f6f806da098c93f1",
+      "version": "6"
+    },
+    {
+      "kind": "supports",
+      "from_id": "pgm1_31727e958f0b121ec2e6ab571da7b1f2aec39f3b96b82aa60b34c2c5575e6687",
+      "to_id": "pgm1_2558656852b2d35c24bce5b3fb579e11435d562335aca50b92964e0b65298f3e",
+      "version": "9"
+    },
+    {
+      "kind": "supersedes",
+      "from_id": "pgm1_b561b98555bf9fb5266789fd9a1eafa7078b2f7ab16a98f213f1aa1f53b4795d",
+      "to_id": "pgm1_69e34affcc6595da6a6f0f5503930be6408a65fbf9eb8ea27166803af1cccd5c",
+      "version": "11"
+    }
+  ]
+}
