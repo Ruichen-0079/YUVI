@@ -1,3 +1,7 @@
+import {
+  ConversationHostIdentityError,
+  type AuthenticatedConversationHost
+} from "../conversation-host-identity.js";
 import type { ReplyPublicationTarget } from "@companion/memory";
 import { ConversationPersistenceError } from "@companion/core";
 import { parseRuntimeConfig } from "@companion/config";
@@ -125,7 +129,12 @@ export async function registerMessageRoutes(
   context: AppContext
 ): Promise<void> {
   async function handleMessage(
-    request: { body: unknown; log: FastifyInstance["log"]; raw?: { aborted?: boolean } },
+    request: {
+      body: unknown;
+      log: FastifyInstance["log"];
+      headers?: Record<string, string | string[] | undefined>;
+      raw?: { aborted?: boolean };
+    },
     reply: {
       status(code: number): { send(payload: unknown): unknown };
       send(payload: unknown): unknown;
@@ -143,7 +152,27 @@ export async function registerMessageRoutes(
       input.data.voiceOutput ?? input.data.options?.voiceOutput ?? input.data.options?.tts
     );
     const memoryOptions = normalizeMessageMemoryOptions(input.data.options);
-    const identity = resolveMessageIdentity(input.data, context.activeRuntimeEnv);
+    let identity = resolveMessageIdentity(input.data, context.activeRuntimeEnv);
+    let hostIdentity: AuthenticatedConversationHost | undefined;
+    try {
+      hostIdentity = await context.conversationHost?.authorize(
+        { headers: request.headers ?? {} },
+        input.data
+      );
+      if (hostIdentity) {
+        if (input.data.speechObservationId)
+          throw new ConversationHostIdentityError("HOST_SPEECH_AUTHORITY_UNRESOLVED");
+        identity = { subjectUserId: hostIdentity.personId, personaId: hostIdentity.personaId };
+      }
+    } catch (e) {
+      return reply
+        .status(e instanceof ConversationHostIdentityError ? e.statusCode : 503)
+        .send({
+          schema: "host.error.v1",
+          status: e instanceof ConversationHostIdentityError ? "FAILED" : "UNKNOWN",
+          error: e instanceof ConversationHostIdentityError ? e.code : "HOST_IDENTITY_UNAVAILABLE"
+        });
+    }
     let event;
     let runtimeEventId: string | undefined;
     let sourceJournalRef: JournalEventRef | undefined;
@@ -165,6 +194,7 @@ export async function registerMessageRoutes(
       try {
         const receipt = await context.conversationalReceiptAdmission.admit({
           surface,
+          ...(hostIdentity ? { hostIdentity } : {}),
           sessionId: input.data.sessionId,
           runtimeEventId,
           content,

@@ -320,6 +320,11 @@ export class MemoryService {
     await this.postgresProvider?.vectors?.stop();
   }
 
+  getRetrievalEvidence(scope: string) {
+    this.getKnowledgeReader(scope);
+    return this.postgresProvider?.retrievalEvidence;
+  }
+
   getKnowledgeReader(scope: string) {
     assertCharacterMemoryScope(
       this.characterOwner ?? { instanceId: "primary-legacy", personaId: null },

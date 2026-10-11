@@ -1,3 +1,7 @@
+import type {
+  ConversationHostIdentity,
+  AuthenticatedConversationHost
+} from "./conversation-host-identity.js";
 import { randomBytes } from "node:crypto";
 import {
   JOURNAL_COMMAND_VERSION,
@@ -30,6 +34,8 @@ export type ConversationalReceiptInput = {
   runtimeEventId: string;
   content: string;
   hasImageAttachment?: boolean;
+  /** In-process Host proof, never accepted from a message DTO. */
+  hostIdentity?: AuthenticatedConversationHost;
 };
 
 export interface ConversationalReceiptAdmission {
@@ -73,11 +79,13 @@ const SURFACE_REFERENCE: Record<ConversationalReceiptSurface, string> = {
 export class HostConversationalReceiptAdmission implements ConversationalReceiptAdmission {
   constructor(
     private readonly journal: JournalRepository | null,
-    private readonly createPayloadId: () => string = createOpaquePayloadId
+    private readonly createPayloadId: () => string = createOpaquePayloadId,
+    private readonly host?: ConversationHostIdentity
   ) {}
 
   async admit(rawInput: ConversationalReceiptInput): Promise<JournalAppendResult> {
-    const parsed = ConversationalReceiptInputSchema.safeParse(rawInput);
+    const { hostIdentity, ...transport } = rawInput;
+    const parsed = ConversationalReceiptInputSchema.safeParse(transport);
     if (!parsed.success) {
       throw new JournalStoreError(
         "INVALID_PROPOSAL",
@@ -164,6 +172,14 @@ export class HostConversationalReceiptAdmission implements ConversationalReceipt
       ],
       payloads
     };
+
+    if (hostIdentity) {
+      if (!this.host)
+        throw new JournalStoreError("INVALID_PROPOSAL", "Host identity admission unavailable.");
+      Object.assign(authority, this.host.authority(hostIdentity), {
+        policyVersion: "yuvi-conversation-host.v2"
+      });
+    }
 
     const appendInput: JournalHostAppendInput = {
       command,

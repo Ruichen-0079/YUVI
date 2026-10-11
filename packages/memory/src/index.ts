@@ -472,3 +472,13 @@ export * from "./authority/migration.js";
 export * from "./authority/client.js";
 
 export * from "./authority/vector.js";
+
+export type { MemoryReadAuthority } from "./provider.js";
+
+export * from "./authority/retrieval-evidence.js";
+
+export * from "./authority/integrity-audit.js";
+
+export * from "./authority/reassessment.js";
+
+export * from "./authority/operations.js";

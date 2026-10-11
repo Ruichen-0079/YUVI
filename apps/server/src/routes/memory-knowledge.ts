@@ -37,12 +37,17 @@ export async function registerMemoryKnowledgeRoutes(
     "detail",
     "relations",
     "ingestion",
-    "processing"
+    "processing",
+    "retrievals",
+    "retrieval"
   ] as const) {
     app.get(`/memory/v1/${operation}`, async (request, reply) => {
       if (!requireLocalDashboardAccess(config, request, reply)) return;
       const parsed = query
-        .extend({ id: z.string().min(1).max(4096).optional() })
+        .extend({
+          id: z.string().min(1).max(4096).optional(),
+          traceId: z.string().min(1).max(512).optional()
+        })
         .safeParse(request.query);
       if (!parsed.success)
         return reply
@@ -70,6 +75,21 @@ export async function registerMemoryKnowledgeRoutes(
             workers: context.memory.getAuthorityDiagnostics(),
             migrations: await reader.migrations(input.scope)
           };
+        if (operation === "retrievals")
+          return await context.memory.getRetrievalEvidence(input.scope)!.page(input);
+        if (operation === "retrieval" && input.id)
+          return (
+            (await context.memory
+              .getRetrievalEvidence(input.scope)!
+              .detail(input.scope, input.id)) ??
+            reply
+              .code(404)
+              .send({
+                schema: "memory.error.v1",
+                status: "UNKNOWN",
+                error: "MEMORY_RETRIEVAL_NOT_FOUND"
+              })
+          );
         if (operation === "current") return await reader.page(input);
         if (operation === "timeline") return await reader.timeline(input);
         if (!input.id)

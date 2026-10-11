@@ -24,6 +24,12 @@ export class MemoryKnowledgeReader {
     ).rows[0];
     const version = String(row?.["version"] ?? "0");
     const projectionVersion = String(row?.["projection_version"] ?? "0");
+    const audit = (
+      await this.db.query(
+        "select status,anchor from memory_authority_audits where scope=$1 order by created_at desc,audit_id desc limit 1",
+        [scope]
+      )
+    ).rows[0];
     return {
       schema: "memory.overview.v1",
       status: version === projectionVersion ? "OK" : "PARTIAL",
@@ -33,7 +39,10 @@ export class MemoryKnowledgeReader {
       current: String(row?.["current_count"] ?? "0"),
       legacy: String(row?.["legacy_count"] ?? "0"),
       unattributed: String(row?.["unattributed_count"] ?? "0"),
-      integrity: "NOT_VERIFIED",
+      integrity:
+        audit?.["status"] === "VERIFIED" && String(audit["anchor"]) === version
+          ? "VERIFIED"
+          : "NOT_VERIFIED",
       compatibility: Number(row?.["legacy_count"] ?? 0)
         ? "LEGACY_UNVERIFIED_PRESENT"
         : "NO_LEGACY_IMPORT"

@@ -1,3 +1,5 @@
+import type { MemoryDecisionReassessment } from "./reassessment.js";
+import { MemoryRetrievalEvidence, type RetrievalCandidate } from "./retrieval-evidence.js";
 import type { MemoryVectorIndexer } from "./vector.js";
 import type {
   MemoryProvider,
@@ -11,12 +13,15 @@ import { PostgresMemoryAuthority } from "./store.js";
 import { MemoryKnowledgeReader } from "./read.js";
 
 export class PostgresMemoryProvider implements MemoryProvider {
+  reassessment?: MemoryDecisionReassessment | undefined;
   readonly knowledge: MemoryKnowledgeReader;
+  readonly retrievalEvidence: MemoryRetrievalEvidence;
   constructor(
     readonly authority: PostgresMemoryAuthority,
     readonly vectors?: MemoryVectorIndexer
   ) {
     this.knowledge = new MemoryKnowledgeReader(authority.pool);
+    this.retrievalEvidence = new MemoryRetrievalEvidence(authority.pool);
   }
   prepareEvidence: NonNullable<MemoryProvider["prepareEvidence"]> = (producer, input) =>
     this.authority.prepare(producer, input);
@@ -46,18 +51,14 @@ export class PostgresMemoryProvider implements MemoryProvider {
         errorCode: "MEMORY_CANCELLED"
       };
     try {
-      const result = await this.knowledge.search(input.scope, input.text, input.limit ?? 8);
+      const result = await this.knowledge.search(input.scope, input.text, 32);
       let vectorError = false;
       let vectorPending = false;
       let indexedIds: string[] = [];
       if (this.vectors)
         try {
           vectorPending = await this.vectors.hasPending(input.scope);
-          indexedIds = await this.vectors.search(
-            input.scope,
-            input.text,
-            Math.min(32, input.limit ?? 8)
-          );
+          indexedIds = await this.vectors.search(input.scope, input.text, 32);
         } catch {
           vectorError = true;
         }
@@ -74,11 +75,13 @@ export class PostgresMemoryProvider implements MemoryProvider {
             )
           ].map((r) => [r.id, r])
         ).values()
-      ].slice(0, input.limit ?? 8);
+      ]
+        .filter((r) => matchesReader(r.event, input.access!))
+        .slice(0, input.limit ?? 8);
       const events = selected
         .map((r) => r.event)
         .filter((event) => matchesReader(event, input.access!));
-      return {
+      const outcome: MemoryRetrievalOutcome = {
         status: vectorError
           ? events.length
             ? "partial"
@@ -98,8 +101,43 @@ export class PostgresMemoryProvider implements MemoryProvider {
             : result.candidateLimited
               ? "MEMORY_TEXT_CANDIDATE_BOUND"
               : null,
-        selectedCount: events.length
+        selectedCount: events.length,
+        watermark: result.watermark
       };
+      const chosen = new Set(events.map((e) => e.id));
+      const textIds = new Set(result.records.map((r) => r.id));
+      const vectorIds = new Set(indexedIds);
+      const all = [
+        ...new Map(
+          [...result.records, ...indexed.filter((r): r is NonNullable<typeof r> => r !== null)].map(
+            (r) => [r.id, r]
+          )
+        ).values()
+      ];
+      const candidates: RetrievalCandidate[] = all
+        .filter((r) => matchesReader(r.event, input.access!))
+        .map((r) => ({
+          id: r.id,
+          version: r.version,
+          state: r.state,
+          content: r.event.content,
+          channels: [
+            ...(textIds.has(r.id) ? ["TEXT" as const] : []),
+            ...(vectorIds.has(r.id) ? ["VECTOR" as const] : [])
+          ],
+          selected: chosen.has(r.id),
+          reason: chosen.has(r.id)
+            ? "SELECTED"
+            : !["current", "conflicted"].includes(r.state)
+              ? "NO_LONGER_CURRENT"
+              : "RESULT_BOUND"
+        }));
+      outcome.retrievalId = await this.retrievalEvidence.record(input, outcome, {
+        watermark: result.watermark,
+        candidates,
+        modelTag: this.vectors?.modelTag
+      });
+      return outcome;
     } catch (error) {
       return {
         status: "error",
@@ -134,6 +172,23 @@ export class PostgresMemoryProvider implements MemoryProvider {
         eventId: result.event.id
       };
     } catch (error) {
+      if (
+        this.reassessment &&
+        error instanceof MemoryAuthorityError &&
+        ["MEMORY_TARGET_STALE_OR_INACCESSIBLE", "MEMORY_TARGET_TIME_ORDER"].includes(error.code)
+      ) {
+        try {
+          const result = await this.reassessment.apply(input);
+          return { status: result.inserted ? "written" : "unchanged", eventId: result.eventId };
+        } catch (e) {
+          return {
+            status: "rejected",
+            failureClass: "ambiguous",
+            errorCode:
+              e instanceof MemoryAuthorityError ? e.code : "MEMORY_REASSESSMENT_PENDING_OR_UNKNOWN"
+          };
+        }
+      }
       // Any unclassified DB/transport failure may include a lost COMMIT response.
       // Reconciliation, not blind retry, decides whether an effect exists.
       return {
@@ -148,7 +203,15 @@ export class PostgresMemoryProvider implements MemoryProvider {
     if (!input.scope || !input.idempotencyKey || !input.payloadDigest)
       return { status: "unknown" as const, errorCode: "MEMORY_RECONCILIATION_IDENTITY_MISSING" };
     try {
-      return await this.authority.reconcile(input.scope, input.idempotencyKey, input.payloadDigest);
+      const reassessed = await this.reassessment?.reconcile(
+        input.scope,
+        input.idempotencyKey,
+        input.payloadDigest
+      );
+      return (
+        reassessed ??
+        (await this.authority.reconcile(input.scope, input.idempotencyKey, input.payloadDigest))
+      );
     } catch {
       return { status: "unknown" as const, errorCode: "MEMORY_AUTHORITY_QUERY_FAILED" };
     }

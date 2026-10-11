@@ -273,6 +273,7 @@ type AssistantTurnClaim = {
 };
 
 type MemoryRetrievalRequest = {
+  sourceJournalRef?: import("@companion/protocol").JournalEventRef | undefined;
   sessionId: string;
   queryText: string;
   traceId: string;
@@ -1361,8 +1362,8 @@ export class RuntimeOrchestrator {
         })),
       {
         owner: "MEMORY",
-        reference: "retrieval-window",
-        revision: null,
+        reference: outcome.retrievalId ? `retrieval:${outcome.retrievalId}` : "retrieval-window",
+        revision: outcome.watermark ?? null,
         digest: contextUseDigest({
           status: memory.memoryFinalStatus ?? outcome.status,
           semanticProviderStatus: outcome.status,
@@ -1467,7 +1468,12 @@ export class RuntimeOrchestrator {
       const provider = this.options.memory.getMemoryProvider?.();
       if (provider)
         for (const event of outcome.events.filter((item) => selected.has(item.id))) {
+          const access = await this.options.resolveMemoryReadAuthority?.(
+            currentProviderWorkContext()?.cause,
+            event.scope ?? memory.retrievalScope
+          );
           const actual = await provider.getEvent({
+            access,
             id: event.id,
             scope: event.scope ?? memory.retrievalScope
           });
@@ -5787,6 +5793,7 @@ export class RuntimeOrchestrator {
       {
         sessionId: event.payload.sessionId,
         queryText: event.payload.content,
+        sourceJournalRef: event.payload.sourceJournalRef,
         traceId: event.traceId,
         parentId: event.id,
         personaId: event.payload.personaId,
@@ -5893,7 +5900,17 @@ export class RuntimeOrchestrator {
     request: MemoryRetrievalRequest
   ): Promise<Awaited<ReturnType<MemoryProvider["retrieveRelevant"]>>> {
     try {
+      const scope =
+        request.subjectUserId && request.personaId
+          ? buildMemoryScope(request.subjectUserId, request.personaId)
+          : undefined;
+      const access = scope
+        ? await this.options.resolveMemoryReadAuthority?.(request.sourceJournalRef, scope)
+        : undefined;
       return await provider.retrieveRelevant({
+        access,
+        traceId: request.traceId,
+        sourceJournalRef: request.sourceJournalRef,
         text: request.queryText,
         limit: 5,
         sessionId: request.sessionId,
@@ -5948,6 +5965,11 @@ export class RuntimeOrchestrator {
   }
 
   private async retrieveLegacyMemories(request: MemoryRetrievalRequest): Promise<MemoryContext> {
+    if (this.options.memory.getBackendKind?.() === "postgres") {
+      const context = emptyMemoryContext();
+      context.memoryFinalStatus = "unavailable";
+      return context;
+    }
     if (this.options.memory.retrieveRelevantMemoriesWithMetadata) {
       const result = await this.options.memory.retrieveRelevantMemoriesWithMetadata({
         text: request.queryText,

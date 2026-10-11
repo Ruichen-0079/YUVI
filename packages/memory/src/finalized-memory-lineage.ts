@@ -68,7 +68,11 @@ export function freezeFinalizedMemoryEvent(
     },
     origin: source.origin,
     authority: source.authority,
-    sourceTime: { recordedAt: source.recordedAt, occurrenceTime: source.occurrenceTime }
+    sourceTime: {
+      recordedAt: source.recordedAt,
+      ...(source.commitSeq ? { commitSeq: source.commitSeq } : {}),
+      occurrenceTime: source.occurrenceTime
+    }
   });
   encodeMemoryLineage(lineage); // Bound before durable admission, never silently truncate.
   return { ...semantic, lineage };

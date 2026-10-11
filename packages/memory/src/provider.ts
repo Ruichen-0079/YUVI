@@ -147,6 +147,8 @@ export type MemoryReadAuthority = {
 };
 
 export type MemoryRetrievalInput = {
+  traceId?: string | undefined;
+  sourceJournalRef?: import("@companion/protocol").JournalEventRef | undefined;
   access?: MemoryReadAuthority | undefined;
   text: string;
   limit?: number;
@@ -176,6 +178,8 @@ export type MemoryRetrievalStatus = "ok" | "empty" | "unavailable" | "error" | "
  * "error" must not be collapsed into "empty" by a Runtime caller.
  */
 export type MemoryRetrievalOutcome = {
+  retrievalId?: string | undefined;
+  watermark?: string | undefined;
   status: MemoryRetrievalStatus;
   events: MemoryEvent[];
   source: MemoryEventSource;
