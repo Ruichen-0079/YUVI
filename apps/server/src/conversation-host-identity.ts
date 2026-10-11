@@ -128,7 +128,7 @@ export class ConversationHostIdentity {
           [hash(token), this.journal.namespace, this.owner.instanceId, this.owner.personaId]
         )
       ).rows[0];
-      if (!row || !this.personRevision(String(row["person_id"])))
+      if (!row || row["person_revision"] !== this.personRevision(String(row["person_id"])))
         throw new ConversationHostIdentityError("HOST_CREDENTIAL_INVALID", 401);
       identity = Object.freeze({
         grantId: String(row["grant_id"]),
@@ -243,7 +243,7 @@ export class ConversationHostIdentity {
       return undefined;
     const row = (
       await this.db.query(
-        `select grant_id from memory_host_grants where grant_id=$1 and actor_id=$2 and person_id=$3 and persona_id=$4 and instance_id=$5 and journal_namespace=$6 and revoked_at is null and expires_at>now()`,
+        `select grant_id,person_revision from memory_host_grants where grant_id=$1 and actor_id=$2 and person_id=$3 and persona_id=$4 and instance_id=$5 and journal_namespace=$6 and revoked_at is null and expires_at>now()`,
         [
           a.binding.bindingVersion,
           a.principal.actorId,
@@ -254,7 +254,7 @@ export class ConversationHostIdentity {
         ]
       )
     ).rows[0];
-    return row
+    return row && row["person_revision"] === this.personRevision(a.binding.personId)
       ? {
           principal: { namespace: a.principal.namespace, actorId: a.principal.actorId },
           personId: a.binding.personId
