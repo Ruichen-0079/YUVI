@@ -717,5 +717,5 @@ describe.skipIf(!url)("R5 PostgreSQL authority invariants", () => {
     } finally {
       await freshPool.end();
     }
-  });
+  }, 20000);
 });

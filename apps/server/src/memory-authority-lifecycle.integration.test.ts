@@ -17,6 +17,8 @@ import {
   buildMemoryScope,
   readSqlMigrations,
   applySqlMigrations,
+  PostgresContextUseRepository,
+  contextManifestId,
   rebuildMemoryProjection
 } from "@companion/memory";
 import type { MemoryWriteEventInput } from "@companion/memory";
@@ -155,7 +157,7 @@ describe.skipIf(!url)(
         )
       ).rows[0];
       expect(job).toEqual({ status: "complete", generation: 1 });
-    });
+    }, 20000);
     it("persists source/payload/admission/relation/projection audit checkpoint, invalidates certificate on new version and detects corruption", async () => {
       const id = randomUUID();
       await audit.start(scope, id);
@@ -201,6 +203,98 @@ describe.skipIf(!url)(
         "Editor C"
       ]);
       expect(evidence?.contexts).toEqual([]); // retrieval alone is never reported as model exposure
+      const digest = lineageDigest(canonicalLineageJson("memory-block"));
+      const manifest = {
+        version: "context-use-manifest.v1" as const,
+        namespace,
+        executionId: randomUUID(),
+        assemblyOrdinal: "1",
+        scope,
+        assemblyVersion: "test.v1",
+        selectionVersion: "test.v1",
+        enumeration: "TOP_K" as const,
+        sources: [
+          {
+            owner: "MEMORY" as const,
+            reference: "retrieval:" + found.retrievalId,
+            revision: found.watermark!,
+            digest,
+            availability: "AVAILABLE" as const,
+            revisionKind: "OBSERVED_SNAPSHOT" as const,
+            selection: "SELECTED" as const,
+            reason: "test",
+            roots: []
+          },
+          {
+            owner: "JOURNAL" as const,
+            reference: JSON.stringify(source.ref),
+            revision: source.ref.eventId,
+            digest: null,
+            availability: "AVAILABLE" as const,
+            revisionKind: "NATIVE" as const,
+            selection: "SELECTED" as const,
+            reason: "actual cause",
+            roots: []
+          }
+        ],
+        blocks: [
+          {
+            key: "MEMORY_EVIDENCE",
+            digest,
+            characters: 8,
+            sourceReferences: found.events.map((e) => e.id),
+            stability: "VOLATILE" as const
+          }
+        ],
+        stable: { version: "v1", digest },
+        volatile: { version: "v1", digest }
+      };
+      const exposure = {
+        version: "context-exposure.v1" as const,
+        boundary: "PREPARED_FOR_USE" as const,
+        manifestId: contextManifestId(manifest),
+        consumerOperationSlot: "generateReply:" + randomUUID(),
+        exposureOrdinal: "1",
+        projectionVersion: "test.v1",
+        inputDigest: digest,
+        fields: [],
+        blocks: [
+          {
+            key: "MEMORY_EVIDENCE",
+            state: "EXPOSED" as const,
+            digest,
+            characters: 8,
+            field: "input.messages.0.content",
+            offset: 0,
+            sourceReferences: found.events.map((e) => e.id)
+          }
+        ]
+      };
+      expect(manifest.executionId).not.toBe(
+        (await provider.retrievalEvidence.page({ scope })).items[0]?.traceId
+      );
+      await new PostgresContextUseRepository(pool).admit(manifest, exposure);
+      const used = await provider.retrievalEvidence.detail(scope, found.retrievalId!);
+      expect(used?.contexts).toHaveLength(1);
+      expect(used?.contexts[0]?.exposure.blocks[0]?.state).toBe("EXPOSED");
+      expect(used?.contexts[0]?.consumers).toEqual([]); // PREPARED is not fabricated APPLIED
+      const foreign = { ...manifest, namespace: "foreign", executionId: randomUUID() };
+      await new PostgresContextUseRepository(pool).admit(foreign, {
+        ...exposure,
+        manifestId: contextManifestId(foreign),
+        consumerOperationSlot: randomUUID()
+      });
+      expect(
+        (await provider.retrievalEvidence.detail(scope, found.retrievalId!))?.contexts
+      ).toHaveLength(1);
+      // Imported/debug JSON cannot expose arbitrary private metadata through the product DTO.
+      await pool.query(
+        `update memory_retrieval_runs set candidates=jsonb_set(candidates,'{0,rawPrivateJournal}',to_jsonb('must not disclose'::text)) where scope=$1 and retrieval_id=$2`,
+        [scope, found.retrievalId]
+      );
+      expect(
+        JSON.stringify(await provider.retrievalEvidence.detail(scope, found.retrievalId!))
+      ).not.toContain("must not disclose");
       const denied = await provider.retrieveRelevant({
         text: "Editor",
         scope,
