@@ -139,6 +139,32 @@ export class MemoryKnowledgeReader {
       candidateLimited: Number(rows.rows[0]?.["candidate_count"] ?? 0) >= 513
     };
   }
+  /** Resolve a bounded candidate set against ONE current generation/version snapshot.
+   * Retrieval stages may cross a correction while an embedding Provider is in flight.
+   * Their earlier DTO states are ranking hints, never final current-knowledge authority.
+   */
+  async resolveCandidates(scope: string, ids: string[]) {
+    canonicalScope(scope);
+    if (ids.length > 100 || new Set(ids).size !== ids.length)
+      throw new MemoryAuthorityError("MEMORY_CANDIDATE_BOUND");
+    const rows = (
+      await this.db.query(
+        `with snapshot as materialized (
+      select version,projection_version,projection_generation from memory_authority_scopes where scope=$1)
+      select s.version as snapshot_version,s.projection_version as snapshot_projection,r.*,c.state from snapshot s
+      left join memory_authority_projection_rows c on c.scope=$1 and c.generation=s.projection_generation and c.id=any($2::text[])
+      left join memory_authority_records r on r.scope=c.scope and r.id=c.id`,
+        [scope, ids]
+      )
+    ).rows;
+    const first = rows[0];
+    if (first && first["snapshot_version"] !== first["snapshot_projection"])
+      throw new MemoryAuthorityError("MEMORY_PROJECTION_STALE");
+    return {
+      watermark: String(first?.["snapshot_version"] ?? "0"),
+      records: rows.filter((r) => r["id"] !== null && r["id"] !== undefined).map(mapRecord)
+    };
+  }
   async relations(
     scope: string,
     id: string,

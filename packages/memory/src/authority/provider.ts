@@ -51,7 +51,8 @@ export class PostgresMemoryProvider implements MemoryProvider {
         errorCode: "MEMORY_CANCELLED"
       };
     try {
-      const result = await this.knowledge.search(input.scope, input.text, 32);
+      let result = await this.knowledge.search(input.scope, input.text, 32);
+      const observedTextIds = new Set(result.records.map((r) => r.id));
       const compatibility = await this.knowledge.overview(input.scope);
       const compatibilityPending =
         compatibility.legacy !== "0" || compatibility.unattributed !== "0";
@@ -68,9 +69,27 @@ export class PostgresMemoryProvider implements MemoryProvider {
         } catch {
           vectorError = true;
         }
-      const indexed = await Promise.all(
-        indexedIds.map((id) => this.knowledge.detail(input.scope!, id))
-      );
+      let resolved = await this.knowledge.resolveCandidates(input.scope, [
+        ...new Set([...observedTextIds, ...result.records.map((r) => r.id), ...indexedIds])
+      ]);
+      // At most one bounded text refresh; do not repeat a remote embedding call.
+      if (resolved.watermark !== result.watermark) {
+        result = await this.knowledge.search(input.scope, input.text, 32);
+        resolved = await this.knowledge.resolveCandidates(input.scope, [
+          ...new Set([...observedTextIds, ...result.records.map((r) => r.id), ...indexedIds])
+        ]);
+      }
+      const byId = new Map(resolved.records.map((r) => [r.id, r]));
+      const indexed = indexedIds
+        .map((id) => byId.get(id))
+        .filter((r): r is NonNullable<typeof r> => Boolean(r));
+      result = {
+        ...result,
+        watermark: resolved.watermark,
+        records: result.records
+          .map((r) => byId.get(r.id))
+          .filter((r): r is NonNullable<typeof r> => Boolean(r))
+      };
       const vectorRank = new Map(indexedIds.map((id, i) => [id, i]));
       const textRank = new Map(result.records.map((r, i) => [r.id, i]));
       const score = (id: string) =>
@@ -87,7 +106,10 @@ export class PostgresMemoryProvider implements MemoryProvider {
           ].map((r) => [r.id, r])
         ).values()
       ]
-        .filter((r) => matchesReader(r.event, input.access!))
+        .filter(
+          (r) =>
+            ["current", "conflicted"].includes(r.state) && matchesReader(r.event, input.access!)
+        )
         .sort(
           (a, b) =>
             score(b.id) - score(a.id) ||
@@ -134,15 +156,9 @@ export class PostgresMemoryProvider implements MemoryProvider {
         watermark: result.watermark
       };
       const chosen = new Set(events.map((e) => e.id));
-      const textIds = new Set(result.records.map((r) => r.id));
+      const textIds = new Set([...observedTextIds, ...result.records.map((r) => r.id)]);
       const vectorIds = new Set(indexedIds);
-      const all = [
-        ...new Map(
-          [...result.records, ...indexed.filter((r): r is NonNullable<typeof r> => r !== null)].map(
-            (r) => [r.id, r]
-          )
-        ).values()
-      ];
+      const all = resolved.records;
       const candidates: RetrievalCandidate[] = all
         .filter((r) => matchesReader(r.event, input.access!))
         .map((r) => ({

@@ -53,10 +53,15 @@ export class MemoryRetrievalEvidence {
   ) {
     if (!input.scope || !input.access)
       throw new MemoryAuthorityError("MEMORY_EVIDENCE_AUTHORITY_REQUIRED");
+    if (detail.candidates.filter((c) => c.selected).length > 64)
+      throw new MemoryAuthorityError("MEMORY_EVIDENCE_CONTEXT_BOUND");
+    const candidates = [...detail.candidates].sort(
+      (a, b) => Number(b.selected) - Number(a.selected)
+    );
     const id = `mre_${randomUUID()}`;
     await this.db.query(
-      `insert into memory_retrieval_runs(scope,retrieval_id,trace_id,session_id,source_ref,reader,query,status,error_code,limited,watermark,model_tag,candidates)
-      values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+      `insert into memory_retrieval_runs(scope,retrieval_id,trace_id,session_id,source_ref,reader,query,status,error_code,limited,watermark,model_tag,candidates,candidate_count,candidate_evidence_limited)
+      values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
       [
         input.scope,
         id,
@@ -70,7 +75,9 @@ export class MemoryRetrievalEvidence {
         outcome.limited,
         detail.watermark,
         detail.modelTag ?? null,
-        JSON.stringify(disclosed(z.array(candidateSchema).max(64), detail.candidates.slice(0, 64)))
+        JSON.stringify(disclosed(z.array(candidateSchema).max(64), candidates.slice(0, 64))),
+        candidates.length,
+        candidates.length > 64
       ]
     );
     return id;
@@ -171,6 +178,11 @@ export class MemoryRetrievalEvidence {
       limited: row["limited"] === true,
       watermark: String(row["watermark"]),
       modelTag: row["model_tag"] as string | null,
+      candidateCount: typeof row["candidate_count"] === "number" ? row["candidate_count"] : null,
+      candidateEvidenceLimited:
+        typeof row["candidate_evidence_limited"] === "boolean"
+          ? row["candidate_evidence_limited"]
+          : null,
       candidates: disclosed(z.array(candidateSchema).max(64), row["candidates"]),
       contexts: exposures.slice(0, 100).map((e) => ({
         manifestId: String(e["manifest_id"]),
