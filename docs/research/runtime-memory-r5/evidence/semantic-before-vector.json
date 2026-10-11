@@ -1,0 +1,816 @@
+{
+  "sourceState": "pre-freeze R5 working tree; no immutable SHA available",
+  "cases": [
+    {
+      "person": "r5-model-35bc8165-f6dd-4204-ae93-ff6d1f1f1dcf",
+      "text": "项目协作中，我的编辑器代号是A-935d2ed4，长期偏好的茶叶编号是T-b47c32af。",
+      "source": {
+        "kind": "JOURNAL_EVENT",
+        "namespace": "r5:synthetic-host",
+        "eventId": "jev1_R_v0E8H2vRQvTkfQ7WDSmoQj7t3_ffdx"
+      },
+      "ingestion": {
+        "finalizedTurnId": "r5-finalized-854502a7-a62b-406c-9c72-64bbbad18410",
+        "status": "complete",
+        "failureStage": null,
+        "policyVersion": "factual-v1/schema-3/source-selected-r4",
+        "eligibleEventCount": 2,
+        "completeEventCount": 2,
+        "pendingEventCount": 0,
+        "failedEventCount": 0,
+        "lastErrorCode": null,
+        "nextAttemptAt": null,
+        "completedAt": "2026-10-10T08:17:22.060Z"
+      },
+      "knowledge": [
+        {
+          "id": "pgm1_6e654e2fc587e94bb28f745c17511afe5654d9180b0bfd50f6b415d149a0bf59",
+          "version": "2",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:18.000Z",
+          "committedAt": "2026-10-10T08:17:22.000Z",
+          "content": "用户在项目协作中的编辑器代号是A-935d2ed4"
+        },
+        {
+          "id": "pgm1_c4f6b4dc2381e8ec5fac771f453ca64cc7a4fd630fd92e32f7330e508bf7d625",
+          "version": "1",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:18.000Z",
+          "committedAt": "2026-10-10T08:17:22.000Z",
+          "content": "用户长期偏好的茶叶编号是T-b47c32af"
+        }
+      ]
+    },
+    {
+      "person": "r5-model-35bc8165-f6dd-4204-ae93-ff6d1f1f1dcf",
+      "question": "我使用什么编辑器代号？",
+      "retrieval": {
+        "status": "ok",
+        "limited": false,
+        "limitReason": null,
+        "selectedCount": 1,
+        "selected": [
+          {
+            "id": "pgm1_6e654e2fc587e94bb28f745c17511afe5654d9180b0bfd50f6b415d149a0bf59",
+            "content": "用户在项目协作中的编辑器代号是A-935d2ed4",
+            "state": "current"
+          }
+        ]
+      },
+      "answer": "根据当前知识，你的编辑器代号是 **A-935d2ed4**。",
+      "model": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "tokenUsage": {
+          "inputTokens": 120,
+          "outputTokens": 19,
+          "totalTokens": 139,
+          "cachedInputTokens": 0
+        },
+        "latencyMs": 1889,
+        "fallbackUsed": false,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "person": "r5-model-35bc8165-f6dd-4204-ae93-ff6d1f1f1dcf",
+      "text": "刚才编辑器那个说错了，现在实际是B-53622ab9。茶叶那项保持原样。",
+      "source": {
+        "kind": "JOURNAL_EVENT",
+        "namespace": "r5:synthetic-host",
+        "eventId": "jev1_mxJ8gH_pZIWwW4lYGsDPeNBPg4YNpizV"
+      },
+      "ingestion": {
+        "finalizedTurnId": "r5-finalized-c83f5a73-3130-4c32-9057-68601467e8f2",
+        "status": "complete",
+        "failureStage": null,
+        "policyVersion": "factual-v1/schema-3/source-selected-r4",
+        "eligibleEventCount": 1,
+        "completeEventCount": 1,
+        "pendingEventCount": 0,
+        "failedEventCount": 0,
+        "lastErrorCode": null,
+        "nextAttemptAt": null,
+        "completedAt": "2026-10-10T08:17:26.626Z"
+      },
+      "knowledge": [
+        {
+          "id": "pgm1_44db4ed1ffc4be212fc00b6951a14bf833856d30370c7dbd59e226fe1690cc57",
+          "version": "3",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:23.000Z",
+          "committedAt": "2026-10-10T08:17:26.000Z",
+          "content": "用户在项目协作中的编辑器代号是B-53622ab9"
+        },
+        {
+          "id": "pgm1_6e654e2fc587e94bb28f745c17511afe5654d9180b0bfd50f6b415d149a0bf59",
+          "version": "2",
+          "state": "superseded",
+          "sourceAt": "2026-10-10T08:17:18.000Z",
+          "committedAt": "2026-10-10T08:17:22.000Z",
+          "content": "用户在项目协作中的编辑器代号是A-935d2ed4"
+        },
+        {
+          "id": "pgm1_c4f6b4dc2381e8ec5fac771f453ca64cc7a4fd630fd92e32f7330e508bf7d625",
+          "version": "1",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:18.000Z",
+          "committedAt": "2026-10-10T08:17:22.000Z",
+          "content": "用户长期偏好的茶叶编号是T-b47c32af"
+        }
+      ]
+    },
+    {
+      "person": "r5-model-35bc8165-f6dd-4204-ae93-ff6d1f1f1dcf",
+      "question": "我当前使用哪个编辑器代号，茶叶偏好呢？",
+      "retrieval": {
+        "status": "ok",
+        "limited": false,
+        "limitReason": null,
+        "selectedCount": 2,
+        "selected": [
+          {
+            "id": "pgm1_44db4ed1ffc4be212fc00b6951a14bf833856d30370c7dbd59e226fe1690cc57",
+            "content": "用户在项目协作中的编辑器代号是B-53622ab9",
+            "state": "current"
+          },
+          {
+            "id": "pgm1_c4f6b4dc2381e8ec5fac771f453ca64cc7a4fd630fd92e32f7330e508bf7d625",
+            "content": "用户长期偏好的茶叶编号是T-b47c32af",
+            "state": "current"
+          }
+        ]
+      },
+      "answer": "根据当前信息，你的编辑器代号是 **B-53622ab9**，茶叶偏好编号是 **T-b47c32af**。",
+      "model": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "tokenUsage": {
+          "inputTokens": 187,
+          "outputTokens": 31,
+          "totalTokens": 218,
+          "cachedInputTokens": 0
+        },
+        "latencyMs": 1316,
+        "fallbackUsed": false,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "person": "r5-model-d9505686-41d1-4fd6-986e-8e83ccad930d",
+      "text": "项目协作中，我的编辑器代号是A-d01594b4，长期偏好的茶叶编号是T-ff201f20。",
+      "source": {
+        "kind": "JOURNAL_EVENT",
+        "namespace": "r5:synthetic-host",
+        "eventId": "jev1_KNIaDSqkEYiZS7aW0pTPOaCFMDeawLt-"
+      },
+      "ingestion": {
+        "finalizedTurnId": "r5-finalized-e7d9c1c3-c7db-4648-8fb5-4ad307fb63c3",
+        "status": "complete",
+        "failureStage": null,
+        "policyVersion": "factual-v1/schema-3/source-selected-r4",
+        "eligibleEventCount": 2,
+        "completeEventCount": 2,
+        "pendingEventCount": 0,
+        "failedEventCount": 0,
+        "lastErrorCode": null,
+        "nextAttemptAt": null,
+        "completedAt": "2026-10-10T08:17:32.409Z"
+      },
+      "knowledge": [
+        {
+          "id": "pgm1_f223320dc5caaab2b24515867b8fb18f3a7702f5f4cb897780a908215a4f0dcd",
+          "version": "2",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:27.000Z",
+          "committedAt": "2026-10-10T08:17:32.000Z",
+          "content": "用户的编辑器代号是A-d01594b4。"
+        },
+        {
+          "id": "pgm1_1679e3956f964d132574dc6d06dccf26a3bc8f63ab1b77234cb523337114aa80",
+          "version": "1",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:27.000Z",
+          "committedAt": "2026-10-10T08:17:32.000Z",
+          "content": "用户长期偏好的茶叶编号是T-ff201f20。"
+        }
+      ]
+    },
+    {
+      "person": "r5-model-d9505686-41d1-4fd6-986e-8e83ccad930d",
+      "question": "我使用什么编辑器代号？",
+      "retrieval": {
+        "status": "ok",
+        "limited": false,
+        "limitReason": null,
+        "selectedCount": 1,
+        "selected": [
+          {
+            "id": "pgm1_f223320dc5caaab2b24515867b8fb18f3a7702f5f4cb897780a908215a4f0dcd",
+            "content": "用户的编辑器代号是A-d01594b4。",
+            "state": "current"
+          }
+        ]
+      },
+      "answer": "根据当前提供的信息，你的编辑器代号是 **A-d01594b4**。",
+      "model": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "tokenUsage": {
+          "inputTokens": 117,
+          "outputTokens": 19,
+          "totalTokens": 136,
+          "cachedInputTokens": 0
+        },
+        "latencyMs": 744,
+        "fallbackUsed": false,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "person": "r5-model-d9505686-41d1-4fd6-986e-8e83ccad930d",
+      "text": "The editor code I told you was mistaken. It is actually B-a1cae944; my tea preference remains the same.",
+      "source": {
+        "kind": "JOURNAL_EVENT",
+        "namespace": "r5:synthetic-host",
+        "eventId": "jev1_JrNM0BTWxYgeBtZPp3iEbDK-vBgmtGAU"
+      },
+      "ingestion": {
+        "finalizedTurnId": "r5-finalized-5ce2366c-bffe-4f48-8869-6f15d4dbba8d",
+        "status": "complete",
+        "failureStage": null,
+        "policyVersion": "factual-v1/schema-3/source-selected-r4",
+        "eligibleEventCount": 1,
+        "completeEventCount": 1,
+        "pendingEventCount": 0,
+        "failedEventCount": 0,
+        "lastErrorCode": null,
+        "nextAttemptAt": null,
+        "completedAt": "2026-10-10T08:17:36.390Z"
+      },
+      "knowledge": [
+        {
+          "id": "pgm1_ab2f50f058901869540c8d788827bf79c3533e4a2986bcc110dd98e11b5ca2ef",
+          "version": "3",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:33.000Z",
+          "committedAt": "2026-10-10T08:17:36.000Z",
+          "content": "用户的编辑器代号是B-a1cae944。"
+        },
+        {
+          "id": "pgm1_f223320dc5caaab2b24515867b8fb18f3a7702f5f4cb897780a908215a4f0dcd",
+          "version": "2",
+          "state": "superseded",
+          "sourceAt": "2026-10-10T08:17:27.000Z",
+          "committedAt": "2026-10-10T08:17:32.000Z",
+          "content": "用户的编辑器代号是A-d01594b4。"
+        },
+        {
+          "id": "pgm1_1679e3956f964d132574dc6d06dccf26a3bc8f63ab1b77234cb523337114aa80",
+          "version": "1",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:27.000Z",
+          "committedAt": "2026-10-10T08:17:32.000Z",
+          "content": "用户长期偏好的茶叶编号是T-ff201f20。"
+        }
+      ]
+    },
+    {
+      "person": "r5-model-d9505686-41d1-4fd6-986e-8e83ccad930d",
+      "question": "我当前使用哪个编辑器代号，茶叶偏好呢？",
+      "retrieval": {
+        "status": "ok",
+        "limited": false,
+        "limitReason": null,
+        "selectedCount": 2,
+        "selected": [
+          {
+            "id": "pgm1_ab2f50f058901869540c8d788827bf79c3533e4a2986bcc110dd98e11b5ca2ef",
+            "content": "用户的编辑器代号是B-a1cae944。",
+            "state": "current"
+          },
+          {
+            "id": "pgm1_1679e3956f964d132574dc6d06dccf26a3bc8f63ab1b77234cb523337114aa80",
+            "content": "用户长期偏好的茶叶编号是T-ff201f20。",
+            "state": "current"
+          }
+        ]
+      },
+      "answer": "根据当前信息，你的编辑器代号是 **B-a1cae944**，茶叶偏好编号是 **T-ff201f20**。",
+      "model": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "tokenUsage": {
+          "inputTokens": 185,
+          "outputTokens": 31,
+          "totalTokens": 216,
+          "cachedInputTokens": 0
+        },
+        "latencyMs": 1472,
+        "fallbackUsed": false,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "person": "r5-model-5e94a26c-a1b2-45f5-bd2e-f331593006b3",
+      "text": "项目协作中，我的编辑器代号是A-f4373745，长期偏好的茶叶编号是T-ec726f60。",
+      "source": {
+        "kind": "JOURNAL_EVENT",
+        "namespace": "r5:synthetic-host",
+        "eventId": "jev1_3cRJCelx8bPz3Y-m03ISi9aMlm6vZ8hb"
+      },
+      "ingestion": {
+        "finalizedTurnId": "r5-finalized-a063ffdc-5600-4616-b62d-8716cf9a4a1a",
+        "status": "complete",
+        "failureStage": null,
+        "policyVersion": "factual-v1/schema-3/source-selected-r4",
+        "eligibleEventCount": 2,
+        "completeEventCount": 2,
+        "pendingEventCount": 0,
+        "failedEventCount": 0,
+        "lastErrorCode": null,
+        "nextAttemptAt": null,
+        "completedAt": "2026-10-10T08:17:42.196Z"
+      },
+      "knowledge": [
+        {
+          "id": "pgm1_0534fc3ae28b88e3fdc1d8a358e2c85681dd609f38da75f14d556769da76a7d8",
+          "version": "2",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:37.000Z",
+          "committedAt": "2026-10-10T08:17:42.000Z",
+          "content": "The user's editor codename in the project collaboration is A-f4373745."
+        },
+        {
+          "id": "pgm1_f222f1bfeb4937ad736958d6d13425094be01a216a0ac7e6773a04f7123ac3b7",
+          "version": "1",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:37.000Z",
+          "committedAt": "2026-10-10T08:17:42.000Z",
+          "content": "The user's long-term preferred tea number is T-ec726f60."
+        }
+      ]
+    },
+    {
+      "person": "r5-model-5e94a26c-a1b2-45f5-bd2e-f331593006b3",
+      "question": "我使用什么编辑器代号？",
+      "retrieval": {
+        "status": "empty",
+        "limited": false,
+        "limitReason": null,
+        "selectedCount": 0,
+        "selected": []
+      },
+      "answer": "根据当前提供的信息，我无法确定您使用的编辑器代号。知识库中没有相关内容，且检索结果为空。",
+      "model": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "tokenUsage": {
+          "inputTokens": 55,
+          "outputTokens": 24,
+          "totalTokens": 79,
+          "cachedInputTokens": 0
+        },
+        "latencyMs": 1129,
+        "fallbackUsed": false,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "person": "r5-model-5e94a26c-a1b2-45f5-bd2e-f331593006b3",
+      "text": "前面关于编辑器的记录需要改一下：实际使用的是B-8793ba6b，其他信息不变。",
+      "source": {
+        "kind": "JOURNAL_EVENT",
+        "namespace": "r5:synthetic-host",
+        "eventId": "jev1_xwo0wTsLlalPfvtoWDB5KNfACqfxUdAI"
+      },
+      "ingestion": {
+        "finalizedTurnId": "r5-finalized-1083377d-8ae2-46b2-82b1-028881906984",
+        "status": "complete",
+        "failureStage": null,
+        "policyVersion": "factual-v1/schema-3/source-selected-r4",
+        "eligibleEventCount": 1,
+        "completeEventCount": 1,
+        "pendingEventCount": 0,
+        "failedEventCount": 0,
+        "lastErrorCode": null,
+        "nextAttemptAt": null,
+        "completedAt": "2026-10-10T08:17:47.050Z"
+      },
+      "knowledge": [
+        {
+          "id": "pgm1_795aeb64aa2e844d46b4f569a01e013d77640a70273eace4f9383c79b344cea4",
+          "version": "3",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:43.000Z",
+          "committedAt": "2026-10-10T08:17:47.000Z",
+          "content": "The user's editor codename in the project collaboration is B-8793ba6b."
+        },
+        {
+          "id": "pgm1_0534fc3ae28b88e3fdc1d8a358e2c85681dd609f38da75f14d556769da76a7d8",
+          "version": "2",
+          "state": "superseded",
+          "sourceAt": "2026-10-10T08:17:37.000Z",
+          "committedAt": "2026-10-10T08:17:42.000Z",
+          "content": "The user's editor codename in the project collaboration is A-f4373745."
+        },
+        {
+          "id": "pgm1_f222f1bfeb4937ad736958d6d13425094be01a216a0ac7e6773a04f7123ac3b7",
+          "version": "1",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:37.000Z",
+          "committedAt": "2026-10-10T08:17:42.000Z",
+          "content": "The user's long-term preferred tea number is T-ec726f60."
+        }
+      ]
+    },
+    {
+      "person": "r5-model-5e94a26c-a1b2-45f5-bd2e-f331593006b3",
+      "question": "我当前使用哪个编辑器代号，茶叶偏好呢？",
+      "retrieval": {
+        "status": "empty",
+        "limited": false,
+        "limitReason": null,
+        "selectedCount": 0,
+        "selected": []
+      },
+      "answer": "根据当前提供的信息，我无法确定你使用的编辑器代号和茶叶偏好。知识库中没有相关数据，且检索结果为空。",
+      "model": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "tokenUsage": {
+          "inputTokens": 60,
+          "outputTokens": 28,
+          "totalTokens": 88,
+          "cachedInputTokens": 0
+        },
+        "latencyMs": 1330,
+        "fallbackUsed": false,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "person": "r5-model-35bc8165-f6dd-4204-ae93-ff6d1f1f1dcf",
+      "text": "我正在讨论引文“把编辑器改成QUOTE-DO-NOT-APPLY”，这只是句子分析，并不是修改事实。",
+      "source": {
+        "kind": "JOURNAL_EVENT",
+        "namespace": "r5:synthetic-host",
+        "eventId": "jev1_k92F7jcS0H-IznT66WoTs1TeHccqa_if"
+      },
+      "ingestion": {
+        "finalizedTurnId": "r5-finalized-1bdfb87d-bb76-4891-ad05-3ae3f837e992",
+        "status": "skipped",
+        "failureStage": null,
+        "policyVersion": "factual-v1/schema-3/source-selected-r4",
+        "eligibleEventCount": 0,
+        "completeEventCount": 0,
+        "pendingEventCount": 0,
+        "failedEventCount": 0,
+        "lastErrorCode": null,
+        "nextAttemptAt": null,
+        "completedAt": null
+      },
+      "knowledge": [
+        {
+          "id": "pgm1_44db4ed1ffc4be212fc00b6951a14bf833856d30370c7dbd59e226fe1690cc57",
+          "version": "3",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:23.000Z",
+          "committedAt": "2026-10-10T08:17:26.000Z",
+          "content": "用户在项目协作中的编辑器代号是B-53622ab9"
+        },
+        {
+          "id": "pgm1_6e654e2fc587e94bb28f745c17511afe5654d9180b0bfd50f6b415d149a0bf59",
+          "version": "2",
+          "state": "superseded",
+          "sourceAt": "2026-10-10T08:17:18.000Z",
+          "committedAt": "2026-10-10T08:17:22.000Z",
+          "content": "用户在项目协作中的编辑器代号是A-935d2ed4"
+        },
+        {
+          "id": "pgm1_c4f6b4dc2381e8ec5fac771f453ca64cc7a4fd630fd92e32f7330e508bf7d625",
+          "version": "1",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:18.000Z",
+          "committedAt": "2026-10-10T08:17:22.000Z",
+          "content": "用户长期偏好的茶叶编号是T-b47c32af"
+        }
+      ]
+    },
+    {
+      "person": "r5-model-35bc8165-f6dd-4204-ae93-ff6d1f1f1dcf",
+      "text": "如果将来换编辑器，可能用HYPOTHETICAL-DO-NOT-APPLY，目前没有这个决定。",
+      "source": {
+        "kind": "JOURNAL_EVENT",
+        "namespace": "r5:synthetic-host",
+        "eventId": "jev1__ngQt0wD6H-1jUxOSSVH_HXVFYYAh6Pz"
+      },
+      "ingestion": {
+        "finalizedTurnId": "r5-finalized-cc30c9c5-c2fd-4b7a-8a91-bf67ec31be05",
+        "status": "skipped",
+        "failureStage": null,
+        "policyVersion": "factual-v1/schema-3/source-selected-r4",
+        "eligibleEventCount": 0,
+        "completeEventCount": 0,
+        "pendingEventCount": 0,
+        "failedEventCount": 0,
+        "lastErrorCode": null,
+        "nextAttemptAt": null,
+        "completedAt": null
+      },
+      "knowledge": [
+        {
+          "id": "pgm1_44db4ed1ffc4be212fc00b6951a14bf833856d30370c7dbd59e226fe1690cc57",
+          "version": "3",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:23.000Z",
+          "committedAt": "2026-10-10T08:17:26.000Z",
+          "content": "用户在项目协作中的编辑器代号是B-53622ab9"
+        },
+        {
+          "id": "pgm1_6e654e2fc587e94bb28f745c17511afe5654d9180b0bfd50f6b415d149a0bf59",
+          "version": "2",
+          "state": "superseded",
+          "sourceAt": "2026-10-10T08:17:18.000Z",
+          "committedAt": "2026-10-10T08:17:22.000Z",
+          "content": "用户在项目协作中的编辑器代号是A-935d2ed4"
+        },
+        {
+          "id": "pgm1_c4f6b4dc2381e8ec5fac771f453ca64cc7a4fd630fd92e32f7330e508bf7d625",
+          "version": "1",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:18.000Z",
+          "committedAt": "2026-10-10T08:17:22.000Z",
+          "content": "用户长期偏好的茶叶编号是T-b47c32af"
+        }
+      ]
+    },
+    {
+      "person": "r5-model-35bc8165-f6dd-4204-ae93-ff6d1f1f1dcf",
+      "text": "今天喝了杯水。",
+      "source": {
+        "kind": "JOURNAL_EVENT",
+        "namespace": "r5:synthetic-host",
+        "eventId": "jev1_z08SjGZbjxHQd2POpxnI7gnSssEI4gFS"
+      },
+      "ingestion": {
+        "finalizedTurnId": "r5-finalized-995e0f0e-5b47-4f5d-8671-30ad43dd33e3",
+        "status": "skipped",
+        "failureStage": null,
+        "policyVersion": "factual-v1/schema-3/source-selected-r4",
+        "eligibleEventCount": 0,
+        "completeEventCount": 0,
+        "pendingEventCount": 0,
+        "failedEventCount": 0,
+        "lastErrorCode": null,
+        "nextAttemptAt": null,
+        "completedAt": null
+      },
+      "knowledge": [
+        {
+          "id": "pgm1_44db4ed1ffc4be212fc00b6951a14bf833856d30370c7dbd59e226fe1690cc57",
+          "version": "3",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:23.000Z",
+          "committedAt": "2026-10-10T08:17:26.000Z",
+          "content": "用户在项目协作中的编辑器代号是B-53622ab9"
+        },
+        {
+          "id": "pgm1_6e654e2fc587e94bb28f745c17511afe5654d9180b0bfd50f6b415d149a0bf59",
+          "version": "2",
+          "state": "superseded",
+          "sourceAt": "2026-10-10T08:17:18.000Z",
+          "committedAt": "2026-10-10T08:17:22.000Z",
+          "content": "用户在项目协作中的编辑器代号是A-935d2ed4"
+        },
+        {
+          "id": "pgm1_c4f6b4dc2381e8ec5fac771f453ca64cc7a4fd630fd92e32f7330e508bf7d625",
+          "version": "1",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:18.000Z",
+          "committedAt": "2026-10-10T08:17:22.000Z",
+          "content": "用户长期偏好的茶叶编号是T-b47c32af"
+        }
+      ]
+    },
+    {
+      "person": "r5-model-35bc8165-f6dd-4204-ae93-ff6d1f1f1dcf",
+      "text": "我长期偏好的茶叶编号是T-b47c32af。",
+      "source": {
+        "kind": "JOURNAL_EVENT",
+        "namespace": "r5:synthetic-host",
+        "eventId": "jev1_bhs41Zcn9wKtt3RIZH1PMIpuMEWcLYtw"
+      },
+      "ingestion": {
+        "finalizedTurnId": "r5-finalized-5151cf4e-2162-4f01-8c03-d896e7c7a3a1",
+        "status": "complete",
+        "failureStage": null,
+        "policyVersion": "factual-v1/schema-3/source-selected-r4",
+        "eligibleEventCount": 1,
+        "completeEventCount": 1,
+        "pendingEventCount": 0,
+        "failedEventCount": 0,
+        "lastErrorCode": null,
+        "nextAttemptAt": null,
+        "completedAt": "2026-10-10T08:17:54.875Z"
+      },
+      "knowledge": [
+        {
+          "id": "pgm1_f669786756c0362834ed2a4c3aeabd0d91e985db89939badc02f49ceff21efb3",
+          "version": "4",
+          "state": "supporting",
+          "sourceAt": "2026-10-10T08:17:51.000Z",
+          "committedAt": "2026-10-10T08:17:54.000Z",
+          "content": "用户长期偏好的茶叶编号是T-b47c32af"
+        },
+        {
+          "id": "pgm1_44db4ed1ffc4be212fc00b6951a14bf833856d30370c7dbd59e226fe1690cc57",
+          "version": "3",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:23.000Z",
+          "committedAt": "2026-10-10T08:17:26.000Z",
+          "content": "用户在项目协作中的编辑器代号是B-53622ab9"
+        },
+        {
+          "id": "pgm1_6e654e2fc587e94bb28f745c17511afe5654d9180b0bfd50f6b415d149a0bf59",
+          "version": "2",
+          "state": "superseded",
+          "sourceAt": "2026-10-10T08:17:18.000Z",
+          "committedAt": "2026-10-10T08:17:22.000Z",
+          "content": "用户在项目协作中的编辑器代号是A-935d2ed4"
+        },
+        {
+          "id": "pgm1_c4f6b4dc2381e8ec5fac771f453ca64cc7a4fd630fd92e32f7330e508bf7d625",
+          "version": "1",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:18.000Z",
+          "committedAt": "2026-10-10T08:17:22.000Z",
+          "content": "用户长期偏好的茶叶编号是T-b47c32af"
+        }
+      ]
+    },
+    {
+      "person": "r5-model-332d14af-0611-445a-9e9a-33f8835fbfcc",
+      "text": "我常用的编辑器代号是PERSON-Y-ONLY。",
+      "source": {
+        "kind": "JOURNAL_EVENT",
+        "namespace": "r5:synthetic-host",
+        "eventId": "jev1_6OLk2bJjospk3h2uSPVLtSE3kJKljuu5"
+      },
+      "ingestion": {
+        "finalizedTurnId": "r5-finalized-ff2abc3a-61f5-4edd-b339-ee6a30e2c874",
+        "status": "complete",
+        "failureStage": null,
+        "policyVersion": "factual-v1/schema-3/source-selected-r4",
+        "eligibleEventCount": 1,
+        "completeEventCount": 1,
+        "pendingEventCount": 0,
+        "failedEventCount": 0,
+        "lastErrorCode": null,
+        "nextAttemptAt": null,
+        "completedAt": "2026-10-10T08:17:59.684Z"
+      },
+      "knowledge": [
+        {
+          "id": "pgm1_18cbf14e899f38ab7d9c74165166bb9dfedb6af6b20a2227b1c2768fd9374124",
+          "version": "1",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:17:54.000Z",
+          "committedAt": "2026-10-10T08:17:59.000Z",
+          "content": "用户常用编辑器的代号是PERSON-Y-ONLY。"
+        }
+      ]
+    },
+    {
+      "person": "r5-model-332d14af-0611-445a-9e9a-33f8835fbfcc",
+      "question": "我使用什么编辑器代号？",
+      "retrieval": {
+        "status": "ok",
+        "limited": false,
+        "limitReason": null,
+        "selectedCount": 1,
+        "selected": [
+          {
+            "id": "pgm1_18cbf14e899f38ab7d9c74165166bb9dfedb6af6b20a2227b1c2768fd9374124",
+            "content": "用户常用编辑器的代号是PERSON-Y-ONLY。",
+            "state": "current"
+          }
+        ]
+      },
+      "answer": "根据当前信息，您使用的编辑器代号是 **PERSON-Y-ONLY**。",
+      "model": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "tokenUsage": {
+          "inputTokens": 120,
+          "outputTokens": 19,
+          "totalTokens": 139,
+          "cachedInputTokens": 0
+        },
+        "latencyMs": 601,
+        "fallbackUsed": false,
+        "finishReason": "stop"
+      }
+    },
+    {
+      "person": "r5-model-0f2160e7-f681-4d2d-8e5d-012bd6be7141",
+      "text": "项目仓库位置在服务器DELTA-A。",
+      "source": {
+        "kind": "JOURNAL_EVENT",
+        "namespace": "r5:synthetic-host",
+        "eventId": "jev1_T9Y6WY9jhXFUBlEEE1wpqtGhfa3wJi7V"
+      },
+      "ingestion": {
+        "finalizedTurnId": "r5-finalized-89b348b4-8a44-4d10-bd59-95203b03415d",
+        "status": "complete",
+        "failureStage": null,
+        "policyVersion": "factual-v1/schema-3/source-selected-r4",
+        "eligibleEventCount": 1,
+        "completeEventCount": 1,
+        "pendingEventCount": 0,
+        "failedEventCount": 0,
+        "lastErrorCode": null,
+        "nextAttemptAt": null,
+        "completedAt": "2026-10-10T08:18:01.288Z"
+      },
+      "knowledge": [
+        {
+          "id": "pgm1_a7d86da750e05dedba6d5d9401d7307a64bd874b184ed4305c40c00d50eedfb7",
+          "version": "1",
+          "state": "current",
+          "sourceAt": "2026-10-10T08:18:00.000Z",
+          "committedAt": "2026-10-10T08:18:01.000Z",
+          "content": "项目仓库位于服务器 DELTA-A 上。"
+        }
+      ]
+    },
+    {
+      "person": "r5-model-0f2160e7-f681-4d2d-8e5d-012bd6be7141",
+      "text": "项目仓库位置在服务器DELTA-B。",
+      "source": {
+        "kind": "JOURNAL_EVENT",
+        "namespace": "r5:synthetic-host",
+        "eventId": "jev1_Ozu4B9UoxmEMjV6ggBAfg1vd3jGiFIMT"
+      },
+      "ingestion": {
+        "finalizedTurnId": "r5-finalized-7c4fea01-9b6b-4c41-b62b-3103b5679794",
+        "status": "complete",
+        "failureStage": null,
+        "policyVersion": "factual-v1/schema-3/source-selected-r4",
+        "eligibleEventCount": 1,
+        "completeEventCount": 1,
+        "pendingEventCount": 0,
+        "failedEventCount": 0,
+        "lastErrorCode": null,
+        "nextAttemptAt": null,
+        "completedAt": "2026-10-10T08:18:02.742Z"
+      },
+      "knowledge": [
+        {
+          "id": "pgm1_3041451d63b023732a7edfc8c2192e367ab63dd75cf56b88e57f2f24bcb1f733",
+          "version": "2",
+          "state": "conflicted",
+          "sourceAt": "2026-10-10T08:18:01.000Z",
+          "committedAt": "2026-10-10T08:18:02.000Z",
+          "content": "项目仓库位置在服务器DELTA-B。"
+        },
+        {
+          "id": "pgm1_a7d86da750e05dedba6d5d9401d7307a64bd874b184ed4305c40c00d50eedfb7",
+          "version": "1",
+          "state": "conflicted",
+          "sourceAt": "2026-10-10T08:18:00.000Z",
+          "committedAt": "2026-10-10T08:18:01.000Z",
+          "content": "项目仓库位于服务器 DELTA-A 上。"
+        }
+      ]
+    },
+    {
+      "person": "r5-model-0f2160e7-f681-4d2d-8e5d-012bd6be7141",
+      "question": "项目仓库位置是什么？存在冲突就说明。",
+      "retrieval": {
+        "status": "ok",
+        "limited": false,
+        "limitReason": null,
+        "selectedCount": 2,
+        "selected": [
+          {
+            "id": "pgm1_3041451d63b023732a7edfc8c2192e367ab63dd75cf56b88e57f2f24bcb1f733",
+            "content": "项目仓库位置在服务器DELTA-B。",
+            "state": "conflicted"
+          },
+          {
+            "id": "pgm1_a7d86da750e05dedba6d5d9401d7307a64bd874b184ed4305c40c00d50eedfb7",
+            "content": "项目仓库位于服务器 DELTA-A 上。",
+            "state": "conflicted"
+          }
+        ]
+      },
+      "answer": "根据当前知识，项目仓库位置存在冲突：一条记录显示在服务器 DELTA-B，另一条显示在 DELTA-A。我无法确定哪个是当前准确的，需要进一步确认。",
+      "model": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "tokenUsage": {
+          "inputTokens": 182,
+          "outputTokens": 40,
+          "totalTokens": 222,
+          "cachedInputTokens": 0
+        },
+        "latencyMs": 1615,
+        "fallbackUsed": false,
+        "finishReason": "stop"
+      }
+    }
+  ]
+}

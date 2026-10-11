@@ -140,7 +140,14 @@ export type MemoryEvent = {
   metadata: Record<string, unknown>;
 };
 
+/** Host-supplied resolved reader, never accepted from a conversational request DTO. */
+export type MemoryReadAuthority = {
+  principal: { namespace: string; actorId: string };
+  personId: string;
+};
+
 export type MemoryRetrievalInput = {
+  access?: MemoryReadAuthority | undefined;
   text: string;
   limit?: number;
   scope?: string | null;
@@ -152,6 +159,7 @@ export type MemoryRetrievalInput = {
 };
 
 export type MemoryGetEventInput = {
+  access?: MemoryReadAuthority | undefined;
   id: MemoryEventId;
   /** Required so a provider can enforce tenant/character isolation on reads. */
   scope: string;
@@ -181,6 +189,9 @@ export type MemoryRetrievalOutcome = {
 export type MemoryWriteEventInput = {
   /** Host-validated correction targets; caller metadata cannot populate this field. */
   supersedes?: MemoryEventId[] | undefined;
+  /** Host-validated proposition relations; metadata is never authority. */
+  conflicts?: MemoryEventId[] | undefined;
+  supports?: MemoryEventId[] | undefined;
   kind: MemoryEventKind;
   content: string;
   scope: string;

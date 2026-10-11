@@ -1,0 +1,13 @@
+{
+  "sourceSHA": "2d6367332e7011f462cea54059d582f8092e105d",
+  "result": {
+    "scenario": "real PostgreSQL immediate stop mid-transaction and after acknowledged correction",
+    "initialAck": "written",
+    "interrupted": "ambiguous",
+    "beforeState": "current",
+    "reconcile": "not_applied",
+    "retry": "written",
+    "afterA": "superseded",
+    "afterB": "current"
+  }
+}

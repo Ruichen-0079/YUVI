@@ -304,7 +304,10 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
   private readonly client: DatabaseClient;
   private readonly ownsClient: boolean;
 
-  constructor(connectionString: string | DatabaseClient) {
+  constructor(
+    connectionString: string | DatabaseClient,
+    private readonly ownerPersonaId?: string
+  ) {
     this.ownsClient = typeof connectionString === "string";
     this.client =
       typeof connectionString === "string"
@@ -322,6 +325,8 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
     }>;
   }): Promise<FinalizedIngestionAdmission> {
     const turn = input.turn;
+    if (this.ownerPersonaId && turn.personaId !== this.ownerPersonaId)
+      throw new Error("MEMORY_INGESTION_OWNER_MISMATCH");
     return this.transaction(async (tx) => {
       const insertedTurn = await tx.query(
         `insert into finalized_ingestion_turns (
@@ -368,10 +373,32 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
         }
         if (existingTurn.sourceDigest !== turn.sourceDigest)
           throw new Error("FINALIZED_INGESTION_SOURCE_CONFLICT");
-        return {
-          turn: existingTurn,
-          events: await this.listEventsWithClient(turn.finalizedTurnId, tx)
-        };
+        await this.lockTurn(turn.finalizedTurnId, tx);
+        const locked = (await this.getTurnWithClient(turn.finalizedTurnId, tx))!;
+        if (
+          locked.failureStage === "materialization" &&
+          ["pending", "retryable_failed"].includes(locked.status) &&
+          !(await this.listEventsWithClient(turn.finalizedTurnId, tx)).length &&
+          !(turn.failureStage === "materialization" && turn.status === "pending")
+        ) {
+          await tx.query(
+            `update finalized_ingestion_turns set status=$2,failure_stage=$3,last_error_code=$4,last_error_message=$5,
+            next_attempt_at=$6,ingestion_skip_reason=$7,version=version+1,updated_at=now() where finalized_turn_id=$1`,
+            [
+              turn.finalizedTurnId,
+              turn.status,
+              turn.failureStage,
+              turn.lastErrorCode,
+              turn.lastErrorMessage,
+              turn.nextAttemptAt,
+              turn.ingestionSkipReason
+            ]
+          );
+        } else
+          return {
+            turn: locked,
+            events: await this.listEventsWithClient(turn.finalizedTurnId, tx)
+          };
       }
 
       for (const event of input.events) {
@@ -406,8 +433,8 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
 
   async getTurn(finalizedTurnId: string): Promise<FinalizedIngestionTurn | null> {
     const result = await this.client.query(
-      "select * from finalized_ingestion_turns where finalized_turn_id = $1",
-      [finalizedTurnId]
+      "select * from finalized_ingestion_turns where finalized_turn_id = $1 and ($2::text is null or persona_id=$2)",
+      [finalizedTurnId, this.ownerPersonaId ?? null]
     );
     return result.rows[0] ? mapTurnRow(result.rows[0]) : null;
   }
@@ -415,9 +442,9 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
   async listEvents(finalizedTurnId: string): Promise<FinalizedIngestionEvent[]> {
     const result = await this.client.query(
       `select * from finalized_ingestion_events
-       where finalized_turn_id = $1
+       where finalized_turn_id = $1 and ($2::text is null or exists(select 1 from finalized_ingestion_turns t where t.finalized_turn_id=finalized_ingestion_events.finalized_turn_id and t.persona_id=$2))
        order by created_at asc, event_id asc`,
-      [finalizedTurnId]
+      [finalizedTurnId, this.ownerPersonaId ?? null]
     );
     return result.rows.map(mapEventRow);
   }
@@ -644,16 +671,17 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
        from conversation_messages cm
        left join finalized_ingestion_turns fit
          on fit.finalized_turn_id = cm.finalized_turn_id
-       where cm.role = 'assistant'
+       where ($2::text is null or cm.persona_id=$2) and cm.role = 'assistant'
          and cm.status = 'completed'
          and cm.ingestion_requested = true
          and nullif(btrim(cm.persona_id), '') is not null
          and nullif(btrim(cm.subject_user_id), '') is not null
          and cm.finalized_turn_id is not null
-         and fit.finalized_turn_id is null
+         and (fit.finalized_turn_id is null or (fit.failure_stage='materialization' and fit.status in ('pending','retryable_failed')
+           and (fit.next_attempt_at is null or fit.next_attempt_at<=now())))
        order by coalesce(cm.completed_at, cm.created_at) asc
        limit $1`,
-      [clampLimit(limit)]
+      [clampLimit(limit), this.ownerPersonaId ?? null]
     );
     return result.rows.map(mapMissingRow);
   }
@@ -661,10 +689,10 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
   async listNonTerminalTurns(limit = 100): Promise<FinalizedIngestionTurn[]> {
     const result = await this.client.query(
       `select * from finalized_ingestion_turns
-       where status not in ('complete', 'skipped', 'terminal_failed')
+       where ($2::text is null or persona_id=$2) and status not in ('complete', 'skipped', 'terminal_failed')
        order by updated_at asc
        limit $1`,
-      [clampLimit(limit)]
+      [clampLimit(limit), this.ownerPersonaId ?? null]
     );
     return result.rows.map(mapTurnRow);
   }
@@ -674,7 +702,7 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
   ): Promise<FinalizedIngestionEvent[]> {
     const result = await this.client.query(
       `select * from finalized_ingestion_events
-       where (
+       where ($3::text is null or exists(select 1 from finalized_ingestion_turns t where t.finalized_turn_id=finalized_ingestion_events.finalized_turn_id and t.persona_id=$3)) and (
          status = 'pending'
          or (
            status = 'retryable_failed'
@@ -703,7 +731,7 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
          coalesce(next_attempt_at, created_at) asc,
          event_id asc
        limit $1`,
-      [clampLimit(input.limit ?? 100), input.now ?? null]
+      [clampLimit(input.limit ?? 100), input.now ?? null, this.ownerPersonaId ?? null]
     );
     return result.rows.map(mapEventRow);
   }
@@ -730,19 +758,21 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
              and lease_expires_at is not null
              and lease_expires_at <= coalesce($1::timestamptz, now())
          )::int as stale_lease_count
-       from finalized_ingestion_events`,
-      [input.now ?? null]
+       from finalized_ingestion_events where ($2::text is null or exists(select 1 from finalized_ingestion_turns t where t.finalized_turn_id=finalized_ingestion_events.finalized_turn_id and t.persona_id=$2))`,
+      [input.now ?? null, this.ownerPersonaId ?? null]
     );
     const turns = await this.client.query(
       `select count(*) filter (where status = 'partial')::int as partial_parent_count
-       from finalized_ingestion_turns`
+       from finalized_ingestion_turns where ($1::text is null or persona_id=$1)`,
+      [this.ownerPersonaId ?? null]
     );
     const historical = await this.client.query(
       `select count(*)::int as historical_unknown_count
        from conversation_messages
-       where role = 'assistant'
+       where ($1::text is null or persona_id=$1) and role = 'assistant'
          and status = 'completed'
-         and ingestion_requested is null`
+         and ingestion_requested is null`,
+      [this.ownerPersonaId ?? null]
     );
     const row = events.rows[0] ?? {};
     return {
@@ -776,12 +806,12 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
          coalesce(cm.completed_at, cm.created_at) as finalized_at,
          cm.ingestion_requested
        from conversation_messages cm
-       where cm.role = 'assistant'
+       where ($2::text is null or cm.persona_id=$2) and cm.role = 'assistant'
          and cm.status = 'completed'
          and cm.ingestion_requested is null
        order by coalesce(cm.completed_at, cm.created_at) asc
        limit $1`,
-      [clampLimit(limit)]
+      [clampLimit(limit), this.ownerPersonaId ?? null]
     );
     return result.rows.map(mapMissingRow);
   }
@@ -954,13 +984,15 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
   }
 
   private async lockTurn(finalizedTurnId: string, client: QueryClient): Promise<void> {
-    await client.query(
+    const locked = await client.query(
       `select finalized_turn_id
        from finalized_ingestion_turns
-       where finalized_turn_id = $1
+       where finalized_turn_id = $1 and ($2::text is null or persona_id=$2)
        for update`,
-      [finalizedTurnId]
+      [finalizedTurnId, this.ownerPersonaId ?? null]
     );
+    if (this.ownerPersonaId && !locked.rows.length)
+      throw new Error("MEMORY_INGESTION_OWNER_MISMATCH");
   }
 
   private async getTurnWithClient(
@@ -968,8 +1000,8 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
     client: QueryClient
   ): Promise<FinalizedIngestionTurn | null> {
     const result = await client.query(
-      "select * from finalized_ingestion_turns where finalized_turn_id = $1",
-      [finalizedTurnId]
+      "select * from finalized_ingestion_turns where finalized_turn_id = $1 and ($2::text is null or persona_id=$2)",
+      [finalizedTurnId, this.ownerPersonaId ?? null]
     );
     return result.rows[0] ? mapTurnRow(result.rows[0]) : null;
   }
@@ -980,9 +1012,9 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
   ): Promise<FinalizedIngestionEvent[]> {
     const result = await client.query(
       `select * from finalized_ingestion_events
-       where finalized_turn_id = $1
+       where finalized_turn_id = $1 and ($2::text is null or exists(select 1 from finalized_ingestion_turns t where t.finalized_turn_id=finalized_ingestion_events.finalized_turn_id and t.persona_id=$2))
        order by created_at asc, event_id asc`,
-      [finalizedTurnId]
+      [finalizedTurnId, this.ownerPersonaId ?? null]
     );
     return result.rows.map(mapEventRow);
   }
@@ -1023,7 +1055,12 @@ export class InMemoryFinalizedIngestionRepository implements FinalizedIngestionR
     const existing = this.turns.get(input.turn.finalizedTurnId);
     if (existing && existing.sourceDigest !== input.turn.sourceDigest)
       throw new Error("FINALIZED_INGESTION_SOURCE_CONFLICT");
-    if (!existing) {
+    if (
+      !existing ||
+      (existing.failureStage === "materialization" &&
+        ["pending", "retryable_failed"].includes(existing.status) &&
+        !(input.turn.failureStage === "materialization" && input.turn.status === "pending"))
+    ) {
       this.turns.set(input.turn.finalizedTurnId, cloneTurn(input.turn));
       for (const event of input.events) {
         this.events.set(event.eventId, {
@@ -1474,12 +1511,17 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
 
   constructor(
     private readonly repository: FinalizedIngestionRepository,
-    private readonly ingestionPolicy: Pick<
-      MemoryIngestionPolicy,
-      "build"
-    > = new MemoryIngestionPolicy(),
+    private readonly ingestionPolicy: Pick<MemoryIngestionPolicy, "build"> & {
+      readonly semanticOnly?: boolean;
+    } = new MemoryIngestionPolicy(),
     private readonly groundingResolver?: MemoryGroundingResolver
   ) {}
+
+  private get policyVersion() {
+    return this.ingestionPolicy.semanticOnly
+      ? "memory.semantic.v1/finalized-authority-v1"
+      : FINALIZED_INGESTION_POLICY_VERSION;
+  }
 
   getTurn(finalizedTurnId: string) {
     return this.repository.getTurn(finalizedTurnId);
@@ -1489,7 +1531,8 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
     const identity = resolveMem0ChatIdentity(input);
     const digest = digestSource(
       input,
-      identity.ok ? buildChatMemoryScope(identity.identity) : null
+      identity.ok ? buildChatMemoryScope(identity.identity) : null,
+      this.policyVersion
     );
     const existing = this.materializations.get(input.finalizedTurnId);
     if (existing) {
@@ -1512,19 +1555,23 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
       personaId: input.personaId
     });
     const memoryScope = identity.ok ? buildChatMemoryScope(identity.identity) : null;
-    const sourceDigest = digestSource(input, memoryScope);
+    const sourceDigest = digestSource(input, memoryScope, this.policyVersion);
     const existing = await this.repository.getTurn(input.finalizedTurnId);
     if (existing) {
-      if (
-        existing.policyVersion === FINALIZED_INGESTION_POLICY_VERSION &&
-        existing.sourceDigest !== sourceDigest
-      ) {
+      if (existing.policyVersion === this.policyVersion && existing.sourceDigest !== sourceDigest) {
         throw new Error("FINALIZED_INGESTION_SOURCE_CONFLICT");
       }
-      return {
-        turn: existing,
-        events: await this.repository.listEvents(input.finalizedTurnId)
-      };
+      if (
+        !(
+          this.ingestionPolicy.semanticOnly &&
+          existing.failureStage === "materialization" &&
+          ["pending", "retryable_failed"].includes(existing.status)
+        )
+      )
+        return {
+          turn: existing,
+          events: await this.repository.listEvents(input.finalizedTurnId)
+        };
     }
     const now = new Date().toISOString();
     const baseTurn = {
@@ -1541,7 +1588,7 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
       ingestionSkipReason: null,
       failureStage: null,
       status: "pending" as FinalizedIngestionTurnStatus,
-      policyVersion: FINALIZED_INGESTION_POLICY_VERSION,
+      policyVersion: this.policyVersion,
       sourceDigest,
       eligibleEventCount: 0,
       pendingEventCount: 0,
@@ -1582,7 +1629,10 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
         assistantMessage: input.assistantMessage,
         cancelledOrFailed: false
       });
-    if (turnKind === "explicit_forget" || detectExplicitForgetRequest(input.userMessage)) {
+    if (
+      !this.ingestionPolicy.semanticOnly &&
+      (turnKind === "explicit_forget" || detectExplicitForgetRequest(input.userMessage))
+    ) {
       return this.repository.admit({
         turn: {
           ...baseTurn,
@@ -1656,14 +1706,26 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
       turnKind,
       idempotencyKey: input.finalizedTurnId
     };
+    if (this.ingestionPolicy.semanticOnly)
+      await this.repository.admit({
+        turn: { ...baseTurn, failureStage: "materialization" },
+        events: []
+      });
     let extraction: Awaited<ReturnType<typeof this.ingestionPolicy.build>>;
     try {
       extraction = await this.ingestionPolicy.build(ingestionInput);
-    } catch {
+    } catch (error) {
       return this.repository.admit({
         turn: {
           ...baseTurn,
-          status: "terminal_failed",
+          status:
+            this.ingestionPolicy.semanticOnly &&
+            !(error instanceof Error && error.message === "MEMORY_SEMANTIC_RETRY_EXHAUSTED")
+              ? "retryable_failed"
+              : "terminal_failed",
+          nextAttemptAt: this.ingestionPolicy.semanticOnly
+            ? new Date(Date.now() + 30_000).toISOString()
+            : null,
           failureStage: "materialization",
           lastErrorCode: "MEMORY_MATERIALIZATION_FAILED",
           lastErrorMessage: "Memory materialization policy build failed."
@@ -1695,7 +1757,7 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
       materialized = extraction.events.map((event) =>
         materializeEvent(
           input.finalizedTurnId,
-          freezeFinalizedMemoryEvent(source, event, FINALIZED_INGESTION_POLICY_VERSION)
+          freezeFinalizedMemoryEvent(source, event, this.policyVersion)
         )
       );
     } catch {
@@ -1775,7 +1837,8 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
 
 export function createFinalizedIngestionRepositoryFromEnv(
   env: Record<string, string | undefined> = process.env,
-  sharedClient?: DatabaseClient
+  sharedClient?: DatabaseClient,
+  ownerPersonaId?: string
 ): FinalizedIngestionRepository {
   const explicit = env["LEDGER_REPOSITORY"]?.trim().toLowerCase();
   const kind = explicit
@@ -1790,11 +1853,11 @@ export function createFinalizedIngestionRepositoryFromEnv(
           })()
     : parseMemoryRepositoryEnv(env).kind;
   if (kind === "postgres") {
-    if (sharedClient) return new PostgresFinalizedIngestionRepository(sharedClient);
+    if (sharedClient) return new PostgresFinalizedIngestionRepository(sharedClient, ownerPersonaId);
     if (!env["DATABASE_URL"]) {
       throw new Error("LEDGER_REPOSITORY=postgres requires DATABASE_URL.");
     }
-    return new PostgresFinalizedIngestionRepository(env["DATABASE_URL"]);
+    return new PostgresFinalizedIngestionRepository(env["DATABASE_URL"], ownerPersonaId);
   }
   return new InMemoryFinalizedIngestionRepository();
 }
@@ -1828,7 +1891,11 @@ function withoutSignal(event: MemoryWriteEventInput): FinalizedIngestionEventPay
   return payload;
 }
 
-function digestSource(input: FinalizedIngestionAdmissionInput, memoryScope: string | null): string {
+function digestSource(
+  input: FinalizedIngestionAdmissionInput,
+  memoryScope: string | null,
+  policyVersion = FINALIZED_INGESTION_POLICY_VERSION
+): string {
   return sha256(
     canonicalJson({
       finalizedTurnId: input.finalizedTurnId,
@@ -1847,7 +1914,7 @@ function digestSource(input: FinalizedIngestionAdmissionInput, memoryScope: stri
       finalizedAt: input.finalizedAt,
       userMessage: input.userMessage,
       assistantMessage: input.assistantMessage,
-      policyVersion: FINALIZED_INGESTION_POLICY_VERSION
+      policyVersion
     })
   );
 }

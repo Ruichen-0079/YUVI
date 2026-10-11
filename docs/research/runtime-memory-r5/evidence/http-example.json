@@ -1,0 +1,652 @@
+{
+  "sourceSHA": "a2d0629",
+  "syntheticOnly": true,
+  "responses": [
+    {
+      "operation": "overview",
+      "http": 200,
+      "result": {
+        "schema": "memory.overview.v1",
+        "status": "OK",
+        "version": "4",
+        "projectionVersion": "4",
+        "records": "4",
+        "current": "2",
+        "legacy": "0",
+        "unattributed": "0",
+        "integrity": "NOT_VERIFIED",
+        "compatibility": "NO_LEGACY_IMPORT",
+        "workers": {
+          "database": {
+            "failures": 0,
+            "lastFailureAt": null
+          },
+          "vector": {
+            "modelTag": "local:Qwen3-Embedding-0.6B-Q8_0.gguf:512",
+            "lastScanAt": "2026-10-11T03:24:05.216Z",
+            "lastErrorCode": null,
+            "scanFailureCount": 0,
+            "running": false,
+            "owner": {
+              "characterId": "character-instance:r5-isolated",
+              "journalNamespace": "yuvi:character:r5-isolated"
+            }
+          }
+        },
+        "migrations": []
+      }
+    },
+    {
+      "operation": "current",
+      "http": 200,
+      "result": {
+        "schema": "memory.page.v1",
+        "status": "OK",
+        "records": [
+          {
+            "schema": "memory.knowledge.v1",
+            "id": "pgm1_a10d63647a7793612932ebaeb89267c0811b70be944532dc4a9204a96ef50d69",
+            "version": "4",
+            "state": "current",
+            "classification": "GROUNDED",
+            "sourceAt": "2026-10-11T02:51:48.000Z",
+            "committedAt": "2026-10-11T02:54:07.000Z",
+            "evidence": {
+              "sourceOrigin": "USER_ASSERTION",
+              "interpretation": "MODEL_PROPOSED",
+              "selectedSpan": {
+                "unit": "UNICODE_CODE_POINT",
+                "start": 11,
+                "end": 26
+              }
+            },
+            "event": {
+              "id": "pgm1_a10d63647a7793612932ebaeb89267c0811b70be944532dc4a9204a96ef50d69",
+              "kind": "correction",
+              "content": "用户编辑器代号为B-1845703e",
+              "source": "postgres",
+              "sourceRecordId": "pgm1_a10d63647a7793612932ebaeb89267c0811b70be944532dc4a9204a96ef50d69",
+              "scope": "yuvi:v1:user:r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a:character:character-instance%3Ar5-isolated",
+              "recordedAt": "2026-10-11T02:51:48.181Z",
+              "observedAt": "2026-10-11T02:51:48.181Z",
+              "lineage": {
+                "version": "memory-lineage.v1",
+                "state": "GROUNDED",
+                "parents": [
+                  {
+                    "ref": {
+                      "kind": "JOURNAL_EVENT",
+                      "namespace": "r5:synthetic-host",
+                      "eventId": "jev1_WjQNXhJHki0NxoNAE0dCa07wNOuQv9JR"
+                    },
+                    "selector": {
+                      "version": "source-selector.v1",
+                      "payload": {
+                        "namespace": "r5:synthetic-host",
+                        "payloadId": "p-5ae7293a-7f96-4f8b-9353-1b5e293a91eb",
+                        "version": "1"
+                      },
+                      "modality": "TEXT",
+                      "range": {
+                        "unit": "UNICODE_CODE_POINT",
+                        "start": 0,
+                        "end": 36
+                      }
+                    }
+                  }
+                ],
+                "sourceAvailability": {
+                  "state": "RETAINED_SELECTABLE"
+                },
+                "consumerKey": "mlf1_RfyFaPQVFxaB27YucygGYsFW6VPNTZNM9o4ED_tBeYU",
+                "derivation": {
+                  "kind": "FINALIZED_INGESTION",
+                  "producer": "@companion/memory",
+                  "producerVersion": "0.1.0",
+                  "policyVersion": "memory.semantic.v1/finalized-authority-v1"
+                },
+                "origin": "USER_ASSERTION",
+                "authority": {
+                  "principal": {
+                    "state": "RESOLVED",
+                    "kind": "PRINCIPAL",
+                    "namespace": "r5-test-host",
+                    "actorId": "r5-host-operator"
+                  },
+                  "binding": {
+                    "state": "RESOLVED",
+                    "kind": "PERSON_BINDING",
+                    "personId": "r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a",
+                    "bindingVersion": "1"
+                  },
+                  "audience": {
+                    "kind": "PRIVATE",
+                    "channelRef": "synthetic-5ae7293a-7f96-4f8b-9353-1b5e293a91eb"
+                  }
+                },
+                "sourceTime": {
+                  "recordedAt": "2026-10-11T02:51:48.181Z",
+                  "occurrenceTime": {
+                    "state": "UNKNOWN"
+                  }
+                }
+              },
+              "assertion": {
+                "source": "user",
+                "verification": "unverified"
+              },
+              "metadata": {
+                "knowledgeState": "current",
+                "knowledgeVersion": "4"
+              }
+            }
+          },
+          {
+            "schema": "memory.knowledge.v1",
+            "id": "pgm1_7eefdfb4f1a0f5cdfb0afcc7d9bd40a2ce5a524684463f0e10e86fbf874b3902",
+            "version": "2",
+            "state": "current",
+            "classification": "GROUNDED",
+            "sourceAt": "2026-10-11T02:51:45.000Z",
+            "committedAt": "2026-10-11T02:54:05.000Z",
+            "evidence": {
+              "sourceOrigin": "USER_ASSERTION",
+              "interpretation": "MODEL_PROPOSED",
+              "selectedSpan": {
+                "unit": "UNICODE_CODE_POINT",
+                "start": 25,
+                "end": 45
+              }
+            },
+            "event": {
+              "id": "pgm1_7eefdfb4f1a0f5cdfb0afcc7d9bd40a2ce5a524684463f0e10e86fbf874b3902",
+              "kind": "fact",
+              "content": "用户长期偏好的茶叶编号是T-2d8a8a59",
+              "source": "postgres",
+              "sourceRecordId": "pgm1_7eefdfb4f1a0f5cdfb0afcc7d9bd40a2ce5a524684463f0e10e86fbf874b3902",
+              "scope": "yuvi:v1:user:r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a:character:character-instance%3Ar5-isolated",
+              "recordedAt": "2026-10-11T02:51:45.078Z",
+              "observedAt": "2026-10-11T02:51:45.078Z",
+              "lineage": {
+                "version": "memory-lineage.v1",
+                "state": "GROUNDED",
+                "parents": [
+                  {
+                    "ref": {
+                      "kind": "JOURNAL_EVENT",
+                      "namespace": "r5:synthetic-host",
+                      "eventId": "jev1_9GS2tKPU4iKMFpkaXsc3VfOVnQCCWEie"
+                    },
+                    "selector": {
+                      "version": "source-selector.v1",
+                      "payload": {
+                        "namespace": "r5:synthetic-host",
+                        "payloadId": "p-524ec924-5494-42f8-b790-01afdf136ef6",
+                        "version": "1"
+                      },
+                      "modality": "TEXT",
+                      "range": {
+                        "unit": "UNICODE_CODE_POINT",
+                        "start": 0,
+                        "end": 46
+                      }
+                    }
+                  }
+                ],
+                "sourceAvailability": {
+                  "state": "RETAINED_SELECTABLE"
+                },
+                "consumerKey": "mlf1_QDjKKOdy5TGxjj-n6Jr-zWFuQC4wel5JmfjUEzRtbjA",
+                "derivation": {
+                  "kind": "FINALIZED_INGESTION",
+                  "producer": "@companion/memory",
+                  "producerVersion": "0.1.0",
+                  "policyVersion": "memory.semantic.v1/finalized-authority-v1"
+                },
+                "origin": "USER_ASSERTION",
+                "authority": {
+                  "principal": {
+                    "state": "RESOLVED",
+                    "kind": "PRINCIPAL",
+                    "namespace": "r5-test-host",
+                    "actorId": "r5-host-operator"
+                  },
+                  "binding": {
+                    "state": "RESOLVED",
+                    "kind": "PERSON_BINDING",
+                    "personId": "r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a",
+                    "bindingVersion": "1"
+                  },
+                  "audience": {
+                    "kind": "PRIVATE",
+                    "channelRef": "synthetic-524ec924-5494-42f8-b790-01afdf136ef6"
+                  }
+                },
+                "sourceTime": {
+                  "recordedAt": "2026-10-11T02:51:45.078Z",
+                  "occurrenceTime": {
+                    "state": "UNKNOWN"
+                  }
+                }
+              },
+              "assertion": {
+                "source": "user",
+                "verification": "unverified"
+              },
+              "metadata": {
+                "knowledgeState": "current",
+                "knowledgeVersion": "2"
+              }
+            }
+          }
+        ],
+        "watermark": "4",
+        "nextCursor": null
+      }
+    },
+    {
+      "operation": "timeline",
+      "http": 200,
+      "result": {
+        "schema": "memory.page.v1",
+        "status": "OK",
+        "records": [
+          {
+            "schema": "memory.knowledge.v1",
+            "id": "pgm1_a10d63647a7793612932ebaeb89267c0811b70be944532dc4a9204a96ef50d69",
+            "version": "4",
+            "state": "current",
+            "classification": "GROUNDED",
+            "sourceAt": "2026-10-11T02:51:48.000Z",
+            "committedAt": "2026-10-11T02:54:07.000Z",
+            "evidence": {
+              "sourceOrigin": "USER_ASSERTION",
+              "interpretation": "MODEL_PROPOSED",
+              "selectedSpan": {
+                "unit": "UNICODE_CODE_POINT",
+                "start": 11,
+                "end": 26
+              }
+            },
+            "event": {
+              "id": "pgm1_a10d63647a7793612932ebaeb89267c0811b70be944532dc4a9204a96ef50d69",
+              "kind": "correction",
+              "content": "用户编辑器代号为B-1845703e",
+              "source": "postgres",
+              "sourceRecordId": "pgm1_a10d63647a7793612932ebaeb89267c0811b70be944532dc4a9204a96ef50d69",
+              "scope": "yuvi:v1:user:r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a:character:character-instance%3Ar5-isolated",
+              "recordedAt": "2026-10-11T02:51:48.181Z",
+              "observedAt": "2026-10-11T02:51:48.181Z",
+              "lineage": {
+                "version": "memory-lineage.v1",
+                "state": "GROUNDED",
+                "parents": [
+                  {
+                    "ref": {
+                      "kind": "JOURNAL_EVENT",
+                      "namespace": "r5:synthetic-host",
+                      "eventId": "jev1_WjQNXhJHki0NxoNAE0dCa07wNOuQv9JR"
+                    },
+                    "selector": {
+                      "version": "source-selector.v1",
+                      "payload": {
+                        "namespace": "r5:synthetic-host",
+                        "payloadId": "p-5ae7293a-7f96-4f8b-9353-1b5e293a91eb",
+                        "version": "1"
+                      },
+                      "modality": "TEXT",
+                      "range": {
+                        "unit": "UNICODE_CODE_POINT",
+                        "start": 0,
+                        "end": 36
+                      }
+                    }
+                  }
+                ],
+                "sourceAvailability": {
+                  "state": "RETAINED_SELECTABLE"
+                },
+                "consumerKey": "mlf1_RfyFaPQVFxaB27YucygGYsFW6VPNTZNM9o4ED_tBeYU",
+                "derivation": {
+                  "kind": "FINALIZED_INGESTION",
+                  "producer": "@companion/memory",
+                  "producerVersion": "0.1.0",
+                  "policyVersion": "memory.semantic.v1/finalized-authority-v1"
+                },
+                "origin": "USER_ASSERTION",
+                "authority": {
+                  "principal": {
+                    "state": "RESOLVED",
+                    "kind": "PRINCIPAL",
+                    "namespace": "r5-test-host",
+                    "actorId": "r5-host-operator"
+                  },
+                  "binding": {
+                    "state": "RESOLVED",
+                    "kind": "PERSON_BINDING",
+                    "personId": "r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a",
+                    "bindingVersion": "1"
+                  },
+                  "audience": {
+                    "kind": "PRIVATE",
+                    "channelRef": "synthetic-5ae7293a-7f96-4f8b-9353-1b5e293a91eb"
+                  }
+                },
+                "sourceTime": {
+                  "recordedAt": "2026-10-11T02:51:48.181Z",
+                  "occurrenceTime": {
+                    "state": "UNKNOWN"
+                  }
+                }
+              },
+              "assertion": {
+                "source": "user",
+                "verification": "unverified"
+              },
+              "metadata": {
+                "knowledgeState": "current",
+                "knowledgeVersion": "4"
+              }
+            }
+          },
+          {
+            "schema": "memory.knowledge.v1",
+            "id": "pgm1_e0ecf2e42fd5f387bdb53fd47a737c4848d51ec7c73bcff3d057f6f3e3713fd1",
+            "version": "3",
+            "state": "supporting",
+            "classification": "GROUNDED",
+            "sourceAt": "2026-10-11T02:51:48.000Z",
+            "committedAt": "2026-10-11T02:54:07.000Z",
+            "evidence": {
+              "sourceOrigin": "USER_ASSERTION",
+              "interpretation": "MODEL_PROPOSED",
+              "selectedSpan": {
+                "unit": "UNICODE_CODE_POINT",
+                "start": 27,
+                "end": 35
+              }
+            },
+            "event": {
+              "id": "pgm1_e0ecf2e42fd5f387bdb53fd47a737c4848d51ec7c73bcff3d057f6f3e3713fd1",
+              "kind": "fact",
+              "content": "用户长期偏好的茶叶编号是T-2d8a8a59",
+              "source": "postgres",
+              "sourceRecordId": "pgm1_e0ecf2e42fd5f387bdb53fd47a737c4848d51ec7c73bcff3d057f6f3e3713fd1",
+              "scope": "yuvi:v1:user:r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a:character:character-instance%3Ar5-isolated",
+              "recordedAt": "2026-10-11T02:51:48.181Z",
+              "observedAt": "2026-10-11T02:51:48.181Z",
+              "lineage": {
+                "version": "memory-lineage.v1",
+                "state": "GROUNDED",
+                "parents": [
+                  {
+                    "ref": {
+                      "kind": "JOURNAL_EVENT",
+                      "namespace": "r5:synthetic-host",
+                      "eventId": "jev1_WjQNXhJHki0NxoNAE0dCa07wNOuQv9JR"
+                    },
+                    "selector": {
+                      "version": "source-selector.v1",
+                      "payload": {
+                        "namespace": "r5:synthetic-host",
+                        "payloadId": "p-5ae7293a-7f96-4f8b-9353-1b5e293a91eb",
+                        "version": "1"
+                      },
+                      "modality": "TEXT",
+                      "range": {
+                        "unit": "UNICODE_CODE_POINT",
+                        "start": 0,
+                        "end": 36
+                      }
+                    }
+                  }
+                ],
+                "sourceAvailability": {
+                  "state": "RETAINED_SELECTABLE"
+                },
+                "consumerKey": "mlf1_f5DZ86GJDh3-20NhoG5z0d8fYWPX2RSGrU8ryUvs2HA",
+                "derivation": {
+                  "kind": "FINALIZED_INGESTION",
+                  "producer": "@companion/memory",
+                  "producerVersion": "0.1.0",
+                  "policyVersion": "memory.semantic.v1/finalized-authority-v1"
+                },
+                "origin": "USER_ASSERTION",
+                "authority": {
+                  "principal": {
+                    "state": "RESOLVED",
+                    "kind": "PRINCIPAL",
+                    "namespace": "r5-test-host",
+                    "actorId": "r5-host-operator"
+                  },
+                  "binding": {
+                    "state": "RESOLVED",
+                    "kind": "PERSON_BINDING",
+                    "personId": "r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a",
+                    "bindingVersion": "1"
+                  },
+                  "audience": {
+                    "kind": "PRIVATE",
+                    "channelRef": "synthetic-5ae7293a-7f96-4f8b-9353-1b5e293a91eb"
+                  }
+                },
+                "sourceTime": {
+                  "recordedAt": "2026-10-11T02:51:48.181Z",
+                  "occurrenceTime": {
+                    "state": "UNKNOWN"
+                  }
+                }
+              },
+              "assertion": {
+                "source": "user",
+                "verification": "unverified"
+              },
+              "metadata": {
+                "knowledgeState": "supporting",
+                "knowledgeVersion": "3"
+              }
+            }
+          },
+          {
+            "schema": "memory.knowledge.v1",
+            "id": "pgm1_7eefdfb4f1a0f5cdfb0afcc7d9bd40a2ce5a524684463f0e10e86fbf874b3902",
+            "version": "2",
+            "state": "current",
+            "classification": "GROUNDED",
+            "sourceAt": "2026-10-11T02:51:45.000Z",
+            "committedAt": "2026-10-11T02:54:05.000Z",
+            "evidence": {
+              "sourceOrigin": "USER_ASSERTION",
+              "interpretation": "MODEL_PROPOSED",
+              "selectedSpan": {
+                "unit": "UNICODE_CODE_POINT",
+                "start": 25,
+                "end": 45
+              }
+            },
+            "event": {
+              "id": "pgm1_7eefdfb4f1a0f5cdfb0afcc7d9bd40a2ce5a524684463f0e10e86fbf874b3902",
+              "kind": "fact",
+              "content": "用户长期偏好的茶叶编号是T-2d8a8a59",
+              "source": "postgres",
+              "sourceRecordId": "pgm1_7eefdfb4f1a0f5cdfb0afcc7d9bd40a2ce5a524684463f0e10e86fbf874b3902",
+              "scope": "yuvi:v1:user:r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a:character:character-instance%3Ar5-isolated",
+              "recordedAt": "2026-10-11T02:51:45.078Z",
+              "observedAt": "2026-10-11T02:51:45.078Z",
+              "lineage": {
+                "version": "memory-lineage.v1",
+                "state": "GROUNDED",
+                "parents": [
+                  {
+                    "ref": {
+                      "kind": "JOURNAL_EVENT",
+                      "namespace": "r5:synthetic-host",
+                      "eventId": "jev1_9GS2tKPU4iKMFpkaXsc3VfOVnQCCWEie"
+                    },
+                    "selector": {
+                      "version": "source-selector.v1",
+                      "payload": {
+                        "namespace": "r5:synthetic-host",
+                        "payloadId": "p-524ec924-5494-42f8-b790-01afdf136ef6",
+                        "version": "1"
+                      },
+                      "modality": "TEXT",
+                      "range": {
+                        "unit": "UNICODE_CODE_POINT",
+                        "start": 0,
+                        "end": 46
+                      }
+                    }
+                  }
+                ],
+                "sourceAvailability": {
+                  "state": "RETAINED_SELECTABLE"
+                },
+                "consumerKey": "mlf1_QDjKKOdy5TGxjj-n6Jr-zWFuQC4wel5JmfjUEzRtbjA",
+                "derivation": {
+                  "kind": "FINALIZED_INGESTION",
+                  "producer": "@companion/memory",
+                  "producerVersion": "0.1.0",
+                  "policyVersion": "memory.semantic.v1/finalized-authority-v1"
+                },
+                "origin": "USER_ASSERTION",
+                "authority": {
+                  "principal": {
+                    "state": "RESOLVED",
+                    "kind": "PRINCIPAL",
+                    "namespace": "r5-test-host",
+                    "actorId": "r5-host-operator"
+                  },
+                  "binding": {
+                    "state": "RESOLVED",
+                    "kind": "PERSON_BINDING",
+                    "personId": "r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a",
+                    "bindingVersion": "1"
+                  },
+                  "audience": {
+                    "kind": "PRIVATE",
+                    "channelRef": "synthetic-524ec924-5494-42f8-b790-01afdf136ef6"
+                  }
+                },
+                "sourceTime": {
+                  "recordedAt": "2026-10-11T02:51:45.078Z",
+                  "occurrenceTime": {
+                    "state": "UNKNOWN"
+                  }
+                }
+              },
+              "assertion": {
+                "source": "user",
+                "verification": "unverified"
+              },
+              "metadata": {
+                "knowledgeState": "current",
+                "knowledgeVersion": "2"
+              }
+            }
+          },
+          {
+            "schema": "memory.knowledge.v1",
+            "id": "pgm1_4042b31bd9f4bba80876774cb91ea1c15a9a4f13cc33cf771b5f68163fb9bc09",
+            "version": "1",
+            "state": "superseded",
+            "classification": "GROUNDED",
+            "sourceAt": "2026-10-11T02:51:45.000Z",
+            "committedAt": "2026-10-11T02:54:05.000Z",
+            "evidence": {
+              "sourceOrigin": "USER_ASSERTION",
+              "interpretation": "MODEL_PROPOSED",
+              "selectedSpan": {
+                "unit": "UNICODE_CODE_POINT",
+                "start": 6,
+                "end": 24
+              }
+            },
+            "event": {
+              "id": "pgm1_4042b31bd9f4bba80876774cb91ea1c15a9a4f13cc33cf771b5f68163fb9bc09",
+              "kind": "fact",
+              "content": "用户编辑器代号为A-719c34b6",
+              "source": "postgres",
+              "sourceRecordId": "pgm1_4042b31bd9f4bba80876774cb91ea1c15a9a4f13cc33cf771b5f68163fb9bc09",
+              "scope": "yuvi:v1:user:r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a:character:character-instance%3Ar5-isolated",
+              "recordedAt": "2026-10-11T02:51:45.078Z",
+              "observedAt": "2026-10-11T02:51:45.078Z",
+              "lineage": {
+                "version": "memory-lineage.v1",
+                "state": "GROUNDED",
+                "parents": [
+                  {
+                    "ref": {
+                      "kind": "JOURNAL_EVENT",
+                      "namespace": "r5:synthetic-host",
+                      "eventId": "jev1_9GS2tKPU4iKMFpkaXsc3VfOVnQCCWEie"
+                    },
+                    "selector": {
+                      "version": "source-selector.v1",
+                      "payload": {
+                        "namespace": "r5:synthetic-host",
+                        "payloadId": "p-524ec924-5494-42f8-b790-01afdf136ef6",
+                        "version": "1"
+                      },
+                      "modality": "TEXT",
+                      "range": {
+                        "unit": "UNICODE_CODE_POINT",
+                        "start": 0,
+                        "end": 46
+                      }
+                    }
+                  }
+                ],
+                "sourceAvailability": {
+                  "state": "RETAINED_SELECTABLE"
+                },
+                "consumerKey": "mlf1_R72Ed7fKoB4ugmHyiqlWIjlkdGjjFyRpYHuXndhrSqA",
+                "derivation": {
+                  "kind": "FINALIZED_INGESTION",
+                  "producer": "@companion/memory",
+                  "producerVersion": "0.1.0",
+                  "policyVersion": "memory.semantic.v1/finalized-authority-v1"
+                },
+                "origin": "USER_ASSERTION",
+                "authority": {
+                  "principal": {
+                    "state": "RESOLVED",
+                    "kind": "PRINCIPAL",
+                    "namespace": "r5-test-host",
+                    "actorId": "r5-host-operator"
+                  },
+                  "binding": {
+                    "state": "RESOLVED",
+                    "kind": "PERSON_BINDING",
+                    "personId": "r5-model-1d8081e0-b06a-4bef-9e5a-f5f42509ed0a",
+                    "bindingVersion": "1"
+                  },
+                  "audience": {
+                    "kind": "PRIVATE",
+                    "channelRef": "synthetic-524ec924-5494-42f8-b790-01afdf136ef6"
+                  }
+                },
+                "sourceTime": {
+                  "recordedAt": "2026-10-11T02:51:45.078Z",
+                  "occurrenceTime": {
+                    "state": "UNKNOWN"
+                  }
+                }
+              },
+              "assertion": {
+                "source": "user",
+                "verification": "unverified"
+              },
+              "metadata": {
+                "knowledgeState": "superseded",
+                "knowledgeVersion": "1"
+              }
+            }
+          }
+        ],
+        "watermark": "4",
+        "nextCursor": null
+      }
+    }
+  ]
+}

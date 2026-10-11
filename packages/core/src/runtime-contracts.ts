@@ -299,7 +299,9 @@ export type RuntimeMemoryPort = {
   scoreImportance(text: string): number;
   /** When true, formal LTM is Mem0 — Legacy extract/write must not run. */
   isMem0Backend?(): boolean;
-  getBackendKind?(): "legacy" | "mem0";
+  isDurableBackend?(): boolean;
+  usesSemanticMemoryPolicy?(): boolean;
+  getBackendKind?(): "legacy" | "mem0" | "postgres";
   storeConversationTurn?(input: {
     userMessage: string;
     assistantMessage: string;

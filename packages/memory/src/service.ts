@@ -1,3 +1,6 @@
+import { assertCharacterMemoryScope } from "./character-scope.js";
+import { PostgresMemoryProvider } from "./authority/provider.js";
+import { MemoryAuthorityError } from "./authority/types.js";
 import { legacyMemoryContextRevision } from "./context-use-repository.js";
 import { sameLegacyMemoryPartition } from "./scope.js";
 import {
@@ -115,14 +118,20 @@ export type MemoryEmbeddingConfig = {
 };
 
 export type MemoryServiceBackendConfig = {
-  kind?: "legacy" | "mem0" | undefined;
+  kind?: "legacy" | "mem0" | "postgres" | undefined;
+  postgres?: PostgresMemoryProvider | undefined;
   mem0?: MemoryBackend | undefined;
   evidenceAdmissions?: EvidenceAdmissionStore | undefined;
   evidenceAdmissionReady?: Promise<unknown> | undefined;
   controllerEvidence?: MemoryProvider | undefined;
   searchTimeoutMs?: number | undefined;
   writeTimeoutMs?: number | undefined;
-  ingestionPolicy?: Pick<MemoryIngestionPolicy, "build"> | undefined;
+  ingestionPolicy?:
+    | (Pick<MemoryIngestionPolicy, "build"> & {
+        readonly semanticOnly?: boolean;
+        getStatus?(): MemoryExtractorStatus;
+      })
+    | undefined;
   groundingResolver?: MemoryGroundingResolver | undefined;
   journalEvidenceReader?: CommittedJournalEvidenceReader | undefined;
   logger?:
@@ -147,7 +156,8 @@ export class MemoryService {
   private readonly embeddingProvider: MemoryEmbeddingProvider | undefined;
   private readonly embeddingEnabled: boolean;
   private readonly embeddingLogger: MemoryEmbeddingConfig["logger"];
-  private readonly backendKind: "legacy" | "mem0";
+  private readonly backendKind: "legacy" | "mem0" | "postgres";
+  private readonly postgresProvider: PostgresMemoryProvider | undefined;
   private readonly mem0Backend: MemoryBackend | undefined;
   private readonly mem0SearchTimeoutMs: number;
   private readonly mem0WriteTimeoutMs: number;
@@ -156,7 +166,9 @@ export class MemoryService {
   private readonly memoryProvider: MemoryProvider | undefined;
   private readonly evidenceAdmissions: EvidenceAdmissionStore;
   private readonly evidenceAdmissionReady: Promise<unknown>;
-  private readonly memoryIngestionPolicy: Pick<MemoryIngestionPolicy, "build">;
+  private readonly memoryIngestionPolicy: NonNullable<
+    MemoryServiceBackendConfig["ingestionPolicy"]
+  >;
   private readonly groundingResolver: MemoryGroundingResolver | undefined;
 
   constructor(
@@ -172,7 +184,15 @@ export class MemoryService {
     this.embeddingProvider = embedding?.provider;
     this.embeddingEnabled = embedding?.enabled ?? Boolean(embedding?.provider);
     this.embeddingLogger = embedding?.logger;
-    this.backendKind = backend?.kind === "mem0" && backend.mem0 ? "mem0" : "legacy";
+    if (backend?.kind === "postgres" && !backend.postgres)
+      throw new Error("PostgreSQL Memory authority is required.");
+    this.postgresProvider = backend?.postgres;
+    this.backendKind =
+      backend?.kind === "postgres"
+        ? "postgres"
+        : backend?.kind === "mem0" && backend.mem0
+          ? "mem0"
+          : "legacy";
     this.mem0Backend = backend?.kind === "mem0" ? backend.mem0 : undefined;
     this.mem0SearchTimeoutMs = backend?.searchTimeoutMs ?? MEM0_CHAT_SEARCH_TIMEOUT_MS;
     this.mem0WriteTimeoutMs = backend?.writeTimeoutMs ?? MEM0_CHAT_WRITE_TIMEOUT_MS;
@@ -199,28 +219,47 @@ export class MemoryService {
           { enabled: true, ready: this.evidenceAdmissionReady }
         )
       : undefined;
-    this.memoryProvider = this.rawMemoryProvider
-      ? characterMemoryProvider(this.rawMemoryProvider, () => this.characterOwner)
+    const activeProvider = this.postgresProvider ?? this.rawMemoryProvider;
+    this.memoryProvider = activeProvider
+      ? characterMemoryProvider(activeProvider, () => this.characterOwner)
       : undefined;
     this.controllerEvidence = backend?.controllerEvidence;
     this.memoryIngestionPolicy =
-      backend?.ingestionPolicy ??
-      new MemoryIngestionPolicy(
-        this.extractor,
-        this.rawMemoryProvider
-          ? async (scope) => {
-              const events = currentCorrectedMemoryEvents(
-                await this.rawMemoryProvider!.readCorrectionEvidence(scope)
-              );
-              if (
-                events.length > 64 ||
-                events.reduce((sum, event) => sum + event.content.length, 0) > 24_000
-              )
-                throw new Error("MEMORY_EXTRACTION_PRIOR_BOUND");
-              return events;
+      backend?.kind === "postgres"
+        ? backend.ingestionPolicy?.semanticOnly === true
+          ? backend.ingestionPolicy
+          : {
+              semanticOnly: true,
+              async build() {
+                throw new MemoryAuthorityError("MEMORY_SEMANTIC_POLICY_NOT_CONFIGURED");
+              },
+              getStatus() {
+                return {
+                  mode: "llm",
+                  active: "disabled",
+                  enabled: false,
+                  fallbackUsed: false,
+                  error: "MEMORY_SEMANTIC_POLICY_NOT_CONFIGURED"
+                };
+              }
             }
-          : undefined
-      );
+        : (backend?.ingestionPolicy ??
+          new MemoryIngestionPolicy(
+            this.extractor,
+            this.rawMemoryProvider
+              ? async (scope) => {
+                  const events = currentCorrectedMemoryEvents(
+                    await this.rawMemoryProvider!.readCorrectionEvidence(scope)
+                  );
+                  if (
+                    events.length > 64 ||
+                    events.reduce((sum, event) => sum + event.content.length, 0) > 24_000
+                  )
+                    throw new Error("MEMORY_EXTRACTION_PRIOR_BOUND");
+                  return events;
+                }
+              : undefined
+          ));
     this.groundingResolver =
       backend?.groundingResolver ??
       (backend?.journalEvidenceReader
@@ -256,8 +295,37 @@ export class MemoryService {
     return this.backendKind === "mem0" && Boolean(this.mem0Backend);
   }
 
-  getBackendKind(): "legacy" | "mem0" {
-    return this.isMem0Backend() ? "mem0" : "legacy";
+  getBackendKind(): "legacy" | "mem0" | "postgres" {
+    return this.backendKind;
+  }
+
+  usesSemanticMemoryPolicy(): boolean {
+    return this.backendKind === "postgres";
+  }
+
+  isDurableBackend(): boolean {
+    return this.backendKind !== "legacy";
+  }
+
+  getAuthorityDiagnostics() {
+    return this.postgresProvider
+      ? {
+          database: this.postgresProvider.authority.getDatabaseDiagnostics(),
+          vector: this.postgresProvider.vectors?.getDiagnostics() ?? { status: "UNAVAILABLE" }
+        }
+      : null;
+  }
+
+  async stopAuthorityIndexing() {
+    await this.postgresProvider?.vectors?.stop();
+  }
+
+  getKnowledgeReader(scope: string) {
+    assertCharacterMemoryScope(
+      this.characterOwner ?? { instanceId: "primary-legacy", personaId: null },
+      scope
+    );
+    return this.postgresProvider?.knowledge;
   }
 
   getProfileMutationDiagnostics(): {
@@ -449,7 +517,7 @@ export class MemoryService {
     tags?: string[];
     groundingContext?: MemoryGroundingContext | undefined;
   }): Promise<Memory | null> {
-    if (this.isMem0Backend()) {
+    if (this.isDurableBackend()) {
       // Mem0 chat path uses storeConversationTurn / storeExplicitFact instead.
       return null;
     }
@@ -476,7 +544,7 @@ export class MemoryService {
 
   async extractCandidates(input: MemoryExtractionInput): Promise<MemoryCandidate[]> {
     input = this.scopeCharacterInput(input);
-    if (this.isMem0Backend()) {
+    if (this.isDurableBackend()) {
       // Do not run Legacy LLM/rule extraction when Mem0 owns long-term memory.
       return [];
     }
@@ -505,6 +573,16 @@ export class MemoryService {
   }
 
   getExtractorStatus(): MemoryExtractorStatus {
+    if (this.backendKind === "postgres")
+      return (
+        this.memoryIngestionPolicy.getStatus?.() ?? {
+          mode: "llm",
+          active: "disabled",
+          enabled: false,
+          fallbackUsed: false,
+          error: "MEMORY_SEMANTIC_POLICY_STATUS_UNAVAILABLE"
+        }
+      );
     return (
       this.extractor.getStatus?.() ?? {
         mode: "rule-based",
@@ -540,7 +618,7 @@ export class MemoryService {
     groundingContext?: MemoryGroundingContext
   ): Promise<MemoryCandidateStorageResult> {
     candidate = this.scopeCharacterInput(candidate);
-    if (this.isMem0Backend()) {
+    if (this.isDurableBackend()) {
       return {
         decision: "rejected",
         candidate,
@@ -727,21 +805,21 @@ export class MemoryService {
 
   async consolidateMemory(_memoryId: string): Promise<void> {
     // Mem0 owns consolidation via infer; Legacy path remains a no-op placeholder.
-    if (this.isMem0Backend()) {
+    if (this.isDurableBackend()) {
       return;
     }
     // Placeholder: future consolidation should merge related memories into stable semantic summaries.
   }
 
   scoreImportance(content: string): number {
-    if (this.isMem0Backend()) {
+    if (this.isDurableBackend()) {
       return 0;
     }
     return this.scorer.scoreImportance(content);
   }
 
   async remember(_sessionId: string, content: string): Promise<void> {
-    if (this.isMem0Backend()) {
+    if (this.isDurableBackend()) {
       return;
     }
     await this.createMemory({

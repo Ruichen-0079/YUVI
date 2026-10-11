@@ -1,3 +1,4 @@
+import { MemoryAuthorityError } from "./authority/types.js";
 import { MemoryLineageV1Schema } from "./lineage.js";
 import type {
   FinalizedIngestionEvent,
@@ -116,7 +117,24 @@ export async function executeFinalizedIngestionEvent(input: {
     return { claimed: true, dispatched: false, event: recorded, outcome };
   }
 
-  await input.provider.prepareEvidence?.("FINALIZED_INGESTION", claimed.eventPayload);
+  try {
+    await input.provider.prepareEvidence?.("FINALIZED_INGESTION", claimed.eventPayload);
+  } catch (error) {
+    if (!(error instanceof MemoryAuthorityError)) throw error;
+    const outcome: FinalizedIngestionEventOutcome = {
+      status: "rejected",
+      errorCode: error.code,
+      failureClass: "definitive_rejection"
+    };
+    const event = await input.repository.recordEventOutcome({
+      finalizedTurnId: claimed.finalizedTurnId,
+      eventId: claimed.eventId,
+      leaseOwner: input.leaseOwner,
+      expectedVersion: claimed.version,
+      outcome
+    });
+    return { claimed: true, dispatched: false, event, outcome };
+  }
 
   const dispatching = await input.repository.markEventDispatchStarted({
     finalizedTurnId: claimed.finalizedTurnId,

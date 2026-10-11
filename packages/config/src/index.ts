@@ -9,7 +9,7 @@ import {
 export type RuntimeEnvironment = "development" | "test" | "production";
 export type MemoryRepositoryDriver = "in-memory" | "postgres";
 export type MemoryExtractorDriver = "rule-based" | "llm";
-export type MemoryBackendDriver = "legacy" | "mem0" | "shadow";
+export type MemoryBackendDriver = "legacy" | "mem0" | "postgres" | "shadow";
 export type EventBusDriver = "in-memory" | "nats";
 
 export type ProviderCapability = "chat" | "reasoning" | "tts" | "stt" | "vision" | "embedding";
@@ -486,6 +486,7 @@ function parseMemoryBackend(value: string | undefined): MemoryBackendDriver {
   if (!value || value === "legacy") {
     return "legacy";
   }
+  if (value === "postgres") return "postgres";
   if (value === "mem0") {
     return "mem0";
   }

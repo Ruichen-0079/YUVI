@@ -1,0 +1,249 @@
+{
+  "sourceState": "pre-freeze working tree; schema/index fixture bypasses grounded writes, no model reliability evidence",
+  "results": [
+    {
+      "scale": 1000,
+      "loadMs": 104.43220300000002,
+      "latencies": {
+        "page": {
+          "samples": 100,
+          "p50": 0.4771390000000224,
+          "p95": 0.677846000000045,
+          "p99": 0.7982559999999808
+        },
+        "detail": {
+          "samples": 100,
+          "p50": 0.18587600000000748,
+          "p95": 0.23742199999998093,
+          "p99": 0.27577300000001514
+        },
+        "text": {
+          "samples": 100,
+          "p50": 0.3151280000000156,
+          "p95": 0.4324479999999653,
+          "p99": 0.6004839999999945
+        },
+        "broadText": {
+          "samples": 100,
+          "p50": 0.6814780000000269,
+          "p95": 0.8341910000000325,
+          "p99": 0.8765010000000188
+        }
+      },
+      "concurrency": 4,
+      "pageRequests": 400,
+      "pageThroughputPerSecond": 4539.344536125457,
+      "storage": [
+        {
+          "relname": "memory_authority_records",
+          "total_bytes": "1269760",
+          "index_bytes": "548864"
+        },
+        {
+          "relname": "memory_authority_current",
+          "total_bytes": "573440",
+          "index_bytes": "368640"
+        }
+      ],
+      "io": {
+        "blks_read": "153",
+        "blks_hit": "119274",
+        "tup_returned": "78090",
+        "tup_fetched": "73824",
+        "temp_bytes": "0"
+      },
+      "verification": {
+        "schema": "memory.verify.v1",
+        "checked": 1000,
+        "checkpoint": "1000",
+        "mismatches": [],
+        "exhausted": false
+      }
+    },
+    {
+      "scale": 10000,
+      "loadMs": 395.070519,
+      "latencies": {
+        "page": {
+          "samples": 100,
+          "p50": 0.5112460000000283,
+          "p95": 0.7959730000000036,
+          "p99": 0.9930409999999483
+        },
+        "detail": {
+          "samples": 100,
+          "p50": 0.14761999999996078,
+          "p95": 0.20750299999986055,
+          "p99": 0.24668100000008053
+        },
+        "text": {
+          "samples": 100,
+          "p50": 1.2478980000000774,
+          "p95": 1.5849000000000615,
+          "p99": 1.7084059999999681
+        },
+        "broadText": {
+          "samples": 100,
+          "p50": 2.2497280000000046,
+          "p95": 2.639259999999922,
+          "p99": 3.098993000000064
+        }
+      },
+      "concurrency": 4,
+      "pageRequests": 400,
+      "pageThroughputPerSecond": 4241.976058371968,
+      "storage": [
+        {
+          "relname": "memory_authority_records",
+          "total_bytes": "11845632",
+          "index_bytes": "4980736"
+        },
+        {
+          "relname": "memory_authority_current",
+          "total_bytes": "5922816",
+          "index_bytes": "4079616"
+        }
+      ],
+      "io": {
+        "blks_read": "153",
+        "blks_hit": "597275",
+        "tup_returned": "2697352",
+        "tup_fetched": "142299",
+        "temp_bytes": "0"
+      },
+      "verification": {
+        "schema": "memory.verify.v1",
+        "checked": 1000,
+        "checkpoint": "10000",
+        "mismatches": [],
+        "exhausted": false
+      }
+    },
+    {
+      "scale": 100000,
+      "loadMs": 3637.989514,
+      "latencies": {
+        "page": {
+          "samples": 100,
+          "p50": 0.7204160000001139,
+          "p95": 0.9540589999996882,
+          "p99": 1.259169999999358
+        },
+        "detail": {
+          "samples": 100,
+          "p50": 0.46009200000025885,
+          "p95": 0.8233300000001691,
+          "p99": 1.0721030000004248
+        },
+        "text": {
+          "samples": 100,
+          "p50": 2.6429840000000695,
+          "p95": 3.12591699999939,
+          "p99": 3.4767729999994117
+        },
+        "broadText": {
+          "samples": 100,
+          "p50": 1.7167409999992742,
+          "p95": 2.0160820000000967,
+          "p99": 2.2212829999998576
+        }
+      },
+      "concurrency": 4,
+      "pageRequests": 400,
+      "pageThroughputPerSecond": 4477.817819668568,
+      "storage": [
+        {
+          "relname": "memory_authority_records",
+          "total_bytes": "117547008",
+          "index_bytes": "49225728"
+        },
+        {
+          "relname": "memory_authority_current",
+          "total_bytes": "57884672",
+          "index_bytes": "39657472"
+        }
+      ],
+      "io": {
+        "blks_read": "211",
+        "blks_hit": "3563952",
+        "tup_returned": "2988733",
+        "tup_fetched": "423607",
+        "temp_bytes": "0"
+      },
+      "verification": {
+        "schema": "memory.verify.v1",
+        "checked": 1000,
+        "checkpoint": "100000",
+        "mismatches": [],
+        "exhausted": false
+      }
+    },
+    {
+      "scale": 1000000,
+      "loadMs": 35664.464842,
+      "latencies": {
+        "page": {
+          "samples": 100,
+          "p50": 0.5375949999943259,
+          "p95": 0.8095759999996517,
+          "p99": 0.9227840000021388
+        },
+        "detail": {
+          "samples": 100,
+          "p50": 0.4990230000039446,
+          "p95": 0.8318510000026436,
+          "p99": 0.9217129999960889
+        },
+        "text": {
+          "samples": 100,
+          "p50": 3.484658000001218,
+          "p95": 3.793413999999757,
+          "p99": 3.8713800000041374
+        },
+        "broadText": {
+          "samples": 100,
+          "p50": 1.952593000001798,
+          "p95": 2.2433600000003935,
+          "p99": 2.4163489999991725
+        }
+      },
+      "concurrency": 4,
+      "pageRequests": 400,
+      "pageThroughputPerSecond": 4096.593076561007,
+      "storage": [
+        {
+          "relname": "memory_authority_records",
+          "total_bytes": "1175109632",
+          "index_bytes": "492240896"
+        },
+        {
+          "relname": "memory_authority_current",
+          "total_bytes": "555876352",
+          "index_bytes": "373768192"
+        }
+      ],
+      "io": {
+        "blks_read": "66585",
+        "blks_hit": "37344611",
+        "tup_returned": "5933216",
+        "tup_fetched": "3208682",
+        "temp_bytes": "0"
+      },
+      "verification": {
+        "schema": "memory.verify.v1",
+        "checked": 1000,
+        "checkpoint": "1000000",
+        "mismatches": [],
+        "exhausted": false
+      },
+      "rebuildMs": 17122.285238999997,
+      "afterRebuildVerification": {
+        "schema": "memory.verify.v1",
+        "checked": 1000,
+        "checkpoint": "1000000",
+        "mismatches": [],
+        "exhausted": false
+      }
+    }
+  ]
+}

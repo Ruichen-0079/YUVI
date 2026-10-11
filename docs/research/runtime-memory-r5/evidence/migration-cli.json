@@ -1,0 +1,26 @@
+{
+  "manifests": [
+    {
+      "migration_id": "legacy:yuvi:v1:user:r5-cli-6169f3e3-d44f-487a-9b47-2fbc0ea5cace:character:r5-cli:jsonl-export:6e4db7e7def58049704fe9036a613d734640c1943cd80cbfa97b6742ea32fb4d",
+      "checkpoint": null,
+      "state": "failed",
+      "imported_count": "0",
+      "error_code": "MEMORY_LEGACY_SOURCE_TIME_UNKNOWN"
+    },
+    {
+      "migration_id": "legacy:yuvi:v1:user:r5-cli-6169f3e3-d44f-487a-9b47-2fbc0ea5cace:character:r5-cli:jsonl-export:2092e007e210733a8fda54358802333c6bd672361dd15155a03c1cd75ec32e0b",
+      "checkpoint": "250",
+      "state": "complete",
+      "imported_count": "250",
+      "error_code": null
+    }
+  ],
+  "counts": [
+    {
+      "version": "250",
+      "record_count": "250",
+      "current_count": "0",
+      "legacy_count": "250"
+    }
+  ]
+}

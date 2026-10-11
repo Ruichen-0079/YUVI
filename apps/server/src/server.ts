@@ -1,3 +1,4 @@
+import { registerMemoryKnowledgeRoutes } from "./routes/memory-knowledge.js";
 import type { CharacterComposition } from "./character-composition.js";
 import { registerConversationHistoryRoutes } from "./routes/conversation-history.js";
 import { registerPeopleVoiceRoutes } from "./routes/people-voices.js";
@@ -182,7 +183,14 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
       "stale streaming conversation recovery was unavailable at startup"
     );
   }
-  const maintenanceScheduler = new MemoryMaintenanceScheduler(context, config, app.log);
+  const maintenanceConfig =
+    context.memory.getBackendKind() === "postgres"
+      ? {
+          ...config,
+          memoryMaintenance: { ...config.memoryMaintenance, enabled: false, runOnStartup: false }
+        }
+      : config;
+  const maintenanceScheduler = new MemoryMaintenanceScheduler(context, maintenanceConfig, app.log);
   context.memoryMaintenanceScheduler = maintenanceScheduler;
   context.profileLifecycle.start();
   maintenanceScheduler.start();
@@ -238,6 +246,7 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   await registerMediaRoutes(app, context);
   await registerSpeechActivityRoutes(app, context);
   await registerMemoryRoutes(app, context, config);
+  await registerMemoryKnowledgeRoutes(app, context, config);
   await registerEventRoutes(app, context, config);
   await registerDebugRoutes(app, context, config);
   await registerWebSocketRoutes(app, context, config);

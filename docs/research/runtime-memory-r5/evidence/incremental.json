@@ -1,0 +1,19 @@
+{
+  "sourceSHA": "67ccdb89a0d0efa8f6ee0676f56eeae5296429cb",
+  "backgroundRecords": "1000000",
+  "commitMs": {
+    "a": 110.12282599999998,
+    "independent": 5.793172000000027,
+    "b": 8.04626300000001
+  },
+  "retrieveMs": 3.5676220000000285,
+  "oldState": "superseded",
+  "newState": "current",
+  "unrelatedState": "current",
+  "retrievalStatus": "ok",
+  "selectedIds": [
+    "pgm1_770f42df3f078ed75c6ab14b0a5dc6b69f2889837990a264ea1b83f24fd4574c",
+    "pgm1_1d47f6de4b4ea675c4832501c0cbc8cb8c0833e7d5b0291960108a4a36cfe201"
+  ],
+  "limitations": "single deterministic correction; synthetic index background; no LLM quality or sustained concurrent write SLO"
+}

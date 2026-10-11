@@ -461,3 +461,14 @@ export {
 
 export * from "./context-use-repository.js";
 export * from "./character-scope.js";
+
+export * from "./authority/types.js";
+export * from "./authority/store.js";
+export * from "./authority/provider.js";
+export * from "./authority/read.js";
+export * from "./authority/semantic-policy.js";
+export * from "./authority/maintenance.js";
+export * from "./authority/migration.js";
+export * from "./authority/client.js";
+
+export * from "./authority/vector.js";
