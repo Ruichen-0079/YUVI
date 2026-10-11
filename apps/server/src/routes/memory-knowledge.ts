@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import type { AppContext } from "../context.js";
 import type { ServerConfig } from "../config.js";
-import { requireLocalDashboardAccess } from "./security.js";
+import { requireAuthenticatedLocalOperator } from "./security.js";
 import {
   MemoryAuthorityError,
   MemoryLegacyWorkflow,
@@ -47,7 +47,7 @@ export async function registerMemoryKnowledgeRoutes(
     "migration"
   ] as const) {
     app.get(`/memory/v1/${operation}`, async (request, reply) => {
-      if (!requireLocalDashboardAccess(config, request, reply)) return;
+      if (!requireAuthenticatedLocalOperator(config, request, reply)) return;
       const parsed = query
         .extend({
           id: z.string().min(1).max(4096).optional(),
@@ -85,13 +85,11 @@ export async function registerMemoryKnowledgeRoutes(
           );
           return (
             status ??
-            reply
-              .code(404)
-              .send({
-                schema: "memory.error.v1",
-                status: "UNKNOWN",
-                error: "MEMORY_MIGRATION_NOT_FOUND"
-              })
+            reply.code(404).send({
+              schema: "memory.error.v1",
+              status: "UNKNOWN",
+              error: "MEMORY_MIGRATION_NOT_FOUND"
+            })
           );
         }
         if (operation === "overview")

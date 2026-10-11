@@ -1,5 +1,4 @@
 import type { FastifyInstance } from "fastify";
-import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import {
   MemoryProjectionRebuild,
@@ -12,7 +11,7 @@ import {
 } from "@companion/memory";
 import type { AppContext } from "../context.js";
 import type { ServerConfig } from "../config.js";
-import { requireLocalDashboardAccess } from "./security.js";
+import { requireAuthenticatedLocalOperator } from "./security.js";
 
 export async function registerMemoryOperationRoutes(
   app: FastifyInstance,
@@ -50,20 +49,7 @@ export async function registerMemoryOperationRoutes(
     })
     .strict();
   app.post("/memory/v1/operations", async (request, reply) => {
-    if (!requireLocalDashboardAccess(config, request, reply)) return;
-    const token = request.headers.authorization?.match(/^Bearer\s+(.+)$/u)?.[1],
-      expected = config.dashboardDevToken;
-    if (
-      !token ||
-      !expected ||
-      Buffer.byteLength(token) !== Buffer.byteLength(expected) ||
-      !timingSafeEqual(Buffer.from(token), Buffer.from(expected))
-    )
-      return reply.code(401).send({
-        schema: "memory.error.v1",
-        status: "FAILED",
-        error: "MEMORY_OPERATOR_CREDENTIAL_REQUIRED"
-      });
+    if (!requireAuthenticatedLocalOperator(config, request, reply)) return;
     const parsed = input.safeParse(request.body);
     if (!parsed.success)
       return reply
