@@ -158,6 +158,60 @@ describe.skipIf(!url)(
       ).rows[0];
       expect(job).toEqual({ status: "complete", generation: 1 });
     }, 20000);
+    it("keeps an unresolved stale correction pending instead of silently admitting an unrelated current fact", async () => {
+      const original = await proposed("Test plan A"),
+        savedA = await provider.writeEventIdempotent(original.input);
+      const changed = await proposed("Test plan B", { supersedes: [savedA.eventId!] }),
+        later = await proposed("Test plan C", { supersedes: [savedA.eventId!] });
+      provider.reassessment = undefined;
+      const savedB = await provider.writeEventIdempotent(changed.input);
+      const policy = new SemanticMemoryPolicy(
+        {
+          name: "unresolved-contract",
+          async generateReasoning() {
+            return {
+              reasoning: "",
+              answer: JSON.stringify({
+                propositions: [
+                  {
+                    content: "Test plan C",
+                    evidenceText: "Test plan C",
+                    relation: "new",
+                    targetIds: []
+                  }
+                ]
+              })
+            };
+          }
+        },
+        async () =>
+          (await provider.knowledge.page({ scope, limit: 20 })).records.map((r) => r.event),
+        { providerConfigured: true },
+        pool
+      );
+      provider.reassessment = new MemoryDecisionReassessment(authority, policy, journal);
+      const rejected = await provider.writeEventIdempotent(later.input);
+      expect(rejected).toMatchObject({
+        status: "rejected",
+        errorCode: "MEMORY_REASSESSMENT_UNRESOLVED"
+      });
+      expect((await provider.knowledge.detail(scope, savedB.eventId!))?.state).toBe("current");
+      expect(
+        (await provider.knowledge.search(scope, "Test plan C", 100)).records.some(
+          (r) => r.event.content === "Test plan C"
+        )
+      ).toBe(false);
+      const pending = (
+        await pool.query(
+          "select status,error_code from memory_decision_reassessments where scope=$1 and logical_key=$2",
+          [scope, later.input.idempotencyKey]
+        )
+      ).rows[0];
+      expect(pending).toMatchObject({
+        status: "retryable_failed",
+        error_code: "MEMORY_REASSESSMENT_UNRESOLVED"
+      });
+    });
     it("persists source/payload/admission/relation/projection audit checkpoint, invalidates certificate on new version and detects corruption", async () => {
       const id = randomUUID();
       await audit.start(scope, id);
