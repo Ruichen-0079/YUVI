@@ -54,3 +54,5 @@ PR 复核后又收紧产品 DTO 白名单，并增加实际旧 JSON 的未知顶
 实机正常Server质量、million向量/在线writer与两次own-PG强停分别在 [Phase 2](phase2.zh.md) 和 [证据目录](evidence/phase2/)；确定性故障fixture不冒充模型判断。初次远端Linux/Conformance因旧P8测试仍期望重播migration名称而失败，修正为第一次有receipt、第二次no-op，并保留完整authority读写隔离断言；旧失败不隐藏。最终CI结果以PR最新SHA为准。
 
 2026-10-12 继续核对 `61fe11c` 时，push 的 Durable Conformance 另捕获 Effects shutdown 回执竞态（同 SHA 的 PR 工作流通过）。没有靠重复运行抹去失败：真实 PostgreSQL 确定性调度复现了 UNKNOWN 提交后旧 post-start 快照继续执行、durable record 返回 STALE 而 dispatcher 无条件报告 recorded=true。生产分支现检查 RECORDED/REPLAY；旧结果不伪造持久成功、不改 UNKNOWN、不调用工具。实际 Effects 全套 127 项与 check 通过，[原失败与正式状态证据](evidence/phase2/dispatch-shutdown-receipt.json)。这是 Runtime 的回执边界修复，不证明所有长期故障门槛已关闭。
+
+随后在独立 31508 cluster 的新数据库同时启用 DATABASE_URL、Effects/Journal/Profile 和 R5 数据库套件，执行 db:migrate → pnpm test。扩大并行验证暴露测试夹具共享 public 的问题：Authority 恢复测试保留的 pending synthetic event 被另一套件的 legacy worker 领取。改为每个 Authority 套件独立随机 schema；所有重新建池也继承相同 search_path，不能通过更换数据库视图伪装恢复。原失败断言保留，未过滤 writes 来遮掩问题。修正后完整命令正式退出 0，Memory 617 passed / 3 skipped、Effects 127 passed、Server 708 passed / 48 skipped；缺少本轮对应服务的 skipped 不计入验收。check/build 也通过。没有在共享 Alice 数据库跑这一扩大验证；其结果不代替远端 packaged conformance 或长期运行验收。
