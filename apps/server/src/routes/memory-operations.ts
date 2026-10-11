@@ -3,6 +3,7 @@ import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import {
   MemoryProjectionRebuild,
+  MemoryLegacyWorkflow,
   retryStaleFinalizedDecision,
   PostgresMemoryProvider,
   verifyMemoryProjection,
@@ -33,9 +34,16 @@ export async function registerMemoryOperationRoutes(
         "REBUILD_STATUS",
         "REBUILD_PAUSE",
         "REBUILD_RESUME",
-        "REBUILD_RETIRE"
+        "REBUILD_RETIRE",
+        "MIGRATION_PREPARE",
+        "MIGRATION_ADVANCE",
+        "MIGRATION_STATUS",
+        "MIGRATION_PAUSE",
+        "MIGRATION_RESUME"
       ]),
       id: z.string().min(1).max(160).optional(),
+      legacyPerson: z.string().min(1).max(200).optional(),
+      legacyPersona: z.string().min(1).max(200).optional(),
       actionId: z.string().min(1).max(160).optional(),
       after: z.string().regex(/^\d+$/u).optional(),
       limit: z.number().int().min(1).max(200).optional()
@@ -67,6 +75,27 @@ export async function registerMemoryOperationRoutes(
       const provider = context.memory.getAuthorityInfrastructure();
       if (!(provider instanceof PostgresMemoryProvider) || !context.memoryIntegrity)
         throw new MemoryAuthorityError("MEMORY_AUTHORITY_NOT_ENABLED");
+      if (i.operation.startsWith("MIGRATION_")) {
+        if (!i.id) throw new MemoryAuthorityError("MEMORY_OPERATION_ID_REQUIRED");
+        const workflow = new MemoryLegacyWorkflow(provider.authority),
+          actor = "authenticated-local-operator";
+        if (i.operation === "MIGRATION_PREPARE") {
+          if (!i.legacyPerson || !i.legacyPersona)
+            throw new MemoryAuthorityError("MEMORY_MIGRATION_IDENTITY_INVALID");
+          return await workflow.prepare({
+            id: i.id,
+            scope: i.scope,
+            legacyPerson: i.legacyPerson,
+            legacyPersona: i.legacyPersona,
+            actor
+          });
+        }
+        if (i.operation === "MIGRATION_ADVANCE")
+          return await workflow.advance(i.scope, i.id, actor, Math.min(i.limit ?? 100, 100));
+        if (i.operation === "MIGRATION_PAUSE" || i.operation === "MIGRATION_RESUME")
+          return await workflow.pause(i.scope, i.id, actor, i.operation === "MIGRATION_PAUSE");
+        return await workflow.status(i.scope, i.id);
+      }
       if (i.operation.startsWith("REBUILD_")) {
         if (!i.id) throw new MemoryAuthorityError("MEMORY_OPERATION_ID_REQUIRED");
         const rebuild = new MemoryProjectionRebuild(provider.authority);

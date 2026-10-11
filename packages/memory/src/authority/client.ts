@@ -1,3 +1,4 @@
+import type { MemoryLegacyWorkflowView } from "./legacy-workflow.js";
 import type { MemoryRetrievalPage, MemoryRetrievalDetail } from "./retrieval-evidence.js";
 import type {
   KnowledgeOverview,
@@ -49,6 +50,9 @@ export class MemoryKnowledgeClient {
   }
   retrieval(scope: string, id: string) {
     return this.request<MemoryRetrievalDetail>(this.url("retrieval", { scope, id }));
+  }
+  migration(scope: string, id: string) {
+    return this.request<MemoryLegacyWorkflowView>(this.url("migration", { scope, id }));
   }
   private url(operation: string, input: Record<string, string | number | undefined>) {
     const qs = new URLSearchParams(

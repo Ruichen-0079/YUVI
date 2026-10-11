@@ -3,7 +3,11 @@ import { z } from "zod";
 import type { AppContext } from "../context.js";
 import type { ServerConfig } from "../config.js";
 import { requireLocalDashboardAccess } from "./security.js";
-import { MemoryAuthorityError } from "@companion/memory";
+import {
+  MemoryAuthorityError,
+  MemoryLegacyWorkflow,
+  PostgresMemoryProvider
+} from "@companion/memory";
 
 const query = z
   .object({
@@ -39,7 +43,8 @@ export async function registerMemoryKnowledgeRoutes(
     "ingestion",
     "processing",
     "retrievals",
-    "retrieval"
+    "retrieval",
+    "migration"
   ] as const) {
     app.get(`/memory/v1/${operation}`, async (request, reply) => {
       if (!requireLocalDashboardAccess(config, request, reply)) return;
@@ -69,6 +74,26 @@ export async function registerMemoryKnowledgeRoutes(
           error: "MEMORY_AUTHORITY_NOT_ENABLED"
         });
       try {
+        if (operation === "migration") {
+          if (!input.id) throw new MemoryAuthorityError("MEMORY_ID_REQUIRED");
+          const provider = context.memory.getAuthorityInfrastructure();
+          if (!(provider instanceof PostgresMemoryProvider))
+            throw new MemoryAuthorityError("MEMORY_AUTHORITY_NOT_ENABLED");
+          const status = await new MemoryLegacyWorkflow(provider.authority).status(
+            input.scope,
+            input.id
+          );
+          return (
+            status ??
+            reply
+              .code(404)
+              .send({
+                schema: "memory.error.v1",
+                status: "UNKNOWN",
+                error: "MEMORY_MIGRATION_NOT_FOUND"
+              })
+          );
+        }
         if (operation === "overview")
           return {
             ...(await reader.overview(input.scope)),
@@ -82,13 +107,11 @@ export async function registerMemoryKnowledgeRoutes(
             (await context.memory
               .getRetrievalEvidence(input.scope)!
               .detail(input.scope, input.id)) ??
-            reply
-              .code(404)
-              .send({
-                schema: "memory.error.v1",
-                status: "UNKNOWN",
-                error: "MEMORY_RETRIEVAL_NOT_FOUND"
-              })
+            reply.code(404).send({
+              schema: "memory.error.v1",
+              status: "UNKNOWN",
+              error: "MEMORY_RETRIEVAL_NOT_FOUND"
+            })
           );
         if (operation === "current") return await reader.page(input);
         if (operation === "timeline") return await reader.timeline(input);

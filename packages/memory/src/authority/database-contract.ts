@@ -7,7 +7,7 @@ export async function assertMemoryAuthorityDatabase(
   requireLeastPrivilege: boolean
 ) {
   const required = (await readSqlMigrations()).filter(
-    (m) => m.name.startsWith("033_") || m.name.startsWith("034_")
+    (m) => m.name.startsWith("033_") || m.name.startsWith("034_") || m.name.startsWith("035_")
   );
   const receipts = (
     await db.query("select name,digest from yuvi_schema_migrations where name=any($1::text[])", [
@@ -15,7 +15,7 @@ export async function assertMemoryAuthorityDatabase(
     ])
   ).rows;
   if (
-    required.length !== 2 ||
+    required.length !== 3 ||
     required.some(
       (m) =>
         receipts.find((r) => r["name"] === m.name)?.["digest"] !==
