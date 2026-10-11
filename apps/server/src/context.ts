@@ -1,6 +1,7 @@
 import { ConversationHostIdentity } from "./conversation-host-identity.js";
 import {
   MemoryDecisionReassessment,
+  assertMemoryAuthorityDatabase,
   MemoryIntegrityAudit,
   PostgresMemoryAuthority,
   PostgresMemoryProvider,
@@ -851,6 +852,10 @@ export async function createAppContext(
     );
     providers = createProviderRegistryFromEnv(bootEnv);
     providers.setAccounting(outwardEffects);
+    if (parseRuntimeConfig(bootEnv).memory.backend === "postgres") {
+      if (!databasePool) throw new Error("MEMORY_AUTHORITY_DATABASE_REQUIRED");
+      await assertMemoryAuthorityDatabase(databasePool, config.runtimeMode === "production");
+    }
     memory = createMemoryService(providers);
     const initialComposition = captureProfileComposition(memory, profileSnapshotStore);
     await profileLifecycleCoordinator.replaceComposition(initialComposition);
@@ -987,6 +992,10 @@ export async function createAppContext(
       const extractorMode = parseMemoryExtractorDriver(reloadEnv["MEMORY_EXTRACTOR"]);
       const nextProviders = createProviderRegistryFromEnv(reloadEnv);
       nextProviders.setAccounting(outwardEffects);
+      if (parseRuntimeConfig(reloadEnv).memory.backend === "postgres") {
+        if (!databasePool) throw new Error("MEMORY_AUTHORITY_DATABASE_REQUIRED");
+        await assertMemoryAuthorityDatabase(databasePool, config.runtimeMode === "production");
+      }
       await memory.stopAuthorityIndexing();
       const nextMemory = createMemoryService(nextProviders, extractorMode, reloadEnv);
       const nextProfileComposition = captureProfileComposition(nextMemory, profileSnapshotStore);

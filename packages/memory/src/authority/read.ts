@@ -15,6 +15,12 @@ import {
   type KnowledgeState
 } from "./types.js";
 
+/** Scalar generation lookup is an InitPlan for a fixed scope. A view join can
+ * make PostgreSQL sort the entire scope before LIMIT; keep the pointer in the same snapshot.
+ */
+const activeProjection = `(select scope,id,version,state,search from memory_authority_projection_rows
+ where scope=$1 and generation=(select projection_generation from memory_authority_scopes where scope=$1))`;
+
 export class MemoryKnowledgeReader {
   constructor(private readonly db: AuthorityQuery) {}
   async overview(scope: string): Promise<KnowledgeOverview> {
@@ -59,7 +65,7 @@ export class MemoryKnowledgeReader {
     const anchor = cursor?.anchor ?? health.version;
     const limit = boundLimit(input.limit);
     const rows = await this.db.query(
-      `select r.*,c.state from memory_authority_current c join memory_authority_records r using(scope,id)
+      `select r.*,c.state from ${activeProjection} c join memory_authority_records r using(scope,id)
       where c.scope=$1 and (($2::text is null and c.state in ('current','conflicted')) or c.state=$2) and c.version <= $3::bigint and ($4::bigint is null or c.version < $4::bigint)
       order by c.version desc limit $5`,
       [input.scope, input.state ?? null, anchor, cursor?.after ?? null, limit + 1]
@@ -84,7 +90,7 @@ export class MemoryKnowledgeReader {
     const anchor = cursor?.anchor ?? health.version;
     const limit = boundLimit(input.limit);
     const rows = await this.db.query(
-      `select r.*,c.state from memory_authority_records r join memory_authority_current c using(scope,id)
+      `select r.*,c.state from memory_authority_records r join ${activeProjection} c using(scope,id)
       where r.scope=$1 and r.version <= $2::bigint and ($3::bigint is null or r.version < $3::bigint)
       order by r.version desc limit $4`,
       [input.scope, anchor, cursor?.after ?? null, limit + 1]
@@ -103,7 +109,7 @@ export class MemoryKnowledgeReader {
     await this.requireProjection(scope);
     const row = (
       await this.db.query(
-        "select r.*,c.state from memory_authority_records r join memory_authority_current c using(scope,id) where r.scope=$1 and r.id=$2",
+        `select r.*,c.state from memory_authority_records r join ${activeProjection} c using(scope,id) where r.scope=$1 and r.id=$2`,
         [scope, id]
       )
     ).rows[0];
@@ -121,7 +127,7 @@ export class MemoryKnowledgeReader {
     const query = terms.map((t) => `'${t.replaceAll("'", "''")}'`).join(" | ");
     const rows = await this.db.query(
       `with candidates as materialized (
-      select scope,id,state,version,search from memory_authority_current where scope=$1 and state in ('current','conflicted')
+      select scope,id,state,version,search from ${activeProjection} c where scope=$1 and state in ('current','conflicted')
         and search @@ to_tsquery('simple',$2) limit 513
       ) select r.*,c.state,(select count(*) from candidates) as candidate_count from candidates c join memory_authority_records r using(scope,id)
       order by ts_rank(c.search,to_tsquery('simple',$2)) desc,c.version desc limit $3`,
@@ -204,7 +210,7 @@ export class MemoryKnowledgeReader {
       await this.db.query(
         `select j.model_tag,j.status,j.attempts,j.error_code,j.next_attempt_at,j.completed_at,
       case when c.state not in ('current','conflicted') then 'RETIRED' when v.authority_version=c.version then 'CURRENT' else 'MISSING' end as projection
-      from memory_authority_index_jobs j join memory_authority_current c using(scope,id) left join memory_authority_vectors v using(scope,id,model_tag)
+      from memory_authority_index_jobs j join ${activeProjection} c using(scope,id) left join memory_authority_vectors v using(scope,id,model_tag)
       where j.scope=$1 and j.id=$2 order by j.model_tag limit 100`,
         [scope, id]
       )

@@ -187,11 +187,16 @@ export class PostgresMemoryAuthority {
             target.kind === "supersedes" ? "superseded" : "conflicted"
           ]);
       }
-      if (input.supersedes?.length)
+      if (input.supersedes?.length) {
         await tx.query(
           "delete from memory_authority_vectors where scope=$1 and id=any($2::text[])",
           [input.scope, input.supersedes]
         );
+        await tx.query(
+          `update memory_authority_index_jobs set status='complete',completed_at=now(),error_code='MEMORY_VECTOR_SOURCE_SUPERSEDED',lease_owner=null,lease_until=null,next_attempt_at=null where scope=$1 and id=any($2::text[])`,
+          [input.scope, input.supersedes]
+        );
+      }
       await tx.query(
         `update memory_authority_scopes set record_count=record_count+1,
         current_count=current_count+$2, unattributed_count=unattributed_count+$3, projection_version=version where scope=$1`,

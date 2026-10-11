@@ -110,7 +110,7 @@ export class MemoryProjectionRebuild {
     const state = await this.authority.transaction(async (tx) => {
       const row = (
         await tx.query(
-          "select * from memory_projection_rebuilds where scope=$1 and build_id=$2 for update",
+          "select * from memory_projection_rebuilds where scope=$1 and build_id=$2 for no key update",
           [scope, id]
         )
       ).rows[0];
@@ -210,7 +210,7 @@ export class MemoryProjectionRebuild {
         ).rows[0]!;
         const b = (
           await tx.query(
-            "select * from memory_projection_rebuilds where scope=$1 and build_id=$2 for update",
+            "select * from memory_projection_rebuilds where scope=$1 and build_id=$2 for no key update",
             [scope, id]
           )
         ).rows[0]!;
@@ -263,7 +263,7 @@ export class MemoryProjectionRebuild {
       ).rows[0];
       const b = (
         await tx.query(
-          "select * from memory_projection_rebuilds where scope=$1 and build_id=$2 for update",
+          "select * from memory_projection_rebuilds where scope=$1 and build_id=$2 for no key update",
           [scope, id]
         )
       ).rows[0];

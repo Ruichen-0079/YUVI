@@ -240,6 +240,26 @@ export async function registerMemoryRoutes(
   context: AppContext,
   config?: ServerConfig
 ): Promise<void> {
+  app.addHook("preHandler", async (request, reply) => {
+    if (
+      !context.memory?.usesSemanticMemoryPolicy?.() ||
+      !/^\/memory(?:\/(?!v1(?:\/|$))|$)/u.test(request.url.split("?")[0]!)
+    )
+      return;
+    if (config && !requireLocalDashboardAccess(config, request, reply)) return;
+    return reply
+      .code(410)
+      .header("Deprecation", "true")
+      .header("Link", '</memory/v1/overview>; rel="successor-version"')
+      .send({
+        schema: "memory.error.v1",
+        status: "FAILED",
+        error: "MEMORY_LEGACY_API_RETIRED",
+        backend: "postgres",
+        successor: "/memory/v1",
+        compatibility: "EXPLICIT_MIGRATION_REQUIRED"
+      });
+  });
   app.post("/memory", async (request, reply) => {
     if (!requireDevelopmentMemoryMutation(config, request, reply)) return;
 

@@ -104,7 +104,11 @@ export class PostgresContextUseRepository {
           );
           await client.query(
             `insert into memory_retrieval_contexts(scope,retrieval_id,manifest_id,exposure_id,consumer_operation,memory_blocks,exposure)
-          select scope,retrieval_id,$2,$3,$4,$5,$6 from memory_retrieval_runs where retrieval_id=$1 and trace_id=$7
+          select scope,retrieval_id,$2,$3,$4,$5,$6 from memory_retrieval_runs
+          where retrieval_id=$1 and (
+            trace_id=$7 or (source_ref is not null and source_ref->>'namespace'=$8 and source_ref=any($9::jsonb[])
+              and ('session:'||session_id=$10 or scope=$10))
+          )
           on conflict do nothing`,
             [
               retrievalId,
@@ -117,7 +121,34 @@ export class PostgresContextUseRepository {
                 inputDigest: e.inputDigest,
                 blocks: memoryExposure
               }),
-              m.executionId
+              m.executionId,
+              m.namespace,
+              m.sources
+                .filter(
+                  (s) =>
+                    s.owner === "JOURNAL" &&
+                    s.availability === "AVAILABLE" &&
+                    s.revisionKind === "NATIVE"
+                )
+                .flatMap((s) => {
+                  try {
+                    const ref = JSON.parse(s.reference);
+                    return ref?.kind === "JOURNAL_EVENT" &&
+                      ref.namespace === m.namespace &&
+                      typeof ref.eventId === "string"
+                      ? [
+                          JSON.stringify({
+                            kind: ref.kind,
+                            namespace: ref.namespace,
+                            eventId: ref.eventId
+                          })
+                        ]
+                      : [];
+                  } catch {
+                    return [];
+                  }
+                }),
+              m.scope
             ]
           );
         }

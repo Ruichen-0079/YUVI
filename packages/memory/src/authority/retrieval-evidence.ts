@@ -1,3 +1,5 @@
+import { z } from "zod";
+import { ContextBlockSchema, ContextExposureSchema } from "@companion/protocol";
 import { randomUUID } from "node:crypto";
 import { canonicalScope, MemoryAuthorityError, type AuthorityQuery } from "./types.js";
 import type { MemoryRetrievalInput, MemoryRetrievalOutcome } from "../provider.js";
@@ -11,6 +13,37 @@ export type RetrievalCandidate = {
   reason: "SELECTED" | "RESULT_BOUND" | "NO_LONGER_CURRENT";
   content: string;
 };
+const candidateSchema = z
+  .object({
+    id: z.string().min(1).max(1024),
+    version: z.string().regex(/^\d+$/),
+    state: z.enum([
+      "current",
+      "superseded",
+      "conflicted",
+      "supporting",
+      "legacy_unverified",
+      "unattributed"
+    ]),
+    channels: z.array(z.enum(["TEXT", "VECTOR"])).max(2),
+    selected: z.boolean(),
+    reason: z.enum(["SELECTED", "RESULT_BOUND", "NO_LONGER_CURRENT"]),
+    content: z.string().max(16000)
+  })
+  .strip();
+const memoryBlocksSchema = z.array(ContextBlockSchema.strip()).max(128);
+const memoryExposureSchema = z
+  .object({
+    boundary: z.literal("PREPARED_FOR_USE"),
+    inputDigest: z.string().regex(/^[a-f0-9]{64}$/),
+    blocks: z.array(ContextExposureSchema.shape.blocks.element.strip()).max(128)
+  })
+  .strip();
+function disclosed<T>(schema: z.ZodType<T>, value: unknown): T {
+  const result = schema.safeParse(value);
+  if (!result.success) throw new MemoryAuthorityError("MEMORY_RETRIEVAL_EVIDENCE_INVALID");
+  return result.data;
+}
 export class MemoryRetrievalEvidence {
   constructor(private readonly db: AuthorityQuery) {}
   async record(
@@ -37,7 +70,7 @@ export class MemoryRetrievalEvidence {
         outcome.limited,
         detail.watermark,
         detail.modelTag ?? null,
-        JSON.stringify(detail.candidates.slice(0, 64))
+        JSON.stringify(disclosed(z.array(candidateSchema).max(64), detail.candidates.slice(0, 64)))
       ]
     );
     return id;
@@ -76,19 +109,17 @@ export class MemoryRetrievalEvidence {
         [input.scope, input.traceId ?? null, cursor?.at ?? null, cursor?.id ?? null, limit + 1]
       )
     ).rows;
-    const items = rows
-      .slice(0, limit)
-      .map((r) => ({
-        id: String(r["retrieval_id"]),
-        traceId: String(r["trace_id"]),
-        sessionId: r["session_id"] as string | null,
-        status: String(r["status"]),
-        errorCode: r["error_code"] as string | null,
-        limited: r["limited"] === true,
-        watermark: String(r["watermark"]),
-        modelTag: r["model_tag"] as string | null,
-        at: (r["created_at"] as Date).toISOString()
-      }));
+    const items = rows.slice(0, limit).map((r) => ({
+      id: String(r["retrieval_id"]),
+      traceId: String(r["trace_id"]),
+      sessionId: r["session_id"] as string | null,
+      status: String(r["status"]),
+      errorCode: r["error_code"] as string | null,
+      limited: r["limited"] === true,
+      watermark: String(r["watermark"]),
+      modelTag: r["model_tag"] as string | null,
+      at: (r["created_at"] as Date).toISOString()
+    }));
     const last = items.at(-1);
     return {
       schema: "memory.retrieval.page.v1" as const,
@@ -117,7 +148,16 @@ export class MemoryRetrievalEvidence {
     if (!row) return null;
     const exposures = (
       await this.db.query(
-        `select manifest_id,exposure_id,consumer_operation,memory_blocks,exposure from memory_retrieval_contexts where scope=$1 and retrieval_id=$2 order by created_at,exposure_id limit 101`,
+        `with contexts as materialized (select * from memory_retrieval_contexts where scope=$1 and retrieval_id=$2 order by created_at,exposure_id limit 101)
+        select c.manifest_id,c.exposure_id,c.consumer_operation,c.memory_blocks,c.exposure,
+          (select coalesce(jsonb_agg(x),'[]'::jsonb) from (
+            select i.intent_id as "intentId",i.state as "admissionState",a.attempt_id as "attemptId",a.dispatch_started_at as "dispatchStartedAt",o.evidence->>'certainty' as certainty,o.evidence->>'layer' as layer
+            from effect_intents i left join effect_attempts a using(intent_id)
+            left join lateral(select evidence from effect_observations where attempt_id=a.attempt_id and category='TERMINAL' order by observation_id desc limit 1) o on true
+            where i.intent->'request'->'payload'->'inputSnapshot'->'manifest'->>'exposureId'=c.exposure_id
+            or i.intent->'request'->'payload'->'contextUse'->>'exposureId'=c.exposure_id
+            order by i.intent_id,a.ordinal limit 21
+          ) x) as consumers from contexts c`,
         [scope, id]
       )
     ).rows;
@@ -131,17 +171,40 @@ export class MemoryRetrievalEvidence {
       limited: row["limited"] === true,
       watermark: String(row["watermark"]),
       modelTag: row["model_tag"] as string | null,
-      candidates: row["candidates"] as RetrievalCandidate[],
-      contexts: exposures
-        .slice(0, 100)
-        .map((e) => ({
-          manifestId: String(e["manifest_id"]),
-          exposureId: String(e["exposure_id"]),
-          consumerOperation: String(e["consumer_operation"]),
-          memoryBlocks: e["memory_blocks"],
-          exposure: e["exposure"]
-        })),
+      candidates: disclosed(z.array(candidateSchema).max(64), row["candidates"]),
+      contexts: exposures.slice(0, 100).map((e) => ({
+        manifestId: String(e["manifest_id"]),
+        exposureId: String(e["exposure_id"]),
+        consumerOperation: String(e["consumer_operation"]),
+        memoryBlocks: disclosed(memoryBlocksSchema, e["memory_blocks"]),
+        exposure: disclosed(memoryExposureSchema, e["exposure"]),
+        consumers: disclosed(
+          z
+            .array(
+              z
+                .object({
+                  intentId: z.string(),
+                  admissionState: z.string(),
+                  attemptId: z.string().nullable(),
+                  dispatchStartedAt: z.string().nullable(),
+                  certainty: z
+                    .enum(["APPLIED", "DEFINITIVE_REJECTION", "PROVEN_NOT_APPLIED", "UNKNOWN"])
+                    .nullable(),
+                  layer: z.string().nullable()
+                })
+                .strip()
+            )
+            .max(21),
+          e["consumers"]
+        ).slice(0, 20),
+        consumersLimited: Array.isArray(e["consumers"]) && e["consumers"].length > 20
+      })),
       contextsLimited: exposures.length > 100
     };
   }
 }
+
+export type MemoryRetrievalPage = Awaited<ReturnType<MemoryRetrievalEvidence["page"]>>;
+export type MemoryRetrievalDetail = NonNullable<
+  Awaited<ReturnType<MemoryRetrievalEvidence["detail"]>>
+>;

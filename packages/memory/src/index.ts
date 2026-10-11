@@ -488,3 +488,5 @@ export {
   MemoryProjectionRebuild,
   type ProjectionRebuildState
 } from "./authority/projection-rebuild.js";
+
+export { assertMemoryAuthorityDatabase } from "./authority/database-contract.js";

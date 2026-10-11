@@ -9,6 +9,7 @@ import type { AppContext } from "../context.js";
 
 export type MemoryMaintenanceSchedulerStatus = {
   enabled: boolean;
+  mode: "LEGACY_MEMORY" | "CONVERSATION_RECOVERY_ONLY";
   runOnStartup: boolean;
   intervalMinutes: number;
   limit: number;
@@ -84,11 +85,24 @@ export class MemoryMaintenanceScheduler {
           );
         }
       }
-      const summary = await this.service.run({
-        ...options,
-        dryRun: options.dryRun ?? false,
-        limit: options.limit ?? this.limit
-      });
+      const summary: MemoryMaintenanceSummary = this.context.memory.usesSemanticMemoryPolicy?.()
+        ? {
+            dryRun: Boolean(options.dryRun),
+            scanned: 0,
+            expired: 0,
+            stale: 0,
+            supersessionWarnings: 0,
+            skipped: 0,
+            failed: 0,
+            expiredIds: [],
+            staleIds: [],
+            warnings: []
+          }
+        : await this.service.run({
+            ...options,
+            dryRun: options.dryRun ?? false,
+            limit: options.limit ?? this.limit
+          });
       this.lastRunAt = new Date();
       this.lastSummary = summary;
       this.logger.info(
@@ -117,6 +131,9 @@ export class MemoryMaintenanceScheduler {
   getStatus(): MemoryMaintenanceSchedulerStatus {
     return {
       enabled: this.enabled,
+      mode: this.context.memory.usesSemanticMemoryPolicy?.()
+        ? "CONVERSATION_RECOVERY_ONLY"
+        : "LEGACY_MEMORY",
       runOnStartup: this.runOnStartup,
       intervalMinutes: this.intervalMinutes,
       limit: this.limit,

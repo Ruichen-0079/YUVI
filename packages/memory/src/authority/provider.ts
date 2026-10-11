@@ -52,19 +52,30 @@ export class PostgresMemoryProvider implements MemoryProvider {
       };
     try {
       const result = await this.knowledge.search(input.scope, input.text, 32);
+      const compatibility = await this.knowledge.overview(input.scope);
+      const compatibilityPending =
+        compatibility.legacy !== "0" || compatibility.unattributed !== "0";
       let vectorError = false;
       let vectorPending = false;
+      let vectorLimited = false;
       let indexedIds: string[] = [];
       if (this.vectors)
         try {
           vectorPending = await this.vectors.hasPending(input.scope);
-          indexedIds = await this.vectors.search(input.scope, input.text, 32);
+          const vectorResult = await this.vectors.searchWithEvidence(input.scope, input.text, 32);
+          indexedIds = vectorResult.ids;
+          vectorLimited = vectorResult.limited;
         } catch {
           vectorError = true;
         }
       const indexed = await Promise.all(
         indexedIds.map((id) => this.knowledge.detail(input.scope!, id))
       );
+      const vectorRank = new Map(indexedIds.map((id, i) => [id, i]));
+      const textRank = new Map(result.records.map((r, i) => [r.id, i]));
+      const score = (id: string) =>
+        (textRank.has(id) ? 1 / (60 + textRank.get(id)!) : 0) +
+        (vectorRank.has(id) ? 1 / (32 + vectorRank.get(id)!) : 0);
       const selected = [
         ...new Map(
           [
@@ -77,6 +88,15 @@ export class PostgresMemoryProvider implements MemoryProvider {
         ).values()
       ]
         .filter((r) => matchesReader(r.event, input.access!))
+        .sort(
+          (a, b) =>
+            score(b.id) - score(a.id) ||
+            (BigInt(a.version) > BigInt(b.version)
+              ? -1
+              : BigInt(a.version) < BigInt(b.version)
+                ? 1
+                : a.id.localeCompare(b.id))
+        )
         .slice(0, input.limit ?? 8);
       const events = selected
         .map((r) => r.event)
@@ -86,21 +106,30 @@ export class PostgresMemoryProvider implements MemoryProvider {
           ? events.length
             ? "partial"
             : "unavailable"
-          : result.candidateLimited || vectorPending
+          : result.candidateLimited || vectorPending || vectorLimited || compatibilityPending
             ? "partial"
             : events.length
               ? "ok"
               : "empty",
         source: "postgres",
         events,
-        limited: result.candidateLimited || vectorError || vectorPending,
+        limited:
+          result.candidateLimited ||
+          vectorError ||
+          vectorPending ||
+          vectorLimited ||
+          compatibilityPending,
         limitReason: vectorError
           ? "MEMORY_VECTOR_UNAVAILABLE"
           : vectorPending
             ? "MEMORY_VECTOR_INDEX_PENDING"
-            : result.candidateLimited
-              ? "MEMORY_TEXT_CANDIDATE_BOUND"
-              : null,
+            : vectorLimited
+              ? "MEMORY_VECTOR_CANDIDATE_BOUND"
+              : result.candidateLimited
+                ? "MEMORY_TEXT_CANDIDATE_BOUND"
+                : compatibilityPending
+                  ? "MEMORY_LEGACY_OR_UNATTRIBUTED_REQUIRES_REVIEW"
+                  : null,
         selectedCount: events.length,
         watermark: result.watermark
       };
@@ -151,8 +180,12 @@ export class PostgresMemoryProvider implements MemoryProvider {
   }
   async getEvent(input: Parameters<MemoryProvider["getEvent"]>[0]) {
     if (!input.access) throw new MemoryAuthorityError("MEMORY_READER_AUTHORITY_UNRESOLVED");
-    const event = (await this.knowledge.detail(input.scope, input.id))?.event;
-    return event && matchesReader(event, input.access) ? event : null;
+    const record = await this.knowledge.detail(input.scope, input.id);
+    return record &&
+      ["current", "conflicted"].includes(record.state) &&
+      matchesReader(record.event, input.access)
+      ? record.event
+      : null;
   }
   writeEvent(input: MemoryWriteEventInput): Promise<MemoryWriteEventOutcome> {
     return this.writeEventIdempotent(input);
