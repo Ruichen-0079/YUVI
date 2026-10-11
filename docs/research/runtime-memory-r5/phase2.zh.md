@@ -50,6 +50,7 @@ SQL 027–032 接入身份、检索、来源审计、重评与受认证恢复；
 - 真实 PG16.15 + pgvector0.8.6，10k/100k/1M **合成** 512D 向量。旧 JOIN 在百万级全量计划出现数秒查询，停止无意义重复，未捏造最终 p95。首次 ANN 近邻 4/5 的失败保留；ef_search 调整后为 5/5，零旧命题泄露。百万级热缓存分页 p95 2.76ms、向量 p95 13.62ms，4 reader 的 200 请求 1.29s。[失败](evidence/phase2/vector-first-ann.json)、[修复测量/计划](evidence/phase2/vector-ef200.json)。百万向量不是百万真实 LLM embedding，也不是广泛 Recall@K 验收。
 - 百万历史在线重建约 48.1s，读 1,724 次 p95 2.50ms、并发正式写 50 次 p95 11.08ms、max 24.10ms；暂停后重新构造组件恢复，增量追赶/切换后 1,000,050 条、全部投影状态对照差异 0。[在线负载](evidence/phase2/online-million.json)。不是强停过程中在线重建恢复验收。
 - **自己的** 31508 PostgreSQL cluster 两次 immediate 强停：COMMIT 前中断 → down 时 UNKNOWN →恢复后 not_applied；COMMIT 已执行、回执被注入丢失并强停 →UNKNOWN→恢复后 applied，同键 unchanged。两个最终当前记录均在；vector Provider 失败保留 retryable，删除派生 vector 后正式 requeue 恢复。[最终持久状态](evidence/phase2/database-faults.json)。回执丢失属于注入 transport seam，并非所有真实网络分区故障已验证。
+- 2026-10-12 CI 捕获并确定性复现 Runtime dispatcher 的 shutdown 回执竞态：UNKNOWN 已提交后旧快照继续执行，数据库拒绝晚到结果而代码仍报告 recorded=true。修复后只接受正式 RECORDED/REPLAY，UNKNOWN 保持、工具零调用；实际 Effects 全套 127 项通过。[原失败及回执](evidence/phase2/dispatch-shutdown-receipt.json)。
 - 自有 PG 恢复后百万查询首个 page 7.79ms、vector 64.94ms；后续热 p95 2.42/8.80ms。OS 文件缓存没有驱逐，不冒充冷缓存。向量表+索引约5.97GB，历史约1.37GB，双代投影约1.76GB；机器24逻辑CPU、约46.7GiB RAM。资源记录是恢复后快照，不是构建峰值。[恢复后计划/I/O](evidence/phase2/vector-post-recovery.json)、[资源](evidence/phase2/resources.json)。
 
 ## 总体验收矩阵

@@ -52,3 +52,5 @@ PR 复核后又收紧产品 DTO 白名单，并增加实际旧 JSON 的未知顶
 新增实际PG覆盖可信Host session所有权、来源审计/撤证、原始digest保留的重评及最终映射、在线shadow暂停/重开/并发推进/退休、schema receipt原子性、受限role实际commit/cutover、防DDL/历史编辑、旧副本250条恢复/并发批次/摘要对账/源变化/注入事务失败、实际HTTP维护和读取、Character子调用context关联/A9消费者，以及Embedding期间纠正不泄露旧事实。实际PG指定套件68项（新增竞态、重评保护、production 披露与 Person revision 边界后），完整仓库test/check/build单独运行；数量不是成熟度声明。
 
 实机正常Server质量、million向量/在线writer与两次own-PG强停分别在 [Phase 2](phase2.zh.md) 和 [证据目录](evidence/phase2/)；确定性故障fixture不冒充模型判断。初次远端Linux/Conformance因旧P8测试仍期望重播migration名称而失败，修正为第一次有receipt、第二次no-op，并保留完整authority读写隔离断言；旧失败不隐藏。最终CI结果以PR最新SHA为准。
+
+2026-10-12 继续核对 `61fe11c` 时，push 的 Durable Conformance 另捕获 Effects shutdown 回执竞态（同 SHA 的 PR 工作流通过）。没有靠重复运行抹去失败：真实 PostgreSQL 确定性调度复现了 UNKNOWN 提交后旧 post-start 快照继续执行、durable record 返回 STALE 而 dispatcher 无条件报告 recorded=true。生产分支现检查 RECORDED/REPLAY；旧结果不伪造持久成功、不改 UNKNOWN、不调用工具。实际 Effects 全套 127 项与 check 通过，[原失败与正式状态证据](evidence/phase2/dispatch-shutdown-receipt.json)。这是 Runtime 的回执边界修复，不证明所有长期故障门槛已关闭。

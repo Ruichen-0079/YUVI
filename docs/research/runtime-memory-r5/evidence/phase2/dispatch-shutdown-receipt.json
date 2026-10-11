@@ -1,0 +1,22 @@
+{
+  "schema": "yuvi.memory.phase2.dispatch-receipt-verification.v1",
+  "date": "2026-10-12",
+  "baseline": "61fe11c657eb14b5368ef1f5c2e474e1edf01401",
+  "originalCiFailure": "https://github.com/Ruichen-0079/YUVI/actions/runs/38119328704",
+  "productionFix": "1129e2b",
+  "deterministicRegression": "005fdfd",
+  "database": "isolated PostgreSQL 16.15 on dedicated port 31508",
+  "schedule": [
+    "start commits; dispatcher reads a post-start snapshot before invocation",
+    "snapshot return is delayed",
+    "shutdown stops admission and commits UNKNOWN / SHUTDOWN",
+    "old snapshot resumes before caller detachment",
+    "revocation record is rejected as stale by the expired durable lease"
+  ],
+  "before": { "invoked": false, "recorded": true },
+  "after": { "invoked": false, "recorded": false },
+  "adapterInvocations": 0,
+  "finalDurableEvidence": { "certainty": "UNKNOWN", "reason": "SHUTDOWN", "unchanged": true },
+  "suite": { "testFilesPassed": 4, "testsPassed": 127 },
+  "scope": "Deterministic durable receipt correctness; not model quality or exhaustive shutdown recovery."
+}
