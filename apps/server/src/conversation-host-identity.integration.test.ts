@@ -128,4 +128,46 @@ describe.skipIf(!url)("Host identity and session ownership with actual PostgreSQ
       other.authorize(request(grant.token), { sessionId: randomUUID() })
     ).rejects.toThrow("HOST_CREDENTIAL_INVALID");
   });
+  it("requires renewed Host binding when the Person revision changes without deleting prior Journal evidence", async () => {
+    let revision = "person-current-1";
+    const changing = new ConversationHostIdentity(
+      pool,
+      journal,
+      { instanceId: "r5p2-host", personaId },
+      (id) => (id === "x" ? revision : null)
+    );
+    const admission = new HostConversationalReceiptAdmission(journal, undefined, changing);
+    const before = await changing.issue("x"),
+      sessionId = randomUUID();
+    const proof = await changing.authorize(request(before.token), { sessionId });
+    const receipt = await admission.admit({
+      surface: "HTTP_MESSAGE",
+      sessionId,
+      runtimeEventId: randomUUID(),
+      content: "Retained prior authorized statement",
+      hostIdentity: proof!
+    });
+    const ref = toConversationalJournalRef(receipt.envelope),
+      scope = buildMemoryScope("x", personaId);
+    expect(await changing.readAuthority(ref, scope)).toBeDefined();
+    revision = "person-current-2";
+    await expect(changing.authorize(request(before.token), { sessionId })).rejects.toThrow(
+      "HOST_CREDENTIAL_INVALID"
+    );
+    expect(await changing.readAuthority(ref, scope)).toBeUndefined();
+    const after = await changing.issue("x"),
+      renewed = await changing.authorize(request(after.token), { sessionId });
+    expect(renewed?.principal).toEqual(proof?.principal);
+    const next = await admission.admit({
+      surface: "HTTP_MESSAGE",
+      sessionId,
+      runtimeEventId: randomUUID(),
+      content: "Current authorized statement",
+      hostIdentity: renewed!
+    });
+    expect(
+      await changing.readAuthority(toConversationalJournalRef(next.envelope), scope)
+    ).toBeDefined();
+    expect(await journal.get(ref)).toBeDefined();
+  });
 });
