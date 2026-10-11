@@ -1,3 +1,5 @@
+import { assertCharacterMemoryScope } from "./character-scope.js";
+import { PostgresMemoryProvider } from "./authority/provider.js";
 import { legacyMemoryContextRevision } from "./context-use-repository.js";
 import { sameLegacyMemoryPartition } from "./scope.js";
 import {
@@ -115,7 +117,8 @@ export type MemoryEmbeddingConfig = {
 };
 
 export type MemoryServiceBackendConfig = {
-  kind?: "legacy" | "mem0" | undefined;
+  kind?: "legacy" | "mem0" | "postgres" | undefined;
+  postgres?: PostgresMemoryProvider | undefined;
   mem0?: MemoryBackend | undefined;
   evidenceAdmissions?: EvidenceAdmissionStore | undefined;
   evidenceAdmissionReady?: Promise<unknown> | undefined;
@@ -147,7 +150,8 @@ export class MemoryService {
   private readonly embeddingProvider: MemoryEmbeddingProvider | undefined;
   private readonly embeddingEnabled: boolean;
   private readonly embeddingLogger: MemoryEmbeddingConfig["logger"];
-  private readonly backendKind: "legacy" | "mem0";
+  private readonly backendKind: "legacy" | "mem0" | "postgres";
+  private readonly postgresProvider: PostgresMemoryProvider | undefined;
   private readonly mem0Backend: MemoryBackend | undefined;
   private readonly mem0SearchTimeoutMs: number;
   private readonly mem0WriteTimeoutMs: number;
@@ -172,7 +176,15 @@ export class MemoryService {
     this.embeddingProvider = embedding?.provider;
     this.embeddingEnabled = embedding?.enabled ?? Boolean(embedding?.provider);
     this.embeddingLogger = embedding?.logger;
-    this.backendKind = backend?.kind === "mem0" && backend.mem0 ? "mem0" : "legacy";
+    if (backend?.kind === "postgres" && !backend.postgres)
+      throw new Error("PostgreSQL Memory authority is required.");
+    this.postgresProvider = backend?.postgres;
+    this.backendKind =
+      backend?.kind === "postgres"
+        ? "postgres"
+        : backend?.kind === "mem0" && backend.mem0
+          ? "mem0"
+          : "legacy";
     this.mem0Backend = backend?.kind === "mem0" ? backend.mem0 : undefined;
     this.mem0SearchTimeoutMs = backend?.searchTimeoutMs ?? MEM0_CHAT_SEARCH_TIMEOUT_MS;
     this.mem0WriteTimeoutMs = backend?.writeTimeoutMs ?? MEM0_CHAT_WRITE_TIMEOUT_MS;
@@ -199,8 +211,9 @@ export class MemoryService {
           { enabled: true, ready: this.evidenceAdmissionReady }
         )
       : undefined;
-    this.memoryProvider = this.rawMemoryProvider
-      ? characterMemoryProvider(this.rawMemoryProvider, () => this.characterOwner)
+    const activeProvider = this.postgresProvider ?? this.rawMemoryProvider;
+    this.memoryProvider = activeProvider
+      ? characterMemoryProvider(activeProvider, () => this.characterOwner)
       : undefined;
     this.controllerEvidence = backend?.controllerEvidence;
     this.memoryIngestionPolicy =
@@ -256,8 +269,37 @@ export class MemoryService {
     return this.backendKind === "mem0" && Boolean(this.mem0Backend);
   }
 
-  getBackendKind(): "legacy" | "mem0" {
-    return this.isMem0Backend() ? "mem0" : "legacy";
+  getBackendKind(): "legacy" | "mem0" | "postgres" {
+    return this.backendKind;
+  }
+
+  usesSemanticMemoryPolicy(): boolean {
+    return this.backendKind === "postgres";
+  }
+
+  isDurableBackend(): boolean {
+    return this.backendKind !== "legacy";
+  }
+
+  getAuthorityDiagnostics() {
+    return this.postgresProvider
+      ? {
+          database: this.postgresProvider.authority.getDatabaseDiagnostics(),
+          vector: this.postgresProvider.vectors?.getDiagnostics() ?? { status: "UNAVAILABLE" }
+        }
+      : null;
+  }
+
+  async stopAuthorityIndexing() {
+    await this.postgresProvider?.vectors?.stop();
+  }
+
+  getKnowledgeReader(scope: string) {
+    assertCharacterMemoryScope(
+      this.characterOwner ?? { instanceId: "primary-legacy", personaId: null },
+      scope
+    );
+    return this.postgresProvider?.knowledge;
   }
 
   getProfileMutationDiagnostics(): {
@@ -449,7 +491,7 @@ export class MemoryService {
     tags?: string[];
     groundingContext?: MemoryGroundingContext | undefined;
   }): Promise<Memory | null> {
-    if (this.isMem0Backend()) {
+    if (this.isDurableBackend()) {
       // Mem0 chat path uses storeConversationTurn / storeExplicitFact instead.
       return null;
     }
@@ -476,7 +518,7 @@ export class MemoryService {
 
   async extractCandidates(input: MemoryExtractionInput): Promise<MemoryCandidate[]> {
     input = this.scopeCharacterInput(input);
-    if (this.isMem0Backend()) {
+    if (this.isDurableBackend()) {
       // Do not run Legacy LLM/rule extraction when Mem0 owns long-term memory.
       return [];
     }
@@ -505,6 +547,14 @@ export class MemoryService {
   }
 
   getExtractorStatus(): MemoryExtractorStatus {
+    if (this.backendKind === "postgres")
+      return {
+        mode: "llm",
+        active: "llm",
+        enabled: true,
+        provider: "reasoning-route",
+        fallbackUsed: false
+      };
     return (
       this.extractor.getStatus?.() ?? {
         mode: "rule-based",
@@ -540,7 +590,7 @@ export class MemoryService {
     groundingContext?: MemoryGroundingContext
   ): Promise<MemoryCandidateStorageResult> {
     candidate = this.scopeCharacterInput(candidate);
-    if (this.isMem0Backend()) {
+    if (this.isDurableBackend()) {
       return {
         decision: "rejected",
         candidate,
@@ -727,21 +777,21 @@ export class MemoryService {
 
   async consolidateMemory(_memoryId: string): Promise<void> {
     // Mem0 owns consolidation via infer; Legacy path remains a no-op placeholder.
-    if (this.isMem0Backend()) {
+    if (this.isDurableBackend()) {
       return;
     }
     // Placeholder: future consolidation should merge related memories into stable semantic summaries.
   }
 
   scoreImportance(content: string): number {
-    if (this.isMem0Backend()) {
+    if (this.isDurableBackend()) {
       return 0;
     }
     return this.scorer.scoreImportance(content);
   }
 
   async remember(_sessionId: string, content: string): Promise<void> {
-    if (this.isMem0Backend()) {
+    if (this.isDurableBackend()) {
       return;
     }
     await this.createMemory({

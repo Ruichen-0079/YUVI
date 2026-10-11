@@ -1,4 +1,12 @@
 import {
+  PostgresMemoryAuthority,
+  PostgresMemoryProvider,
+  SemanticMemoryPolicy,
+  MemoryVectorIndexer,
+  embeddingModelTag,
+  type AuthorityPool
+} from "@companion/memory";
+import {
   preserveCharacterEnvironment,
   type CharacterComposition
 } from "./character-composition.js";
@@ -397,7 +405,12 @@ export async function createAppContext(
       : new InMemoryDreamJobStore();
   const finalizedIngestion = new FinalizedIngestionService(
     finalizedIngestionRepository!,
-    { build: (input) => memory.getIngestionPolicy().build(input) },
+    {
+      build: (input) => memory.getIngestionPolicy().build(input),
+      get semanticOnly() {
+        return memory.getBackendKind() === "postgres";
+      }
+    },
     journalRepository ? new JournalMemoryGroundingResolver(journalRepository) : undefined
   );
   const ruleBasedExtractor = new RuleBasedMemoryExtractor();
@@ -432,7 +445,93 @@ export async function createAppContext(
         : ruleBasedExtractor;
 
     const runtimeConfig = parseRuntimeConfig(env);
-    const backendKind = runtimeConfig.memory.backend === "mem0" ? "mem0" : "legacy";
+    const backendKind =
+      runtimeConfig.memory.backend === "postgres"
+        ? "postgres"
+        : runtimeConfig.memory.backend === "mem0"
+          ? "mem0"
+          : "legacy";
+    const embeddingProvider = providers.getEmbeddingProvider();
+    const vectorEnabled =
+      backendKind === "postgres" &&
+      embeddingProvider.dimensions === 512 &&
+      !embeddingProvider.mock &&
+      (providers.getStatus().routes?.embedding ?? []).some(
+        (r) => r.enabled && r.configured && !r.mock
+      );
+    const authority =
+      backendKind === "postgres"
+        ? new PostgresMemoryAuthority(
+            (databasePool ?? memoryRepository.getDatabaseClient?.()) as AuthorityPool,
+            vectorEnabled ? embeddingModelTag(embeddingProvider) : undefined
+          )
+        : undefined;
+    const vectorIndexer =
+      authority && vectorEnabled
+        ? new MemoryVectorIndexer(
+            authority,
+            embeddingProvider,
+            (event, call) =>
+              withProviderWorkContext(
+                {
+                  scope: event.scope!,
+                  cause:
+                    event.lineage?.state === "GROUNDED"
+                      ? event.lineage.parents[0]!.ref
+                      : (() => {
+                          throw new Error("Vector source lineage unavailable");
+                        })(),
+                  isCurrent: () => memory === service
+                },
+                call
+              ),
+            {
+              characterId: composition
+                ? characterPersonaId(composition.binding)
+                : "unbound-postgres",
+              journalNamespace: journalRepository?.namespace ?? "unbound-postgres"
+            }
+          )
+        : undefined;
+    const postgresProvider = authority
+      ? new PostgresMemoryProvider(authority, vectorIndexer)
+      : undefined;
+    const semanticPolicy = postgresProvider
+      ? new SemanticMemoryPolicy(
+          providers.getReasoningProvider(),
+          async (scope, text) => {
+            const relevant = await postgresProvider.knowledge.search(scope, text, 32);
+            const recent = await postgresProvider.knowledge.page({ scope, limit: 32 });
+            const vectorIds = postgresProvider.vectors
+              ? await postgresProvider.vectors.search(scope, text, 32).catch(() => [])
+              : [];
+            const vectorRecords = await Promise.all(
+              vectorIds.map((id) => postgresProvider.knowledge.detail(scope, id))
+            );
+            return [
+              ...new Map(
+                [
+                  ...relevant.records,
+                  ...vectorRecords.filter((r) => r !== null),
+                  ...recent.records
+                ].map((r) => [r.id, r.event])
+              ).values()
+            ];
+          },
+          {
+            providerConfigured:
+              providers
+                .getStatus()
+                .routes?.reasoning?.some((r) => r.enabled && r.configured && !r.mock) ?? false,
+            withSourceContext: (source, scope, call) =>
+              withProviderWorkContext(
+                { scope, cause: source.parent, isCurrent: () => memory === service },
+                call
+              )
+          },
+          postgresProvider.authority.pool
+        )
+      : undefined;
     // Runtime must not require Sidecar healthy at boot — Mem0 client is lazy HTTP.
     const mem0Backend =
       backendKind === "mem0"
@@ -478,6 +577,8 @@ export async function createAppContext(
       },
       {
         kind: backendKind,
+        postgres: postgresProvider,
+        ingestionPolicy: semanticPolicy,
         mem0: mem0Backend,
         evidenceAdmissions,
         evidenceAdmissionReady,
@@ -498,6 +599,7 @@ export async function createAppContext(
       instanceId: composition?.binding.instanceId ?? PRIMARY_CHARACTER.instanceId,
       personaId: composition ? characterPersonaId(composition.binding) : null
     });
+    vectorIndexer?.start();
     return service;
   }
 
@@ -601,7 +703,8 @@ export async function createAppContext(
       conversation: conversationRepository,
       finalizedIngestion,
       deferFinalizedMemoryAdmission:
-        memory.getExtractorStatus().mode === "llm" && memory.getExtractorStatus().enabled,
+        memory.getBackendKind() === "postgres" ||
+        (memory.getExtractorStatus().mode === "llm" && memory.getExtractorStatus().enabled),
       memoryIngestionCoordinator: coordinator,
       memoryRepository: activeMemoryRepository,
       directContext,
@@ -611,7 +714,7 @@ export async function createAppContext(
       episodeGroundingResolver: journalRepository
         ? new JournalMemoryGroundingResolver(journalRepository)
         : undefined,
-      ...(provider ? { dreamProvider: provider } : {}),
+      ...(provider && memory.getBackendKind() !== "postgres" ? { dreamProvider: provider } : {}),
       logger: runtimeLogger,
       ...(character
         ? {
@@ -795,6 +898,7 @@ export async function createAppContext(
       outwardEffects.seal();
       context.mediaEffects.seal();
       context.presentationEffects.seal();
+      await memory.stopAuthorityIndexing();
       await readTextEffects.shutdown();
       await profileLifecycleCoordinator.shutdown({ graceMs: 2_000 });
       await releaseDatabaseOwner();
@@ -833,6 +937,7 @@ export async function createAppContext(
       const extractorMode = parseMemoryExtractorDriver(reloadEnv["MEMORY_EXTRACTOR"]);
       const nextProviders = createProviderRegistryFromEnv(reloadEnv);
       nextProviders.setAccounting(outwardEffects);
+      await memory.stopAuthorityIndexing();
       const nextMemory = createMemoryService(nextProviders, extractorMode, reloadEnv);
       const nextProfileComposition = captureProfileComposition(nextMemory, profileSnapshotStore);
       const nextRuntime = createRuntime(
@@ -1381,13 +1486,15 @@ function acousticProfileReceiptMatches(
 function captureProfileComposition(
   memory: MemoryService,
   store: ProfileSnapshotStore
-): CapturedProfileComposition {
+): CapturedProfileComposition | null {
+  const backend = memory.getBackendKind();
+  if (backend === "postgres") return null;
   const reader = memory.getProfileMemorySourceReader();
   const provider = new LocalProfileProvider({ resolveSourceReader: () => reader, store });
   return {
     reader,
     provider,
-    backend: memory.getBackendKind(),
+    backend,
     compositionToken: {}
   };
 }

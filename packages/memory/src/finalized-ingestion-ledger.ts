@@ -368,10 +368,32 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
         }
         if (existingTurn.sourceDigest !== turn.sourceDigest)
           throw new Error("FINALIZED_INGESTION_SOURCE_CONFLICT");
-        return {
-          turn: existingTurn,
-          events: await this.listEventsWithClient(turn.finalizedTurnId, tx)
-        };
+        await this.lockTurn(turn.finalizedTurnId, tx);
+        const locked = (await this.getTurnWithClient(turn.finalizedTurnId, tx))!;
+        if (
+          locked.failureStage === "materialization" &&
+          ["pending", "retryable_failed"].includes(locked.status) &&
+          !(await this.listEventsWithClient(turn.finalizedTurnId, tx)).length &&
+          !(turn.failureStage === "materialization" && turn.status === "pending")
+        ) {
+          await tx.query(
+            `update finalized_ingestion_turns set status=$2,failure_stage=$3,last_error_code=$4,last_error_message=$5,
+            next_attempt_at=$6,ingestion_skip_reason=$7,version=version+1,updated_at=now() where finalized_turn_id=$1`,
+            [
+              turn.finalizedTurnId,
+              turn.status,
+              turn.failureStage,
+              turn.lastErrorCode,
+              turn.lastErrorMessage,
+              turn.nextAttemptAt,
+              turn.ingestionSkipReason
+            ]
+          );
+        } else
+          return {
+            turn: locked,
+            events: await this.listEventsWithClient(turn.finalizedTurnId, tx)
+          };
       }
 
       for (const event of input.events) {
@@ -650,7 +672,8 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
          and nullif(btrim(cm.persona_id), '') is not null
          and nullif(btrim(cm.subject_user_id), '') is not null
          and cm.finalized_turn_id is not null
-         and fit.finalized_turn_id is null
+         and (fit.finalized_turn_id is null or (fit.failure_stage='materialization' and fit.status in ('pending','retryable_failed')
+           and (fit.next_attempt_at is null or fit.next_attempt_at<=now())))
        order by coalesce(cm.completed_at, cm.created_at) asc
        limit $1`,
       [clampLimit(limit)]
@@ -1023,7 +1046,12 @@ export class InMemoryFinalizedIngestionRepository implements FinalizedIngestionR
     const existing = this.turns.get(input.turn.finalizedTurnId);
     if (existing && existing.sourceDigest !== input.turn.sourceDigest)
       throw new Error("FINALIZED_INGESTION_SOURCE_CONFLICT");
-    if (!existing) {
+    if (
+      !existing ||
+      (existing.failureStage === "materialization" &&
+        ["pending", "retryable_failed"].includes(existing.status) &&
+        !(input.turn.failureStage === "materialization" && input.turn.status === "pending"))
+    ) {
       this.turns.set(input.turn.finalizedTurnId, cloneTurn(input.turn));
       for (const event of input.events) {
         this.events.set(event.eventId, {
@@ -1474,12 +1502,17 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
 
   constructor(
     private readonly repository: FinalizedIngestionRepository,
-    private readonly ingestionPolicy: Pick<
-      MemoryIngestionPolicy,
-      "build"
-    > = new MemoryIngestionPolicy(),
+    private readonly ingestionPolicy: Pick<MemoryIngestionPolicy, "build"> & {
+      readonly semanticOnly?: boolean;
+    } = new MemoryIngestionPolicy(),
     private readonly groundingResolver?: MemoryGroundingResolver
   ) {}
+
+  private get policyVersion() {
+    return this.ingestionPolicy.semanticOnly
+      ? "memory.semantic.v1/finalized-authority-v1"
+      : FINALIZED_INGESTION_POLICY_VERSION;
+  }
 
   getTurn(finalizedTurnId: string) {
     return this.repository.getTurn(finalizedTurnId);
@@ -1489,7 +1522,8 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
     const identity = resolveMem0ChatIdentity(input);
     const digest = digestSource(
       input,
-      identity.ok ? buildChatMemoryScope(identity.identity) : null
+      identity.ok ? buildChatMemoryScope(identity.identity) : null,
+      this.policyVersion
     );
     const existing = this.materializations.get(input.finalizedTurnId);
     if (existing) {
@@ -1512,19 +1546,23 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
       personaId: input.personaId
     });
     const memoryScope = identity.ok ? buildChatMemoryScope(identity.identity) : null;
-    const sourceDigest = digestSource(input, memoryScope);
+    const sourceDigest = digestSource(input, memoryScope, this.policyVersion);
     const existing = await this.repository.getTurn(input.finalizedTurnId);
     if (existing) {
-      if (
-        existing.policyVersion === FINALIZED_INGESTION_POLICY_VERSION &&
-        existing.sourceDigest !== sourceDigest
-      ) {
+      if (existing.policyVersion === this.policyVersion && existing.sourceDigest !== sourceDigest) {
         throw new Error("FINALIZED_INGESTION_SOURCE_CONFLICT");
       }
-      return {
-        turn: existing,
-        events: await this.repository.listEvents(input.finalizedTurnId)
-      };
+      if (
+        !(
+          this.ingestionPolicy.semanticOnly &&
+          existing.failureStage === "materialization" &&
+          ["pending", "retryable_failed"].includes(existing.status)
+        )
+      )
+        return {
+          turn: existing,
+          events: await this.repository.listEvents(input.finalizedTurnId)
+        };
     }
     const now = new Date().toISOString();
     const baseTurn = {
@@ -1541,7 +1579,7 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
       ingestionSkipReason: null,
       failureStage: null,
       status: "pending" as FinalizedIngestionTurnStatus,
-      policyVersion: FINALIZED_INGESTION_POLICY_VERSION,
+      policyVersion: this.policyVersion,
       sourceDigest,
       eligibleEventCount: 0,
       pendingEventCount: 0,
@@ -1582,7 +1620,10 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
         assistantMessage: input.assistantMessage,
         cancelledOrFailed: false
       });
-    if (turnKind === "explicit_forget" || detectExplicitForgetRequest(input.userMessage)) {
+    if (
+      !this.ingestionPolicy.semanticOnly &&
+      (turnKind === "explicit_forget" || detectExplicitForgetRequest(input.userMessage))
+    ) {
       return this.repository.admit({
         turn: {
           ...baseTurn,
@@ -1656,14 +1697,26 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
       turnKind,
       idempotencyKey: input.finalizedTurnId
     };
+    if (this.ingestionPolicy.semanticOnly)
+      await this.repository.admit({
+        turn: { ...baseTurn, failureStage: "materialization" },
+        events: []
+      });
     let extraction: Awaited<ReturnType<typeof this.ingestionPolicy.build>>;
     try {
       extraction = await this.ingestionPolicy.build(ingestionInput);
-    } catch {
+    } catch (error) {
       return this.repository.admit({
         turn: {
           ...baseTurn,
-          status: "terminal_failed",
+          status:
+            this.ingestionPolicy.semanticOnly &&
+            !(error instanceof Error && error.message === "MEMORY_SEMANTIC_RETRY_EXHAUSTED")
+              ? "retryable_failed"
+              : "terminal_failed",
+          nextAttemptAt: this.ingestionPolicy.semanticOnly
+            ? new Date(Date.now() + 30_000).toISOString()
+            : null,
           failureStage: "materialization",
           lastErrorCode: "MEMORY_MATERIALIZATION_FAILED",
           lastErrorMessage: "Memory materialization policy build failed."
@@ -1695,7 +1748,7 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
       materialized = extraction.events.map((event) =>
         materializeEvent(
           input.finalizedTurnId,
-          freezeFinalizedMemoryEvent(source, event, FINALIZED_INGESTION_POLICY_VERSION)
+          freezeFinalizedMemoryEvent(source, event, this.policyVersion)
         )
       );
     } catch {
@@ -1828,7 +1881,11 @@ function withoutSignal(event: MemoryWriteEventInput): FinalizedIngestionEventPay
   return payload;
 }
 
-function digestSource(input: FinalizedIngestionAdmissionInput, memoryScope: string | null): string {
+function digestSource(
+  input: FinalizedIngestionAdmissionInput,
+  memoryScope: string | null,
+  policyVersion = FINALIZED_INGESTION_POLICY_VERSION
+): string {
   return sha256(
     canonicalJson({
       finalizedTurnId: input.finalizedTurnId,
@@ -1847,7 +1904,7 @@ function digestSource(input: FinalizedIngestionAdmissionInput, memoryScope: stri
       finalizedAt: input.finalizedAt,
       userMessage: input.userMessage,
       assistantMessage: input.assistantMessage,
-      policyVersion: FINALIZED_INGESTION_POLICY_VERSION
+      policyVersion
     })
   );
 }

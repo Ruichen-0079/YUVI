@@ -2330,7 +2330,7 @@ export class RuntimeOrchestrator {
       // Mem0 ingestion is tracked separately from assistant success and drained
       // by the owning server before its repositories close.
       if (
-        this.options.memory.isMem0Backend?.() &&
+        (this.options.memory.isDurableBackend?.() ?? this.options.memory.isMem0Backend?.()) &&
         (this.options.memory.storeConversationTurn || this.options.finalizedIngestion)
       ) {
         void this.scheduleMem0TurnWrite(userEvent, reply, assistantMessageId, finalizedTurnId);
@@ -2703,7 +2703,7 @@ export class RuntimeOrchestrator {
         try {
           if (memoryOptions.writeMemory) {
             if (
-              this.options.memory.isMem0Backend?.() &&
+              (this.options.memory.isDurableBackend?.() ?? this.options.memory.isMem0Backend?.()) &&
               (this.options.memory.storeConversationTurn || this.options.finalizedIngestion)
             ) {
               // Finalization has succeeded; a later transport abort must not
@@ -3039,7 +3039,7 @@ export class RuntimeOrchestrator {
       try {
         if (input.memoryOptions.writeMemory && !this.visuallyGroundedTurns.has(input.userEvent)) {
           if (
-            this.options.memory.isMem0Backend?.() &&
+            (this.options.memory.isDurableBackend?.() ?? this.options.memory.isMem0Backend?.()) &&
             (this.options.memory.storeConversationTurn || this.options.finalizedIngestion)
           ) {
             void this.scheduleMem0TurnWrite(
@@ -4786,7 +4786,10 @@ export class RuntimeOrchestrator {
       return skipped;
     }
     // Explicit forget is handled on the read path only; never schedule add.
-    if (detectExplicitForgetRequest(sourceEvent.payload.content)) {
+    if (
+      !this.options.memory.usesSemanticMemoryPolicy?.() &&
+      detectExplicitForgetRequest(sourceEvent.payload.content)
+    ) {
       const skipped = Promise.resolve<MemoryConversationTurnWriteResult>({
         status: "skipped",
         ok: false,
@@ -5047,7 +5050,7 @@ export class RuntimeOrchestrator {
       : undefined;
     try {
       // Mem0 path: never run Legacy extract/dedupe/embed/repository write.
-      if (this.options.memory.isMem0Backend?.()) {
+      if (this.options.memory.isDurableBackend?.() ?? this.options.memory.isMem0Backend?.()) {
         if (this.options.memory.storeConversationTurn) {
           const result = await this.options.memory.storeConversationTurn({
             userMessage: sourceEvent.payload.content,
@@ -5445,7 +5448,7 @@ export class RuntimeOrchestrator {
     if (!this.options.finalizedIngestion) {
       return { requested: null, skipReason: null };
     }
-    if (this.options.memory.isMem0Backend?.()) {
+    if (this.options.memory.isDurableBackend?.() ?? this.options.memory.isMem0Backend?.()) {
       return writeMemory
         ? { requested: true, skipReason: null }
         : { requested: false, skipReason: "memory-disabled" };
