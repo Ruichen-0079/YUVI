@@ -40,3 +40,5 @@ GET `/memory/v1/retrievals?scope&traceId&limit&cursor` 返回 `memory.retrieval.
 GET `/memory/v1/migration?scope&id` 与 `MemoryKnowledgeClient.migration` 返回 `memory.migration-workflow.v1`，expected/snapshot/imported/verified/checkpoint/hash/error/classification/activation。IMPORT_VERIFIED 不等于 grounded/current 或可以部署。维护动作见[升级与运维](migration-operations.zh.md#phase-2-正式升级与隔离副本工作流)。现有 TypeScript Client 还支持 typed retrievals/retrieval；调用方提供认证 transport，不把 token 写入 URL。
 
 Authority backend 下旧 `/memory`、`/memory/search` 和旧 CRUD/提取/失效接口统一 410 `MEMORY_LEGACY_API_RETIRED`，带 successor `/memory/v1`，不会继续给前端提供第二套 current knowledge。显式 legacy backend 的旧客户端行为保留到正式迁移；不能自动切换在线 Alice。
+
+所有新 Memory v1 读取/维护在 development/test/production 均要求显式 operator bearer（constant-time 检查）和合法 loopback/Origin。未配置 operator credential 时 fail-closed。普通 Host 会话 token 不赋予管理披露权。401/403 返回 `memory.error.v1`；不会在 production 因 localhost 而自动允许查看其他 Person。
