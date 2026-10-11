@@ -443,6 +443,23 @@ describe.skipIf(!url)("R5 PostgreSQL authority invariants", () => {
     const admitted = await recovered.admit(input);
     expect(admitted.turn.status).toBe("pending");
     expect(admitted.events).toHaveLength(1);
+    const foreignWorker = new PostgresFinalizedIngestionRepository(pool, "foreign-" + id);
+    expect(await foreignWorker.getTurn(input.finalizedTurnId)).toBeNull();
+    expect(await foreignWorker.listEvents(input.finalizedTurnId)).toEqual([]);
+    expect(await foreignWorker.listDueWork()).toEqual([]);
+    expect(await foreignWorker.listNonTerminalTurns()).toEqual([]);
+    expect((await foreignWorker.getWorkStats()).pendingCount).toBe(0);
+    const child = admitted.events[0]!;
+    await expect(
+      foreignWorker.claimEvent({
+        finalizedTurnId: child.finalizedTurnId,
+        eventId: child.eventId,
+        leaseOwner: "foreign",
+        leaseSeconds: 40,
+        expectedVersion: child.version
+      })
+    ).rejects.toThrow("MEMORY_INGESTION_OWNER_MISMATCH");
+    expect((await repository.listEvents(input.finalizedTurnId))[0]?.status).toBe("pending");
     const replay = await recovered.admit(input);
     expect(replay.events[0]?.eventId).toBe(admitted.events[0]?.eventId);
   });
