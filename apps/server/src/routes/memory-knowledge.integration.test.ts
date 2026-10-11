@@ -222,4 +222,46 @@ describe.skipIf(!db)("R5 product API actual PostgreSQL routes", () => {
       ).statusCode
     ).toBe(403);
   });
+  it("requires operator disclosure in production; localhost and conversational credentials cannot read another Person", async () => {
+    const prod = Fastify();
+    await registerMemoryKnowledgeRoutes(
+      prod,
+      { memory } as unknown as AppContext,
+      loadServerConfig({ RUNTIME_MODE: "production", DASHBOARD_DEV_TOKEN: token })
+    );
+    try {
+      for (const headers of [{}, { authorization: "Bearer yuh_conversation-is-not-operator" }])
+        expect((await prod.inject({ url: query("overview"), headers })).statusCode).toBe(401);
+      expect(
+        (
+          await prod.inject({
+            url: query("overview"),
+            headers: { authorization: `Bearer ${token}` }
+          })
+        ).statusCode
+      ).toBe(200);
+      expect(
+        (
+          await prod.inject({
+            url: query("overview"),
+            remoteAddress: "192.0.2.1",
+            headers: { authorization: `Bearer ${token}` }
+          })
+        ).statusCode
+      ).toBe(403);
+    } finally {
+      await prod.close();
+    }
+    const unconfigured = Fastify();
+    await registerMemoryKnowledgeRoutes(
+      unconfigured,
+      { memory } as unknown as AppContext,
+      loadServerConfig({ RUNTIME_MODE: "production" })
+    );
+    try {
+      expect((await unconfigured.inject({ url: query("overview") })).statusCode).toBe(401);
+    } finally {
+      await unconfigured.close();
+    }
+  });
 });
