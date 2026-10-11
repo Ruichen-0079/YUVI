@@ -33,7 +33,7 @@
 
 ## 确定性与故障
 
-实际 PostgreSQL 指定回归 42 项：新增 authority 16、Finalized ledger 21、executor 5。覆盖精确命题纠正、跨 scope/Person/principal、同源独立命题、并发纠正单胜者/迟到拒绝、冲突/强化、COMMIT 响应丢失、投影事务失败回滚、查询异常非空、坏投影重建、新连接持续性、旧记录迁移/摘要冲突/失败检查点、未知迁移结果、语义 worker 崩溃租约/最后尝试、无规则 fallback、未归属来源、模型前待处理恢复、索引失败/重建/退休、跨 principal prior 不披露、foreign Persona 任务不可读取或领取租约。
+实际 PostgreSQL 指定回归 43 项：新增 authority 17、Finalized ledger 21、executor 5。覆盖精确命题纠正、跨 scope/Person/principal、同源独立命题、并发纠正单胜者/迟到拒绝、冲突/强化、COMMIT 响应丢失、投影事务失败回滚、查询异常非空、坏投影重建、新连接持续性、旧记录迁移/摘要冲突/失败检查点、未知迁移结果、语义 worker 崩溃租约/最后尝试、无规则 fallback、未归属来源、模型前待处理恢复、索引失败/重建/退休、跨 principal prior 不披露、foreign Persona 任务不可读取或领取租约。
 
 独立 PG 31506 被实际 `pg_ctl stop -m immediate` 中断 B 事务：结果 ambiguous；重启 A 仍 current，B not_applied；同键重试 B 正式 written；成功回执后再次立即停库重启，A superseded、B current。[crash-frozen.json](evidence/crash-frozen.json)。共享 Alice PostgreSQL 从未被停止。
 
@@ -44,3 +44,5 @@
 仓库级 `pnpm format:check` 失败：405 个未修改的既有文件有格式差异；与本 PR 修改文件无交集。未越界批量改写这些文件。本 PR 的全部修改/新增 TS、MJS、Markdown、JSON、workflow 单独 Prettier 检查通过。
 
 PR 复核后又收紧产品 DTO 白名单，并增加实际旧 JSON 的未知顶层/lineage 字段不披露回归；无效游标明确 FAILED，不混淆数据 UNKNOWN。此前模型/负载证据的 SHA 保留原值，不把读 DTO 修复伪装为重新模型实验。
+
+配置装配回归还验证：只提供 PostgreSQL provider、缺少 semantic Policy 时，MemoryService 明确 disabled，Keyword 输入也不能触发默认规则写入。此补充只改变缺失配置分支，Server 实际 Policy 继续使用既有语义实现。并发“单胜者”测试证明事务不重叠，不证明较晚纠正自动重新规划后最终收敛；后者仍为阻断。

@@ -32,7 +32,7 @@ Records、relations、admissions 有 PostgreSQL append-only UPDATE/DELETE trigge
 
 完成回合先由 Finalized service 建立待 materialization 状态，再进行语义评估。语义任务使用稳定 ID、来源摘要、40 秒租约、20 秒 Provider 超时、30 秒重试间隔和 8 次尝试上限。过期最后一次租约明确进入 terminal failure。正常发言异步排队，不等待远端提取完成。
 
-模型看到合法来源及有界相关/近期当前命题，提出独立命题、唯一精确 evidence quote、关系与已呈现的目标 ID。不以关键词决定模型是否看到输入。Host 校验来源选择、scope/Person、principal、关系数量、目标当前状态及严格时间顺序；模型不决定数据库权限。提取失败保留 Journal 与任务，不产生规则候选。
+模型看到合法来源及有界相关/近期当前命题，提出独立命题、唯一精确 evidence quote、关系与已呈现的目标 ID。不以关键词决定模型是否看到输入。Host 校验来源选择、scope/Person、principal、关系数量、目标当前状态及严格时间顺序；模型不决定数据库权限。提取失败保留 Journal 与任务，不产生规则候选。PostgreSQL MemoryService 若未装配声明 semanticOnly 的 Policy，则明确 disabled 并拒绝摄取，不落回默认 RuleBased Policy；真实 Policy 报告实际配置状态。
 
 事务验证 Host Admission → scope writer 锁 → 稳定键/摘要对账 → 目标验证 → 追加命题/边 → 精确投影变更/向量退休 → 计数/水位 → 可选索引 outbox → COMMIT 后回执。任何不明 DB 错误视为 ambiguous，读取持久键/摘要决定 applied/not_applied/conflict，不把丢失 COMMIT 响应当作安全重试。
 
