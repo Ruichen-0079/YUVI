@@ -59,7 +59,7 @@ describe.skipIf(!db)("R5 product API actual PostgreSQL routes", () => {
               }
             },
             rawSourceBody: "must not disclose",
-            observedAt: { rawSourceBody: "must not disclose" },
+            observedAt: "Wed Oct 01 2026 00:00:00 GMT+0000 (must not disclose)",
             lineage: { rawJournalBody: "must not disclose" }
           })
         )
