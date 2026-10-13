@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { parseMemoryBackend } from "@companion/config/environment";
 import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import type { ChildProcess } from "node:child_process";
@@ -251,7 +252,8 @@ export class DesktopSupervisor {
     if (this.baseEnv["YUVI_PORTABLE_VERSION"]) {
       // Product configuration can select providers, but cannot retarget this
       // launcher's local transport or filesystem ownership boundary.
-      const fixed = /^(SERVER_HOST|SERVER_PORT|MEM0_BASE_URL|LOCAL_STT_BASE_URL|LOCAL_TTS_BASE_URL|GPT_SOVITS_TTS_(BASE_URL|UPSTREAM_URL)|YUVI_PORTABLE_VERSION|YUVI_POSTGRES_.*|YUVI_.*(ROOT|DIR)|YUVI_SECRET_NAMESPACE|HOME|XDG_.*|DATABASE_URL)$/;
+      const fixed =
+        /^(SERVER_HOST|SERVER_PORT|MEM0_BASE_URL|LOCAL_STT_BASE_URL|LOCAL_TTS_BASE_URL|GPT_SOVITS_TTS_(BASE_URL|UPSTREAM_URL)|YUVI_PORTABLE_VERSION|YUVI_POSTGRES_.*|YUVI_.*(ROOT|DIR)|YUVI_SECRET_NAMESPACE|HOME|XDG_.*|DATABASE_URL)$/;
       for (const [key, value] of Object.entries(update.env ?? {})) {
         if (key !== "YUVI_POSTGRES_PASSWORD" && fixed.test(key) && value !== this.baseEnv[key]) {
           throw new Error(`Portable isolation forbids changing ${key}.`);
@@ -690,7 +692,9 @@ export class DesktopSupervisor {
           throw new Error("Packaged speaker recognition is unavailable or its port is occupied.");
         }
         const leaseId = randomUUID();
-        const timer = setTimeout(() => { void this.releaseVoiceLease(leaseId).catch(() => {}); }, 180_000);
+        const timer = setTimeout(() => {
+          void this.releaseVoiceLease(leaseId).catch(() => {});
+        }, 180_000);
         timer.unref();
         // Convert pending acquisition -> active lease synchronously so suspend
         // never double-counts one explicit voice operation.
@@ -750,10 +754,7 @@ export class DesktopSupervisor {
    * Probe then spawn if needed. Must run inside a service queue (and config lock
    * when racing with applyRuntimeConfig). Does not re-enter queue.
    */
-  private async startManagedIfNeeded(
-    id: ServiceId,
-    allowManualSuspended = false
-  ): Promise<void> {
+  private async startManagedIfNeeded(id: ServiceId, allowManualSuspended = false): Promise<void> {
     if (this.shuttingDown) return;
     if (id === "local_stt" && this.localSttManualSuspend && !allowManualSuspended) return;
     const svc = this.require(id);
@@ -1786,8 +1787,7 @@ export class DesktopSupervisor {
 
   private runtimeConfigValue(state: SupervisorConfigState, key: string): string {
     if (key === "MEMORY_BACKEND") {
-      const value = state.env[key]?.trim().toLowerCase();
-      return value === "legacy" ? "legacy" : "mem0";
+      return parseMemoryBackend(state.env[key]);
     }
     if (key === "MEM0_BASE_URL") return state.mem0.spec.healthUrl ?? "";
     return state.runtime.effectiveEnv?.[key] ?? state.env[key] ?? "";
@@ -1853,7 +1853,8 @@ export class DesktopSupervisor {
     const previousOwned = previous.ownership === "owned";
 
     if (!previousManaged && !nextManaged) return "none";
-    if (previousManaged && !nextManaged) return previousOwned && !this.voiceLeases.size ? "stop" : "none";
+    if (previousManaged && !nextManaged)
+      return previousOwned && !this.voiceLeases.size ? "stop" : "none";
     if (!previousManaged && nextManaged) {
       return next.spec.autostart ? "start" : "none";
     }
@@ -1883,8 +1884,7 @@ export class DesktopSupervisor {
     key: string
   ): string {
     if (key === "MEMORY_BACKEND") {
-      const value = config.env[key]?.trim().toLowerCase();
-      return value === "legacy" ? "legacy" : "mem0";
+      return parseMemoryBackend(config.env[key]);
     }
     if (key === "YUVI_AUTOSTART_MEM0") return state.spec.autostart ? "true" : "false";
     if (key === "MEM0_BASE_URL") return state.spec.healthUrl ?? "";

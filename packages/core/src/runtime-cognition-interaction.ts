@@ -46,7 +46,11 @@ export async function executeRuntimeCognitionInteraction<T extends Round, O>(inp
     signal: AbortSignal
   ): Promise<O>;
 }): Promise<
-  Readonly<{ state: RuntimeInteractionState; completion: Extract<T, { kind: "COMPLETE" }> | null }>
+  Readonly<{
+    state: RuntimeInteractionState;
+    completion: Extract<T, { kind: "COMPLETE" }> | null;
+    history: readonly RuntimeCognitionExchange<T, O>[];
+  }>
 > {
   const { executionId, isCurrent } = input.execution;
   const { reason, invoke, policyAllowsCapability, signal } = input;
@@ -88,7 +92,7 @@ export async function executeRuntimeCognitionInteraction<T extends Round, O>(inp
     completion: Extract<T, { kind: "COMPLETE" }> | null = null
   ) => {
     state = createRuntimeInteractionState({ ...state, terminal });
-    return Object.freeze({ state, completion });
+    return Object.freeze({ state, completion, history: Object.freeze([...history]) });
   };
   const stopped = (): RuntimeInteractionTerminal | null => {
     if (signal?.aborted) {
@@ -150,9 +154,11 @@ export async function executeRuntimeCognitionInteraction<T extends Round, O>(inp
       });
       const request = round as Extract<T, { kind: "REQUEST_CAPABILITY" }>;
       const observation = await invoke(request, before, controller.signal);
+      // A returned observation happened even if the goal stops immediately after
+      // it. Disclosure of that result remains subject to current authority.
+      history.push(Object.freeze({ request, observation }));
       const afterInvoke = stopped();
       if (afterInvoke) return finish(afterInvoke);
-      history.push(Object.freeze({ request, observation }));
     }
   } catch {
     return finish(stopped() ?? { status: "FAILED", reason: "ERROR" });

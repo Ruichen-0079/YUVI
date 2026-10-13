@@ -32,13 +32,40 @@ export function projectP8ReconstructionToCharacterAbi(
   if (outcome.status !== "RECONSTRUCTED") {
     const state: CharacterAbiEpistemicState =
       outcome.status === "UNAVAILABLE" ? "UNAVAILABLE" : "ERROR";
+    const authored = outcome.authoredProjection;
+    const declarations = authored
+      ? [
+          projectInvariantSection(
+            "IDENTITY",
+            "identity",
+            authored.identity.status,
+            authored.identity.invariants,
+            authored
+          ),
+          projectInvariantSection(
+            "PERSONA",
+            "persona",
+            authored.persona.status,
+            authored.persona.invariants,
+            authored
+          )
+        ].map((section) => ({
+          ...section,
+          state: "PARTIAL" as const,
+          summary: [
+            section.summary,
+            `Authored declarations retained. Dynamic correction reconstruction is ${outcome.status}; current corrected meaning is unknown. No unverified correction was applied.`
+          ]
+            .filter(Boolean)
+            .join("\n")
+        }))
+      : [
+          { kind: "IDENTITY" as const, state },
+          { kind: "PERSONA" as const, state }
+        ];
     return createCharacterAbiContext({
       abiVersion: CHARACTER_ABI_2A_VERSION,
-      sections: [
-        { kind: "IDENTITY", state },
-        { kind: "PERSONA", state },
-        { kind: "RELATIONSHIP_CONTEXT", state }
-      ]
+      sections: [...declarations, { kind: "RELATIONSHIP_CONTEXT", state }]
     });
   }
 

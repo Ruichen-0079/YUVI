@@ -3,7 +3,11 @@ import {
   MAX_COGNITION_LIMITS,
   type RuntimeCognitionLimits
 } from "@companion/core";
-import { parseMemoryExtractorDriver } from "@companion/config";
+import {
+  parseMemoryExtractorDriver,
+  parseRuntimeEnvironment as parseRuntimeMode,
+  parseBooleanSetting as parseBoolean
+} from "@companion/config";
 
 export type ServerConfig = {
   cognitionInteraction: RuntimeCognitionLimits;
@@ -15,8 +19,8 @@ export type ServerConfig = {
   memoryExtractor: "rule-based" | "llm";
   directContext: {
     enabled: boolean;
-    maxTurns: number;
-    maxChars: number;
+    maxTurns?: number;
+    maxChars?: number;
   };
   memoryMaintenance: {
     enabled: boolean;
@@ -77,8 +81,12 @@ export function loadServerConfig(
     memoryExtractor: parseMemoryExtractorDriver(env["MEMORY_EXTRACTOR"]),
     directContext: {
       enabled: parseBoolean(env["DIRECT_CONTEXT_ENABLED"], true),
-      maxTurns: parsePositiveInteger(env["DIRECT_CONTEXT_MAX_TURNS"], 6),
-      maxChars: parsePositiveInteger(env["DIRECT_CONTEXT_MAX_CHARS"], 6000)
+      ...(env["DIRECT_CONTEXT_MAX_TURNS"]?.trim() && env["DIRECT_CONTEXT_MAX_TURNS"] !== "auto"
+        ? { maxTurns: parseStrictPositiveInteger(env["DIRECT_CONTEXT_MAX_TURNS"], 1) }
+        : {}),
+      ...(env["DIRECT_CONTEXT_MAX_CHARS"]?.trim() && env["DIRECT_CONTEXT_MAX_CHARS"] !== "auto"
+        ? { maxChars: parseStrictPositiveInteger(env["DIRECT_CONTEXT_MAX_CHARS"], 500) }
+        : {})
     },
     memoryMaintenance: {
       enabled: parseBoolean(env["MEMORY_MAINTENANCE_ENABLED"], false),
@@ -135,14 +143,6 @@ function cognitionLimit(value: string | undefined, key: keyof RuntimeCognitionLi
   return parsed;
 }
 
-function parseRuntimeMode(value: string | undefined): "development" | "test" | "production" {
-  if (value === "production" || value === "test" || value === "development") {
-    return value;
-  }
-
-  return "development";
-}
-
 function parseEventBus(value: string | undefined): "in-memory" | "nats" {
   if (!value || value === "in-memory" || value === "memory") {
     return "in-memory";
@@ -157,13 +157,6 @@ function parseEventBus(value: string | undefined): "in-memory" | "nats" {
 function emptyToUndefined(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
   return trimmed ? trimmed : undefined;
-}
-
-function parseBoolean(value: string | undefined, fallback: boolean): boolean {
-  if (value === undefined || value === "") {
-    return fallback;
-  }
-  return value === "true" || value === "1" || value === "yes";
 }
 
 function parsePositiveInteger(value: string | undefined, fallback: number): number {

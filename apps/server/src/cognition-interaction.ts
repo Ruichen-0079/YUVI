@@ -171,7 +171,10 @@ export async function executeServerCognitionInteraction(input: {
         terminal?.status === "CANCELLED" ||
         (terminal?.status === "FAILED" && terminal.reason === "STALE_EXECUTION")
           ? "CANCELLED"
-          : "ERROR"
+          : "ERROR",
+      ...(terminal?.status === "FAILED" && terminal.reason !== "STALE_EXECUTION"
+        ? { observations: outcome.history.map((e) => e.observation), reason: terminal.reason }
+        : {})
     });
   return createCharacterHarnessCognitionRoundTrip({ request: task.escalation, result });
 }

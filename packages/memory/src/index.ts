@@ -428,7 +428,7 @@ export {
   tokenizeMemoryText
 } from "./memory-vnext-text.js";
 
-export { modelContextBudget } from "./context-compression.js";
+export { modelContextBudget, estimateModelInputTokens } from "./context-compression.js";
 
 export {
   LocalControllerEvidenceProvider,

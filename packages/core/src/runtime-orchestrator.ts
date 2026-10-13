@@ -434,7 +434,10 @@ export class RuntimeOrchestrator {
       personaId: this.memoryPersonaId
     });
     options.providers.bindCharacterOwner?.(this.characterBinding.instanceId);
-    this.directContextConfig = normalizeDirectContextConfig(options.directContext);
+    this.directContextConfig = normalizeDirectContextConfig(
+      options.directContext,
+      options.providers.getChatContextWindow?.()
+    );
     this.memoryContextBuilder = options.memoryContextBuilder ?? new MemoryContextBuilder();
     this.recentEpisodeStore = options.recentEpisodeStore ?? new InMemoryRecentEpisodeStore();
     const dreamJobs: DreamJobStore = options.dreamJobStore ?? new InMemoryDreamJobStore();
@@ -7080,12 +7083,20 @@ function formatCurrentAffectForPrompt(affect: CurrentAffect): string {
 }
 
 function normalizeDirectContextConfig(
-  input: Partial<DirectContextConfig> | undefined
+  input: Partial<DirectContextConfig> | undefined,
+  contextWindow?: number
 ): DirectContextConfig {
+  const modelBudget = modelContextBudget(contextWindow);
+  // Selection supplies recoverable candidates. The final model renderer shares
+  // the actual input allocation; unused Memory/observation budget is not lost to
+  // a fixed preliminary history percentage.
+  const historyBudget = Math.max(500, modelBudget.maxInputCharacters);
+  const maxChars = clampInteger(input?.maxChars ?? historyBudget, 500, historyBudget);
+  const maxTurns = Math.max(1, Math.floor(maxChars / 64));
   return {
     enabled: input?.enabled ?? true,
-    maxTurns: clampInteger(input?.maxTurns ?? 6, 0, 20),
-    maxChars: clampInteger(input?.maxChars ?? 6000, 500, 20_000)
+    maxTurns: clampInteger(input?.maxTurns ?? maxTurns, 0, maxTurns),
+    maxChars
   };
 }
 
@@ -7164,28 +7175,9 @@ function buildDirectContextEntries(
   const allCompletedUsers = ordered.filter(
     ({ message }) => message.role === "user" && message.status === "completed"
   );
-  const discardedUserIds = new Set<string>();
-  for (const assistant of ordered) {
-    if (assistant.message.role !== "assistant" || assistant.message.status === "completed") {
-      continue;
-    }
-    const recoveryReason = assistant.message.metadata?.["recoveryReason"];
-    if (recoveryReason === "stale-streaming-message") {
-      // A maintenance recovery closes an abandoned assistant row. It must not
-      // make an otherwise completed preceding user turn disappear from the
-      // rebuilt context just because the abandoned row has no matching user.
-      continue;
-    }
-    const precedingUser = [...allCompletedUsers]
-      .reverse()
-      .find((user) => user.index < assistant.index);
-    if (precedingUser) {
-      discardedUserIds.add(precedingUser.message.id);
-    }
-  }
-  const completedUsers = allCompletedUsers.filter(
-    ({ message }) => !discardedUserIds.has(message.id)
-  );
+  // Accepted user evidence has its own lifecycle. A failed/cancelled assistant
+  // is not a retraction of the preceding user statement.
+  const completedUsers = allCompletedUsers;
   const userByEventId = new Map(
     completedUsers.map((candidate) => [candidate.message.id, candidate])
   );
@@ -7255,8 +7247,7 @@ function buildDirectContextEntries(
     const sourceUserEventId = assistant.message.sourceUserEventId?.trim();
     if (
       assistantInitiated ||
-      (excludedMessageId !== undefined && sourceUserEventId === excludedMessageId) ||
-      (sourceUserEventId !== undefined && discardedUserIds.has(sourceUserEventId))
+      (excludedMessageId !== undefined && sourceUserEventId === excludedMessageId)
     ) {
       candidates.push({
         order: assistant.index,
@@ -7337,7 +7328,7 @@ function formatDirectContextEntry(entry: DirectContextEntry): string {
     ].join("\n");
   }
   return [
-    `- Previous incomplete user message (${entry.timestamp}, trace ${entry.traceId.slice(0, 8)}):`,
+    `- Previous accepted user message without a completed assistant reply (${entry.timestamp}, trace ${entry.traceId.slice(0, 8)}):`,
     `  User: ${entry.userMessage.trim()}`
   ].join("\n");
 }

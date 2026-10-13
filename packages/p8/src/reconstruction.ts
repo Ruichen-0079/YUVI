@@ -65,25 +65,28 @@ export type P8ReconstructionOutcome = Readonly<
       status: "UNAVAILABLE" | "ERROR";
       versions: P8ReconstructionVersionManifest;
       correctionStoreStatus: Extract<P8CorrectionStoreAccessStatus, "UNAVAILABLE" | "ERROR">;
+      /** Authored declarations only; never a successful dynamic reconstruction. */
+      authoredProjection?: P8CorrectionApplicationResult;
     }
 >;
 
 /**
  * Rebuilds the current P8 meaning from supplied authoritative inputs. A
- * correction-store outage never returns an uncorrected projection.
+ * Correction outages retain authored declarations separately from the unavailable
+ * dynamic reconstruction. No failed correction is accepted or applied.
  */
 export function reconstructP8Projection(input: P8ReconstructionInput): P8ReconstructionOutcome {
   if (input.correctionStore.status === "UNAVAILABLE") {
-    return unavailableReconstruction("UNAVAILABLE");
+    return unavailableReconstruction("UNAVAILABLE", input);
   }
   if (input.correctionStore.status === "ERROR") {
-    return unavailableReconstruction("ERROR");
+    return unavailableReconstruction("ERROR", input);
   }
   if (
     input.correctionStore.status !== "SUCCESS_WITH_CORRECTIONS" &&
     input.correctionStore.status !== "SUCCESS_WITH_NO_CORRECTIONS"
   ) {
-    return unavailableReconstruction("ERROR");
+    return unavailableReconstruction("ERROR", input);
   }
   if (
     !Array.isArray(input.correctionStore.corrections) ||
@@ -92,7 +95,7 @@ export function reconstructP8Projection(input: P8ReconstructionInput): P8Reconst
     (input.correctionStore.status === "SUCCESS_WITH_NO_CORRECTIONS" &&
       input.correctionStore.corrections.length > 0)
   ) {
-    return unavailableReconstruction("ERROR");
+    return unavailableReconstruction("ERROR", input);
   }
 
   const referencedCandidates = normalizeReferencedCandidates(
@@ -132,12 +135,25 @@ export function reconstructP8Projection(input: P8ReconstructionInput): P8Reconst
 }
 
 function unavailableReconstruction(
-  correctionStoreStatus: Extract<P8CorrectionStoreAccessStatus, "UNAVAILABLE" | "ERROR">
+  correctionStoreStatus: Extract<P8CorrectionStoreAccessStatus, "UNAVAILABLE" | "ERROR">,
+  input: P8ReconstructionInput
 ): P8ReconstructionOutcome {
+  const baseProjection = createP8EvidenceAdapterProjection({
+    address: input.address,
+    authoredInvariants: input.authoredInvariants,
+    expectedScopeReference: input.expectedScopeReference,
+    longTerm: { status: "unavailable", events: [], source: "p8-authored-only", limited: false }
+  });
+  const authoredProjection = applyP8Corrections({
+    baseProjection,
+    scopeReference: input.expectedScopeReference,
+    corrections: []
+  });
   return Object.freeze({
     status: correctionStoreStatus,
     versions: P8_RECONSTRUCTION_VERSIONS,
-    correctionStoreStatus
+    correctionStoreStatus,
+    authoredProjection
   });
 }
 
