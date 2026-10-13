@@ -338,6 +338,7 @@ describe("canonical context stability boundary", () => {
     expect(messages.map((message) => message.content)).toEqual([
       expect.stringContaining('"kind":"IDENTITY"'),
       expect.stringContaining("Product policy"),
+      expect.stringContaining("Prior accepted conversation evidence"),
       "Verify this image.",
       expect.stringContaining("Image observation"),
       "Capability inventory v1",

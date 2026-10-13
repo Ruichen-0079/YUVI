@@ -160,6 +160,9 @@ describe("Runtime bounded Cognition execution", () => {
       const output = await running;
       expect(output.completion).toBeNull();
       expect(output.state.terminal).toEqual({ status: "CANCELLED" });
+      expect(output.history).toEqual(
+        stage === "invoke" ? [{ request, observation: "late observation" }] : []
+      );
       expect(input.reason).toHaveBeenCalledTimes(1);
     }
   );

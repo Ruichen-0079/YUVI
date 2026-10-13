@@ -41,7 +41,9 @@ async function run(durableConversation: boolean) {
     generateReply,
     async *streamReply(input) {
       const text =
-        input.messages[1]?.content === "Hello" ? "Hello again." : "SCREEN_FACT: permission denied.";
+        input.messages.at(-1)?.content === "Hello"
+          ? "Hello again."
+          : "SCREEN_FACT: permission denied.";
       if (text.startsWith("SCREEN_FACT")) expect(JSON.stringify(input)).toContain("SCREEN_FACT");
       yield { type: "text-delta", text };
       yield {
@@ -80,7 +82,7 @@ async function run(durableConversation: boolean) {
   });
   expect(reply?.payload.content).toBe("SCREEN_FACT: permission denied.");
   expect(generateReply).toHaveBeenCalledTimes(2);
-  expect(generateReply.mock.calls[1]![0].messages[1]?.content).toBe(
+  expect(generateReply.mock.calls[1]![0].messages.at(-1)?.content).toBe(
     "Read the current error dialog"
   );
   expect(captureScreen).toHaveBeenCalledTimes(1);

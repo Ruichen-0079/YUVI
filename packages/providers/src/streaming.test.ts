@@ -93,7 +93,12 @@ describe("provider-neutral chat streaming", () => {
   });
 
   it("adapts a legacy non-streaming provider without mislabeling its capability", async () => {
-    const legacy = createMockChatProvider("legacy");
+    const base = createMockChatProvider("legacy");
+    const legacy: ChatProvider = {
+      name: base.name,
+      healthCheck: base.healthCheck,
+      generateReply: base.generateReply
+    };
     const chain = new FallbackChatProvider([legacy]);
     const events = await collect(chain.streamReply(input));
 

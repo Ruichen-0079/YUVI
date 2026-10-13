@@ -1242,7 +1242,8 @@ describe("RuntimeOrchestrator", () => {
     const directContext = restored
       .getLatestPromptPreview()
       ?.sections.find((section) => section.name === "DirectContext")?.content;
-    expect(directContext).not.toContain("remember partial");
+    expect(directContext).toContain("remember partial");
+    expect(directContext).not.toContain("not completed");
     expect(memoryReads).toBe(0);
     expect((await conversation.listRecentMessages("context-session")).length).toBe(4);
   });

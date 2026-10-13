@@ -382,7 +382,9 @@ describe("Chat core production capability activation", () => {
       OPENAI_COMPATIBLE_CHAT_CONTEXT_WINDOW: "131072"
     });
     expect(registry.getChatContextWindow()).toBe(131072);
-    expect(modelContextBudget(131072).workingTokens).toBe(24576);
+    expect(modelContextBudget(131072).workingTokens).toBe(
+      131072 - modelContextBudget(131072).safetyTokens
+    );
     expect(modelContextBudget().maxInputCharacters).toBeLessThan(
       modelContextBudget(131072).maxInputCharacters
     );

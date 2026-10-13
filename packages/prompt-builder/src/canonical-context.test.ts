@@ -85,13 +85,14 @@ describe("canonical semantic assembly", () => {
       interactionProtocol: "COMPLETE or REQUEST_CAPABILITY"
     });
     const messages = projectCanonicalCognitionMessages(context);
-    expect(messages.map((message) => message.role)).toEqual(Array(6).fill("user"));
+    expect(messages.map((message) => message.role)).toEqual(Array(7).fill("user"));
     expect(messages[0]!.content).toContain("P8 identity projection");
     expect(messages[1]!.content).toContain("YUVI product policy");
-    expect(messages[2]!.content).toBe("Character-authorized verification problem");
-    expect(messages[3]!.content).toContain("Image shows a chart.");
-    expect(messages[4]!.content).toBe("Opaque read capability");
-    expect(messages[5]!.content).toBe("COMPLETE or REQUEST_CAPABILITY");
+    expect(messages[2]!.content).toContain("Prior accepted conversation evidence");
+    expect(messages[3]!.content).toBe("Character-authorized verification problem");
+    expect(messages[4]!.content).toContain("Image shows a chart.");
+    expect(messages[5]!.content).toBe("Opaque read capability");
+    expect(messages[6]!.content).toBe("COMPLETE or REQUEST_CAPABILITY");
   });
 
   it("rejects a duplicate producer slot instead of letting later evidence rewrite it", () => {

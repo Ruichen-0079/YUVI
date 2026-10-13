@@ -165,6 +165,25 @@ describe("packaged supervisor layout", () => {
     expect(cfg.postgresStart).toBeNull();
   });
 
+  it("PostgreSQL Authority does not require a Mem0 manifest or start its sidecar", () => {
+    const tree = makePackagedResourceTree();
+    fs.rmSync(path.dirname(tree.mem0ManifestPath), { recursive: true });
+    const cfg = loadPackagedSupervisorConfig({
+      resourceRoot: tree.resourceRoot,
+      dataRoot: tree.dataRoot,
+      runtimeManifestPath: tree.manifestPath,
+      mem0ManifestPath: tree.mem0ManifestPath,
+      env: { MEMORY_BACKEND: " Postgres ", YUVI_AUTOSTART_MEM0: "true" }
+    });
+    expect(cfg.memoryBackend).toBe("postgres");
+    expect(cfg.runtimeStart).not.toBeNull();
+    expect(cfg.mem0Start).toBeNull();
+    expect(cfg.autostartMem0).toBe(false);
+    expect(() => deriveConfigFromEnv(tree.resourceRoot, { MEMORY_BACKEND: "postgrez" })).toThrow(
+      /Unsupported MEMORY_BACKEND/
+    );
+  });
+
   it("packaged Live2D env prefers explicit, then bundled resources, then LOCALAPPDATA/YUVI", () => {
     const tree = makePackagedResourceTree();
     const layout = makePackagedLayout(tree);
@@ -190,7 +209,11 @@ describe("packaged supervisor layout", () => {
     expect(bundled["LIVE2D_CORE_PATH"]).toBe(bundledCore);
 
     // runtimeStart merges Live2D env.
-    const start = resolvePackagedRuntimeStart(layout, { RUNTIME_MODE: "development", NODE_ENV: "development" }, "16121");
+    const start = resolvePackagedRuntimeStart(
+      layout,
+      { RUNTIME_MODE: "development", NODE_ENV: "development" },
+      "16121"
+    );
     expect(start?.env["RUNTIME_MODE"]).toBe("production");
     expect(start?.env["SERVER_PORT"]).toBe("16121");
     expect(start?.env["LIVE2D_ASSET_ROOT"]).toBe(bundledLive2d);
@@ -438,7 +461,8 @@ describe("packaged supervisor layout", () => {
       loadPackagedSupervisorConfig({
         resourceRoot: tree.resourceRoot,
         dataRoot: tree.dataRoot,
-        runtimeManifestPath: tree.manifestPath
+        runtimeManifestPath: tree.manifestPath,
+        env: { MEMORY_BACKEND: "mem0" }
       })
     ).toThrow(/mem0 manifest missing/i);
   });
@@ -472,6 +496,7 @@ describe("packaged supervisor layout", () => {
     expect(disabled.mem0Start).toBeNull();
 
     const managed = deriveConfigFromEnv(layout, {
+      MEMORY_BACKEND: "mem0",
       YUVI_AUTOSTART_MEM0: "true",
       MEM0_BASE_URL: "http://127.0.0.1:6147"
     });
@@ -489,6 +514,7 @@ describe("packaged supervisor layout", () => {
     expect(external.mem0Start).toBeNull();
     expect(() =>
       deriveConfigFromEnv(layout, {
+        MEMORY_BACKEND: "mem0",
         YUVI_AUTOSTART_MEM0: "true",
         MEM0_BASE_URL: "http://memory.example.test:6131"
       })
@@ -501,6 +527,7 @@ describe("packaged supervisor layout", () => {
     const secret = "P3_CONFIG_SECRET_DO_NOT_LOG";
     const resourceEntriesBefore = fs.readdirSync(tree.resourceRoot).sort();
     const start = deriveConfigFromEnv(layout, {
+      MEMORY_BACKEND: "mem0",
       YUVI_AUTOSTART_MEM0: "true",
       MEM0_BASE_URL: "http://127.0.0.1:6197",
       YUVI_MEM0_DATA_DIR: path.join(tree.dataRoot, "data with spaces"),

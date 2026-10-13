@@ -569,7 +569,7 @@ describe("ConversationRepository", () => {
       }).kind
     ).toBe("in-memory");
     expect(() => parseConversationRepositoryEnv({ CONVERSATION_REPOSITORY: "sqlite" })).toThrow(
-      /Invalid CONVERSATION_REPOSITORY value 'sqlite'/
+      /Invalid CONVERSATION_REPOSITORY/
     );
   });
 

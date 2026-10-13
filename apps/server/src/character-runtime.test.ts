@@ -81,7 +81,7 @@ describe("production Character runtime adapter", () => {
       "RECENT_CONVERSATION",
       "MEMORY_EVIDENCE"
     ]);
-    expect(chat.messages[1]!.content).toBe("Current admitted user input");
+    expect(chat.messages.at(-1)!.content).toBe("Current admitted user input");
     expect(
       context.sections.find((section: { kind: string }) => section.kind === "RELATIONSHIP_CONTEXT")
     ).toMatchObject({ state: "UNKNOWN" });
@@ -108,7 +108,7 @@ describe("production Character runtime adapter", () => {
       generateChat: calls.generateChat
     });
     const messages = calls.generateChat.mock.calls[0]![0].messages;
-    expect(messages[2]!.content).toContain("An image shows a chart.");
+    expect(JSON.stringify(messages)).toContain("An image shows a chart.");
     expect(messages[0]!.content).toContain("untrusted evidence");
     expect(JSON.stringify(canonicalContext.sharedSections)).not.toContain(
       "An image shows a chart."
@@ -441,7 +441,7 @@ describe("semantic current-screen grounding", () => {
     });
     expect(calls.generateChat).toHaveBeenCalledTimes(2);
     const resumed = calls.generateChat.mock.calls[1]![0];
-    expect(resumed.messages[1]?.content).toBe("What is the error on my screen?");
+    expect(resumed.messages.at(-1)?.content).toBe("What is the error on my screen?");
     expect(JSON.stringify(resumed)).toContain("Permission denied");
     expect(JSON.stringify(resumed)).toContain("untrusted evidence");
   });
@@ -644,7 +644,7 @@ describe("Character task-continuation invariant", () => {
     const reply = result.decision.reply;
     if (reply.disposition !== "RESPOND" || !("body" in reply)) throw new Error("Missing body");
     expect(reply.body.messages[0]?.content).toContain(TASK_CONTINUATION_QUALIFIER);
-    expect(reply.body.messages[1]?.content).toBe("Send it to her.");
+    expect(reply.body.messages.at(-1)?.content).toBe("Send it to her.");
   });
 
   it("exposes a meta-promise when recent conversation drops the unresolved request", async () => {

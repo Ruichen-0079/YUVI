@@ -8,6 +8,7 @@ import { MemoryIngestionCoordinator, MemoryMaintenanceService } from "@companion
 import { loadServerConfig } from "./config.js";
 import { buildServer } from "./server.js";
 import { createTestSpeechReceiptAdmission } from "./test-support/speech-receipt.js";
+import { chatCompletionFixture } from "./test-support/chat-completion.js";
 import { createTestVisionReceiptAdmission } from "./test-support/vision-receipt.js";
 import { mkdtempSync } from "node:fs";
 import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
@@ -100,7 +101,7 @@ describe("server", () => {
           }
         }
       });
-      expect(message.statusCode).toBe(200);
+      expect(message.statusCode, message.body).toBe(200);
       expect(message.json().type).toBe("agent.reply");
       expect(message.json().reply).toContain("Mock reply");
       expect(message.json().traceId).toBeTypeOf("string");
@@ -962,31 +963,12 @@ describe("server", () => {
   });
 
   it("includes safe real-provider metadata when DeepSeek chat is configured", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          model: "deepseek-chat",
-          choices: [
-            {
-              finish_reason: "stop",
-              message: {
-                content: "Real provider test reply."
-              }
-            }
-          ],
-          usage: {
-            prompt_tokens: 11,
-            completion_tokens: 4,
-            total_tokens: 15
-          }
-        }),
-        {
-          status: 200,
-          headers: {
-            "content-type": "application/json"
-          }
-        }
-      )
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) =>
+      chatCompletionFixture(JSON.parse(String(init?.body)), {
+        model: "deepseek-chat",
+        content: "Real provider test reply.",
+        usage: { prompt_tokens: 11, completion_tokens: 4, total_tokens: 15 }
+      })
     );
 
     try {
@@ -1034,7 +1016,7 @@ describe("server", () => {
       expect(prompt.json().providerMock).toBe(false);
       expect(prompt.body).not.toContain("configured_deepseek_secret");
 
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
       await app.close();
     } finally {
       fetchSpy.mockRestore();
@@ -2833,24 +2815,12 @@ describe("server", () => {
       DEEPSEEK_CHAT_MODEL: "old-active",
       SERVER_PORT: "6121"
     });
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          model: "deepseek-chat",
-          choices: [
-            {
-              finish_reason: "stop",
-              message: { role: "assistant", content: "Reloaded provider reply." }
-            }
-          ],
-          usage: {
-            prompt_tokens: 12,
-            completion_tokens: 5,
-            total_tokens: 17
-          }
-        }),
-        { status: 200, headers: { "content-type": "application/json" } }
-      )
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) =>
+      chatCompletionFixture(JSON.parse(String(init?.body)), {
+        model: "deepseek-chat",
+        content: "Reloaded provider reply.",
+        usage: { prompt_tokens: 12, completion_tokens: 5, total_tokens: 17 }
+      })
     );
 
     try {
