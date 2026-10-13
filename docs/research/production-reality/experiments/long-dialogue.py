@@ -10,6 +10,7 @@ from pathlib import Path
 import subprocess
 import sys
 import time
+import uuid
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -57,6 +58,18 @@ env.update({
     'CONVERSATION_REPOSITORY': 'postgres', 'MEMORY_EXTRACTOR': 'llm',
     'MEMORY_MAINTENANCE_ENABLED': 'false', 'MEMORY_INGESTION_COORDINATOR_ENABLED': 'false',
     'MEMORY_VECTOR_INDEX_ENABLED': 'false', 'YUVI_AUTO_MIGRATE': '0'})
+# Character ownership is schema-level: do not claim even another synthetic history.
+schema = 'pr_live_' + uuid.uuid4().hex
+subprocess.run(['node', '--input-type=module', '-e',
+    "import pg from 'pg'; const p=new pg.Pool({connectionString:process.env.DATABASE_URL}); "
+    "await p.query('create schema '+process.env.PR_EXPERIMENT_SCHEMA); await p.end();"],
+    cwd=checkout, env={**env, 'PR_EXPERIMENT_SCHEMA': schema}, check=True)
+query = urllib.parse.parse_qsl(location.query)
+query.append(('options', '-c search_path=' + schema + ',public'))
+env['DATABASE_URL'] = urllib.parse.urlunsplit(location._replace(query=urllib.parse.urlencode(query)))
+with (output / 'migrate.log').open('w') as migration_log:
+    subprocess.run(['pnpm', 'db:migrate'], cwd=checkout, env=env,
+                   stdout=migration_log, stderr=migration_log, check=True)
 base = 'http://127.0.0.1:31505'
 try:
     urllib.request.urlopen(base + '/health', timeout=2)
