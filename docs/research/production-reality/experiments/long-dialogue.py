@@ -126,13 +126,13 @@ with (output / 'server.log').open('w') as log:
             for file in (output / 'wire-calls').glob('call-*.json'):
                 wire = json.loads(file.read_text()).get('output', '')
                 try:
-                    usage = json.loads(wire).get('usage', {})
+                    usage = json.loads(wire).get('usage') or {}
                     costs.append(float(usage.get('estimated_cost', 0)))
                 except ValueError:
                     for line in wire.splitlines():
                         if not line.startswith('data: {'):
                             continue
-                        usage = json.loads(line[6:]).get('usage', {})
+                        usage = json.loads(line[6:]).get('usage') or {}
                         costs.append(float(usage.get('estimated_cost', 0)))
             if sum(costs) >= 0.25:
                 raise RuntimeError('Estimated cost budget reached; preserve evidence and stop')
