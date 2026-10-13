@@ -28,9 +28,11 @@ for key in ['OPENAI_COMPATIBLE_API_KEY', 'OPENAI_COMPATIBLE_CHAT_MODEL', 'OPENAI
 cases = json.loads(cases_file.read_text())
 if len(cases['turns']) != 30:
     raise SystemExit('Expected exactly 30 accepted turns')
+env_directory = output / 'env'
+env_directory.mkdir(mode=0o700)
 character_id = 'pr-experiment-' + output.name
 configuration = {
-    'version': 1, 'instanceId': character_id, 'envDirectory': str(output),
+    'version': 1, 'instanceId': character_id, 'envDirectory': str(env_directory),
     'definition': {'id': character_id, 'revision': 'synthetic-continuity-v1',
                    'name': 'Synthetic Alice', 'persona': cases['persona']}}
 character_file = output / 'character.json'
@@ -47,8 +49,8 @@ env.update({
     'DEFAULT_CHAT_PROVIDER': 'openai-compatible', 'CHAT_PROVIDER_CHAIN': 'openai-compatible',
     'DEFAULT_REASONING_PROVIDER': 'openai-compatible', 'REASONING_PROVIDER_CHAIN': 'openai-compatible',
     'SERVER_HOST': '127.0.0.1', 'SERVER_PORT': '31505', 'LOG_LEVEL': 'error',
-    'YUVI_CHARACTER_CONFIG_PATH': str(character_file), 'YUVI_RUNTIME_ENV_DIR': str(output),
-    'YUVI_CONFIG_ROOT': str(output), 'YUVI_DATA_ROOT': str(output / 'data'),
+    'YUVI_CHARACTER_CONFIG_PATH': str(character_file), 'YUVI_RUNTIME_ENV_DIR': str(env_directory),
+    'YUVI_CONFIG_ROOT': str(env_directory), 'YUVI_DATA_ROOT': str(output / 'data'),
     'YUVI_CACHE_ROOT': str(output / 'cache'), 'YUVI_RUNTIME_DATA_DIR': str(output / 'data'),
     'YUVI_EXPERIMENT_TRACE': str(output / 'wire-calls'),
     'MEMORY_BACKEND': 'postgres', 'MEMORY_REPOSITORY': 'postgres',
