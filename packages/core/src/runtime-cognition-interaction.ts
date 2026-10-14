@@ -38,6 +38,11 @@ export async function executeRuntimeCognitionInteraction<T extends Round, O>(inp
   execution: RuntimeCognitionExecution;
   limits: RuntimeCognitionLimits;
   policyAllowsCapability: boolean;
+  /** Host declares a safe observation consumer for this last-round capability.
+   * Absent for plugins without a durable terminal result contract. */
+  allowTerminalCapabilityObservation?:
+    | ((round: Extract<T, { kind: "REQUEST_CAPABILITY" }>) => boolean)
+    | undefined;
   signal?: AbortSignal | undefined;
   reason(history: readonly RuntimeCognitionExchange<T, O>[], signal: AbortSignal): Promise<T>;
   invoke(
@@ -132,10 +137,16 @@ export async function executeRuntimeCognitionInteraction<T extends Round, O>(inp
         return finish({ status: "COMPLETED" }, round as Extract<T, { kind: "COMPLETE" }>);
       if (round.kind === "CONTINUE") continue;
       if (round.kind !== "REQUEST_CAPABILITY") return finish({ status: "FAILED", reason: "ERROR" });
-      // Reasoning and capability budgets govern separate operations. Returned
-      // observations have a formal terminal/PARTIAL consumer even when another
-      // reasoning call is unavailable; authority and capability admission still
-      // apply before any actual invocation.
+      // Only a Host-declared terminal observation contract may consume the last
+      // reasoning round. Do not broaden this to plugins or other side effects
+      // that still depend on a subsequent reasoning/acknowledgement phase.
+      if (
+        state.reasoningRoundsUsed >= state.limits.maxReasoningRounds &&
+        !input.allowTerminalCapabilityObservation?.(
+          round as Extract<T, { kind: "REQUEST_CAPABILITY" }>
+        )
+      )
+        return finish({ status: "FAILED", reason: "REASONING_BUDGET_EXHAUSTED" });
       const admission = admitRuntimeCapabilityRound({
         version: RUNTIME_CAPABILITY_ADMISSION_6J_VERSION,
         policyAllowsCapability,
