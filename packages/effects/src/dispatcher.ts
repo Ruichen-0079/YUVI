@@ -12,6 +12,9 @@ import type { EffectClaim, EffectDispatchStore } from "./dispatch-store.js";
 export interface EffectAdapter {
   readonly contractRef: EffectIntent["contractRef"];
   readonly adapter: string;
+  /** Transient invocation work may be attached after durable admission. Missing
+   * readiness leaves the intent pending; it is never an authorization verdict. */
+  isReady?(intentId: string): boolean;
   isCurrent(intent: EffectIntent): boolean;
   invoke(
     intent: EffectIntent,
@@ -136,6 +139,7 @@ export class EffectDispatcher {
         // or a narrow host store lookup through claim; unactivated contracts simply remain pending.
         for (const adapter of this.adapters.values()) {
           if (d.contractRef && d.contractRef !== adapter.contractRef) continue;
+          if (adapter.isReady && !adapter.isReady(id)) continue;
           const current = (i: EffectIntent) =>
             this.accepting &&
             !entry.controller.signal.aborted &&
