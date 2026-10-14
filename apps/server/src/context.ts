@@ -156,7 +156,6 @@ import {
 } from "@companion/providers";
 import type { FastifyBaseLogger } from "fastify";
 import { loadServerConfig, type ServerConfig } from "./config.js";
-import { parseBooleanSetting as parseBoolean } from "@companion/config/environment";
 import { readRuntimeEnvFiles } from "./env.js";
 import {
   editableKeys,
