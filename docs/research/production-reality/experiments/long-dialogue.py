@@ -27,8 +27,9 @@ for key in ['OPENAI_COMPATIBLE_API_KEY', 'OPENAI_COMPATIBLE_CHAT_MODEL', 'OPENAI
     if not os.environ.get(key):
         raise SystemExit('Missing real Provider configuration: ' + key)
 cases = json.loads(cases_file.read_text())
-if len(cases['turns']) != 30:
-    raise SystemExit('Expected exactly 30 accepted turns')
+partial_read = cases.get('scenario') == 'partial-read'
+if len(cases['turns']) != (1 if partial_read else 30):
+    raise SystemExit('Expected one partial-read request or exactly 30 accepted turns')
 env_directory = output / 'env'
 env_directory.mkdir(mode=0o700)
 character_id = 'pr-experiment-' + output.name
@@ -44,7 +45,7 @@ recorder = Path(__file__).resolve().parents[2] / 'runtime-memory-r5/experiments/
 env = {key: os.environ[key] for key in ['PATH', 'DATABASE_URL', 'OPENAI_COMPATIBLE_API_KEY',
        'OPENAI_COMPATIBLE_CHAT_MODEL', 'OPENAI_COMPATIBLE_API_BASEURL']}
 env.update({
-    'OPENAI_COMPATIBLE_REASONING_MODEL': env['OPENAI_COMPATIBLE_CHAT_MODEL'],
+    'OPENAI_COMPATIBLE_REASONING_MODEL': os.environ.get('OPENAI_COMPATIBLE_REASONING_MODEL', env['OPENAI_COMPATIBLE_CHAT_MODEL']),
     'OPENAI_COMPATIBLE_CHAT_CONTEXT_WINDOW': '65536',
     'NODE_ENV': 'development', 'RUNTIME_MODE': 'development', 'PROVIDER_ALLOW_MOCKS': 'false',
     'DEFAULT_CHAT_PROVIDER': 'openai-compatible', 'CHAT_PROVIDER_CHAIN': 'openai-compatible',
@@ -58,6 +59,8 @@ env.update({
     'CONVERSATION_REPOSITORY': 'postgres', 'MEMORY_EXTRACTOR': 'llm',
     'MEMORY_MAINTENANCE_ENABLED': 'false', 'MEMORY_INGESTION_COORDINATOR_ENABLED': 'false',
     'MEMORY_VECTOR_INDEX_ENABLED': 'false', 'YUVI_AUTO_MIGRATE': '0'})
+if partial_read:
+    env.update(COGNITION_MAX_REASONING_ROUNDS='1', DASHBOARD_DEV_TOKEN='synthetic-experiment-controller')
 # Character ownership is schema-level: do not claim even another synthetic history.
 schema = 'pr_live_' + uuid.uuid4().hex
 subprocess.run(['node', '--input-type=module', '-e',
@@ -82,7 +85,7 @@ result = {
     'gitSha': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=checkout, text=True).strip(),
     'dirty': bool(subprocess.check_output(['git', 'status', '--porcelain'], cwd=checkout, text=True)),
     'entrypoint': 'apps/server/src/index.ts', 'provider': 'DeepInfra/OpenAI compatible',
-    'model': env['OPENAI_COMPATIBLE_CHAT_MODEL'], 'declaredContextWindow': 65536,
+    'model': env['OPENAI_COMPATIBLE_CHAT_MODEL'], 'reasoningModel': env['OPENAI_COMPATIBLE_REASONING_MODEL'], 'scenario': cases.get('scenario', 'long-dialogue'), 'declaredContextWindow': 65536,
     'temperature': 0, 'maxTokens': 2048, 'callCap': 60,
     'maximumEstimatedSpendUSD': 0.25,
     'scope': 'anonymous restricted, memory read/write disabled; Conversation continuity only',
@@ -104,6 +107,15 @@ with (output / 'server.log').open('w') as log:
                 time.sleep(0.1)
         else:
             raise RuntimeError('Isolated Server startup timeout')
+        if partial_read:
+            evidence_file = output / 'authorized-evidence.txt'
+            evidence_file.write_text(cases['fileContent'])
+            evidence_file.chmod(0o600)
+            authorization = urllib.request.Request(base + '/capabilities/read-text/authorize',
+                data=json.dumps({'sessionId': 'long-dialogue', 'path': str(evidence_file)}).encode(),
+                headers={'content-type': 'application/json', 'authorization': 'Bearer synthetic-experiment-controller'})
+            if urllib.request.urlopen(authorization, timeout=10).status != 200:
+                raise RuntimeError('Isolated Host capability setup failed')
         for index, text in enumerate(cases['turns']):
             payload = {'sessionId': 'long-dialogue', 'text': text,
                        'options': {'readMemory': False, 'writeMemory': False, 'voiceOutput': False}}
