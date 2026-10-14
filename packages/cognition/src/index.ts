@@ -276,8 +276,8 @@ export function createCognitionFailureResult(input: unknown): NormalizedCognitio
                 o.content!.slice(-980)
         })),
         caveats: [
-          `Goal not completed: ${reason}.`,
-          "These are returned capability observations, not proof that every requested external action completed. Evidence references identify capability bindings; observations remain ordered.",
+          `Reasoning stopped before a final COMPLETE decision: ${reason}.`,
+          "These capability observations were successfully returned. PARTIAL describes the reasoning lifecycle, not a reversal or failure of these observed executions, and not proof that every user goal completed. Evidence references identify capability bindings; observations remain ordered.",
           ...(success.some((o) => o.coverage || o.content!.length > 2000)
             ? [
                 "Some observation content is a bounded excerpt; unseen source content remains unknown."
