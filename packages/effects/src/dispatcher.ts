@@ -207,17 +207,25 @@ export class EffectDispatcher {
             }
             let result: { evidence: EffectEvidence; transientResult?: unknown };
             let renewalBusy = false;
+            let renewalLost = false;
+            let renewalInFlight: Promise<void> | undefined;
             const renewal = this.store.renew
               ? setInterval(
                   () => {
                     if (renewalBusy || entry.controller.signal.aborted) return;
                     renewalBusy = true;
-                    void this.store.renew!(started, this.leaseMs)
+                    renewalInFlight = this.store.renew!(started, this.leaseMs)
                       .then(
                         (ok) => {
-                          if (!ok) entry.controller.abort();
+                          if (!ok) {
+                            renewalLost = true;
+                            entry.controller.abort();
+                          }
                         },
-                        () => entry.controller.abort()
+                        () => {
+                          renewalLost = true;
+                          entry.controller.abort();
+                        }
                       )
                       .finally(() => {
                         renewalBusy = false;
@@ -234,7 +242,11 @@ export class EffectDispatcher {
             } finally {
               if (renewal) clearInterval(renewal);
             }
+            // A renewal started during invocation belongs to this attempt. Its
+            // negative/unknown result cannot arrive after a successful receipt.
+            await renewalInFlight;
             if (entry.detached) return { invoked: true, recorded: false };
+            if (renewalLost) result = { evidence: protocolEvidence("CALL_UNCERTAIN", true) };
             let recorded = false;
             try {
               const status = await this.store.record(claim.attempt, result.evidence);
