@@ -57,3 +57,11 @@
 最后收窄终态观察合同并明确“PARTIAL 只指推理、工具响应另行判断”后，GLM 又出现一次 429；保留失败且不隐藏 fallback。新的随机标记在最终 DeepSeek 隔离 Reasoning 复测中成功：4 个模型调用、1 次读取 APPLIED、PARTIAL 输入，正文准确报告两个标记和文件内容，没有把已完成读取说成失败。默认 GLM 的持续可用性仍开放，不能以某次成功覆盖忙碌状态。
 
 [租约反例](evidence/lease-renewal-race.json)保留修正测试时暴露的 APPLIED/UNKNOWN 矛盾及真实 PostgreSQL 正反向验证。全部原有恢复、UNKNOWN 和取消回归继续使用。
+
+## 最终门禁与边界
+
+生产代码冻结 `0bbcc29` 的 push/PR 两套三工作流均通过：正常入口 Check、Linux Persistence、实际 Durable + Packaged Conformance。[Check](https://github.com/Ruichen-0079/YUVI/actions/runs/38593056807)、[Durable/Packaged](https://github.com/Ruichen-0079/YUVI/actions/runs/38593056976)、[Persistence](https://github.com/Ruichen-0079/YUVI/actions/runs/38593056881)。新报告提交的 CI 与此生产验证分开记录，不将某个旧 SHA 的成功伪装成任意新代码都已通过。
+
+真实模型/Provider 尝试共 271 次：30 轮对照 240 次、Harness 中断 2 次、能力诊断与复测 29 次；已知 Provider estimated_cost 合计 0.04319188 USD，另有 3 次费用未知（两次 GLM 429、一次连接超时）。低于本轮 0.25 USD 预算，没有将未知费用按 0 元计账。独立 Character 首次 404 与两个所有权预检拒绝均未调用模型。
+
+此次只退役 Server 的隐式直接 Chat 选择和有消费者只读 QUERY 的最后回合禁止；低层库入口、显式旧 Memory backend、Plugin 的原预算保护仍在。Journal/Authority 事务、Scope/Person/Persona、租约/幂等/UNKNOWN、Host authorization、Target generation、Shadow Projection 和恢复资产保留。不会因为门禁绿就自动迁移、部署或合并。
