@@ -16,6 +16,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@companion/config": "workspace:*",
     "pg": "^8.20.0"
   },
   "devDependencies": {

@@ -38,6 +38,11 @@ export async function executeRuntimeCognitionInteraction<T extends Round, O>(inp
   execution: RuntimeCognitionExecution;
   limits: RuntimeCognitionLimits;
   policyAllowsCapability: boolean;
+  /** Host declares a safe observation consumer for this last-round capability.
+   * Absent for plugins without a durable terminal result contract. */
+  allowTerminalCapabilityObservation?:
+    | ((round: Extract<T, { kind: "REQUEST_CAPABILITY" }>) => boolean)
+    | undefined;
   signal?: AbortSignal | undefined;
   reason(history: readonly RuntimeCognitionExchange<T, O>[], signal: AbortSignal): Promise<T>;
   invoke(
@@ -46,7 +51,11 @@ export async function executeRuntimeCognitionInteraction<T extends Round, O>(inp
     signal: AbortSignal
   ): Promise<O>;
 }): Promise<
-  Readonly<{ state: RuntimeInteractionState; completion: Extract<T, { kind: "COMPLETE" }> | null }>
+  Readonly<{
+    state: RuntimeInteractionState;
+    completion: Extract<T, { kind: "COMPLETE" }> | null;
+    history: readonly RuntimeCognitionExchange<T, O>[];
+  }>
 > {
   const { executionId, isCurrent } = input.execution;
   const { reason, invoke, policyAllowsCapability, signal } = input;
@@ -88,7 +97,7 @@ export async function executeRuntimeCognitionInteraction<T extends Round, O>(inp
     completion: Extract<T, { kind: "COMPLETE" }> | null = null
   ) => {
     state = createRuntimeInteractionState({ ...state, terminal });
-    return Object.freeze({ state, completion });
+    return Object.freeze({ state, completion, history: Object.freeze([...history]) });
   };
   const stopped = (): RuntimeInteractionTerminal | null => {
     if (signal?.aborted) {
@@ -128,8 +137,15 @@ export async function executeRuntimeCognitionInteraction<T extends Round, O>(inp
         return finish({ status: "COMPLETED" }, round as Extract<T, { kind: "COMPLETE" }>);
       if (round.kind === "CONTINUE") continue;
       if (round.kind !== "REQUEST_CAPABILITY") return finish({ status: "FAILED", reason: "ERROR" });
-      // Never perform a capability when no reasoning budget remains to consume it.
-      if (state.reasoningRoundsUsed >= state.limits.maxReasoningRounds)
+      // Only a Host-declared terminal observation contract may consume the last
+      // reasoning round. Do not broaden this to plugins or other side effects
+      // that still depend on a subsequent reasoning/acknowledgement phase.
+      if (
+        state.reasoningRoundsUsed >= state.limits.maxReasoningRounds &&
+        !input.allowTerminalCapabilityObservation?.(
+          round as Extract<T, { kind: "REQUEST_CAPABILITY" }>
+        )
+      )
         return finish({ status: "FAILED", reason: "REASONING_BUDGET_EXHAUSTED" });
       const admission = admitRuntimeCapabilityRound({
         version: RUNTIME_CAPABILITY_ADMISSION_6J_VERSION,
@@ -150,9 +166,11 @@ export async function executeRuntimeCognitionInteraction<T extends Round, O>(inp
       });
       const request = round as Extract<T, { kind: "REQUEST_CAPABILITY" }>;
       const observation = await invoke(request, before, controller.signal);
+      // A returned observation happened even if the goal stops immediately after
+      // it. Disclosure of that result remains subject to current authority.
+      history.push(Object.freeze({ request, observation }));
       const afterInvoke = stopped();
       if (afterInvoke) return finish(afterInvoke);
-      history.push(Object.freeze({ request, observation }));
     }
   } catch {
     return finish(stopped() ?? { status: "FAILED", reason: "ERROR" });

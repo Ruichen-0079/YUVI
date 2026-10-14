@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { parseMemoryBackend } from "@companion/config/environment";
 import fs from "node:fs";
 import path from "node:path";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -154,7 +155,10 @@ export function loadPackagedSupervisorConfig(
     }
   }
   // Product routes are the activation authority; bundling alone never activates STT.
-  const productFile = path.join(runtimeEnvDir || input.configRoot || resolveAppRoots({ env }).configRoot, "product-settings.json");
+  const productFile = path.join(
+    runtimeEnvDir || input.configRoot || resolveAppRoots({ env }).configRoot,
+    "product-settings.json"
+  );
   if (fs.existsSync(productFile)) {
     const product = JSON.parse(fs.readFileSync(productFile, "utf8"));
     const catalog = product.configuration;
@@ -162,7 +166,11 @@ export function loadPackagedSupervisorConfig(
     const assigned = catalog.routes.stt.some((id: string) => {
       const model = catalog.models.find((m: { id: string }) => m.id === id);
       const provider = catalog.providers.find((p: { id: string }) => p.id === model?.providerId);
-      return model?.enabled && provider?.adapter === "local-stt" && provider.baseUrl.replace(/\/$/, "") === localUrl;
+      return (
+        model?.enabled &&
+        provider?.adapter === "local-stt" &&
+        provider.baseUrl.replace(/\/$/, "") === localUrl
+      );
     });
     env["YUVI_AUTOSTART_LOCAL_STT"] = assigned ? "1" : "0";
   }
@@ -172,7 +180,7 @@ export function loadPackagedSupervisorConfig(
   );
   // Validate early so bootstrap fails with a clear packaging error.
   readRuntimeManifest(runtimeManifestPath);
-  if (!externalSidecars) {
+  if (!externalSidecars && parseMemoryBackend(env["MEMORY_BACKEND"]) === "mem0") {
     const mem0Manifest = readMem0Manifest(mem0ManifestPath);
     resolveMem0ManifestExecutable(mem0ManifestPath, mem0Manifest);
   }
@@ -275,7 +283,7 @@ export function deriveConfigFromEnv(
   );
   const localSttUrl = envString(env, "LOCAL_STT_BASE_URL", "http://127.0.0.1:9876");
   const databaseUrl = env["DATABASE_URL"]?.trim() || null;
-  const memoryBackend = envString(env, "MEMORY_BACKEND", "mem0") === "legacy" ? "legacy" : "mem0";
+  const memoryBackend = parseMemoryBackend(env["MEMORY_BACKEND"]);
 
   const ownershipRoot = layout.mode === "development" ? layout.repositoryRoot : layout.resourceRoot;
   const externalSidecars = externalPackagedSidecarsEnabled(env);
@@ -291,9 +299,10 @@ export function deriveConfigFromEnv(
     memoryBackend,
     autostartRuntime: envFlag(env, "YUVI_AUTOSTART_RUNTIME", true),
     autostartMem0:
-      layout.mode === "packaged" && !externalSidecars
+      memoryBackend === "mem0" &&
+      (layout.mode === "packaged" && !externalSidecars
         ? managedMem0
-        : envFlag(env, "YUVI_AUTOSTART_MEM0", memoryBackend === "mem0"),
+        : envFlag(env, "YUVI_AUTOSTART_MEM0", true)),
     autostartTts: envFlag(env, "YUVI_AUTOSTART_TTS", false),
     runtimeUrl,
     mem0Url,

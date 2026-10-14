@@ -276,7 +276,7 @@ export type SupervisorConfig = {
   controlHost: string;
   controlPort: number;
   env: Record<string, string>;
-  memoryBackend: "mem0" | "legacy";
+  memoryBackend: "mem0" | "legacy" | "postgres";
   autostartRuntime: boolean;
   autostartMem0: boolean;
   autostartTts: boolean;

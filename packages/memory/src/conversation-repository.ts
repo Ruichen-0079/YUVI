@@ -1,4 +1,5 @@
 import type { Pool, PoolClient, QueryResultRow } from "pg";
+import { parseMemoryRepository } from "@companion/config/environment";
 import { createHash } from "node:crypto";
 import { createPostgresPool } from "@companion/database";
 import { JournalEventRefSchema, type JournalEventRef } from "@companion/protocol";
@@ -866,15 +867,11 @@ export function parseConversationRepositoryEnv(
   if (!explicitValue) {
     return { kind: parseMemoryRepositoryEnv(env).kind };
   }
-  if (explicitValue === "memory" || explicitValue === "in-memory") {
-    return { kind: "in-memory" };
+  try {
+    return { kind: parseMemoryRepository(explicitValue) };
+  } catch {
+    throw new Error("Invalid CONVERSATION_REPOSITORY. Valid values: in-memory, memory, postgres.");
   }
-  if (explicitValue === "postgres") {
-    return { kind: "postgres" };
-  }
-  throw new Error(
-    `Invalid CONVERSATION_REPOSITORY value '${env["CONVERSATION_REPOSITORY"]?.trim()}'. Valid values are: in-memory, memory, postgres.`
-  );
 }
 
 function mapConversationMessageRow(row: QueryResultRow | undefined): ConversationMessage {

@@ -385,6 +385,21 @@ describe("production bounded Cognition composition", () => {
     ).toBe("CANCELLED");
     expect(generateReasoning).toHaveBeenCalledTimes(1);
   });
+  it("projects verified observation as PARTIAL when reasoning budget is exhausted after a read", async () => {
+    const { input, generateReasoning } = fixture([need, "CONTINUE"]);
+    const result = await executeServerCognitionInteraction({
+      ...input,
+      limits: { ...input.limits, maxReasoningRounds: 2 }
+    });
+    expect(result.result).toMatchObject({
+      status: "PARTIAL",
+      evidence: [{ reference: "opaque-read", statement: "observed evidence" }]
+    });
+    expect(result.result.caveats?.join(" ")).toContain("REASONING_BUDGET_EXHAUSTED");
+    expect(result.result.answer).toBeUndefined();
+    expect(input.mcpClient.callTool).toHaveBeenCalledTimes(1);
+    expect(generateReasoning).toHaveBeenCalledTimes(2);
+  });
   it("rejects an invented request without executing a capability", async () => {
     const { input } = fixture([need.replace("opaque-read", "invented")]);
     expect((await executeServerCognitionInteraction(input)).result.status).toBe("ERROR");

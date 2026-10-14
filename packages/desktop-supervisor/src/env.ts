@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { parseBooleanSetting } from "@companion/config/environment";
 import path from "node:path";
 
 /**
@@ -62,12 +63,7 @@ export function loadYuviRuntimeEnvDir(envDir: string): Record<string, string> {
 }
 
 export function envFlag(env: Record<string, string>, key: string, defaultValue: boolean): boolean {
-  const raw = env[key];
-  if (raw === undefined || raw.trim() === "") return defaultValue;
-  const normalized = raw.trim().toLowerCase();
-  if (["1", "true", "yes", "on"].includes(normalized)) return true;
-  if (["0", "false", "no", "off"].includes(normalized)) return false;
-  return defaultValue;
+  return parseBooleanSetting(env[key], defaultValue);
 }
 
 export function envString(env: Record<string, string>, key: string, fallback: string): string {

@@ -90,9 +90,7 @@ function correction(
       source: "EXPLICIT_USER_CORRECTION",
       reference: `user:${correctionReference}`
     },
-    ...(supersedesCorrectionReference === undefined
-      ? {}
-      : { supersedesCorrectionReference })
+    ...(supersedesCorrectionReference === undefined ? {} : { supersedesCorrectionReference })
   };
 }
 
@@ -266,34 +264,38 @@ describe("Character ABI 2B P8 projection", () => {
         corrections: [second, first]
       })
     );
-    const relationship = left.sections.find(
-      (section) => section.kind === "RELATIONSHIP_CONTEXT"
-    );
+    const relationship = left.sections.find((section) => section.kind === "RELATIONSHIP_CONTEXT");
 
     expect(left).toEqual(right);
     expect(relationship).toEqual({
       kind: "RELATIONSHIP_CONTEXT",
       state: "CONFLICTING",
-      provenanceReferences: [
-        "p8:correction:correction-a",
-        "p8:correction:correction-b"
-      ]
+      provenanceReferences: ["p8:correction:correction-a", "p8:correction:correction-b"]
     });
   });
 
   it.each(["UNAVAILABLE", "ERROR"] as const)(
-    "fails closed across every P8-owned ABI section when correction reconstruction is %s",
+    "preserves authored declarations while dynamic corrections remain unavailable when reconstruction is %s",
     (status) => {
       const context = projectP8ReconstructionToCharacterAbi(
         reconstruct({ correctionStoreStatus: status })
       );
 
-      expect(context.sections).toEqual([
-        { kind: "IDENTITY", state: status },
-        { kind: "PERSONA", state: status },
-        { kind: "RELATIONSHIP_CONTEXT", state: status }
+      expect(context.sections[0]).toMatchObject({
+        kind: "IDENTITY",
+        state: "PARTIAL",
+        summary: expect.stringContaining("character.name: Yuvi")
+      });
+      expect(context.sections[0]!.summary).toContain(`reconstruction is ${status}`);
+      expect(context.sections[0]!.provenanceReferences).toEqual([
+        "p8:authored:p8-1a/default/character-name@p8-1a"
       ]);
-      expect(context.sections.every((section) => section.summary === undefined)).toBe(true);
+      expect(context.sections[1]).toMatchObject({
+        kind: "PERSONA",
+        state: "PARTIAL",
+        summary: expect.stringContaining("No unverified correction was applied")
+      });
+      expect(context.sections[2]).toEqual({ kind: "RELATIONSHIP_CONTEXT", state: status });
     }
   );
 

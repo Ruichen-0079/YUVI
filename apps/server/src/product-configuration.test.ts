@@ -16,6 +16,7 @@ import { registerMessageRoutes } from "./routes/message.js";
 import { createTestProductControlReceiptAdmission } from "./test-support/product-control-receipt.js";
 import { createTestProductPersonCommandPort } from "./test-support/product-person-command.js";
 import { createTestVoiceControlReceiptAdmission } from "./test-support/voice-control-receipt.js";
+import { chatCompletionFixture } from "./test-support/chat-completion.js";
 import {
   boundedWav,
   retainVoiceSample,
@@ -228,9 +229,7 @@ it("first run, discovery/manual ID, Chat admission, independent routes and UNKNO
       const body = JSON.parse(init.body);
       calls.push(body);
       if (body.model === "model-a") return new Response("unavailable", { status: 503 });
-      return new Response(
-        JSON.stringify({ choices: [{ message: { content: "Hello" }, finish_reason: "stop" }] })
-      );
+      return chatCompletionFixture(body, { content: "Hello" });
     })
   );
   const discovery = await app.inject({ method: "POST", url: "/product/providers/endpoint/test" });
@@ -254,7 +253,7 @@ it("first run, discovery/manual ID, Chat admission, independent routes and UNKNO
     }
   });
   expect(chat.statusCode).toBe(200);
-  expect(calls.map((c) => c.model)).toEqual(["model-a", "model-b"]);
+  expect(calls.map((c) => c.model)).toEqual(["model-a", "model-b", "model-b"]);
   c.routes.chat.reverse();
   c.routes.reasoning = ["model-a"];
   c.routes.proactive = ["model-a"];

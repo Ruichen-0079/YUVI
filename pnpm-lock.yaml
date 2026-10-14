@@ -262,6 +262,9 @@ importers:
 
   packages/desktop-supervisor:
     dependencies:
+      '@companion/config':
+        specifier: workspace:*
+        version: link:../config
       pg:
         specifier: ^8.20.0
         version: 8.20.0
@@ -347,6 +350,9 @@ importers:
 
   packages/memory:
     dependencies:
+      '@companion/config':
+        specifier: workspace:*
+        version: link:../config
       '@companion/database':
         specifier: workspace:*
         version: link:../database
@@ -413,6 +419,9 @@ importers:
 
   packages/providers:
     dependencies:
+      '@companion/config':
+        specifier: workspace:*
+        version: link:../config
       '@companion/protocol':
         specifier: workspace:*
         version: link:../protocol

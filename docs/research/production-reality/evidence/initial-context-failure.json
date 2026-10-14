@@ -1,0 +1,13 @@
+{
+  "schema": "production-context-failure.v1",
+  "kind": "DETERMINISTIC_DEPENDENCY_FIXTURE_NOT_MODEL_QUALITY",
+  "underlyingHead": "8632dd9107fc07d04f3cc8825c848c48394bd6ae",
+  "dirty": true,
+  "privateLogDigest": "ca12997e5fb26bd7a0aaeadd03f42c7026401150e0cf899f087699d8a513018f",
+  "scenario": "30 turns through normal apps/server/src/index.ts",
+  "failure": "initial accepted random fact absent from turn 30 gate/body messages; assertion failed",
+  "identifiedBoundary": "preselection DirectContext uses 60 percent of model input allocation before Character budgets actual messages",
+  "repair": "select bounded history up to available model allocation; final Character rendering accounts all evidence and decorations together",
+  "finalInputProof": "entry-input-summary.json",
+  "limits": "Original failure is an intermediate worktree regression, not falsely labelled as clean baseline replay."
+}

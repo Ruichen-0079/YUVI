@@ -28,6 +28,9 @@ export type ContextCompressionInput = {
   sections: HierarchicalContextSection[];
   maxCharacters: number;
   protectedNames?: readonly string[] | undefined;
+  /** Final transport allocation may exhaust an optional section; intermediate
+   * projections preserve a small usable excerpt by default. */
+  minimumSectionCharacters?: number | undefined;
 };
 
 export type ContextCompressionMetrics = {
@@ -64,7 +67,16 @@ export function compressHierarchicalContext(
     const choices = [...working]
       .filter((section) => isCompressible(section, protectedNames))
       .sort((left, right) => compressiblePriority(left) - compressiblePriority(right))
-      .map((candidate) => ({ candidate, next: compressSection(candidate) }));
+      .map((candidate) => ({
+        candidate,
+        next: compressSection(
+          candidate,
+          Math.max(
+            input.minimumSectionCharacters ?? 160,
+            candidate.content.length - (totalCharacters(working) - input.maxCharacters)
+          )
+        )
+      }));
     const choice = choices.find(({ candidate, next }) => next.length < candidate.content.length);
     if (!choice) break;
     const { candidate, next } = choice;
@@ -104,10 +116,19 @@ export function estimateTokensFromCharacters(characters: number): number {
   return estimateTokens(characters);
 }
 
+/** Byte upper bound for byte-fallback tokenizers, including CJK/emoji and JSON
+ * escaping. This is conservative accounting, not a claim to know a tokenizer.
+ */
+export function estimateModelInputTokens(
+  messages: readonly { role: string; content: string }[]
+): number {
+  return new TextEncoder().encode(JSON.stringify(messages)).length;
+}
+
 function isCompressible(section: HierarchicalContextSection, protectedNames: Set<string>): boolean {
   if (protectedNames.has(section.name) || section.stable === true) return false;
   if (section.compressible === false) return false;
-  if (section.content.length <= 160) return false;
+  if (!section.content.length) return false;
   return true;
 }
 
@@ -120,24 +141,32 @@ function compressiblePriority(section: HierarchicalContextSection): number {
   return 50;
 }
 
-function compressSection(section: HierarchicalContextSection): string {
+function compressSection(section: HierarchicalContextSection, target: number): string {
   const lines = section.content.split(/\r?\n/u).filter((line) => line.trim().length > 0);
-  const target = Math.max(160, Math.floor(section.content.length * 0.72));
   let next: string;
   if (lines.length > 3) {
-    next = [
-      ...lines.slice(0, 1),
-      `(${lines.length - 3} older ${section.name} lines compressed.)`,
-      ...lines.slice(-2)
-    ].join("\n");
+    const marker = `[${section.name}: earlier text omitted; original sources retained]`;
+    const anchor = lines[0]!.length < target / 3 ? [lines[0]!] : [];
+    const recent: string[] = [];
+    let used = marker.length + (anchor[0]?.length ?? 0) + 2;
+    for (const line of lines.slice(anchor.length).reverse()) {
+      if (used + line.length + 1 > target) break;
+      recent.unshift(line);
+      used += line.length + 1;
+    }
+    next = [...anchor, marker, ...recent].join("\n");
+    if (!recent.length) next = section.content;
   } else {
     next = section.content;
   }
   if (next.length > target) {
     const recent = section.name === "DirectContext" || section.name === "RECENT_CONVERSATION";
-    next = recent
-      ? `...${next.slice(-(target - 3)).trimStart()}`
-      : `${next.slice(0, target - 3).trimEnd()}...`;
+    next =
+      target <= 3
+        ? ""
+        : recent
+          ? `...${next.slice(-(target - 3)).trimStart()}`
+          : `${next.slice(0, target - 3).trimEnd()}...`;
   }
   const markers = [
     ...new Set(section.content.match(new RegExp(EPISTEMIC_MARKER.source, "gi")) ?? [])
@@ -161,23 +190,23 @@ function estimateTokens(characters: number): number {
   return Math.ceil(characters / 4);
 }
 
-/** Conservative Unicode character accounting (one character per token), not chars/4.
- * Normal work uses at most three quarters of the window and caps at 24K; the rest stays free.
- * Transport/instructions and output each have explicit reserves.
+/** Window allocation with one safety reserve and one output reserve.
+ * Renderers account for their actual transport/instructions inside the input
+ * allocation; no second percentage cap or duplicate safety deduction applies.
  */
 export function modelContextBudget(contextWindow?: number) {
   const windowTokens =
     contextWindow !== undefined && Number.isSafeInteger(contextWindow) && contextWindow >= 1024
       ? contextWindow
       : 16_384;
-  const workingTokens = Math.min(24_576, Math.floor(windowTokens * 0.75));
   const outputTokens = Math.min(2048, Math.floor(windowTokens / 8));
   const safetyTokens = Math.min(2048, Math.floor(windowTokens / 8));
+  const workingTokens = windowTokens - safetyTokens;
   return {
     windowTokens,
     workingTokens,
     outputTokens,
     safetyTokens,
-    maxInputCharacters: Math.max(0, workingTokens - outputTokens - safetyTokens)
+    maxInputCharacters: Math.max(0, workingTokens - outputTokens)
   };
 }

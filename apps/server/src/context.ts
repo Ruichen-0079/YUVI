@@ -155,7 +155,7 @@ import {
   type ProviderStatusMap
 } from "@companion/providers";
 import type { FastifyBaseLogger } from "fastify";
-import type { ServerConfig } from "./config.js";
+import { loadServerConfig, type ServerConfig } from "./config.js";
 import { readRuntimeEnvFiles } from "./env.js";
 import {
   editableKeys,
@@ -652,14 +652,8 @@ export async function createAppContext(
   ): RuntimeOrchestrator {
     const provider = memory.getMemoryProvider?.();
     const outputLanguage = parseRuntimeConfig(runtimeEnv).outputLanguage;
-    // Existing test doubles and explicit offline/mock runs intentionally
-    // return ordinary Chat text rather than the production Character JSON
-    // ABI. Real non-mock construction binds Character and its Cognition
-    // callback in one place.
-    const character =
-      runtimeEnv["NODE_ENV"] === "test" || runtimeEnv["PROVIDER_ALLOW_MOCKS"] === "true"
-        ? undefined
-        : createServerCharacterPort();
+    // Provider substitutions never change the product's control structure.
+    const character = createServerCharacterPort();
     const personId = parseRuntimeConfig(runtimeEnv).memory.subjectUserId;
     const sharedPerson = personId ? composition?.people?.readPerson(personId) : null;
     const consumedPerson = capturedProduct?.people.find((p) => p.id === personId);
@@ -1002,17 +996,7 @@ export async function createAppContext(
       const nextRuntime = createRuntime(
         nextProviders,
         nextMemory,
-        {
-          enabled: parseBoolean(reloadEnv["DIRECT_CONTEXT_ENABLED"], config.directContext.enabled),
-          maxTurns: parsePositiveInteger(
-            reloadEnv["DIRECT_CONTEXT_MAX_TURNS"],
-            config.directContext.maxTurns
-          ),
-          maxChars: parsePositiveInteger(
-            reloadEnv["DIRECT_CONTEXT_MAX_CHARS"],
-            config.directContext.maxChars
-          )
-        },
+        loadServerConfig(reloadEnv).directContext,
         reloadEnv,
         productSnapshot
       );
@@ -1583,13 +1567,6 @@ function normalizeMemoryRepository(value: string | undefined): string {
 function normalizeEventBus(value: string | undefined): string {
   const normalized = value?.trim().toLowerCase();
   return normalized === "memory" ? "in-memory" : (normalized ?? "");
-}
-
-function parseBoolean(value: string | undefined, fallback: boolean): boolean {
-  if (value === undefined || value === "") {
-    return fallback;
-  }
-  return value === "true" || value === "1" || value === "yes";
 }
 
 function parsePositiveInteger(value: string | undefined, fallback: number): number {

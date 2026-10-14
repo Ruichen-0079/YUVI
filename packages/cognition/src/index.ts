@@ -8,6 +8,7 @@ import {
   type CharacterHarnessCognitionRequest
 } from "@companion/character-harness/cognition-request";
 import type { ReasoningInput, ReasoningOutput } from "@companion/providers";
+import { createCognitionCapabilityObservation } from "./capability-observation.js";
 
 export const COGNITION_6A_VERSION = "cognition-6a.v1" as const;
 export const COGNITION_6G_VERSION = "cognition-6g.v1" as const;
@@ -63,6 +64,8 @@ type UnknownObject = Record<string, unknown> & {
   capabilityRef?: unknown;
   description?: unknown;
   request?: unknown;
+  reason?: unknown;
+  observations?: unknown;
 };
 
 /**
@@ -78,11 +81,7 @@ export function createCognitionCapabilityDescriptions(
   input: unknown
 ): CognitionCapabilityDescriptionSet {
   const value = expectObject(input, "Cognition 6G capability descriptions");
-  assertAllowedKeys(
-    value,
-    ["version", "capabilities"],
-    "Cognition 6G capability descriptions"
-  );
+  assertAllowedKeys(value, ["version", "capabilities"], "Cognition 6G capability descriptions");
   if (value.version !== COGNITION_6G_VERSION) {
     throw new Error(`Cognition capability descriptions version must be ${COGNITION_6G_VERSION}.`);
   }
@@ -138,7 +137,9 @@ export function createCognitionCapabilityRequest(
     "Cognition capability request capabilityRef"
   );
   if (!inventory.capabilities.some((capability) => capability.capabilityRef === capabilityRef)) {
-    throw new Error("Cognition capability request must reference the current capability inventory.");
+    throw new Error(
+      "Cognition capability request must reference the current capability inventory."
+    );
   }
 
   const request = boundedCapabilityRequest(value.request);
@@ -242,11 +243,50 @@ export function normalizeCognitionReasoningOutput(input: unknown): NormalizedCog
  */
 export function createCognitionFailureResult(input: unknown): NormalizedCognitionResult {
   const value = expectObject(input, "Cognition failure result input");
-  assertAllowedKeys(value, ["status"], "Cognition failure result input");
+  assertAllowedKeys(value, ["status", "observations", "reason"], "Cognition failure result input");
   if (!isFailureStatus(value.status)) {
     throw new Error("Cognition failure status must be UNAVAILABLE, CANCELLED, or ERROR.");
   }
 
+  if (value.observations !== undefined) {
+    if (!Array.isArray(value.observations) || value.observations.length > 4)
+      throw new Error("Cognition interrupted observations must be a bounded array.");
+    if (value.status === "CANCELLED")
+      throw new Error("Cancelled results cannot disclose capability observations.");
+    const success = value.observations
+      .map(createCognitionCapabilityObservation)
+      .filter((o) => o.status === "SUCCESS" && o.content?.trim());
+    if (success.length) {
+      if (
+        value.reason !== undefined &&
+        (typeof value.reason !== "string" || !value.reason.trim() || value.reason.length > 200)
+      )
+        throw new Error("Invalid Cognition interruption reason.");
+      const reason = value.reason ?? "execution stopped";
+      return createNormalizedCognitionResult({
+        version: NORMALIZED_COGNITION_RESULT_VERSION,
+        status: "PARTIAL",
+        evidence: success.map((o) => ({
+          reference: o.capabilityRef,
+          statement:
+            o.content!.length <= 2000
+              ? o.content!
+              : o.content!.slice(0, 980) +
+                "\n[observation excerpt; middle omitted]\n" +
+                o.content!.slice(-980)
+        })),
+        caveats: [
+          `Reasoning stopped before a final COMPLETE decision: ${reason}.`,
+          "These capability observations were successfully returned. PARTIAL describes the reasoning lifecycle, not a reversal or failure of these observed executions, and not proof that every user goal completed. Evidence references identify capability bindings; observations remain ordered.",
+          ...(success.some((o) => o.coverage || o.content!.length > 2000)
+            ? [
+                "Some observation content is a bounded excerpt; unseen source content remains unknown."
+              ]
+            : [])
+        ]
+      });
+    }
+  }
   return createNormalizedCognitionResult({
     version: NORMALIZED_COGNITION_RESULT_VERSION,
     status: value.status

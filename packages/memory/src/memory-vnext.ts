@@ -80,6 +80,7 @@ export type MemoryVNextAssembly = {
   episodes: RecentEpisode[];
   promptEpisodes: RecentEpisode[];
   recentEpisodicText: string;
+  directContextText: string;
   associative: AssociativeRecallResult;
   temporal: ThinTemporalProjection;
   compression?: ContextCompressionMetrics | undefined;
@@ -223,6 +224,7 @@ export async function assembleMemoryVNextContext(
     episodes,
     promptEpisodes,
     recentEpisodicText,
+    directContextText,
     associative,
     temporal,
     ...(compression ? { compression: compression.metrics } : {}),
@@ -294,14 +296,13 @@ function projectCharacterFacing(input: {
 }): MemoryVNextCharacterProjection {
   const recentConversation = input.directContextText.trim()
     ? {
-        state:
-          input.compressed || input.directContextText.trim().length > 4000
-            ? ("PARTIAL" as const)
-            : ("KNOWN" as const),
-        summary: compressHierarchicalContext({
-          sections: [{ name: "RECENT_CONVERSATION", content: input.directContextText.trim() }],
-          maxCharacters: 4000
-        }).sections[0]!.content,
+        state: input.compressed ? ("PARTIAL" as const) : ("KNOWN" as const),
+        // ABI summaries are not a transcript transport. The admitted chronological
+        // evidence is retained separately in the assembly/CanonicalContext.
+        summary:
+          input.directContextText.trim().length <= 4000
+            ? input.directContextText.trim()
+            : "Accepted chronological conversation evidence is supplied separately, with its original source references. This section does not summarize or replace that evidence.",
         provenanceReferences: ["direct-context"]
       }
     : { state: "EMPTY" as const };

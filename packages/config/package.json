@@ -4,6 +4,11 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./environment": {
+      "types": "./src/environment.ts",
+      "development": "./src/environment.ts",
+      "import": "./dist/environment.js"
+    },
     ".": {
       "types": "./src/index.ts",
       "development": "./src/index.ts",

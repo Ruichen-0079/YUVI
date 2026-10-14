@@ -24,7 +24,9 @@ export const SUPERVISOR_SOURCE_FILES = [
   "packages/desktop-supervisor/src/supervisor.ts",
   "packages/desktop-supervisor/src/ownership.ts",
   "packages/desktop-supervisor/src/config.ts",
-  "packages/desktop-supervisor/src/types.ts"
+  "packages/desktop-supervisor/src/types.ts",
+  "packages/desktop-supervisor/src/env.ts",
+  "packages/config/src/environment.ts"
 ];
 const BUNDLE_HASH_PLACEHOLDER = "0".repeat(64);
 
@@ -34,7 +36,8 @@ export function sha256File(filePath) {
 
 export function resolveCheckoutSha() {
   const fromEnvironment = process.env.GITHUB_SHA?.trim();
-  if (fromEnvironment && /^[0-9a-f]{40}$/i.test(fromEnvironment)) return fromEnvironment.toLowerCase();
+  if (fromEnvironment && /^[0-9a-f]{40}$/i.test(fromEnvironment))
+    return fromEnvironment.toLowerCase();
   try {
     return execFileSync("git", ["rev-parse", "HEAD"], {
       cwd: REPO_ROOT,
@@ -44,7 +47,9 @@ export function resolveCheckoutSha() {
       .trim()
       .toLowerCase();
   } catch (error) {
-    throw new Error(`unable to resolve checkout SHA: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(
+      `unable to resolve checkout SHA: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 }
 
@@ -69,7 +74,10 @@ export function canonicalBundleText(text) {
 }
 
 function canonicalBundleSha256(filePath) {
-  return crypto.createHash("sha256").update(canonicalBundleText(fs.readFileSync(filePath, "utf8"))).digest("hex");
+  return crypto
+    .createHash("sha256")
+    .update(canonicalBundleText(fs.readFileSync(filePath, "utf8")))
+    .digest("hex");
 }
 
 function embeddedBuildInfoBanner(identity) {
@@ -91,7 +99,10 @@ async function bundleSupervisorWithIdentity(outfile, identity) {
       js: `/* YUVI packaged Supervisor — do not edit */\n${embeddedBuildInfoBanner(identity)}`
     }
   });
-  fs.writeFileSync(path.join(path.dirname(outfile), "THIRD_PARTY_NOTICES.supervisor.json"), JSON.stringify(javascriptNotices(Object.keys(result.metafile.inputs)), null, 2));
+  fs.writeFileSync(
+    path.join(path.dirname(outfile), "THIRD_PARTY_NOTICES.supervisor.json"),
+    JSON.stringify(javascriptNotices(Object.keys(result.metafile.inputs)), null, 2)
+  );
   assertFile(outfile, "supervisor cjs bundle");
 }
 
@@ -127,23 +138,17 @@ export function packageSupervisorExe(cjsPath, outDir = SUPERVISOR_OUT_DIR) {
   const pkgBin = path.join(REPO_ROOT, "node_modules", "@yao-pkg", "pkg", "lib-es5", "bin.js");
   const pkgCli = path.join(REPO_ROOT, "node_modules", ".bin", "pkg");
   const pkgCmd =
-    process.platform === "win32"
-      ? path.join(REPO_ROOT, "node_modules", ".bin", "pkg.cmd")
-      : pkgCli;
+    process.platform === "win32" ? path.join(REPO_ROOT, "node_modules", ".bin", "pkg.cmd") : pkgCli;
 
-  const args = [
-    cjsPath,
-    "--target",
-    PKG_TARGET,
-    "--output",
-    exePath,
-    "--compress",
-    "GZip"
-  ];
+  const args = [cjsPath, "--target", PKG_TARGET, "--output", exePath, "--compress", "GZip"];
 
   try {
     if (fs.existsSync(pkgCmd)) {
-      execFileSync(pkgCmd, args, { stdio: "inherit", cwd: REPO_ROOT, shell: process.platform === "win32" });
+      execFileSync(pkgCmd, args, {
+        stdio: "inherit",
+        cwd: REPO_ROOT,
+        shell: process.platform === "win32"
+      });
     } else if (fs.existsSync(pkgBin)) {
       execFileSync(process.execPath, [pkgBin, ...args], { stdio: "inherit", cwd: REPO_ROOT });
     } else {
@@ -164,7 +169,9 @@ export async function buildSupervisor(outDir = SUPERVISOR_OUT_DIR) {
   const cjsPath = await bundleSupervisorCjs(outDir);
   const packaged = packageSupervisorExe(cjsPath, outDir);
   const bundleInfo = JSON.parse(
-    fs.readFileSync(cjsPath, "utf8").match(/__YUVI_SUPERVISOR_BUILD_INFO__ = Object\.freeze\((\{.*?\})\);/)?.[1] ?? "null"
+    fs
+      .readFileSync(cjsPath, "utf8")
+      .match(/__YUVI_SUPERVISOR_BUILD_INFO__ = Object\.freeze\((\{.*?\})\);/)?.[1] ?? "null"
   );
   if (!bundleInfo) throw new Error("embedded Supervisor build identity missing from CJS bundle");
   const buildInfo = {

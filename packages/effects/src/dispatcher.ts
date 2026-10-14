@@ -12,6 +12,9 @@ import type { EffectClaim, EffectDispatchStore } from "./dispatch-store.js";
 export interface EffectAdapter {
   readonly contractRef: EffectIntent["contractRef"];
   readonly adapter: string;
+  /** Transient invocation work may be attached after durable admission. Missing
+   * readiness leaves the intent pending; it is never an authorization verdict. */
+  isReady?(intentId: string): boolean;
   isCurrent(intent: EffectIntent): boolean;
   invoke(
     intent: EffectIntent,
@@ -136,6 +139,7 @@ export class EffectDispatcher {
         // or a narrow host store lookup through claim; unactivated contracts simply remain pending.
         for (const adapter of this.adapters.values()) {
           if (d.contractRef && d.contractRef !== adapter.contractRef) continue;
+          if (adapter.isReady && !adapter.isReady(id)) continue;
           const current = (i: EffectIntent) =>
             this.accepting &&
             !entry.controller.signal.aborted &&
@@ -207,17 +211,25 @@ export class EffectDispatcher {
             }
             let result: { evidence: EffectEvidence; transientResult?: unknown };
             let renewalBusy = false;
+            let renewalLost = false;
+            let renewalInFlight: Promise<void> | undefined;
             const renewal = this.store.renew
               ? setInterval(
                   () => {
                     if (renewalBusy || entry.controller.signal.aborted) return;
                     renewalBusy = true;
-                    void this.store.renew!(started, this.leaseMs)
+                    renewalInFlight = this.store.renew!(started, this.leaseMs)
                       .then(
                         (ok) => {
-                          if (!ok) entry.controller.abort();
+                          if (!ok) {
+                            renewalLost = true;
+                            entry.controller.abort();
+                          }
                         },
-                        () => entry.controller.abort()
+                        () => {
+                          renewalLost = true;
+                          entry.controller.abort();
+                        }
                       )
                       .finally(() => {
                         renewalBusy = false;
@@ -234,7 +246,11 @@ export class EffectDispatcher {
             } finally {
               if (renewal) clearInterval(renewal);
             }
+            // A renewal started during invocation belongs to this attempt. Its
+            // negative/unknown result cannot arrive after a successful receipt.
+            await renewalInFlight;
             if (entry.detached) return { invoked: true, recorded: false };
+            if (renewalLost) result = { evidence: protocolEvidence("CALL_UNCERTAIN", true) };
             let recorded = false;
             try {
               const status = await this.store.record(claim.attempt, result.evidence);

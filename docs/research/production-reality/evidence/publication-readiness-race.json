@@ -1,0 +1,25 @@
+{
+  "schema": "publication-readiness-race.v1",
+  "ciSourceSha": "0aaedb8acfdaf02688601313e760cd58b7ebfa52",
+  "capturedModelCalls": 14,
+  "withheldBeforeTransportAttachment": [
+    {
+      "intent_id": "ei1_dc145fa1f6cc9a28516d9bd1441ee711ef54e3074d184068d40432fc840da29c",
+      "contract_ref": "yuvi.publication.v1",
+      "work_state": "WITHHELD",
+      "created_at": "2026-10-14T15:18:07.989Z",
+      "attempt_id": null,
+      "dispatch_started_at": null,
+      "lease_expires_at": null,
+      "lease_owner": null,
+      "evidence": null
+    }
+  ],
+  "deterministicReproduction": {
+    "failure": "PENDING expected, WITHHELD observed before callback activation",
+    "privateLogDigest": "7275c7de159f9de98ec62ebbfadb4111fd4a9ecbf44e3545c77b62645c7b6cfa"
+  },
+  "repair": "Host dispatch readiness checked before claim; authority remains separately mandatory once invoker attaches",
+  "finalState": "queued intent remains PENDING/no attempt; activating canonical same intent sends exactly once and records APPLIED",
+  "scope": "isolated PostgreSQL; preserves target revocation, generation, ACK/UNKNOWN and no replay of ambiguous publication"
+}

@@ -1,0 +1,12 @@
+{
+  "schema": "production-assembly-baseline.v1",
+  "sourceSha": "8632dd9107fc07d04f3cc8825c848c48394bd6ae",
+  "testTemplateSha256": "225627a55cc06f752713e8d7f4cab3c271ca62fc82e3c2f9a1a6ecd891017329",
+  "onlyReplayChange": "child startup cwd points to readonly baseline checkout",
+  "exitCode": 1,
+  "verificationKind": "DETERMINISTIC_TOPOLOGY_NOT_MODEL_QUALITY",
+  "logSha256": "a54d64ea593396005691e7548c1b583c787cdbbd297404de06715b13f0a60799",
+  "observedModelCallsFirstTurn": 1,
+  "expectedModelCallsFirstTurn": 2,
+  "failure": "test/mocks skipped Character; actual [false] instead of gate/body [false,true]"
+}

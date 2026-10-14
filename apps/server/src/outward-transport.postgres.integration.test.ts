@@ -355,13 +355,16 @@ describe.skipIf(!databaseUrl)(
       expect((await send(app, "conversation-read-slots")).statusCode).toBe(200);
       const repository = context.conversationRepository;
       const read = repository.listRecentMessages.bind(repository);
-      let replacedId: string | undefined, priorDigest: string | undefined;
+      let replacedId: string | undefined,
+        priorDigest: string | undefined,
+        readSlot = 0;
       const spy = vi
         .spyOn(repository, "listRecentMessages")
         .mockImplementation(async (session, options) => {
           const rows = await read(session, options);
-          // L0 restore is a 36-message read; L1 uses its separate bounded window.
-          if (session === "conversation-read-slots" && options?.limit === 36 && !replacedId) {
+          // L0 and L1 are independent bounded owner reads. Window size now comes
+          // from model capacity, so inject between read slots, not a magic limit.
+          if (session === "conversation-read-slots" && readSlot++ === 0 && !replacedId) {
             const previous = rows.find((message) => message.role === "user")!;
             replacedId = previous.id;
             priorDigest = contextUseDigest(previous.content);

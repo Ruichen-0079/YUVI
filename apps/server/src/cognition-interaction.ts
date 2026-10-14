@@ -68,6 +68,14 @@ export async function executeServerCognitionInteraction(input: {
     limits: input.limits,
     signal: input.signal,
     policyAllowsCapability: input.policyAllowsCapability,
+    allowTerminalCapabilityObservation: (round) =>
+      !pluginCapabilityRefs.has(round.request.capabilityRef) &&
+      staticRegistry.descriptors.some(
+        (binding) =>
+          binding.capabilityRef === round.request.capabilityRef &&
+          binding.implementationRef === SERVER_MCP_READ_TEXT_IMPLEMENTATION_REF &&
+          binding.effectContract.actionKind === "QUERY"
+      ),
     async reason(history, signal) {
       const tools = await mcpClient.listTools({ signal });
       const current = createCurrentServerMcpCapabilityBindings(staticRegistry, tools);
@@ -171,7 +179,10 @@ export async function executeServerCognitionInteraction(input: {
         terminal?.status === "CANCELLED" ||
         (terminal?.status === "FAILED" && terminal.reason === "STALE_EXECUTION")
           ? "CANCELLED"
-          : "ERROR"
+          : "ERROR",
+      ...(terminal?.status === "FAILED" && terminal.reason !== "STALE_EXECUTION"
+        ? { observations: outcome.history.map((e) => e.observation), reason: terminal.reason }
+        : {})
     });
   return createCharacterHarnessCognitionRoundTrip({ request: task.escalation, result });
 }

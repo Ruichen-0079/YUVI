@@ -1,0 +1,951 @@
+{
+  "schema": "normal-entry-capability-comparison.v1",
+  "request": "帮我查看本会话已授权的文本文件，告诉我文件开头和末尾的两个标记。请根据真实读取结果回答，不要猜测。",
+  "markers": ["OPEN_7d29d5a243a84b08", "CLOSE_5bac90b66e2946a3"],
+  "fileDigest": "9f417f9f4fc1811b2d16d03037ecffe53d78d76f95448168071d660913a6f9f7",
+  "authorization": "isolated operator control, single file, not product Host credentials",
+  "kind": "REAL_MODEL_CHOICES_NORMAL_SERVER_REAL_HOST_READ",
+  "runs": [
+    {
+      "name": "partial-read2",
+      "gitSha": "1d9a1262e6f73e50ce48017fe016cf1a5b17ad3f",
+      "dirty": false,
+      "markers": ["OPEN_7d29d5a243a84b08", "CLOSE_5bac90b66e2946a3"],
+      "chatModel": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "reasoningModel": "zai-org/GLM-5.3-Flash",
+      "temperature": 0,
+      "maxTokens": 2048,
+      "maxReasoningRounds": 1,
+      "calls": [
+        {
+          "ordinal": 0,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "27869fd78ca6d654c57614e5645b304263ae15013eff43cbf451b4bd10cb44c0",
+          "inputBytes": 5648,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": "{\"disposition\":\"NEED_COGNITION\",\"focus\":\"Determine whether this session has an authorized text file available to read, and if so, identify its opening and closing markers from actual read results rather than guessing.\"}",
+          "cognitionStatusInInput": null,
+          "usage": {
+            "prompt_tokens": 1151,
+            "total_tokens": 1196,
+            "completion_tokens": 45,
+            "estimated_cost": 7.716e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 2501.7872150000003,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 1,
+          "stream": false,
+          "model": "zai-org/GLM-5.3-Flash",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "786a5f4baec2cd586bb0414d45c8426741a38272fe6679d2b803246f1062eb93",
+          "inputBytes": 3478,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": "REQUEST_CAPABILITY\n{\"capabilityRef\":\"capability://opaque/read-authorized-text\",\"request\":\"读取本会话已授权的文本文件，以获取其开头和末尾的标记\"}",
+          "cognitionStatusInInput": null,
+          "usage": {
+            "prompt_tokens": 676,
+            "total_tokens": 716,
+            "completion_tokens": 40,
+            "estimated_cost": 6.07e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 7574.433927,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 2,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "2d1facb86497152d0d42c3ff35fb0cda200c0fda66b31bdca8eaf0ab24126f04",
+          "inputBytes": 5351,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": "{\"disposition\":\"RESPOND\",\"presentation\":{\"intent\":\"neutral\"},\"proactive\":{\"action\":\"KEEP\"}}",
+          "cognitionStatusInInput": "ERROR",
+          "usage": {
+            "prompt_tokens": 1097,
+            "total_tokens": 1124,
+            "completion_tokens": 27,
+            "estimated_cost": 7.068000000000001e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 1392.8504380000013,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 3,
+          "stream": true,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "6c051125e064df72dc2dd29e47d84f7a8499cefd9f48560e4e1097658c88608b",
+          "inputBytes": 4162,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": null,
+          "cognitionStatusInInput": "ERROR",
+          "usage": {
+            "prompt_tokens": 825,
+            "total_tokens": 893,
+            "completion_tokens": 68,
+            "estimated_cost": 6.174e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 2252.024475,
+          "firstTextMs": 643.7744610000009
+        }
+      ],
+      "readEffects": [],
+      "finalAnswer": "我无法完成这个请求。当前会话没有可用的已授权文本文件读取结果，也没有任何已确认的文件内容证据。因此我无法告诉你文件开头和末尾的标记——那会变成猜测，而不是基于真实读取的回答。\n\n如果你能提供具体的文件路径或授权信息，我可以基于实际可用的结果来回应。",
+      "markersCorrect": false,
+      "knownEstimatedCostUSD": 0.00027028,
+      "estimatedCostUSD": 0.00027028,
+      "unknownUsageCalls": 0
+    },
+    {
+      "name": "partial-read3",
+      "gitSha": "d4accf30afbb64ceca163b4bd23bbb6c2c103e9b",
+      "dirty": false,
+      "markers": ["OPEN_7d29d5a243a84b08", "CLOSE_5bac90b66e2946a3"],
+      "chatModel": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "reasoningModel": "zai-org/GLM-5.3-Flash",
+      "temperature": 0,
+      "maxTokens": 2048,
+      "maxReasoningRounds": 1,
+      "calls": [
+        {
+          "ordinal": 0,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "39b482be93db8b75d6d8c2cbd142f9ea4f4362faf81eefa58ad2ee1389b897c7",
+          "inputBytes": 5648,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": "{\"disposition\":\"NEED_COGNITION\",\"focus\":\"Determine whether any authorized text file exists in this session and, if so, read its actual beginning and ending markers from real evidence before answering.\"}",
+          "cognitionStatusInInput": null,
+          "usage": {
+            "prompt_tokens": 1151,
+            "total_tokens": 1193,
+            "completion_tokens": 42,
+            "estimated_cost": 7.662e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 2245.280158,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 1,
+          "stream": false,
+          "model": "zai-org/GLM-5.3-Flash",
+          "httpStatus": 429,
+          "error": null,
+          "inputDigest": "13dedf098cc558c344dc4a8fbf82213542bd3527bc8255516eb4a28d1e5d29c4",
+          "inputBytes": 3461,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": null,
+          "cognitionStatusInInput": null,
+          "usage": null,
+          "latencyMs": 345.8088979999998,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 2,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "d992b089f0df8096338a998acf5e3b1055f2bc6b44f4bebadfd3ab055dbfe4b0",
+          "inputBytes": 5351,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": "{\"disposition\":\"RESPOND\",\"presentation\":{\"intent\":\"neutral\"},\"proactive\":{\"action\":\"KEEP\"}}",
+          "cognitionStatusInInput": "ERROR",
+          "usage": {
+            "prompt_tokens": 1097,
+            "total_tokens": 1124,
+            "completion_tokens": 27,
+            "estimated_cost": 7.068000000000001e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 1385.3697309999998,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 3,
+          "stream": true,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "a42c160e27c3f1ea265ffc7ff0a05a929c59a08d6762045fd128f7ffdef56007",
+          "inputBytes": 4162,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": null,
+          "cognitionStatusInInput": "ERROR",
+          "usage": {
+            "prompt_tokens": 825,
+            "total_tokens": 884,
+            "completion_tokens": 59,
+            "estimated_cost": 6.012e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 2323.7040850000003,
+          "firstTextMs": 765.7373560000005
+        }
+      ],
+      "readEffects": [],
+      "finalAnswer": "我无法完成这个请求。当前会话没有可用的已授权文本文件读取结果，也没有任何文件内容或标记的证据可供我引用。我不会猜测或编造文件开头和末尾的标记。\n\n如果你能提供具体文件名或授权读取的操作结果，我可以基于真实数据继续。",
+      "markersCorrect": false,
+      "knownEstimatedCostUSD": 0.00020742,
+      "estimatedCostUSD": null,
+      "unknownUsageCalls": 1
+    },
+    {
+      "name": "partial-read4",
+      "gitSha": "d4accf30afbb64ceca163b4bd23bbb6c2c103e9b",
+      "dirty": false,
+      "markers": ["OPEN_7d29d5a243a84b08", "CLOSE_5bac90b66e2946a3"],
+      "chatModel": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "reasoningModel": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "temperature": 0,
+      "maxTokens": 2048,
+      "maxReasoningRounds": 1,
+      "calls": [
+        {
+          "ordinal": 0,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "7887c42152db7df0f6a5233d2648b55c2369fe978cb4a9fb38f4a2b3cc3725ee",
+          "inputBytes": 5648,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": "{\"disposition\":\"NEED_COGNITION\",\"focus\":\"Determine whether this session has an authorized text file available for reading, and if so, identify the opening and closing markers from actual file content. No file path or read authorization is present in the supplied context.\"}",
+          "cognitionStatusInInput": null,
+          "usage": {
+            "prompt_tokens": 1151,
+            "total_tokens": 1206,
+            "completion_tokens": 55,
+            "estimated_cost": 7.896e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 2639.149224,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 1,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "78ff7be76d82aabac5045033744499da1b4a312a23f6067e115242f9723dc636",
+          "inputBytes": 3532,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": "COMPLETE\n本会话已授权读取一个文本文件。我将使用该能力读取文件内容，然后根据真实读取结果报告开头和末尾的标记。",
+          "cognitionStatusInInput": null,
+          "usage": {
+            "prompt_tokens": 707,
+            "total_tokens": 741,
+            "completion_tokens": 34,
+            "estimated_cost": 4.854e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 1465.5836820000004,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 2,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "e242115cb393b738d60ac6819509b0648912e6ff65ab652e9f32f8e8400c8ad0",
+          "inputBytes": 5519,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": "{\"disposition\":\"RESPOND\",\"presentation\":{\"intent\":\"attentive\"},\"proactive\":{\"action\":\"KEEP\"}}",
+          "cognitionStatusInInput": "SUCCESS",
+          "usage": {
+            "prompt_tokens": 1129,
+            "total_tokens": 1158,
+            "completion_tokens": 29,
+            "estimated_cost": 7.296e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 3096.541163,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 3,
+          "stream": true,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "b5d20e86ab26786d1d74d64d89a0cb57bf5db252e64f97936dc179d403f19b6c",
+          "inputBytes": 4330,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": null,
+          "cognitionStatusInInput": "SUCCESS",
+          "usage": {
+            "prompt_tokens": 857,
+            "total_tokens": 892,
+            "completion_tokens": 35,
+            "estimated_cost": 5.772e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 1627.9305130000012,
+          "firstTextMs": 1013.6740929999996
+        }
+      ],
+      "readEffects": [],
+      "finalAnswer": "好的，我来读取本会话已授权的文本文件，然后根据真实内容报告开头和末尾的标记。\n\n请稍等，我读取完成后会直接告诉你结果。",
+      "markersCorrect": false,
+      "knownEstimatedCostUSD": 0.00025818,
+      "estimatedCostUSD": 0.00025818,
+      "unknownUsageCalls": 0
+    },
+    {
+      "name": "partial-read5",
+      "gitSha": "fa972e4c1e5eed773c6f0ff4360c9fb7fa09320a",
+      "dirty": false,
+      "markers": ["OPEN_7d29d5a243a84b08", "CLOSE_5bac90b66e2946a3"],
+      "chatModel": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "reasoningModel": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "temperature": 0,
+      "maxTokens": 2048,
+      "maxReasoningRounds": 1,
+      "calls": [
+        {
+          "ordinal": 0,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "247d3f4067bdca6470012cac84d516557695fe03bd09aaf46c56c01e749bd796",
+          "inputBytes": 5648,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": "{\"disposition\":\"NEED_COGNITION\",\"focus\":\"Determine whether this session has an authorized text file and its actual read result before answering.\"}",
+          "cognitionStatusInInput": null,
+          "usage": {
+            "prompt_tokens": 1151,
+            "total_tokens": 1182,
+            "completion_tokens": 31,
+            "estimated_cost": 7.464e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 1821.8840980000002,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 1,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "0e6caf737452b87da2f9137166f60aedfd8e39f6e04894df4efa6d8edd4e31a4",
+          "inputBytes": 3859,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": "REQUEST_CAPABILITY\n{\"capabilityRef\":\"capability://opaque/read-authorized-text\",\"request\":\"Read the single authorized text file for this session to obtain its opening and closing markers.\"}",
+          "cognitionStatusInInput": null,
+          "usage": {
+            "prompt_tokens": 761,
+            "total_tokens": 803,
+            "completion_tokens": 42,
+            "estimated_cost": 5.3219999999999995e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 1627.6691230000001,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 2,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "77438e3d2aceb7f8288290e3e767ed664cd806e53d18197a7810324c3655bfd9",
+          "inputBytes": 6825,
+          "fileMarkersInInput": [true, true],
+          "controlOutput": "{\"disposition\":\"RESPOND\",\"presentation\":{\"intent\":\"neutral\"},\"proactive\":{\"action\":\"KEEP\"}}",
+          "cognitionStatusInInput": "PARTIAL",
+          "usage": {
+            "prompt_tokens": 1403,
+            "total_tokens": 1430,
+            "completion_tokens": 27,
+            "estimated_cost": 8.904e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 2721.1998430000003,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 3,
+          "stream": true,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "e10e69e9378ab431d6f554f2cc8e2ff42efde1520e716631357add1aa6254ce6",
+          "inputBytes": 5636,
+          "fileMarkersInInput": [true, true],
+          "controlOutput": null,
+          "cognitionStatusInInput": "PARTIAL",
+          "usage": {
+            "prompt_tokens": 1131,
+            "total_tokens": 1240,
+            "completion_tokens": 109,
+            "estimated_cost": 8.748000000000001e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 8101.958737999999,
+          "firstTextMs": 2580.272414000001
+        }
+      ],
+      "readEffects": [
+        {
+          "intent_id": "ei1_2b8c14d4f14b1ed011a155a0a1b38aaaf1d964cbd020905ff4cd259fcf32980e",
+          "attempt_id": "ea1_2f46906da229e6e224ac756965b6f176766d2593d206cb146f748f77b8841f94",
+          "evidence": {
+            "layer": "LOCAL_READ_RETURNED",
+            "reason": "RETURNED",
+            "certainty": "APPLIED",
+            "remoteEffectId": null
+          }
+        }
+      ],
+      "finalAnswer": "我读取了本会话已授权的文本文件，结果如下：\n\n- 文件开头标记：`OPEN_7d29d5a243a84b08`\n- 文件末尾标记：`CLOSE_5bac90b66e2946a3`\n\n需要说明的是，这次读取是部分完成的——推理预算耗尽，未能对文件内容做进一步分析。以上两个标记来自实际读取到的证据，但文件正文内容我没有继续处理。如果你需要我继续查看正文或做其他分析，告诉我即可。",
+      "markersCorrect": true,
+      "knownEstimatedCostUSD": 0.00030438000000000004,
+      "estimatedCostUSD": 0.00030438000000000004,
+      "unknownUsageCalls": 0
+    },
+    {
+      "name": "partial-read6",
+      "gitSha": "fa972e4c1e5eed773c6f0ff4360c9fb7fa09320a",
+      "dirty": false,
+      "markers": ["OPEN_7d29d5a243a84b08", "CLOSE_5bac90b66e2946a3"],
+      "chatModel": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "reasoningModel": "zai-org/GLM-5.3-Flash",
+      "temperature": 0,
+      "maxTokens": 2048,
+      "maxReasoningRounds": 1,
+      "calls": [
+        {
+          "ordinal": 0,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "fedab66d676e67e638048a590318ebe48c761a50869ff55bd058cf17e0dc0697",
+          "inputBytes": 5648,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": "{\"disposition\":\"NEED_COGNITION\",\"focus\":\"Determine whether this session has an authorized text file and its actual read result before answering.\"}",
+          "cognitionStatusInInput": null,
+          "usage": {
+            "prompt_tokens": 1151,
+            "total_tokens": 1182,
+            "completion_tokens": 31,
+            "estimated_cost": 7.464e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 3893.136483,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 1,
+          "stream": false,
+          "model": "zai-org/GLM-5.3-Flash",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "00e0e9f23b4a10b81d7f084f6488bee346ba7385676381b02d63e0bc44cce2d4",
+          "inputBytes": 3859,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": "REQUEST_CAPABILITY\n{\"capabilityRef\":\"capability://opaque/read-authorized-text\",\"request\":\"读取本会话已授权的文本文件的完整内容，以获取文件开头和末尾的两个标记\"}",
+          "cognitionStatusInInput": null,
+          "usage": {
+            "prompt_tokens": 740,
+            "total_tokens": 782,
+            "completion_tokens": 42,
+            "estimated_cost": 6.6e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 14788.381986999999,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 2,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "ab3edb507de8cb4b797692c1e7ff20f2179f66dda5f4732f91e99ef6f3fabd7a",
+          "inputBytes": 6825,
+          "fileMarkersInInput": [true, true],
+          "controlOutput": "{\"disposition\":\"RESPOND\",\"presentation\":{\"intent\":\"neutral\"},\"proactive\":{\"action\":\"KEEP\"}}",
+          "cognitionStatusInInput": "PARTIAL",
+          "usage": {
+            "prompt_tokens": 1403,
+            "total_tokens": 1430,
+            "completion_tokens": 27,
+            "estimated_cost": 8.904e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 2530.518319999999,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 3,
+          "stream": true,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "706784acc34fc40cabdf6e0bfd4f3086d760412f50b2f633856ee68ce18c2715",
+          "inputBytes": 5636,
+          "fileMarkersInInput": [true, true],
+          "controlOutput": null,
+          "cognitionStatusInInput": "PARTIAL",
+          "usage": {
+            "prompt_tokens": 1131,
+            "total_tokens": 1220,
+            "completion_tokens": 89,
+            "estimated_cost": 8.387999999999999e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 3787.2633270000006,
+          "firstTextMs": 1962.8037500000028
+        }
+      ],
+      "readEffects": [
+        {
+          "intent_id": "ei1_e2afbdebd732c08dabb10510eb86c64d7481487d2dd3c41d917190e6b3129502",
+          "attempt_id": "ea1_ae9df3e2f5965b39c7598bd5b012674698c911b8d79395eec4d9e3d1629c19fd",
+          "evidence": {
+            "layer": "LOCAL_READ_RETURNED",
+            "reason": "RETURNED",
+            "certainty": "APPLIED",
+            "remoteEffectId": null
+          }
+        }
+      ],
+      "finalAnswer": "我读取了本会话已授权的文本文件，结果如下：\n\n- 开头标记：`OPEN_7d29d5a243a84b08`\n- 末尾标记：`CLOSE_5bac90b66e2946a3`\n\n需要说明的是，这次读取是部分完成的——推理预算耗尽，未能完成全部目标。文件内容本身是合成隔离的测试证据，没有包含其他有意义的信息。",
+      "markersCorrect": true,
+      "knownEstimatedCostUSD": 0.00031356,
+      "estimatedCostUSD": 0.00031356,
+      "unknownUsageCalls": 0
+    },
+    {
+      "name": "partial-read7",
+      "gitSha": "e2ebc782870ff71429659c4efdc8a4624a39b344",
+      "dirty": true,
+      "markers": ["OPEN_ccb23c36d3d241c3", "CLOSE_69ea127fe6674925"],
+      "chatModel": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "reasoningModel": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "temperature": 0,
+      "maxTokens": 2048,
+      "maxReasoningRounds": 1,
+      "calls": [
+        {
+          "ordinal": 0,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": null,
+          "error": {
+            "name": "TypeError",
+            "causeCode": "UND_ERR_CONNECT_TIMEOUT"
+          },
+          "inputDigest": "0397bb7bb4293bc1e1cbd2161cff0c46235364e6bd1fac08d6e4b924b2265fc6",
+          "inputBytes": 5648,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": null,
+          "cognitionStatusInInput": null,
+          "usage": null,
+          "latencyMs": 10521.002591,
+          "firstTextMs": null
+        }
+      ],
+      "readEffects": [],
+      "finalAnswer": "",
+      "markersCorrect": false,
+      "knownEstimatedCostUSD": 0.0,
+      "estimatedCostUSD": null,
+      "unknownUsageCalls": 1
+    },
+    {
+      "name": "partial-read8",
+      "gitSha": "0aaedb8acfdaf02688601313e760cd58b7ebfa52",
+      "dirty": true,
+      "markers": ["OPEN_ccb23c36d3d241c3", "CLOSE_69ea127fe6674925"],
+      "chatModel": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "reasoningModel": "zai-org/GLM-5.3-Flash",
+      "temperature": 0,
+      "maxTokens": 2048,
+      "maxReasoningRounds": 1,
+      "calls": [
+        {
+          "ordinal": 0,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "fdff42dab34057cc2e79303c3d3eb683ac6f7e12161440ae20523619f3a48b8c",
+          "inputBytes": 5648,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": "{\"disposition\":\"NEED_COGNITION\",\"focus\":\"Determine whether this session has an authorized text file and its actual start/end markers from real read results; do not guess.\"}",
+          "cognitionStatusInInput": null,
+          "usage": {
+            "prompt_tokens": 1151,
+            "total_tokens": 1190,
+            "completion_tokens": 39,
+            "estimated_cost": 7.608e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 1678.19967,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 1,
+          "stream": false,
+          "model": "zai-org/GLM-5.3-Flash",
+          "httpStatus": 429,
+          "error": null,
+          "inputDigest": "d899d5950dec787341838fa3dcd8b4db55f4e08c0a7e64a32605a489b5af3b05",
+          "inputBytes": 3885,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": null,
+          "cognitionStatusInInput": null,
+          "usage": null,
+          "latencyMs": 372.9265190000001,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 2,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "d94941fc349fae1b4117bbb275a9bbdabb1a84e2da31785dbe05adb4d9f96260",
+          "inputBytes": 5351,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": "{\"disposition\":\"RESPOND\",\"presentation\":{\"intent\":\"neutral\"},\"proactive\":{\"action\":\"KEEP\"}}",
+          "cognitionStatusInInput": "ERROR",
+          "usage": {
+            "prompt_tokens": 1097,
+            "total_tokens": 1124,
+            "completion_tokens": 27,
+            "estimated_cost": 7.068000000000001e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 680.4238649999998,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 3,
+          "stream": true,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "6e1727d2d32edb5cf049948f236aa843e1361a53878e4cbc34eaca1955af375b",
+          "inputBytes": 4162,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": null,
+          "cognitionStatusInInput": "ERROR",
+          "usage": {
+            "prompt_tokens": 825,
+            "total_tokens": 881,
+            "completion_tokens": 56,
+            "estimated_cost": 5.958000000000001e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 2926.4663370000003,
+          "firstTextMs": 1066.8831459999997
+        }
+      ],
+      "readEffects": [],
+      "finalAnswer": "我无法完成这个请求。当前会话没有可用的已授权文本文件读取结果，也没有任何文件内容或标记的证据。我不会猜测或编造文件开头和末尾的标记。\n\n如果你能提供文件路径或确认读取操作已完成，我可以基于真实结果继续。",
+      "markersCorrect": false,
+      "knownEstimatedCostUSD": 0.00020634,
+      "estimatedCostUSD": null,
+      "unknownUsageCalls": 1
+    },
+    {
+      "name": "partial-read9",
+      "gitSha": "0aaedb8acfdaf02688601313e760cd58b7ebfa52",
+      "dirty": true,
+      "markers": ["OPEN_ccb23c36d3d241c3", "CLOSE_69ea127fe6674925"],
+      "chatModel": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "reasoningModel": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "temperature": 0,
+      "maxTokens": 2048,
+      "maxReasoningRounds": 1,
+      "calls": [
+        {
+          "ordinal": 0,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "cb74768aa9f480d5def478f5ec9871e12e32899eda5223a28d78550842000c6e",
+          "inputBytes": 5648,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": "{\"disposition\":\"NEED_COGNITION\",\"focus\":\"Determine whether this session has an authorized text file available and, if so, read its beginning and end markers from real evidence before responding.\"}",
+          "cognitionStatusInInput": null,
+          "usage": {
+            "prompt_tokens": 1151,
+            "total_tokens": 1192,
+            "completion_tokens": 41,
+            "estimated_cost": 7.643999999999999e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 1925.8047219999999,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 1,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "8026d31386c2a5393f7f2e3bc0b0ff3dc61b2cf2615b501a1be3015692aa4ff1",
+          "inputBytes": 3909,
+          "fileMarkersInInput": [false, false],
+          "controlOutput": "REQUEST_CAPABILITY\n{\"capabilityRef\":\"capability://opaque/read-authorized-text\",\"request\":\"Read the authorized text file for this session to retrieve its beginning and end markers.\"}",
+          "cognitionStatusInInput": null,
+          "usage": {
+            "prompt_tokens": 771,
+            "total_tokens": 812,
+            "completion_tokens": 41,
+            "estimated_cost": 5.364e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 920.270395,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 2,
+          "stream": false,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "d66aeed7007c70865f4475e8d7df45446dfa1bd034ffc83694d902b5b9d90b5b",
+          "inputBytes": 6958,
+          "fileMarkersInInput": [true, true],
+          "controlOutput": "{\"disposition\":\"RESPOND\",\"presentation\":{\"intent\":\"neutral\"},\"proactive\":{\"action\":\"KEEP\"}}",
+          "cognitionStatusInInput": "PARTIAL",
+          "usage": {
+            "prompt_tokens": 1425,
+            "total_tokens": 1452,
+            "completion_tokens": 27,
+            "estimated_cost": 9.036000000000001e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 1076.1861510000003,
+          "firstTextMs": null
+        },
+        {
+          "ordinal": 3,
+          "stream": true,
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "httpStatus": 200,
+          "error": null,
+          "inputDigest": "bc354cee9262f6ff9a016e597ccdcc7e5ca94dc5b06671dabfe7519f0c5d7eb9",
+          "inputBytes": 5769,
+          "fileMarkersInInput": [true, true],
+          "controlOutput": null,
+          "cognitionStatusInInput": "PARTIAL",
+          "usage": {
+            "prompt_tokens": 1153,
+            "total_tokens": 1223,
+            "completion_tokens": 70,
+            "estimated_cost": 8.178e-5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          "latencyMs": 1875.5783140000003,
+          "firstTextMs": 915.1413510000002
+        }
+      ],
+      "readEffects": [
+        {
+          "intent_id": "ei1_97ebd3a55e95fe8d1f87d13d85a79b36d88c0dd89bc95fb810bb149c8efd52db",
+          "attempt_id": "ea1_ae4f09917ca286ff4f831ad7e64c8069df3a7b6ff0e70d7aba3389c984af6aca",
+          "evidence": {
+            "layer": "LOCAL_READ_RETURNED",
+            "reason": "RETURNED",
+            "certainty": "APPLIED",
+            "remoteEffectId": null
+          }
+        }
+      ],
+      "finalAnswer": "我读取了本会话已授权的文本文件，结果如下：\n\n- 文件开头标记：`OPEN_ccb23c36d3d241c3`\n- 文件末尾标记：`CLOSE_69ea127fe6674925`\n\n文件内容为重复的合成隔离文件证据文本，没有其他可辨识信息。",
+      "markersCorrect": true,
+      "knownEstimatedCostUSD": 0.00030222,
+      "estimatedCostUSD": 0.00030222,
+      "unknownUsageCalls": 0
+    }
+  ],
+  "limitations": [
+    "Small controlled trials, not general model autonomy accuracy",
+    "Default GLM busy response retained; no fallback hidden",
+    "Reasoning budget 1 is an experiment configuration only",
+    "No private Alice persona, memory, image, credentials or configuration used"
+  ]
+}

@@ -1,0 +1,2292 @@
+{
+  "schema": "production-path-inputs.v1",
+  "verificationKind": "DETERMINISTIC_PRODUCTION_PATH_NOT_MODEL_QUALITY",
+  "gitSha": "c4b83a0ae8d7b78597a48e22bde71b6b6bd03104",
+  "dirty": false,
+  "entrypoint": "apps/server/src/index.ts",
+  "model": "fixture-chat",
+  "declaredContextWindow": 65536,
+  "startupVariants": [
+    {
+      "nodeEnv": "test",
+      "allowMocks": " TRUE "
+    },
+    {
+      "nodeEnv": "development",
+      "allowMocks": "false"
+    }
+  ],
+  "turns": 30,
+  "firstSourceReachedThirtiethGateAndBody": true,
+  "corruptP8": {
+    "status": "ERROR",
+    "authoredIdentityRetained": true
+  },
+  "acceptedFailedSourceRecoveredAfterRestart": true,
+  "partialRead": {
+    "modelCalls": 5,
+    "effectIntents": 1,
+    "observationReachedBody": true,
+    "goalStatus": "PARTIAL",
+    "terminal": "REASONING_BUDGET_EXHAUSTED"
+  },
+  "calls": [
+    {
+      "ordinal": 0,
+      "stream": false,
+      "inputDigest": "9d1cdb5be52c75afdd6d52c26d2287cd140e3b4574f0d6b8b488fb145320b06f",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8210,
+          "utf8Bytes": 8214,
+          "digest": "3494ff7e6679681257178fe2fcea85ec345d2d92e58a90b9652a6ac8ad33da91"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 118,
+          "utf8Bytes": 118,
+          "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 77,
+          "utf8Bytes": 77,
+          "digest": "25739642d1a9ac5882dbe7c5cf1ada1652baf01ba3af43949d63c4b718b23d8d"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 1,
+      "stream": true,
+      "inputDigest": "bf15b7119ddd8f01f718fb0180dbb2f5fa5174ee0d5764e13327fc53a8213441",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 6748,
+          "utf8Bytes": 6752,
+          "digest": "ff5d30cc687fbebda147b9d1b68bb34e17a6082738737adf46beaf9818ab623f"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 118,
+          "utf8Bytes": 118,
+          "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 77,
+          "utf8Bytes": 77,
+          "digest": "25739642d1a9ac5882dbe7c5cf1ada1652baf01ba3af43949d63c4b718b23d8d"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 2,
+      "stream": false,
+      "inputDigest": "a1eacb174834a100a418163d9f01ba5a0dbc7247a8a32b5bd538129aae2c8f12",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 9276,
+          "utf8Bytes": 9280,
+          "digest": "c4befd14f34715757386d5b8e963351f9d24cc7bf47d7845a2c48f8fd34bcbac"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 1069,
+          "utf8Bytes": 1069,
+          "digest": "841e19531200f5abbe36488e05ceba22370a9d1df80febb94f3b01e4ee903089"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 528,
+          "utf8Bytes": 528,
+          "digest": "42940d679851a7c8c3b70299843cb59fd01c4470d190017c82e2ec04ebc4ea38"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 3,
+      "stream": true,
+      "inputDigest": "8ea18523f68378f7b7750733e114c0a714fe1d842cd9ce444c287024e50285e6",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 7814,
+          "utf8Bytes": 7818,
+          "digest": "048ef79594e5e760003cfee95f116a3eeac485a59dd6b609b54ca438b21ca957"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 1069,
+          "utf8Bytes": 1069,
+          "digest": "841e19531200f5abbe36488e05ceba22370a9d1df80febb94f3b01e4ee903089"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 528,
+          "utf8Bytes": 528,
+          "digest": "42940d679851a7c8c3b70299843cb59fd01c4470d190017c82e2ec04ebc4ea38"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 4,
+      "stream": false,
+      "inputDigest": "6ecb8d0874d7ba2bfe6d8ef40f0a455befb9d8db7573845a49f53d2ff447aa07",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 11916,
+          "utf8Bytes": 11920,
+          "digest": "63d56b5309363141a584dd69872a003b61068bc8f55504e9f78d09aa0f9c1b54"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 2506,
+          "utf8Bytes": 2506,
+          "digest": "dfe728e7451f1c6af8225a74ac4ffd8a2abb46bf33dc020e9634cc9ca441c8d6"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 528,
+          "utf8Bytes": 528,
+          "digest": "88eb69bdafa7fb551c1f4e720db58fec58e0e71b7d5abbc742e1fd0dc8715100"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 5,
+      "stream": true,
+      "inputDigest": "e2c3956e609a6fc254ae7502dc77c54ed132fb2dde1037209684a7d1feb52f0a",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10454,
+          "utf8Bytes": 10458,
+          "digest": "948407445982eec81543d1ebd820c15824f2a8296fe9432707a5550ab3a8bf2f"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 2506,
+          "utf8Bytes": 2506,
+          "digest": "dfe728e7451f1c6af8225a74ac4ffd8a2abb46bf33dc020e9634cc9ca441c8d6"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 528,
+          "utf8Bytes": 528,
+          "digest": "88eb69bdafa7fb551c1f4e720db58fec58e0e71b7d5abbc742e1fd0dc8715100"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 6,
+      "stream": false,
+      "inputDigest": "fab039c0dfd534258a75908221f2879c8b7b10795445c2d0666dca46137d0f2d",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 13639,
+          "utf8Bytes": 13643,
+          "digest": "5e59e6f4c265f804615a41a1c5706b372e18bb1d3979dd83982d8c12e4d55ca8"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 3943,
+          "utf8Bytes": 3943,
+          "digest": "df76966dad1d0e795633ce1607eafbeebdd88b70a2af1422ad716bc76a301030"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 528,
+          "utf8Bytes": 528,
+          "digest": "136ee30f426ee45cc4f4770b6c2e976d1b3d947da987fa93411dc9a7542efa9d"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 7,
+      "stream": true,
+      "inputDigest": "00bdb9be8d6dce6db719e362589a12e2796dc61cf5a209041c678dc31f9bb50e",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 12177,
+          "utf8Bytes": 12181,
+          "digest": "5072ebeb19ae1abf1642c8dafe868d833377f4ffb57f87878b87b76ded638a67"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 3943,
+          "utf8Bytes": 3943,
+          "digest": "df76966dad1d0e795633ce1607eafbeebdd88b70a2af1422ad716bc76a301030"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 528,
+          "utf8Bytes": 528,
+          "digest": "136ee30f426ee45cc4f4770b6c2e976d1b3d947da987fa93411dc9a7542efa9d"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 8,
+      "stream": false,
+      "inputDigest": "b12de9bade9e351020d1cbad5383d7e24ce59d8c5f1b825cacdfa9c97bbe9ecf",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10217,
+          "utf8Bytes": 10221,
+          "digest": "48f8aa106f39aeac30680a5fd45e47dba72ed84e6876e77ab0e4c82d1fc19fb8"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 5380,
+          "utf8Bytes": 5380,
+          "digest": "e2be2f8f0c3959da2e442bee8585a2def9626b06c32799558f50b931eb85f320"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 528,
+          "utf8Bytes": 528,
+          "digest": "7115b137512e05fd282f079dca15bf7f14857f6c936a6a25f480cb1ed290978c"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 9,
+      "stream": true,
+      "inputDigest": "41a0cf8034330c2ae7de709e1baf3312123be60ea2a9e4932b91c44be982b6c0",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8755,
+          "utf8Bytes": 8759,
+          "digest": "132db9e9e35674ed6cd20b5af27eaffb3f79364fe2f1ed5e6b1758d7e242b65b"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 5380,
+          "utf8Bytes": 5380,
+          "digest": "e2be2f8f0c3959da2e442bee8585a2def9626b06c32799558f50b931eb85f320"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 528,
+          "utf8Bytes": 528,
+          "digest": "7115b137512e05fd282f079dca15bf7f14857f6c936a6a25f480cb1ed290978c"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 10,
+      "stream": false,
+      "inputDigest": "963c1dce78ec62d741f93b6843701185a67395eb8f2bad8daf47629b199df706",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10217,
+          "utf8Bytes": 10221,
+          "digest": "bc8694c78b3401869d4d40554941e19e5312c4ba0f03239de6b1b90a8ade3859"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 6817,
+          "utf8Bytes": 6817,
+          "digest": "279318568b98c3fcdbc393814ff54959a164bbb600e372bccc1c893f6dc0cd25"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 528,
+          "utf8Bytes": 528,
+          "digest": "de2ef388ee510a70318fc8ff646a76b05ce1525dca73c4b28aba35d6d7219786"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 11,
+      "stream": true,
+      "inputDigest": "62349dc3b3b0172bc23546a94e3ad2b469ef236f41cc627582ce346c3e3a4ac3",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8755,
+          "utf8Bytes": 8759,
+          "digest": "162cee19f9a2a8cfdc3b38f5ce04330ea35692a202fc3c5d0c6160874581cb96"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 6817,
+          "utf8Bytes": 6817,
+          "digest": "279318568b98c3fcdbc393814ff54959a164bbb600e372bccc1c893f6dc0cd25"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 528,
+          "utf8Bytes": 528,
+          "digest": "de2ef388ee510a70318fc8ff646a76b05ce1525dca73c4b28aba35d6d7219786"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 12,
+      "stream": false,
+      "inputDigest": "70b06ea56e6c9f559e06c55101a2e2a7ef9c7ffea0afd74d0f3c89dd35f9410f",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10217,
+          "utf8Bytes": 10221,
+          "digest": "4001061d62d36c9e1645ece4afd24c6ed8edd571dbb8d9682632824dec8863ef"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 8254,
+          "utf8Bytes": 8254,
+          "digest": "6386464b7fddb19f0a446d3f5cd8969e3399c3b13e3a09967efd69d14ea9ce78"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 528,
+          "utf8Bytes": 528,
+          "digest": "ba0746140ae5a4fb0a256b700aed66b47227d26c58d7993ff38392d8b8a398bd"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 13,
+      "stream": true,
+      "inputDigest": "6249658783642c2aca86a5bc88a1d0951b3cdef8b71f845534ace62ad2d22a71",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8755,
+          "utf8Bytes": 8759,
+          "digest": "da8ce099d3518a9d364fa3b552c2fbcfce412b8831c10bf9ed1df2f1107cde64"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 8254,
+          "utf8Bytes": 8254,
+          "digest": "6386464b7fddb19f0a446d3f5cd8969e3399c3b13e3a09967efd69d14ea9ce78"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 528,
+          "utf8Bytes": 528,
+          "digest": "ba0746140ae5a4fb0a256b700aed66b47227d26c58d7993ff38392d8b8a398bd"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 14,
+      "stream": false,
+      "inputDigest": "2ce938d9aec3242e21e09349b588d2fd8da3cdba9430be758411a965432dad3d",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10217,
+          "utf8Bytes": 10221,
+          "digest": "c3f1cf2a062f2bd758529cbb42ac99bf5ee54dd61b830293f2d331518ef33b27"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 9691,
+          "utf8Bytes": 9691,
+          "digest": "078d001dc2301fcc06d7f7703bb9f56e150f8ec266f14ccebe2f74942e286ec5"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 528,
+          "utf8Bytes": 528,
+          "digest": "158f250bccceb6e293d9ff98f9f2756d8efdd0c1a38366fdc1e58aaaeb9b650f"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 15,
+      "stream": true,
+      "inputDigest": "88bc6bc5a963f626ae3853c373432059c51d2141c8ff0c25fc1ede38a72359c8",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8755,
+          "utf8Bytes": 8759,
+          "digest": "bb74139222d63ddf227bf8bbec6989425f4cc4728f997ff76f95d871b672e14c"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 9691,
+          "utf8Bytes": 9691,
+          "digest": "078d001dc2301fcc06d7f7703bb9f56e150f8ec266f14ccebe2f74942e286ec5"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 528,
+          "utf8Bytes": 528,
+          "digest": "158f250bccceb6e293d9ff98f9f2756d8efdd0c1a38366fdc1e58aaaeb9b650f"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 16,
+      "stream": false,
+      "inputDigest": "e467120c03ddb7480c185f6f8a5a6119c3ecdf00e57b14190247ae4542bc4d34",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10217,
+          "utf8Bytes": 10221,
+          "digest": "2fdf53815688bc1f9bdbcd4bce2cda18c721110dde7614fc00be27b25cf8cc64"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 11128,
+          "utf8Bytes": 11128,
+          "digest": "0934d42e19132365121e211065aa361431aeadf40897b37fc7f5983fbca7ad39"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 528,
+          "utf8Bytes": 528,
+          "digest": "608a413952c4f2cecf60b0a1f0ef837806ae0a12805d74e678836c228016e696"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 17,
+      "stream": true,
+      "inputDigest": "9bec4d526bd6ad9f294542805b2a68276c06089860abffc0c1128be5c483f052",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8755,
+          "utf8Bytes": 8759,
+          "digest": "1a454c04022eba9fb5b61887cbebbc915b6e2f03213d73282fba9d61f2e5c339"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 11128,
+          "utf8Bytes": 11128,
+          "digest": "0934d42e19132365121e211065aa361431aeadf40897b37fc7f5983fbca7ad39"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 528,
+          "utf8Bytes": 528,
+          "digest": "608a413952c4f2cecf60b0a1f0ef837806ae0a12805d74e678836c228016e696"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 18,
+      "stream": false,
+      "inputDigest": "4cdca62121e25986e6eba70025e918dcdd163567001b792a374fd20fad4c7152",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10525,
+          "utf8Bytes": 10529,
+          "digest": "da29a47416b9c41c8a89c51e54968e23ca74fd7fce6067b1df35bddb7574da4a"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 12565,
+          "utf8Bytes": 12565,
+          "digest": "431fdef33b13263f82380a57c0c35964e9ac173abb2ed67a2aad533fb581ccb0"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "a7cb4393439b367afaa789f20e72b6b999ba1eabef151aca583c8c198200bccc"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 19,
+      "stream": true,
+      "inputDigest": "81e1a2d11140003ca9730e2f0b2dc723b2950ad1cc5b192c1f9ba0d7f3da97e8",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 9063,
+          "utf8Bytes": 9067,
+          "digest": "13e1d923ce2820182fec0a80cf3bfa94f2fb32746c380e69cd4cc9748aa39b94"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 12565,
+          "utf8Bytes": 12565,
+          "digest": "431fdef33b13263f82380a57c0c35964e9ac173abb2ed67a2aad533fb581ccb0"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "a7cb4393439b367afaa789f20e72b6b999ba1eabef151aca583c8c198200bccc"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 20,
+      "stream": false,
+      "inputDigest": "1f5b7363cb6965891ff8b440b57dca7d28dc43d3b8a093a877e87eb8a829a2f2",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10258,
+          "utf8Bytes": 10262,
+          "digest": "a9faec9d24a1c4ba66947d58394cf8a58dc79db7b94c8a6b41c149a4c5153359"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 14003,
+          "utf8Bytes": 14003,
+          "digest": "4a82904c9673307f83cc561936e898c4e4006122d63b03eb6341df2eadaa3ee7"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "bcf173b81bc08e221acfa5c1e3cead9c841bc3a72b841e104a590ab9471f238a"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 21,
+      "stream": true,
+      "inputDigest": "84d3bfe699fc2a4d38ea4e9a437105ab5c6b8fb80b948ea285d8004a131c20b9",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8796,
+          "utf8Bytes": 8800,
+          "digest": "aacb73804cd7457da4dfd3fc803f2f64ddd6b2dac94ea02a8a94ea4684b89e77"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 14003,
+          "utf8Bytes": 14003,
+          "digest": "4a82904c9673307f83cc561936e898c4e4006122d63b03eb6341df2eadaa3ee7"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "bcf173b81bc08e221acfa5c1e3cead9c841bc3a72b841e104a590ab9471f238a"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 22,
+      "stream": false,
+      "inputDigest": "a5799d4085e0910003bccf9e5e2d806aed46a7f5da4b4375ed17273ccfa4c427",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10264,
+          "utf8Bytes": 10268,
+          "digest": "f40aacbe7d388e4672fe7583559be49b1555b33a03b6958b820873ad2edd8ed2"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 15441,
+          "utf8Bytes": 15441,
+          "digest": "95fff9e1593441b5ba7926899eeec0a17ffa74de6f370c3189ca3663f1c521a9"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "8c2c28911e07bda07b3781073ae707a92ab6088d934a760cb3f09880766320c8"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 23,
+      "stream": true,
+      "inputDigest": "abc70d8e440d8e8fd347f06596c08838c738711cf63c560a0fd339f1e8132b71",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8802,
+          "utf8Bytes": 8806,
+          "digest": "133b59f356036a4af764298eaa4cda28c6ce20bc630a49e764886d3da961a746"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 15441,
+          "utf8Bytes": 15441,
+          "digest": "95fff9e1593441b5ba7926899eeec0a17ffa74de6f370c3189ca3663f1c521a9"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "8c2c28911e07bda07b3781073ae707a92ab6088d934a760cb3f09880766320c8"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 24,
+      "stream": false,
+      "inputDigest": "6a3f1552b494f026cee9483d183cd4e51c44ac7a29b8923e6b833fc3d9b730fd",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10270,
+          "utf8Bytes": 10274,
+          "digest": "8ce8abd8dfe241ccca48925771392ca2d34bdf2a73ede7b284dd53dadb910d10"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 16879,
+          "utf8Bytes": 16879,
+          "digest": "32e89e97d2993e441ce97e4ee6adedd9e12de907fc4426212cf61d6238c9ef76"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "d24af98b77b5135a158435a79ca6efd0ce369ea3dcdd600d1c37d6418c4e5ea6"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 25,
+      "stream": true,
+      "inputDigest": "70d06b44f0653c9178bec85ad3947d514824ecfb3755ca83baccf66bee00b98d",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8808,
+          "utf8Bytes": 8812,
+          "digest": "0c20414a7528aa09ba526aa3f8cff91f137c4a8accfc72ac13ead0c8858096d7"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 16879,
+          "utf8Bytes": 16879,
+          "digest": "32e89e97d2993e441ce97e4ee6adedd9e12de907fc4426212cf61d6238c9ef76"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "d24af98b77b5135a158435a79ca6efd0ce369ea3dcdd600d1c37d6418c4e5ea6"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 26,
+      "stream": false,
+      "inputDigest": "20c2352b9d5b7af689696ac75d828e3c78128ef4482632014510232b9fa2c0c4",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10276,
+          "utf8Bytes": 10280,
+          "digest": "0a709ce1ab875ae627780454fa7b28e68c368cefe7b47e686ad3dd2055254f55"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 18317,
+          "utf8Bytes": 18317,
+          "digest": "1d728cb5bdb0f07258da748740ded2054a5a28da61f023f08593b49c6ea46833"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "18578a4c0148f9cbf90adb3799c455d781bacfefdfcc27e47928b945f1bdb94c"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 27,
+      "stream": true,
+      "inputDigest": "de8035534d176f2813f0dedfc912fdc0ce2f00b2e2ae7a09342a5132902d1b65",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8814,
+          "utf8Bytes": 8818,
+          "digest": "a5bb30eaab17951e72bd16245a2c155cb463c8cda2d56ec5288e16c262fd6bcb"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 18317,
+          "utf8Bytes": 18317,
+          "digest": "1d728cb5bdb0f07258da748740ded2054a5a28da61f023f08593b49c6ea46833"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "18578a4c0148f9cbf90adb3799c455d781bacfefdfcc27e47928b945f1bdb94c"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 28,
+      "stream": false,
+      "inputDigest": "5af94f0a9a4d76931b9301de172dc3a927d52a72637f379febe6ce6478468283",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10282,
+          "utf8Bytes": 10286,
+          "digest": "2582b8440cbb91c717baf04499348655cc6db9c3fe107ae5e9b9fac42992dd24"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 19755,
+          "utf8Bytes": 19755,
+          "digest": "d7e62e7f7ced4fbb79e4070a6379209f291962c6458e55ab84ab1cf2cb34ad90"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "cb529e33bbbb4cd024b3a83c83a4c681816f8582aaea660181d18e5a066a5659"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 29,
+      "stream": true,
+      "inputDigest": "00a7eb25515289bd2ea9b3978ec101d06af8f03c0c648daa7efa284ed950a0e0",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8820,
+          "utf8Bytes": 8824,
+          "digest": "0deae495e856e4297e2360a99bf52ddfa60c02d6b22b7520439a0ad5b9c7b157"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 19755,
+          "utf8Bytes": 19755,
+          "digest": "d7e62e7f7ced4fbb79e4070a6379209f291962c6458e55ab84ab1cf2cb34ad90"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "cb529e33bbbb4cd024b3a83c83a4c681816f8582aaea660181d18e5a066a5659"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 30,
+      "stream": false,
+      "inputDigest": "510dd80a1da36c55ead11d152411eca4659ef990674bcba7f600bc783c1af71b",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10288,
+          "utf8Bytes": 10292,
+          "digest": "9cf76991483a3a53b588060ba39446d338d323a6b38f16b63b5c4c68be03169a"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 21193,
+          "utf8Bytes": 21193,
+          "digest": "2e1295ceb66cec1c973a88febcdedaa5b3489629544a9225c5645cf18a408312"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "4780052da07a8fdadca67619e0fa3598413b3d8aeabb20198c4bb25799004b4c"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 31,
+      "stream": true,
+      "inputDigest": "87cf3c48e92190e29d53b2b2b4593013aa5cc26a3c146afd905f7ae7d7196cf8",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8826,
+          "utf8Bytes": 8830,
+          "digest": "84d49c87c2d92d33a262d8c0fe2385081f37b38117e328daf17d694db6b86ffe"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 21193,
+          "utf8Bytes": 21193,
+          "digest": "2e1295ceb66cec1c973a88febcdedaa5b3489629544a9225c5645cf18a408312"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "4780052da07a8fdadca67619e0fa3598413b3d8aeabb20198c4bb25799004b4c"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 32,
+      "stream": false,
+      "inputDigest": "4d8f5bee91046cdd13504d61801585c8eee5a5ea304f87b958da8a1a9f4a3779",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10294,
+          "utf8Bytes": 10298,
+          "digest": "d4ad3a60a85cb142582b0e3338a585087d985e2b7c309dfa4687c8b61ddde239"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 22631,
+          "utf8Bytes": 22631,
+          "digest": "4293f685e2c73ee417328972743ab0a2a0f9ada6fe659a6dc732e3a800a311aa"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "37129bb219a498b181fe68ae5fe04a497e56b52512e67dee563fb1504ccd159d"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 33,
+      "stream": true,
+      "inputDigest": "e8491e3c82b26aa8fed15bc2b2ddfea4801eff5606fa4134c0d8b87af90b720c",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8832,
+          "utf8Bytes": 8836,
+          "digest": "9c630d433f3cf9065362daa637a5f416ff2f1d929e797a0fd979e8d4a308ad91"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 22631,
+          "utf8Bytes": 22631,
+          "digest": "4293f685e2c73ee417328972743ab0a2a0f9ada6fe659a6dc732e3a800a311aa"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "37129bb219a498b181fe68ae5fe04a497e56b52512e67dee563fb1504ccd159d"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 34,
+      "stream": false,
+      "inputDigest": "d863413a86ce2589aea93a6de736e71247300f5b6de9ea364fa5c82cbd06e125",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10300,
+          "utf8Bytes": 10304,
+          "digest": "8b2012b1b7d94ab407cc26c7fcb64b53eafa5bd5ca8b2c300d49c8bdff278fe4"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 24069,
+          "utf8Bytes": 24069,
+          "digest": "c85e1f6b5890940e19e1218213648554de29c4306711e886c182322e4a15018b"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "3e2128974156a0c617d0c0b685bb6f1c825ea31f5717d4554b9bbc5836827e39"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 35,
+      "stream": true,
+      "inputDigest": "d96194fc31c5734781347c3ee2e3fe716b25e1c45479cb7013f07c4766a495bf",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8838,
+          "utf8Bytes": 8842,
+          "digest": "06a9b688acdc1dce65aa21b5915781e7e1250d9432f0beeea6ef65b481ad9727"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 24069,
+          "utf8Bytes": 24069,
+          "digest": "c85e1f6b5890940e19e1218213648554de29c4306711e886c182322e4a15018b"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "3e2128974156a0c617d0c0b685bb6f1c825ea31f5717d4554b9bbc5836827e39"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 36,
+      "stream": false,
+      "inputDigest": "83a814fa2de745d1ac65d69f717a3ed30036a517d9b81c7378187b381991cec6",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10456,
+          "utf8Bytes": 10460,
+          "digest": "e08bb3934182b4185cd7c40a22e3e25f58c8343ce3ac724ce3cefc09e886c4de"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 25507,
+          "utf8Bytes": 25507,
+          "digest": "b44da83f208c48fa2a547ee9491b41c4f457cd95c567c7d3d512fd3ee89ceba3"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "1e3ad281f5d3dc170befbc2e6f344d050af017b08b1128cc1742268493825e0e"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 37,
+      "stream": true,
+      "inputDigest": "0e0f46bc1097cb4e00fa69f7abd5ada142871907beac4f1cb0310c2b5e93b04c",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8994,
+          "utf8Bytes": 8998,
+          "digest": "ad636cbfc53aec6dd05ec6ba4863393ee20979fd79efa78dd328bc775ca3b9da"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 25507,
+          "utf8Bytes": 25507,
+          "digest": "b44da83f208c48fa2a547ee9491b41c4f457cd95c567c7d3d512fd3ee89ceba3"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "1e3ad281f5d3dc170befbc2e6f344d050af017b08b1128cc1742268493825e0e"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 38,
+      "stream": false,
+      "inputDigest": "0b378fe1bc280bf1f833b273a7cefbd7b91a9404829d8f9e8692b79fcfb69a52",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10456,
+          "utf8Bytes": 10460,
+          "digest": "a32cbed096f4464aa212b519b40c67f4496cae2d6ff749680928f78eaa4f4101"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 26945,
+          "utf8Bytes": 26945,
+          "digest": "4eedd210a072d81e859d58d01104a3f99e25dcdd89fd58d1b6f1a21a384cd2ac"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "e77778e8e34bb6271e04def5f0dc3354331091042f03f1c4175a50150e4863f4"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 39,
+      "stream": true,
+      "inputDigest": "5e242409ea5ed7fff73dcc50a40d6adace984df50b9d3b0772d7dd5e0c458f1f",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8994,
+          "utf8Bytes": 8998,
+          "digest": "b2881bbdc0618a13718a573df61f62979a65fdeb9063e988acb2c4c96cc27eb7"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 26945,
+          "utf8Bytes": 26945,
+          "digest": "4eedd210a072d81e859d58d01104a3f99e25dcdd89fd58d1b6f1a21a384cd2ac"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "e77778e8e34bb6271e04def5f0dc3354331091042f03f1c4175a50150e4863f4"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 40,
+      "stream": false,
+      "inputDigest": "1d0933d1d761ee21f8bd6979135172c7405e262e913f7fc6494b97f2aaa8f534",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 10456,
+          "utf8Bytes": 10460,
+          "digest": "91375feba14fdaf16fe48c6ebc76182e130e0166447f4ff149fbb94e6e89dce9"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 28383,
+          "utf8Bytes": 28383,
+          "digest": "0cf300f9feebffd194100e7528cc15d08f48671d50f14c41d8be44f541c04632"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "bc2ae8441c3e5d5efc76a930d7d3bfb888463e3f8121d44e4000a9f4e1ecdffc"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 41,
+      "stream": true,
+      "inputDigest": "06b293337711efa0c9a9d1b48b5161715727ed993a4e480271c4425f62c338a5",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8994,
+          "utf8Bytes": 8998,
+          "digest": "2751f2ede1823b55f5a8390284db5b5113bdbdaa07c40dc03eeff96f5629b85e"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 28383,
+          "utf8Bytes": 28383,
+          "digest": "0cf300f9feebffd194100e7528cc15d08f48671d50f14c41d8be44f541c04632"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "bc2ae8441c3e5d5efc76a930d7d3bfb888463e3f8121d44e4000a9f4e1ecdffc"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 42,
+      "stream": false,
+      "inputDigest": "7e95728df871dda350b48bc72b6a1e8debdf80d7d9672b8cc3bc95280b8e3e51",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 9717,
+          "utf8Bytes": 9721,
+          "digest": "f6476b24fe18384d4a0c6d9ae7695c84d0af7d77aeb6a2a34e3f0c949a60ceb7"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 29821,
+          "utf8Bytes": 29821,
+          "digest": "cba91dab2458b4de5f69054f7d8cec8f213c7f1a757e11cd48f325242387bb4a"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "73cb43eec2016a130202cb212259c2068bc45ef6717d5334825fe1f70c47e6eb"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 43,
+      "stream": true,
+      "inputDigest": "96b75a7f507d5beaf00f7e7a901faf4853e17f79d590147822d4f0cdf391ecb8",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8255,
+          "utf8Bytes": 8259,
+          "digest": "181e660c94d6fc83f4a841e020782143aaa287aa978018e97dd32a33a7d7d86d"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 29821,
+          "utf8Bytes": 29821,
+          "digest": "cba91dab2458b4de5f69054f7d8cec8f213c7f1a757e11cd48f325242387bb4a"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "73cb43eec2016a130202cb212259c2068bc45ef6717d5334825fe1f70c47e6eb"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 44,
+      "stream": false,
+      "inputDigest": "173d67470b64e8eb9cb08c15f44c4a6ea0ad92fe919c20d3d83746f040b42a70",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8894,
+          "utf8Bytes": 8898,
+          "digest": "177caf92f15ea18ce6e345dc114f496529cfb1cbbdc7f239145b4587d75e0812"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 31259,
+          "utf8Bytes": 31259,
+          "digest": "1de51b0af60e65dde5625b8d7a34b9b131ecb7a002bd196ba855e42925fb49dd"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "0ef7ec88b32bc7a19b85db2fdd77e8da10ca8f5ca205b1387734b2d91fef42dc"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 45,
+      "stream": true,
+      "inputDigest": "0d80147e90b19077336a305e7ab190a65d25966fa49743df6616c4174a8e40da",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 7432,
+          "utf8Bytes": 7436,
+          "digest": "87e830b6a4704ab4df86bc2bcbfa79c319ab3495fabe306ad1a6330dc13d7770"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 31259,
+          "utf8Bytes": 31259,
+          "digest": "1de51b0af60e65dde5625b8d7a34b9b131ecb7a002bd196ba855e42925fb49dd"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "0ef7ec88b32bc7a19b85db2fdd77e8da10ca8f5ca205b1387734b2d91fef42dc"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 46,
+      "stream": false,
+      "inputDigest": "e3054ee7e06594b3bcd11d9109feccfa62987ff28ed5682d78b6dffdd6fe33c7",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8894,
+          "utf8Bytes": 8898,
+          "digest": "b726b61781e0d07b8a72822d64cff724d40e4e3e1cccb62ea03f44b18f70bc57"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 32697,
+          "utf8Bytes": 32697,
+          "digest": "2c132af471ec49e90e7677704246fb9988c86659aedcdb1c6f7d3c9544914e86"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "714bfbb524cb3a397aa2cb559335f9a3fcb800f752bf4091e8e796dc449d50da"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 47,
+      "stream": true,
+      "inputDigest": "c256321a80d68381108737a981e234174dfa9960dc90b6b4be20e576a4a402f4",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 7432,
+          "utf8Bytes": 7436,
+          "digest": "90aab54ce840b8f9612eef1baf6cc4e14caed9dbd8c10d53cb954b54a6736ae7"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 32697,
+          "utf8Bytes": 32697,
+          "digest": "2c132af471ec49e90e7677704246fb9988c86659aedcdb1c6f7d3c9544914e86"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "714bfbb524cb3a397aa2cb559335f9a3fcb800f752bf4091e8e796dc449d50da"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 48,
+      "stream": false,
+      "inputDigest": "88000c368edde0958ba1df5976ad786c6f590990c33f254d7eae98be0353866f",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8894,
+          "utf8Bytes": 8898,
+          "digest": "d34319ceee1a7f22e586ffb62154f4b8f718ef8020d05c390c82d1efeaab73cf"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 34135,
+          "utf8Bytes": 34135,
+          "digest": "e247398e93ce08e1170a442bf37c19a93e59ffd57c182335d2b8cc0f39a75bd3"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "34a65ff5ea3342d0438357334e77698ef2bd6b6595c3440ae77825b920520dfb"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 49,
+      "stream": true,
+      "inputDigest": "508abf83915bb33df0d3035d523fde9b739a09de65958afccf21aad565db6eb1",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 7432,
+          "utf8Bytes": 7436,
+          "digest": "22d80313a3909d930af112cc4d1f353df6710b013dbe767eef06594e448b9db4"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 34135,
+          "utf8Bytes": 34135,
+          "digest": "e247398e93ce08e1170a442bf37c19a93e59ffd57c182335d2b8cc0f39a75bd3"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "34a65ff5ea3342d0438357334e77698ef2bd6b6595c3440ae77825b920520dfb"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 50,
+      "stream": false,
+      "inputDigest": "d26c6c8a2b3f12ccad2bab840b57bef30c3c9691dbb64f196e4872d19ed1781d",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8894,
+          "utf8Bytes": 8898,
+          "digest": "fbc2cb91fa020cce61c928069965644ebd371070430a51565590aa99d6185d19"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 35573,
+          "utf8Bytes": 35573,
+          "digest": "c2c9eb0db8840910569145ff78a21f8c5cfad7e02d8ee519854ce769043af847"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "f147b906cadda7ccd44db5bad569b2519cdf006280ec5653a3ca2765231c3ecb"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 51,
+      "stream": true,
+      "inputDigest": "6360aef4f244a62d38bc83f94badc27f9208c09a0626f80c760d420884606a9c",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 7432,
+          "utf8Bytes": 7436,
+          "digest": "609d994c9bb8d1488a8bd04f8d74965ee3e4324e4f9534c86aeb9e2b3e3a0866"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 35573,
+          "utf8Bytes": 35573,
+          "digest": "c2c9eb0db8840910569145ff78a21f8c5cfad7e02d8ee519854ce769043af847"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "f147b906cadda7ccd44db5bad569b2519cdf006280ec5653a3ca2765231c3ecb"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 52,
+      "stream": false,
+      "inputDigest": "9dafe4fee02d1929a61fdafc48e66e6181100934f96a8412f1ff39a2e2065572",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8895,
+          "utf8Bytes": 8899,
+          "digest": "ab97694bd5530fcba6c9be1dedfb6f135622061f80a1c3c4d115219724247d42"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 37011,
+          "utf8Bytes": 37011,
+          "digest": "5fc404ea9cad4422d75254e26ba68d8ae698797e52b1c63ffae2d8ea376356a6"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "1c54495e4e846ed8638fae4de38fc460073f77688553216f2a5f56233e50a8fd"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 53,
+      "stream": true,
+      "inputDigest": "996d92eceede552e0096c5d51e171586d5ddc811ed02a8cb8ff3827f81fd2f52",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 7433,
+          "utf8Bytes": 7437,
+          "digest": "181d4dd393cca69c32394ecde330609f31f45748cd2f11da15c5d0242cd474b7"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 37011,
+          "utf8Bytes": 37011,
+          "digest": "5fc404ea9cad4422d75254e26ba68d8ae698797e52b1c63ffae2d8ea376356a6"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "1c54495e4e846ed8638fae4de38fc460073f77688553216f2a5f56233e50a8fd"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 54,
+      "stream": false,
+      "inputDigest": "00064420e17e3bedb16b305dfe0fe52f0717035b7258b10d8971c99b10e6fc18",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8895,
+          "utf8Bytes": 8899,
+          "digest": "ebdebcae7263c02b1c49a709a6b24ddf74b0b4eb483326f118722fbdbe7beb83"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 38449,
+          "utf8Bytes": 38449,
+          "digest": "9c6413d875d9cf31ec39b4c1808f0051660ed5ea81609b039f39618d342704e6"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "43506729e58bbc9578355949b97f806399c2b710d97e919d2ec1f25a079bea75"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 55,
+      "stream": true,
+      "inputDigest": "16990ac39d72c64630cf4a54c28535488e302e1cb10c224011ce4f2f606db9b6",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 7433,
+          "utf8Bytes": 7437,
+          "digest": "7f7c2ec2ae1f754c20796c668adfb9722942b895748dcfaea13239cceacff513"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 38449,
+          "utf8Bytes": 38449,
+          "digest": "9c6413d875d9cf31ec39b4c1808f0051660ed5ea81609b039f39618d342704e6"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "43506729e58bbc9578355949b97f806399c2b710d97e919d2ec1f25a079bea75"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 56,
+      "stream": false,
+      "inputDigest": "7394579662f8fb5e91d63910b9f5bcbc42785cc8980ed327285f240f5b3f57bd",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8895,
+          "utf8Bytes": 8899,
+          "digest": "3eb6cda7cb656ff183012ea618388aa6062d496e7b7b6764fe8d0cfe5b53b370"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 39887,
+          "utf8Bytes": 39887,
+          "digest": "053793f89733fbd8eb5047a02e7c0ddf21c86af83f68fd941c4b8b84272a3ef5"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "5891aa35f2e3a26938fb2ade3a91be26358afbc37c79514bdcc04f3636425175"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 57,
+      "stream": true,
+      "inputDigest": "8e6bdf811de00d5a1c9beefb7a7e3578fd3507efdf4239efebb6983940ef58a9",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 7433,
+          "utf8Bytes": 7437,
+          "digest": "63d8e67bb8554794a2f263a0a2ee348e44b788ba67916339a5f909325f1bab86"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 39887,
+          "utf8Bytes": 39887,
+          "digest": "053793f89733fbd8eb5047a02e7c0ddf21c86af83f68fd941c4b8b84272a3ef5"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 529,
+          "utf8Bytes": 529,
+          "digest": "5891aa35f2e3a26938fb2ade3a91be26358afbc37c79514bdcc04f3636425175"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 58,
+      "stream": false,
+      "inputDigest": "dd7fbca5621bdd3058607e71aeaa02709ebb07c59efb4f0bebc87ec0849e31fa",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8915,
+          "utf8Bytes": 8919,
+          "digest": "a3553974e0a1feb6824ed4be0c41873e94256085cde4326babae8349304db6db"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 41325,
+          "utf8Bytes": 41325,
+          "digest": "aee9f6518b14c87263844eac5781a943df2967bc4c3b5bfb41687767a072b51a"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 46,
+          "utf8Bytes": 46,
+          "digest": "0cb170651cdc1c782a333f6bd8078f2e18a756fa99d86d98119aea64e8b0e167"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 59,
+      "stream": true,
+      "inputDigest": "7bd62ca8bfe5d2f5afa525cd7bf7db01cc4cf8a3ded32df51d84ac5912290ef9",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 7453,
+          "utf8Bytes": 7457,
+          "digest": "4bf296a0f958f89e07911b14c81846850b6e8d0132c544804639f70bca41e42d"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 41325,
+          "utf8Bytes": 41325,
+          "digest": "aee9f6518b14c87263844eac5781a943df2967bc4c3b5bfb41687767a072b51a"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 46,
+          "utf8Bytes": 46,
+          "digest": "0cb170651cdc1c782a333f6bd8078f2e18a756fa99d86d98119aea64e8b0e167"
+        }
+      ],
+      "firstSourcePresent": true,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 60,
+      "stream": false,
+      "inputDigest": "1bbabfc992de1d9bafed10bd4ccf73f3e73593443d3d89237abc1643d84a719f",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8514,
+          "utf8Bytes": 8518,
+          "digest": "e0f7e5b567e1b52bd1d0357ccd06ac9cd544c72db2f3449dae2d42cc5385d933"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 118,
+          "utf8Bytes": 118,
+          "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 37,
+          "utf8Bytes": 37,
+          "digest": "6e2af7adc04756e4b4f78ee71b778fca295059674607a6ed6f6ea38b9ef5d4aa"
+        }
+      ],
+      "firstSourcePresent": false,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 61,
+      "stream": true,
+      "inputDigest": "1a9f151223b1d0a859a35e12f61815234aa5a5f68b0e817c72dbaae7368ce017",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 7052,
+          "utf8Bytes": 7056,
+          "digest": "aa7c033119811a54a246d8b63d75f0b7974d6e053e6553fafa22d39fdd551558"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 118,
+          "utf8Bytes": 118,
+          "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 37,
+          "utf8Bytes": 37,
+          "digest": "6e2af7adc04756e4b4f78ee71b778fca295059674607a6ed6f6ea38b9ef5d4aa"
+        }
+      ],
+      "firstSourcePresent": false,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 62,
+      "stream": false,
+      "inputDigest": "7c068c2281c0c8d24550bc4ec670006aa0cadde38b578a8ca141b57c8bbd5d02",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8514,
+          "utf8Bytes": 8518,
+          "digest": "3ffa2b742c9265c60a7397028b902e75b730dce0c7df547cc564dcbb3e51cd3d"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 118,
+          "utf8Bytes": 118,
+          "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 84,
+          "utf8Bytes": 84,
+          "digest": "ca365d7a3cf512161448f8e1fdb9d45954b88962d4744513a35c4071b2098e39"
+        }
+      ],
+      "firstSourcePresent": false,
+      "acceptedFailedSourcePresent": true,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 63,
+      "stream": true,
+      "inputDigest": "a7077f4e6da16c1fabca4a29881aa8508fdd98d00597d4ffc5bffc6701298cb3",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 7052,
+          "utf8Bytes": 7056,
+          "digest": "9cf7755728aa51ec60ed4423c1fc90342f65c8343c9bde11c384b7afba6dd2df"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 118,
+          "utf8Bytes": 118,
+          "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 84,
+          "utf8Bytes": 84,
+          "digest": "ca365d7a3cf512161448f8e1fdb9d45954b88962d4744513a35c4071b2098e39"
+        }
+      ],
+      "firstSourcePresent": false,
+      "acceptedFailedSourcePresent": true,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 64,
+      "stream": false,
+      "inputDigest": "97c3f4ce51acaf4cb07c8592635243003b8bfa19a198e3e67a1048c9e127caab",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8798,
+          "utf8Bytes": 8802,
+          "digest": "ae5b2f58380fded150df3a7643807dc8eaf1da08c612f36060d0c7c97f09caf9"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 288,
+          "utf8Bytes": 288,
+          "digest": "c46bbce631a98c78405e186f85919e300344f2cffcc80010532d6ab42d64c083"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 47,
+          "utf8Bytes": 47,
+          "digest": "ee05b23b207e097d4a4bb38bf2c2b5a2e11aa5954a5f065a342d31d4d37d5dd6"
+        }
+      ],
+      "firstSourcePresent": false,
+      "acceptedFailedSourcePresent": true,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 65,
+      "stream": true,
+      "inputDigest": "52c4aa90f1089a8ab098b05897647f84277f0ecd654e6c315252fea9fdb8cfa3",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 7336,
+          "utf8Bytes": 7340,
+          "digest": "66c38e7af75286ca3c6ffd4c67151ee0769295f92f7ec92a13a3764a52ec7440"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 288,
+          "utf8Bytes": 288,
+          "digest": "c46bbce631a98c78405e186f85919e300344f2cffcc80010532d6ab42d64c083"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 47,
+          "utf8Bytes": 47,
+          "digest": "ee05b23b207e097d4a4bb38bf2c2b5a2e11aa5954a5f065a342d31d4d37d5dd6"
+        }
+      ],
+      "firstSourcePresent": false,
+      "acceptedFailedSourcePresent": true,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 66,
+      "stream": false,
+      "inputDigest": "df8454ca1d70b2a7c9a1387705245fc5afabf0e7f5d2705b33b064caad43fcd5",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8514,
+          "utf8Bytes": 8518,
+          "digest": "d0d73c154eb0902e8e7933837d6151806c9b5ecf526212309b0f3f6a41eee18a"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 118,
+          "utf8Bytes": 118,
+          "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 48,
+          "utf8Bytes": 48,
+          "digest": "4b9f933eeff897d5b60f866daeca7bc60106ad411adc76641332b7b70b0f35b5"
+        }
+      ],
+      "firstSourcePresent": false,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 67,
+      "stream": false,
+      "inputDigest": "cf8b876ea9a20773823e7e321928a968a2e040d85122a9e7e2f3f47e654a8e02",
+      "fields": [
+        {
+          "index": 0,
+          "role": "user",
+          "characters": 4849,
+          "utf8Bytes": 4851,
+          "digest": "7b8570b741fbda9426f5748a5d86c75acbb12f53456ddac30c1e3f8ff4455089"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 222,
+          "utf8Bytes": 222,
+          "digest": "a47b6849fe1ab5af220613ecd175eaae2d65e203c1b1aa67095080bdef0c141e"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 118,
+          "utf8Bytes": 118,
+          "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+        },
+        {
+          "index": 3,
+          "role": "user",
+          "characters": 106,
+          "utf8Bytes": 106,
+          "digest": "779bbf7327ee4620681dacfd3e7e0ac7f0dbdcb92a6d69c2c4b8e3061e1d2c4a"
+        },
+        {
+          "index": 4,
+          "role": "user",
+          "characters": 388,
+          "utf8Bytes": 388,
+          "digest": "4505ceb3e708abd6cdc2dd42029f7f577fee58a9c7ffece9ab3513dd01606e8d"
+        },
+        {
+          "index": 5,
+          "role": "user",
+          "characters": 589,
+          "utf8Bytes": 589,
+          "digest": "1245b4a2b2388863492c19b0f212ce96d4570554efb121729466987cd76190f3"
+        }
+      ],
+      "firstSourcePresent": false,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": false
+    },
+    {
+      "ordinal": 68,
+      "stream": false,
+      "inputDigest": "77b1b95b2eac9d3a19ee5c4981ca0da618669634254dc2636af2075f03a1bb83",
+      "fields": [
+        {
+          "index": 0,
+          "role": "user",
+          "characters": 4849,
+          "utf8Bytes": 4851,
+          "digest": "7b8570b741fbda9426f5748a5d86c75acbb12f53456ddac30c1e3f8ff4455089"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 222,
+          "utf8Bytes": 222,
+          "digest": "a47b6849fe1ab5af220613ecd175eaae2d65e203c1b1aa67095080bdef0c141e"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 118,
+          "utf8Bytes": 118,
+          "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+        },
+        {
+          "index": 3,
+          "role": "user",
+          "characters": 106,
+          "utf8Bytes": 106,
+          "digest": "779bbf7327ee4620681dacfd3e7e0ac7f0dbdcb92a6d69c2c4b8e3061e1d2c4a"
+        },
+        {
+          "index": 4,
+          "role": "user",
+          "characters": 388,
+          "utf8Bytes": 388,
+          "digest": "4505ceb3e708abd6cdc2dd42029f7f577fee58a9c7ffece9ab3513dd01606e8d"
+        },
+        {
+          "index": 5,
+          "role": "user",
+          "characters": 589,
+          "utf8Bytes": 589,
+          "digest": "1245b4a2b2388863492c19b0f212ce96d4570554efb121729466987cd76190f3"
+        },
+        {
+          "index": 6,
+          "role": "assistant",
+          "characters": 132,
+          "utf8Bytes": 132,
+          "digest": "8aafcc8c5bee995ac4f0b51c79dcc5f0b844497cce48abcd7feebff9144b2aba"
+        },
+        {
+          "index": 7,
+          "role": "user",
+          "characters": 174,
+          "utf8Bytes": 174,
+          "digest": "eb645c04daa8272d85d70ab6195c14d35548f9fd917ea2bad790c3aade778cc9"
+        }
+      ],
+      "firstSourcePresent": false,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": true
+    },
+    {
+      "ordinal": 69,
+      "stream": false,
+      "inputDigest": "eeb75d8f15abbde9fa33c88c0cb92611fef1c0a3bfb3291fabfcbb51406660fc",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 8652,
+          "utf8Bytes": 8654,
+          "digest": "7571d4e4f30100bd0055095f529b3b8a2d12382328f7faf2ca16a53460a0271b"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 118,
+          "utf8Bytes": 118,
+          "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 48,
+          "utf8Bytes": 48,
+          "digest": "4b9f933eeff897d5b60f866daeca7bc60106ad411adc76641332b7b70b0f35b5"
+        }
+      ],
+      "firstSourcePresent": false,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": true
+    },
+    {
+      "ordinal": 70,
+      "stream": true,
+      "inputDigest": "4ec7b6e2bb2580758af084c14416b63aa92d23e7bc7c694345c3f7e60326dc42",
+      "fields": [
+        {
+          "index": 0,
+          "role": "system",
+          "characters": 7503,
+          "utf8Bytes": 7505,
+          "digest": "c456d9b1a58cc48f66b0151c5ee2fe1a1a31c7672c131b4fa6ec75afac9e35a6"
+        },
+        {
+          "index": 1,
+          "role": "user",
+          "characters": 118,
+          "utf8Bytes": 118,
+          "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+        },
+        {
+          "index": 2,
+          "role": "user",
+          "characters": 48,
+          "utf8Bytes": 48,
+          "digest": "4b9f933eeff897d5b60f866daeca7bc60106ad411adc76641332b7b70b0f35b5"
+        }
+      ],
+      "firstSourcePresent": false,
+      "acceptedFailedSourcePresent": false,
+      "toolObservationPresent": true
+    }
+  ]
+}

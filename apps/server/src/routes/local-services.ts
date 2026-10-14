@@ -7,7 +7,7 @@ import {
 } from "../services/voice-review.js";
 import { executeAcousticProfileCommand } from "../services/acoustic-profile-command.js";
 import { governVoiceBinding } from "../services/voice-binding-command.js";
-import { isAbsolute } from "node:path";
+import { registerCapabilityControlRoutes } from "./capability-control.js";
 import {
   correctionFromP8CorrectionRecord,
   parseP8CorrectionRecord,
@@ -134,40 +134,7 @@ export async function registerLocalServiceRoutes(
       return reply.code(503).send({ error: "person_binding_unavailable" });
     }
   });
-  app.post("/capabilities/read-text/authorize", async (request, reply) => {
-    if (!requireLocalDashboardAccess(config, request, reply)) return;
-    const parsed = z
-      .object({
-        sessionId: z
-          .string()
-          .min(1)
-          .refine((value) => value.trim().length > 0),
-        path: z
-          .string()
-          .min(1)
-          .max(4096)
-          .refine((value) => value === value.trim())
-      })
-      .strict()
-      .safeParse(request.body);
-    if (!parsed.success || !isAbsolute(parsed.data.path))
-      return reply.code(400).send({ error: "invalid_read_text_authorization" });
-
-    try {
-      await context.runtimeControlReceiptAdmission.admit({ operation: "READ_TEXT_AUTHORIZE" });
-    } catch (error) {
-      const failure = toRuntimeControlAdmissionFailure(error);
-      return reply.code(failure.statusCode).send({ error: failure.code });
-    }
-    try {
-      context.runtime.authorizeReadText(parsed.data.sessionId, parsed.data.path);
-    } catch {
-      // Route preflight and Runtime share the accepted input constraints. If
-      // Runtime still rejects, the committed receipt remains admission only.
-      return reply.code(400).send({ error: "invalid_read_text_authorization" });
-    }
-    return { status: "AUTHORIZED" };
-  });
+  await registerCapabilityControlRoutes(app, context, config);
   app.get("/local-services/status", async (request, reply) => {
     if (!requireLocalDashboardAccess(config, request, reply)) return;
     return localServicesStatus(context);
@@ -255,7 +222,9 @@ export async function registerLocalServiceRoutes(
     const bindings = await context.runtime.getVoiceProfileBindingAuthorityState();
     if (bindings.status !== "AVAILABLE")
       return reply.code(503).send({ error: "profile_delete_failed" });
-    const profileBindings = bindings.bindings.filter((binding) => binding.voiceProfileId === params.data.id);
+    const profileBindings = bindings.bindings.filter(
+      (binding) => binding.voiceProfileId === params.data.id
+    );
     if (profileBindings.some((binding) => binding.status === "ACTIVE"))
       return reply
         .code(409)

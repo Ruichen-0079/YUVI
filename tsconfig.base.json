@@ -28,7 +28,8 @@
       "@companion/protocol": ["packages/protocol/src/index.ts"],
       "@companion/providers": ["packages/providers/src/index.ts"],
       "@companion/desktop-supervisor": ["packages/desktop-supervisor/src/index.ts"],
-      "@companion/effects": ["packages/effects/src/index.ts"]
+      "@companion/effects": ["packages/effects/src/index.ts"],
+      "@companion/config/environment": ["packages/config/src/environment.ts"]
     }
   }
 }

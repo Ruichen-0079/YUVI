@@ -21,6 +21,7 @@
     "vitest": "^2.1.8"
   },
   "dependencies": {
+    "@companion/config": "workspace:*",
     "@companion/database": "workspace:*",
     "@companion/protocol": "workspace:*",
     "pg": "^8.20.0",

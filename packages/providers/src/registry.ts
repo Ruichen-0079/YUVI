@@ -1,4 +1,8 @@
 import { providerFetch as fetch } from "./invocation-witness.js";
+import {
+  parseRuntimeEnvironment as parseEnvironment,
+  parseBooleanSetting as parseBoolean
+} from "@companion/config/environment";
 import { randomUUID } from "node:crypto";
 import {
   accountProviderLeaf,
@@ -1685,8 +1689,8 @@ function createProviderChain<TProvider>(
 
 export class FallbackChatProvider implements ChatProvider {
   readonly name: string;
-  // Diagnostic projection of the preferred route; the fallback chain still
-  // evaluates each provider's actual stream capability at execution time.
+  // A chain's availability includes permitted fallback routes. The preferred
+  // route may be unavailable while another route provides a native stream.
   readonly streamingMode: ChatStreamingMode;
 
   constructor(
@@ -1694,7 +1698,11 @@ export class FallbackChatProvider implements ChatProvider {
     name?: string
   ) {
     this.name = name ?? providers[0]?.name ?? "unavailable";
-    this.streamingMode = providers[0] ? getChatStreamingMode(providers[0]) : "unsupported";
+    this.streamingMode = providers.some((p) => getChatStreamingMode(p) === "native")
+      ? "native"
+      : providers.some((p) => getChatStreamingMode(p) === "compatible")
+        ? "compatible"
+        : "unsupported";
   }
 
   async healthCheck(): Promise<ProviderHealth> {
@@ -2884,15 +2892,18 @@ function malformedLocalMrlEmbedding(provider: string, message: string): Provider
 export function createMockChatProvider(name = "mock-chat"): ChatProvider {
   return {
     name,
+    streamingMode: "native",
     async healthCheck() {
       return providerHealth(name, "healthy", "Mock chat provider is available.");
     },
-    async generateReply(input: ChatInput) {
+    async generateReply(input: ChatInput, options?: ProviderCallOptions) {
+      if (options?.signal?.aborted) throw createCancelledError(name);
       const start = performance.now();
       const lastUserMessage = [...input.messages]
         .reverse()
         .find((message) => message.role === "user");
-      const content = `Mock reply: ${lastUserMessage?.content ?? ""}`;
+      const content =
+        mockCharacterControl(input) ?? `Mock reply: ${lastUserMessage?.content ?? ""}`;
 
       return {
         message: { role: "assistant", content },
@@ -2908,8 +2919,23 @@ export function createMockChatProvider(name = "mock-chat"): ChatProvider {
         },
         finishReason: "stop"
       };
+    },
+    async *streamReply(input, options) {
+      const output = await this.generateReply(input, options);
+      if (options?.signal?.aborted) throw createCancelledError(name);
+      yield { type: "text-delta", text: output.message.content };
+      yield { type: "completed", output };
     }
   };
+}
+
+/** Offline dependency fixture for the same Host-authored transport as real models.
+ * This selects a fixture output shape, never changes Runtime or grants a tool permission.
+ */
+function mockCharacterControl(input: ChatInput): string | undefined {
+  if (!input.contextProjectionVersions?.includes("character-transport-context.v1")) return;
+  if (input.messages[0]?.content.includes("The semantic gate has authorized RESPOND.")) return;
+  return JSON.stringify({ disposition: "RESPOND" });
 }
 
 export function createMockProactiveDecisionProvider(
@@ -2942,6 +2968,8 @@ export function createMockAssistantContinuationProvider(
 }
 
 export type MockStreamingChatProviderOptions = {
+  /** Explicit control failures are separate from body streaming failure fixtures. */
+  gateOutput?: ChatOutput | Error | undefined;
   chunks?: string[];
   delayMs?: number;
   failBeforeFirst?: Error | (() => Error);
@@ -2967,6 +2995,16 @@ export function createMockStreamingChatProvider(
       return providerHealth(name, "healthy", "Mock streaming chat provider is available.");
     },
     async generateReply(input: ChatInput): Promise<ChatOutput> {
+      const control = mockCharacterControl(input);
+      if (control !== undefined) {
+        if (options.gateOutput instanceof Error) throw options.gateOutput;
+        return (
+          options.gateOutput ?? {
+            message: { role: "assistant", content: control },
+            finishReason: "stop"
+          }
+        );
+      }
       if (options.failBeforeFirst) {
         throw resolveMockStreamingFailure(options.failBeforeFirst);
       }
@@ -3469,18 +3507,6 @@ function safeProviderErrorMessage(error: unknown): string {
     .replace(/\bsk-[A-Za-z0-9._~+/=-]+/g, "sk-[REDACTED]")
     .replace(/(api[-_]?key|authorization|token|password|secret)=([^&\s]+)/gi, "$1=[REDACTED]")
     .slice(0, 300);
-}
-
-function parseEnvironment(value: string | undefined): ProviderRegistryConfig["environment"] {
-  if (value === "production" || value === "test" || value === "development") {
-    return value;
-  }
-
-  return "development";
-}
-
-function parseBoolean(value: string | undefined): boolean {
-  return value === "1" || value === "true" || value === "TRUE";
 }
 
 function parseAssistantContinuationFormat(value: string | undefined): "deepseek-v4" | undefined {

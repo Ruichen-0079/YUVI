@@ -193,6 +193,7 @@ describe.skipIf(!url)("A9.3 canonical provider/publication PostgreSQL boundaries
         })
       ).rejects.toMatchObject({ effectState: "unknown", fallbackEligible: false });
       expect((await store.diagnostic(taskId(t)))?.certainty).toBe("UNKNOWN");
+      expect((await store.diagnostic(taskId(t)))?.evidence?.reason).toBe("CALL_UNCERTAIN");
       await expect(
         host.invoke(t, leaf, async () => {
           calls++;
@@ -380,6 +381,19 @@ describe.skipIf(!url)("A9.3 canonical provider/publication PostgreSQL boundaries
       projectionVersion: "runtime-text.v1",
       publicationTargets: [target]
     });
+    const queuedId = (
+      await pool.query(
+        "select intent_id from effect_intents where contract_ref='yuvi.publication.v1' and intent->'request'->'payload'->'inputSnapshot'->>'reference'=$1",
+        [component.componentId]
+      )
+    ).rows[0].intent_id;
+    // Poll the canonical queued intent before the HTTP/SSE callback is attached.
+    // Missing transient delivery work is readiness, not an authorization revocation.
+    expect(await dispatcher.run(queuedId)).toEqual({ invoked: false, recorded: false });
+    expect(await store.diagnostic(queuedId)).toMatchObject({
+      workState: "PENDING",
+      currentAttempt: null
+    });
     let writes = 0;
     await host.publish({
       target,
@@ -392,6 +406,7 @@ describe.skipIf(!url)("A9.3 canonical provider/publication PostgreSQL boundaries
       }
     });
     expect(writes).toBe(1);
+    expect((await store.diagnostic(queuedId))?.evidence?.certainty).toBe("APPLIED");
     unregister();
   });
   it("rolls canonical publication back with a failed conversation projection", async () => {
@@ -1055,35 +1070,58 @@ describe.skipIf(!url)("A9.3 canonical provider/publication PostgreSQL boundaries
   });
 
   it("renewal loss aborts the running provider and leaves a started attempt UNKNOWN", async () => {
+    let calls = 0;
     const override = new Proxy(store, {
       get(target, key) {
-        if (key === "renew") return async () => false;
+        // Arm the renewal fault at actual external invocation, not while the
+        // PostgreSQL admission/context checks are still preparing the task.
+        if (key === "renew")
+          return (...args: Parameters<typeof target.renew>) =>
+            calls > 0 ? Promise.resolve(false) : target.renew(...args);
         const v = Reflect.get(target, key);
         return typeof v === "function" ? v.bind(target) : v;
       }
     });
-    const worker = new EffectDispatcher(override, [], 30, 4, true),
+    const worker = new EffectDispatcher(override, [], 1000, 4, true),
       owner = new HostOutwardEffects(admission, override, worker, journal, "test:a93"),
       t = task();
     owner.setContextUseRepository(new PostgresContextUseRepository(pool));
-    let calls = 0;
-    await expect(
-      owner.invoke(t, leaf, async (signal) => {
-        calls++;
-        await new Promise((r) => setTimeout(r, 45));
-        expect(signal?.aborted).toBe(true);
-        return "stale";
-      })
-    ).rejects.toMatchObject({ effectState: "unknown", fallbackEligible: false });
-    expect((await store.diagnostic(taskId(t)))?.certainty).toBe("UNKNOWN");
-    await expect(
-      owner.invoke(t, leaf, async () => {
-        calls++;
-        return "repeat";
-      })
-    ).rejects.toMatchObject({ effectState: "unknown" });
-    expect(calls).toBe(1);
-    await worker.shutdown();
+    try {
+      await expect(
+        owner.invoke(t, leaf, async (signal) => {
+          calls++;
+          await new Promise<void>((resolve, reject) => {
+            const deadline = setTimeout(() => {
+              cleanup();
+              reject(Error("Renewal fault did not abort running provider"));
+            }, 3000);
+            const abort = () => {
+              cleanup();
+              resolve();
+            };
+            const cleanup = () => {
+              clearTimeout(deadline);
+              signal?.removeEventListener("abort", abort);
+            };
+            if (signal?.aborted) abort();
+            else signal?.addEventListener("abort", abort, { once: true });
+          });
+          expect(signal?.aborted).toBe(true);
+          return "stale";
+        })
+      ).rejects.toMatchObject({ effectState: "unknown", fallbackEligible: false });
+      expect((await store.diagnostic(taskId(t)))?.certainty).toBe("UNKNOWN");
+      expect((await store.diagnostic(taskId(t)))?.evidence?.reason).toBe("CALL_UNCERTAIN");
+      await expect(
+        owner.invoke(t, leaf, async () => {
+          calls++;
+          return "repeat";
+        })
+      ).rejects.toMatchObject({ effectState: "unknown" });
+      expect(calls).toBe(1);
+    } finally {
+      await worker.shutdown();
+    }
   });
   it("publication admission followed by disconnect cannot write or revive the target", async () => {
     const target = {

@@ -206,9 +206,9 @@ describe("runtime config", () => {
       "rule-based"
     );
     expect(parseRuntimeConfig({ MEMORY_EXTRACTOR: "llm" }).memory.extractor).toBe("llm");
-    expect(
-      parseRuntimeConfig({ MEMORY_BACKEND: "shadow", MEMORY_EXTRACTOR: "llm" }).memory
-    ).toMatchObject({ backend: "legacy", extractor: "llm" });
+    expect(() => parseRuntimeConfig({ MEMORY_BACKEND: "shadow", MEMORY_EXTRACTOR: "llm" })).toThrow(
+      "Unsupported MEMORY_BACKEND"
+    );
     expect(() => parseRuntimeConfig({ MEMORY_EXTRACTOR: "external" })).toThrow(
       "Unsupported MEMORY_EXTRACTOR 'external'"
     );

@@ -6,10 +6,27 @@ import {
   type CharacterOutputLanguage
 } from "@companion/character-abi";
 
-export type RuntimeEnvironment = "development" | "test" | "production";
-export type MemoryRepositoryDriver = "in-memory" | "postgres";
+import {
+  parseRuntimeEnvironment as parseEnvironment,
+  parseMemoryRepository,
+  parseMemoryBackend,
+  parseBooleanSetting as parseBoolean,
+  type RuntimeEnvironment,
+  type MemoryRepositoryDriver,
+  type MemoryBackendDriver
+} from "./environment.js";
+export {
+  parseRuntimeEnvironment,
+  parseMemoryRepository,
+  parseMemoryBackend,
+  parseBooleanSetting
+} from "./environment.js";
+export type {
+  RuntimeEnvironment,
+  MemoryRepositoryDriver,
+  MemoryBackendDriver
+} from "./environment.js";
 export type MemoryExtractorDriver = "rule-based" | "llm";
-export type MemoryBackendDriver = "legacy" | "mem0" | "postgres" | "shadow";
 export type EventBusDriver = "in-memory" | "nats";
 
 export type ProviderCapability = "chat" | "reasoning" | "tts" | "stt" | "vision" | "embedding";
@@ -450,22 +467,6 @@ function parseProviderSelection(env: RuntimeConfigEnv): ProviderSelection {
   };
 }
 
-function parseEnvironment(value: string | undefined): RuntimeEnvironment {
-  if (value === "production" || value === "test" || value === "development") {
-    return value;
-  }
-
-  return "development";
-}
-
-function parseMemoryRepository(value: string | undefined): MemoryRepositoryDriver {
-  if (value === "postgres") {
-    return "postgres";
-  }
-
-  return "in-memory";
-}
-
 export function parseMemoryExtractorDriver(value: string | undefined): MemoryExtractorDriver {
   if (value === "llm") {
     return "llm";
@@ -477,23 +478,6 @@ export function parseMemoryExtractorDriver(value: string | undefined): MemoryExt
   throw new Error(`Unsupported MEMORY_EXTRACTOR '${value}'. Supported values: rule-based, llm.`);
 }
 
-/**
- * MEMORY_BACKEND=mem0 | legacy only.
- * Default remains legacy unless env explicitly sets mem0 (dev .env.example uses mem0).
- * Shadow dual-write is intentionally not supported.
- */
-function parseMemoryBackend(value: string | undefined): MemoryBackendDriver {
-  if (!value || value === "legacy") {
-    return "legacy";
-  }
-  if (value === "postgres") return "postgres";
-  if (value === "mem0") {
-    return "mem0";
-  }
-  // Unknown values (including retired "shadow") fall back to legacy.
-  return "legacy";
-}
-
 function parseEventBus(value: string | undefined): EventBusDriver {
   if (!value || value === "memory" || value === "in-memory") {
     return "in-memory";
@@ -503,14 +487,6 @@ function parseEventBus(value: string | undefined): EventBusDriver {
   }
 
   return "in-memory";
-}
-
-function parseBoolean(value: string | undefined, fallback: boolean): boolean {
-  if (value === undefined || value.trim() === "") {
-    return fallback;
-  }
-
-  return ["1", "true", "yes", "on"].includes(value.toLowerCase());
 }
 
 function parsePort(value: string | undefined, fallback: number): number {

@@ -1,4 +1,5 @@
 import type { AppContext } from "../context.js";
+import { parseMemoryBackend, parseMemoryRepository } from "@companion/config/environment";
 
 type Json = Record<string, any>;
 
@@ -16,7 +17,10 @@ async function probe(url: string): Promise<Json | null> {
 /** Explicit public projection: sidecar diagnostics, credentials and vectors never escape. */
 export async function localServicesStatus(context: AppContext) {
   const env = context.activeRuntimeEnv;
-  const sttUrl = context.providers.getStatus().routes?.stt?.find(r => r.configured)?.baseUrl || env["LOCAL_STT_BASE_URL"] || "http://127.0.0.1:9876";
+  const sttUrl =
+    context.providers.getStatus().routes?.stt?.find((r) => r.configured)?.baseUrl ||
+    env["LOCAL_STT_BASE_URL"] ||
+    "http://127.0.0.1:9876";
   const ollamaUrl = env["MEM0_OLLAMA_BASE_URL"] || "http://127.0.0.1:11434";
   const mem0Url = env["MEM0_BASE_URL"] || "http://127.0.0.1:6131";
   const providers = context.providers.getStatus().providers;
@@ -49,8 +53,8 @@ export async function localServicesStatus(context: AppContext) {
           : 0
     },
     memory: {
-      backend: env["MEMORY_BACKEND"] === "mem0" ? "mem0" : "legacy",
-      repository: env["MEMORY_REPOSITORY"] === "postgres" ? "postgres" : "in-memory",
+      backend: parseMemoryBackend(env["MEMORY_BACKEND"]),
+      repository: parseMemoryRepository(env["MEMORY_REPOSITORY"]),
       database: database.status,
       ollama: Array.isArray(tags?.["models"]),
       embedderPresent: models.some((model: Json) => model?.["name"] === "yuvi-embedding:0.6b"),

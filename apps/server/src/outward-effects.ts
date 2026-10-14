@@ -295,6 +295,9 @@ export class HostOutwardEffects implements ProviderAccountingPort {
       dispatcher?.registerAdapter({
         contractRef,
         adapter: EFFECT_DELIVERY_CONTRACTS[contractRef].adapter,
+        // Reply components can commit publication admission before the transport
+        // owner attaches its callback. Do not let background polling revoke them.
+        isReady: (id) => this.grants.has(id),
         isCurrent: (i) => this.accepting && this.grants.get(i.intentId)?.work.isCurrent() === true,
         invoke: async (i, a, signal) => {
           const grant = this.grants.get(i.intentId);
