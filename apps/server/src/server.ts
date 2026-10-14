@@ -12,6 +12,7 @@ import { createAppContext } from "./context.js";
 import { registerDebugRoutes } from "./routes/debug.js";
 import { registerHealthRoutes } from "./routes/health.js";
 import { registerLocalServiceRoutes } from "./routes/local-services.js";
+import { registerCapabilityControlRoutes } from "./routes/capability-control.js";
 import { registerLocalConnectionRoutes } from "./routes/local-connection.js";
 import { memorySearchValidationError, registerMemoryRoutes } from "./routes/memory.js";
 import { registerMediaRoutes } from "./routes/media.js";
@@ -235,6 +236,7 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
 
   await registerHealthRoutes(app, context, config);
   if (!options.characterComposition) await registerLocalServiceRoutes(app, context, config);
+  else await registerCapabilityControlRoutes(app, context, config);
   if (!options.characterComposition) await registerLocalConnectionRoutes(app, context, config);
   await registerProviderRoutes(app, context, config);
   if (!options.characterComposition) await registerSettingsRoutes(app, context, config);
