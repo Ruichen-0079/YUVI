@@ -639,6 +639,64 @@ describe.skipIf(!url)("A9.2 real PostgreSQL dispatch and crash certainty", () =>
     expect((await admission.get(i.intentId))?.workState).toBe("PENDING");
     await worker.shutdown();
   });
+  it("a pending renewal denial fences a returned result before APPLIED is persisted", async () => {
+    const intent = await admit();
+    let calls = 0,
+      announceRenewal!: () => void,
+      denyRenewal!: () => void;
+    const renewalStarted = new Promise<void>((resolve) => {
+      announceRenewal = resolve;
+    });
+    const renewalDecision = new Promise<boolean>((resolve) => {
+      denyRenewal = () => resolve(false);
+    });
+    const proxied = new Proxy(store, {
+      get(target, key) {
+        if (key === "renew")
+          return (...args: Parameters<typeof target.renew>) => {
+            if (!calls) return target.renew(...args);
+            announceRenewal();
+            return renewalDecision;
+          };
+        const value = Reflect.get(target, key);
+        return typeof value === "function" ? value.bind(target) : value;
+      }
+    });
+    const worker = new EffectDispatcher(
+      proxied,
+      [
+        adapter(async () => {
+          calls++;
+          await renewalStarted;
+          return { evidence: applied, transientResult: "returned before renewal decision" };
+        })
+      ],
+      1000
+    );
+    try {
+      let settled = false;
+      const running = worker.run(intent.intentId).then((result) => {
+        settled = true;
+        return result;
+      });
+      await renewalStarted;
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(settled).toBe(false);
+      expect((await store.diagnostic(intent.intentId))?.evidence).toBeNull();
+      denyRenewal();
+      const result = await running;
+      expect(result).toMatchObject({ invoked: true, recorded: true });
+      expect(result.transientResult).toBeUndefined();
+      expect((await store.diagnostic(intent.intentId))?.evidence).toEqual(
+        protocolEvidence("CALL_UNCERTAIN", true)
+      );
+      expect((await worker.run(intent.intentId)).invoked).toBe(false);
+      expect(calls).toBe(1);
+    } finally {
+      denyRenewal();
+      await worker.shutdown();
+    }
+  });
   it("worker A returns late after B wakes: one invocation, no stale publication", async () => {
     const i = await admit();
     let release: () => void = () => {},

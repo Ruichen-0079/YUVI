@@ -193,6 +193,7 @@ describe.skipIf(!url)("A9.3 canonical provider/publication PostgreSQL boundaries
         })
       ).rejects.toMatchObject({ effectState: "unknown", fallbackEligible: false });
       expect((await store.diagnostic(taskId(t)))?.certainty).toBe("UNKNOWN");
+      expect((await store.diagnostic(taskId(t)))?.evidence?.reason).toBe("CALL_UNCERTAIN");
       await expect(
         host.invoke(t, leaf, async () => {
           calls++;
@@ -1096,6 +1097,7 @@ describe.skipIf(!url)("A9.3 canonical provider/publication PostgreSQL boundaries
         })
       ).rejects.toMatchObject({ effectState: "unknown", fallbackEligible: false });
       expect((await store.diagnostic(taskId(t)))?.certainty).toBe("UNKNOWN");
+      expect((await store.diagnostic(taskId(t)))?.evidence?.reason).toBe("CALL_UNCERTAIN");
       await expect(
         owner.invoke(t, leaf, async () => {
           calls++;
