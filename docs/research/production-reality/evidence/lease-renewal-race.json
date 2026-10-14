@@ -1,0 +1,17 @@
+{
+  "schema": "lease-renewal-race.v1",
+  "failure": "Negative lease renewal before expiry still allowed APPLIED evidence; caller saw UNKNOWN",
+  "originalLogDigest": "0f2d15ec785ea5dc77e1cacd312ded57daf01bd6b5c97ee67a372bc6d79cc44a",
+  "repairSha": "6bb09a4",
+  "actualPostgresChecks": [
+    "failed renewal after invocation: formal CALL_UNCERTAIN/UNKNOWN, zero returned transient values, single call",
+    "pending renewal denial waits before committing result, preserves UNKNOWN and no redispatch",
+    "pending successful renewal retains APPLIED and actual result",
+    "existing shutdown, stale-worker, lost-COMMIT and recovery suite retained"
+  ],
+  "result": "PASS",
+  "limits": "does not certify all partitions, disk failures, or long-term load",
+  "originalDispatcherBaseline": "8632dd9107fc07d04f3cc8825c848c48394bd6ae",
+  "originalDispatcherDigest": "60270d553f262fa79f469ff5caa19c1152b37b28ab7a33199e02988da9468809",
+  "failureFixtureWorktreeDirty": true
+}

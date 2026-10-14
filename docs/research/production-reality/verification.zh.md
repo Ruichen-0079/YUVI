@@ -36,3 +36,24 @@
 本机 `pnpm check`、`pnpm build`、全仓默认 `pnpm test` 与带真实 PostgreSQL 的全仓回归通过。第一次 durable 回归发现旧故障注入测试依赖硬编码 36 条；现在按真正独立的 L0/L1 读取时点注入，仍检查不同原文版本及持久来源。远端最终 CI 结果单独归档；未完成项保持 OPEN。
 
 原始轨迹仅留本机受保护目录 `~/.local/state/yuvi-production-reality-20261013`。公开资料只含合成数据；没有真实 persona、Authorization、Provider 密钥或私人 Memory。
+
+## 实际能力路径与失败分层
+
+[能力对照](evidence/capability-comparison.json)从自然请求开始，文件标记不进入最初模型输入；Controller 仅事先授权一个合成文件，不替模型输出 REQUEST_CAPABILITY。每个试验使用新的 Schema/Character/Server。以下是不同原因，不能全部归咎于“Chat 不会工具”：
+
+- 独立 Character 的授权路由缺失：404，0 个模型调用。已抽离实例能力控制，并在正常入口测试覆盖 Primary 和独立 Character；未持有 Controller 凭据时 401/403。
+- 原 GLM 模型自主请求正确引用，但最后一推理回合被 Runtime 预算限制阻止，0 次读取。现只为具有正式消费者的 Host QUERY 合同允许终态观察；没有拓展到 Plugin。
+- GLM 429 `engine_overloaded`：保留 ERROR 和未知费用，没有隐藏 fallback。
+- DeepSeek Reasoning 返回 COMPLETE 与“将会读取”的计划：HTTP/协议形式成功但实际读取 0 次、答案无标记，按质量失败。明确最终答案和观察责任后，同一自然请求在 DeepSeek、GLM 两条隔离 Reasoning 路由分别自主请求并实际读取。
+- 成功路径各 4 个模型调用：Gate → Reasoning 请求 →真实文件 Effect →预算终止 →post Gate →正文。各 1 次 read_text APPLIED；初始两个输入不含标记，post Gate/正文 PARTIAL 包含两个标记；最终回答正确。
+- 最后措辞区分“推理 PARTIAL”与“读取执行结果”后一次复测在首 Gate 前出现 `UND_ERR_CONNECT_TIMEOUT`：HTTP 503、Provider UNKNOWN，0 次读取，未重试同一 operation。费用未知，记录未丢弃。
+
+成功路径是在独立 Host 合法 Controller 文件授权下完成，**不是产品客户端 Memory 身份生命周期验收**。GLM 是实机当前 Reasoning 路由；DeepSeek Reasoning 是明确的隔离对照，不修改 Alice。只提供小样本收益，不声称所有模型普遍自主可靠。
+
+本机实际 Effects 回归检查成功续租、失败续租和延迟续租决策，包括最终数据库证据与单次执行；普通无数据库 test 不代替这些结果。正常 Server 入口、代码 Source 不变的 test/development/mocks 模式、Primary/独立实例均保留 Character。
+
+打包曾因未使用的共享环境 import 在 esbuild inputs 元数据中标为 external 而被门禁拒绝；移除无消费者的 import，保留外部依赖拒绝合同。Runtime/Supervisor bundle 实际通过，Supervisor fingerprint 包含配置叶模块。晚期 Outward 失败通过有界持久诊断确认：成功 Provider 后的 publication 无 attempt 即 WITHHELD。完整回归确定性重现后台 poll 先于 transport callback 装配，错误判授权撤销。Dispatcher 增加 Host-only readiness，在准备完成前留 PENDING；真实 currentness、代际和撤权检查继续执行。相同已入库意图随后激活、单次写入、最终 APPLIED。[反例与修复](evidence/publication-readiness-race.json)。没有减少对话轮数或绕过 Ledger。
+
+最后收窄终态观察合同并明确“PARTIAL 只指推理、工具响应另行判断”后，GLM 又出现一次 429；保留失败且不隐藏 fallback。新的随机标记在最终 DeepSeek 隔离 Reasoning 复测中成功：4 个模型调用、1 次读取 APPLIED、PARTIAL 输入，正文准确报告两个标记和文件内容，没有把已完成读取说成失败。默认 GLM 的持续可用性仍开放，不能以某次成功覆盖忙碌状态。
+
+[租约反例](evidence/lease-renewal-race.json)保留修正测试时暴露的 APPLIED/UNKNOWN 矛盾及真实 PostgreSQL 正反向验证。全部原有恢复、UNKNOWN 和取消回归继续使用。

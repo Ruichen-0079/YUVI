@@ -31,3 +31,15 @@ Canonical Context 新增 `conversationEvidence`，包含有界、按时间排列
 P8 修正存储失败返回原失败状态，同时给出 authored-only 投影；没有接受损坏修正。Character 能看到带来源和警告的静态人格，Relationship 仍报告不可用/失败。这防止动态文件故障清空作者身份，也不伪造完整人格恢复成功。
 
 Cognition 每个终态保留内部已执行交换。正常失败且已有可信成功观察时，向 Character 投影 PARTIAL，注明目标未完成、停止原因及有界观察。取消和 STALE_EXECUTION 不披露观察。执行授权、Effect lease、幂等、Journal 和 UNKNOWN 保证保持原样；此次没有将 Plugin 副作用重新接入，也没有自动重试未知动作。
+
+## 从实际入口扩展到能力控制与租约
+
+独立 Character 的启动原来跳过整个 Local Services 路由，连实例自己的文件授权入口也不可用（真实实验 HTTP 404，尚未调用模型）。现在把 `read-text/authorize` 抽为 Runtime 所属的 capability control；独立实例只接入这项有认证/Origin/Journal 的能力控制，仍不接入全局 People、配置、Voice 管理。
+
+最后一个推理回合可以提出本实例已经合法授权的只读查询，因为 Character 有正式 PARTIAL 观察消费者。Host 通过发行的 descriptor 与 QUERY 合同确认这一点；Core 默认没有这项许可。没有持久终态合同的 Plugin 仍保留原“需有后续推理回合”限制。Capability 预算、权限、身份、取消和 Deadline 都继续独立检查，模型不能设置这些许可。
+
+真实模型还暴露了 COMPLETE 被用来承诺未来读取：协议现在要求最终答案基于已获得证据，能力目录只是可用性，计划不等于观察。保留两个模型的实际 REQUEST_CAPABILITY、单次真实读取、PARTIAL 输入与最终随机标记回答；不把 Prompt 当权限或持久成功回执。
+
+续租故障原回归使用 30ms 租约和 45ms 等待，CI 可能在真正进入 Provider 前就失败。按实际调用时点注入后，暴露续租失败但尚未过期时晚到结果会记录 APPLIED 的缺陷。Dispatcher 现等待本回合正在进行的续租结果；丢失续租权时只能记录 CALL_UNCERTAIN/UNKNOWN，不泄露晚到返回值，也不重试。同样检查成功续租正常 APPLIED，保留原 shutdown/fence/幂等保证。
+
+发布的同事务入库与执行激活是两个时点。后台 Worker 原来会在 HTTP/SSE 回调尚未绑定时 claim publication，并把缺少回调判成 AUTHORITY_REVOKED/WITHHELD。新的 `EffectAdapter.isReady` 仅由 Host 提供，在缺少临时执行工作时保留 PENDING、不 claim；实际执行仍必须通过全部 `isCurrent`、lease、fence、Target generation 和 Journal 检查。它不代表权限已授予，也不允许重放未知结果。
