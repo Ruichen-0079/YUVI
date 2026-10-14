@@ -206,7 +206,11 @@ describe.skipIf(!url)("normal Server entrypoint production reality", () => {
               ? "Recall the project marker from our first turn."
               : `Continue discussion turn ${turn}; ${"ordinary bounded context ".repeat(20)}`;
         const before = received.length;
-        expect((await send(text)).status, log).toBe(200);
+        const reply = await send(text);
+        expect(
+          reply.status,
+          `turn=${turn} calls=${received.length - before} response=${JSON.stringify(reply.body)}\n${log}`
+        ).toBe(200);
         expect(received.slice(before).map((call) => call.stream)).toEqual([false, true]);
       }
       const thirtieth = received.slice(-2);
