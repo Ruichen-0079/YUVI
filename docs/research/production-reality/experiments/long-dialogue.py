@@ -88,7 +88,9 @@ result = {
     'model': env['OPENAI_COMPATIBLE_CHAT_MODEL'], 'reasoningModel': env['OPENAI_COMPATIBLE_REASONING_MODEL'], 'scenario': cases.get('scenario', 'long-dialogue'), 'declaredContextWindow': 65536,
     'temperature': 0, 'maxTokens': 2048, 'callCap': 60,
     'maximumEstimatedSpendUSD': 0.25,
-    'scope': 'anonymous restricted, memory read/write disabled; Conversation continuity only',
+    'scope': 'anonymous restricted, memory read/write disabled; isolated operator-authorized capability' if partial_read else 'anonymous restricted, memory read/write disabled; Conversation continuity only',
+    'startedAt': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+    'maxReasoningRounds': 1 if partial_read else None,
     'persona': cases['persona'], 'turns': [], 'status': 'RUNNING',
     'limitations': ['Not product Host credential proof', 'One remote model series is not general reliability',
                     'Recorder caps calls; final estimated cost from Provider usage, not final invoice']}
