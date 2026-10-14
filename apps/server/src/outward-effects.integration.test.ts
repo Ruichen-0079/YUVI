@@ -381,6 +381,19 @@ describe.skipIf(!url)("A9.3 canonical provider/publication PostgreSQL boundaries
       projectionVersion: "runtime-text.v1",
       publicationTargets: [target]
     });
+    const queuedId = (
+      await pool.query(
+        "select intent_id from effect_intents where contract_ref='yuvi.publication.v1' and intent->'request'->'payload'->'inputSnapshot'->>'reference'=$1",
+        [component.componentId]
+      )
+    ).rows[0].intent_id;
+    // Poll the canonical queued intent before the HTTP/SSE callback is attached.
+    // Missing transient delivery work is readiness, not an authorization revocation.
+    expect(await dispatcher.run(queuedId)).toEqual({ invoked: false, recorded: false });
+    expect(await store.diagnostic(queuedId)).toMatchObject({
+      workState: "PENDING",
+      currentAttempt: null
+    });
     let writes = 0;
     await host.publish({
       target,
@@ -393,6 +406,7 @@ describe.skipIf(!url)("A9.3 canonical provider/publication PostgreSQL boundaries
       }
     });
     expect(writes).toBe(1);
+    expect((await store.diagnostic(queuedId))?.evidence?.certainty).toBe("APPLIED");
     unregister();
   });
   it("rolls canonical publication back with a failed conversation projection", async () => {
