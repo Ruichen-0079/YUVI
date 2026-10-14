@@ -367,6 +367,47 @@ describe.skipIf(!url)("normal Server entrypoint production reality", () => {
           /^[a-f0-9]{64}$/u
         );
         await stop();
+      } catch (failure) {
+        const evidenceDirectory =
+          process.env["YUVI_PRODUCTION_PATH_EVIDENCE_DIRECTORY"] ??
+          process.env["YUVI_CONFORMANCE_ARCHIVE_ROOT"];
+        if (evidenceDirectory) {
+          await mkdir(evidenceDirectory, { recursive: true, mode: 0o700 });
+          let effects: unknown = { status: "UNAVAILABLE" };
+          try {
+            effects = (
+              await pool.query(`select i.intent_id,i.contract_ref,i.work_state,i.created_at,
+              a.attempt_id,a.dispatch_started_at,a.lease_expires_at,a.lease_owner,o.evidence
+              from effect_intents i left join effect_attempts a using(intent_id)
+              left join effect_observations o on o.attempt_id=a.attempt_id and o.category='TERMINAL'
+              order by i.created_at desc limit 40`)
+            ).rows;
+          } catch {
+            /* Diagnostic failure must not mask the original failure. */
+          }
+          await writeFile(
+            join(
+              evidenceDirectory,
+              independent ? "entry-independent-failure.json" : "entry-failure.json"
+            ),
+            JSON.stringify(
+              {
+                schema: "production-path-failure.v1",
+                independentCharacter: independent,
+                modelCalls: received.length,
+                effects,
+                error: failure instanceof Error ? failure.message : "UNKNOWN",
+                inputDigests: received.map((call) =>
+                  createHash("sha256").update(JSON.stringify(call.messages)).digest("hex")
+                )
+              },
+              null,
+              2
+            ),
+            { mode: 0o600 }
+          );
+        }
+        throw failure;
       } finally {
         if (child && child.exitCode === null) {
           const done = new Promise<void>((resolve) => child!.once("exit", () => resolve()));
