@@ -94,14 +94,20 @@ describe("Runtime bounded Cognition execution", () => {
     });
     expect(input.invoke).toHaveBeenCalledTimes(2);
   });
-  it("does not invoke a capability with no remaining reasoning slot", async () => {
+  it("preserves an admitted last-round capability observation without another reasoning call", async () => {
     const input = fixture();
     input.limits.maxReasoningRounds = 1;
     input.reason.mockResolvedValue(request);
-    expect((await executeRuntimeCognitionInteraction(input)).state.terminal).toMatchObject({
-      reason: "REASONING_BUDGET_EXHAUSTED"
+    const output = await executeRuntimeCognitionInteraction(input);
+    expect(output.state).toMatchObject({
+      reasoningRoundsUsed: 1,
+      capabilityCallsUsed: 1,
+      terminal: { status: "FAILED", reason: "REASONING_BUDGET_EXHAUSTED" }
     });
-    expect(input.invoke).not.toHaveBeenCalled();
+    expect(output.history).toEqual([{ request, observation: "observed" }]);
+    expect(output.completion).toBeNull();
+    expect(input.reason).toHaveBeenCalledTimes(1);
+    expect(input.invoke).toHaveBeenCalledTimes(1);
   });
   it.each([false, true])(
     "denies policy/zero-call budget without invoking: policy=%s",
