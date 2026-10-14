@@ -24,6 +24,7 @@ function fixture() {
     execution: { executionId: "execution-1", isCurrent: () => true },
     limits: { ...DEFAULT_COGNITION_LIMITS },
     policyAllowsCapability: true,
+    allowTerminalCapabilityObservation: vi.fn(() => false),
     reason: vi.fn(
       async (
         _history: readonly RuntimeCognitionExchange<Round, string>[],
@@ -97,6 +98,7 @@ describe("Runtime bounded Cognition execution", () => {
   it("preserves an admitted last-round capability observation without another reasoning call", async () => {
     const input = fixture();
     input.limits.maxReasoningRounds = 1;
+    input.allowTerminalCapabilityObservation.mockReturnValue(true);
     input.reason.mockResolvedValue(request);
     const output = await executeRuntimeCognitionInteraction(input);
     expect(output.state).toMatchObject({
@@ -108,6 +110,15 @@ describe("Runtime bounded Cognition execution", () => {
     expect(output.completion).toBeNull();
     expect(input.reason).toHaveBeenCalledTimes(1);
     expect(input.invoke).toHaveBeenCalledTimes(1);
+  });
+  it("withholds last-round operations lacking a Host terminal observation contract", async () => {
+    const input = fixture();
+    input.limits.maxReasoningRounds = 1;
+    input.reason.mockResolvedValue(request);
+    const output = await executeRuntimeCognitionInteraction(input);
+    expect(output.state.terminal).toMatchObject({ reason: "REASONING_BUDGET_EXHAUSTED" });
+    expect(output.history).toEqual([]);
+    expect(input.invoke).not.toHaveBeenCalled();
   });
   it.each([false, true])(
     "denies policy/zero-call budget without invoking: policy=%s",
