@@ -1055,35 +1055,57 @@ describe.skipIf(!url)("A9.3 canonical provider/publication PostgreSQL boundaries
   });
 
   it("renewal loss aborts the running provider and leaves a started attempt UNKNOWN", async () => {
+    let calls = 0;
     const override = new Proxy(store, {
       get(target, key) {
-        if (key === "renew") return async () => false;
+        // Arm the renewal fault at actual external invocation, not while the
+        // PostgreSQL admission/context checks are still preparing the task.
+        if (key === "renew")
+          return (...args: Parameters<typeof target.renew>) =>
+            calls > 0 ? Promise.resolve(false) : target.renew(...args);
         const v = Reflect.get(target, key);
         return typeof v === "function" ? v.bind(target) : v;
       }
     });
-    const worker = new EffectDispatcher(override, [], 30, 4, true),
+    const worker = new EffectDispatcher(override, [], 1000, 4, true),
       owner = new HostOutwardEffects(admission, override, worker, journal, "test:a93"),
       t = task();
     owner.setContextUseRepository(new PostgresContextUseRepository(pool));
-    let calls = 0;
-    await expect(
-      owner.invoke(t, leaf, async (signal) => {
-        calls++;
-        await new Promise((r) => setTimeout(r, 45));
-        expect(signal?.aborted).toBe(true);
-        return "stale";
-      })
-    ).rejects.toMatchObject({ effectState: "unknown", fallbackEligible: false });
-    expect((await store.diagnostic(taskId(t)))?.certainty).toBe("UNKNOWN");
-    await expect(
-      owner.invoke(t, leaf, async () => {
-        calls++;
-        return "repeat";
-      })
-    ).rejects.toMatchObject({ effectState: "unknown" });
-    expect(calls).toBe(1);
-    await worker.shutdown();
+    try {
+      await expect(
+        owner.invoke(t, leaf, async (signal) => {
+          calls++;
+          await new Promise<void>((resolve, reject) => {
+            const deadline = setTimeout(() => {
+              cleanup();
+              reject(Error("Renewal fault did not abort running provider"));
+            }, 3000);
+            const abort = () => {
+              cleanup();
+              resolve();
+            };
+            const cleanup = () => {
+              clearTimeout(deadline);
+              signal?.removeEventListener("abort", abort);
+            };
+            if (signal?.aborted) abort();
+            else signal?.addEventListener("abort", abort, { once: true });
+          });
+          expect(signal?.aborted).toBe(true);
+          return "stale";
+        })
+      ).rejects.toMatchObject({ effectState: "unknown", fallbackEligible: false });
+      expect((await store.diagnostic(taskId(t)))?.certainty).toBe("UNKNOWN");
+      await expect(
+        owner.invoke(t, leaf, async () => {
+          calls++;
+          return "repeat";
+        })
+      ).rejects.toMatchObject({ effectState: "unknown" });
+      expect(calls).toBe(1);
+    } finally {
+      await worker.shutdown();
+    }
   });
   it("publication admission followed by disconnect cannot write or revive the target", async () => {
     const target = {
