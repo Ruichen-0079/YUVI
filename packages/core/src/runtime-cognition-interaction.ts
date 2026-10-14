@@ -132,9 +132,10 @@ export async function executeRuntimeCognitionInteraction<T extends Round, O>(inp
         return finish({ status: "COMPLETED" }, round as Extract<T, { kind: "COMPLETE" }>);
       if (round.kind === "CONTINUE") continue;
       if (round.kind !== "REQUEST_CAPABILITY") return finish({ status: "FAILED", reason: "ERROR" });
-      // Never perform a capability when no reasoning budget remains to consume it.
-      if (state.reasoningRoundsUsed >= state.limits.maxReasoningRounds)
-        return finish({ status: "FAILED", reason: "REASONING_BUDGET_EXHAUSTED" });
+      // Reasoning and capability budgets govern separate operations. Returned
+      // observations have a formal terminal/PARTIAL consumer even when another
+      // reasoning call is unavailable; authority and capability admission still
+      // apply before any actual invocation.
       const admission = admitRuntimeCapabilityRound({
         version: RUNTIME_CAPABILITY_ADMISSION_6J_VERSION,
         policyAllowsCapability,
