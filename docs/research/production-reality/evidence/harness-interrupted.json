@@ -1,0 +1,48 @@
+{
+  "kind": "HARNESS_FAILURE_NOT_MODEL_FAILURE",
+  "gitSha": "79ca0aada44ace81365f214613035213212fb5a7",
+  "completedTurns": 1,
+  "failure": "Cost parser treated interim SSE usage=null as object; fixed before full series",
+  "modelCalls": [
+    {
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "httpStatus": 200,
+      "stream": false,
+      "usage": {
+        "prompt_tokens": 1167,
+        "total_tokens": 1185,
+        "completion_tokens": 18,
+        "estimated_cost": 7.326e-5,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "latencyMs": 5614.6081300000005
+    },
+    {
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "httpStatus": 200,
+      "stream": true,
+      "usage": {
+        "prompt_tokens": 825,
+        "total_tokens": 856,
+        "completion_tokens": 31,
+        "estimated_cost": 5.508000000000001e-5,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": null
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "latencyMs": 2488.079955000001
+    }
+  ],
+  "estimatedCostUSD": 0.00012834,
+  "unknownUsageCalls": 0
+}

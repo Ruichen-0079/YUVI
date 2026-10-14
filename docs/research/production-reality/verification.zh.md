@@ -18,4 +18,21 @@
 
 ## 真实模型与最终回归
 
-本节由真实执行后更新；未运行项保持 OPEN。原始轨迹仅留本机受保护目录，公开资料只包含合成摘要、客观评分和逐调用用量。不以 scripted Provider 的固定答案证明语义改善。
+2026-10-13/14，DeepInfra `deepseek-ai/DeepSeek-V4-Flash-0731`；相同模型、合成 Persona、输入序列、temperature=0、max_tokens=2048、声明窗口 65,536。复用 R5 fetch recorder，正常 Server 启动；Memory 读写禁用，单独比较 Conversation 连续性。每次 Character Gate/Body 真正调用远端模型，没有 scripted 答案。官方页面当前声明窗口 1,048,576；实验没有替真实安装调整窗口。[Provider 模型规格与价格](https://deepinfra.com/deepseek-ai/DeepSeek-V4-Flash-0731)。
+
+| 30 轮任务                          | #326 最终输入/回答                       | 新路径最终输入/回答                              | Provider estimated cost（旧/新 USD） |
+| ---------------------------------- | ---------------------------------------- | ------------------------------------------------ | ------------------------------------ |
+| 首轮短事实                         | 都包含代号；都答对并否认执行授权         | 同样成功；**不证明质量提升**                     | 0.00732732 / 0.01252584              |
+| 首轮长原文后部事实，首答要求不复述 | 代号未进入最终 Gate/Body；回答未确定代号 | 完整原文进入 Gate/Body；正确答出代号且无执行授权 | 0.00775056 / 0.01359744              |
+
+旧路径首轮短事实由 L1 情节摘录保住，不能推广“所有长对话都失忆”。长原文样本揭示 L1 截取与 DirectContext 缩减共同留下的缺口。新路径每组依旧 60 次调用，**没有降低 Gate 成本**；它增加可用历史，当前输入用量/费用上升。只验证了两组独立序列，不声称模型普遍可靠或 Context 最优。远端 temperature=0 不保证确定性。
+
+[短事实对照](evidence/model-comparison.json)、[长原文对照](evidence/long-tail/model-comparison.json)包含精确 SHA/dirty、模型、合成输入/最终回答、输入 digest/角色/长度、首轮来源是否出现、usage/缓存/延迟/finish reason；逐调用 CSV 同目录。长原文新运行 dirty=true，因为报告/分析脚本尚未提交；该 SHA 的生产代码已提交，未修改运行配置或在线 Alice。
+
+另有一个已完成首轮后被实验费用解析器终止的运行（SSE 中间 usage=null），两次远端调用保留在本机，[中断回执](evidence/harness-interrupted.json)的用量完整、估算费用 0.00012834 USD。修正 Harness 后才执行完整对照，不把 Harness 错误冒充模型失败；两次启动被 Character 文件/数据库所有权保护拒绝，没有模型调用。公开费用是 Provider estimated_cost，未知/失败费用不伪造成 0，非最终账单。四组完整系列 240 次调用估算合计 0.04120116 USD，加上 Harness 中断两次共 242 次、0.04132950 USD；实验总预算 0.25 USD、每系列 60 次上限。
+
+正常入口测试在只读 #326 checkout 重放（仅替换 child cwd）：首轮实际一次非流式 Chat，而不是 Gate/正文两次，按新生产合同失败。[拓扑反例](evidence/entry-baseline.json)。新分支冻结测试检查正常入口、30 轮输入、P8 损坏、429 后重启原话，以及真实 read_text 后 PARTIAL；[安全输入摘要](evidence/entry-input-summary.json)。这些属于确定性产品装配证明，不能合并成真实模型自主工具成功。
+
+本机 `pnpm check`、`pnpm build`、全仓默认 `pnpm test` 与带真实 PostgreSQL 的全仓回归通过。第一次 durable 回归发现旧故障注入测试依赖硬编码 36 条；现在按真正独立的 L0/L1 读取时点注入，仍检查不同原文版本及持久来源。远端最终 CI 结果单独归档；未完成项保持 OPEN。
+
+原始轨迹仅留本机受保护目录 `~/.local/state/yuvi-production-reality-20261013`。公开资料只含合成数据；没有真实 persona、Authorization、Provider 密钥或私人 Memory。
