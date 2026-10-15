@@ -1,3 +1,4 @@
+import { MemoryAuthorityError } from "@companion/memory";
 import { observationRetentionConfig } from "./config.js";
 import { HostObservationContinuity } from "./observation-continuity.js";
 import { personAuthorityRevision } from "./services/product-store.js";
@@ -467,6 +468,13 @@ export async function createAppContext(
       databasePool ?? memoryRepository.getDatabaseClient?.()
     );
     conversationRepository?.setPublicationAdmission?.(outwardEffects.admitReplyPublications);
+    if (
+      parseRuntimeConfig(bootEnv).memory.backend === "postgres" &&
+      (!databasePool ||
+        !journalRepository?.appendWithHostAuthorityInTransaction ||
+        !conversationRepository.appendAcceptedUserInTransaction)
+    )
+      throw Error("MEMORY_ACCEPTED_SOURCE_TRANSACTION_REQUIRED");
     finalizedIngestionRepository = createFinalizedIngestionRepositoryFromEnv(
       bootEnv,
       databasePool ?? memoryRepository.getDatabaseClient?.(),
@@ -482,6 +490,114 @@ export async function createAppContext(
     await releaseDatabaseOwner();
     await databasePool?.end();
     throw error;
+  }
+  if (
+    databasePool &&
+    journalRepository?.appendWithHostAuthorityInTransaction &&
+    conversationRepository.appendAcceptedUserInTransaction &&
+    parseRuntimeConfig(bootEnv).memory.backend === "postgres"
+  ) {
+    conversationalReceiptAdmission.commitAcceptedSource = async (
+      input,
+      append,
+      authority,
+      identity
+    ) => {
+      const tx = await databasePool.connect();
+      const ignoreDisconnect = () => {};
+      tx.on("error", ignoreDisconnect);
+      try {
+        await tx.query("begin");
+        await tx.query("select pg_advisory_xact_lock(hashtextextended($1,0))", [
+          journalRepository.namespace + ":accepted-user:" + input.runtimeEventId
+        ]);
+        if (identity && !(await conversationHost?.lockCurrentGrant(identity, tx)))
+          throw new JournalStoreError(
+            "INVALID_PROPOSAL",
+            "Host credential revoked before source acceptance."
+          );
+        const existing = (
+          await tx.query("select * from conversation_messages where id=$1", [input.runtimeEventId])
+        ).rows[0];
+        if (existing) {
+          const ref = existing["source_journal_ref"] as
+            | import("@companion/protocol").JournalEventRef
+            | undefined;
+          const old = ref ? await journalRepository.get(ref) : null;
+          const sameOwner =
+            old &&
+            contextUseDigest(old.authority.principal) === contextUseDigest(authority.principal) &&
+            contextUseDigest(old.authority.binding) === contextUseDigest(authority.binding) &&
+            contextUseDigest(old.authority.audience) === contextUseDigest(authority.audience);
+          if (
+            !sameOwner ||
+            existing["session_id"] !== input.sessionId ||
+            existing["trace_id"] !== (input.traceId ?? input.runtimeEventId) ||
+            existing["content"] !== input.content ||
+            existing["ingestion_requested"] !== Boolean(input.memoryWriteRequested && identity)
+          )
+            throw new JournalStoreError(
+              "SOURCE_DEDUP_CONFLICT",
+              "Accepted source ID conflicts with its immutable original."
+            );
+          await tx.query("commit");
+          return { status: "DEDUPLICATED", envelope: old! };
+        }
+        const receipt = await journalRepository.appendWithHostAuthorityInTransaction!(
+          tx,
+          append,
+          authority
+        );
+        const requested = Boolean(input.memoryWriteRequested && identity);
+        await conversationRepository.appendAcceptedUserInTransaction!(tx, {
+          id: input.runtimeEventId,
+          sessionId: input.sessionId,
+          traceId: input.traceId ?? input.runtimeEventId,
+          parentMessageId: null,
+          role: "user",
+          content: input.content,
+          status: "completed",
+          createdAt: receipt.envelope.recordedAt,
+          completedAt: receipt.envelope.recordedAt,
+          sourceJournalRef: {
+            kind: "JOURNAL_EVENT",
+            namespace: receipt.envelope.journalNamespace,
+            eventId: receipt.envelope.eventId
+          },
+          sourceUserEventId: input.runtimeEventId,
+          finalizedTurnId: `accepted-user:${input.runtimeEventId}`,
+          personaId: identity?.personaId ?? null,
+          subjectUserId: identity?.personId ?? null,
+          ingestionRequested: requested,
+          ingestionSkipReason: requested
+            ? null
+            : input.memoryWriteRequested
+              ? "authority-unresolved"
+              : "memory-disabled",
+          metadata: {
+            ...(!input.memoryWriteRequested ? { memoryWriteDisabled: true } : {}),
+            ...(input.hasImageAttachment ? { memoryEphemeral: true } : {})
+          }
+        });
+        await tx.query("commit");
+        // Polling recovers even if the process exits before this wake.
+        try {
+          coordinator?.wake();
+        } catch {
+          runtimeLogger.warn?.(
+            "Accepted source committed; wake unavailable, polling will recover",
+            { runtimeEventId: input.runtimeEventId }
+          );
+        }
+        return receipt;
+      } catch (error) {
+        await tx.query("rollback").catch(() => undefined);
+        throw error;
+      } finally {
+        tx.removeListener("error", ignoreDisconnect);
+        tx.release();
+      }
+    };
   }
   // One host authority survives provider/settings composition replacement.
   const evidenceAdmissionDatabase = databasePool ?? memoryRepository.getDatabaseClient?.();
@@ -618,6 +734,14 @@ export async function createAppContext(
             vectorEnabled ? embeddingModelTag(embeddingProvider) : undefined
           )
         : undefined;
+    if (authority)
+      authority.authorizeSource = async (event, transaction) => {
+        const lineage = event.lineage;
+        if (lineage?.state !== "GROUNDED" || lineage.parents.length !== 1) return false;
+        return Boolean(
+          await conversationHost?.readAuthority(lineage.parents[0]!.ref, event.scope, transaction)
+        );
+      };
     const vectorIndexer =
       authority && vectorEnabled
         ? new MemoryVectorIndexer(
@@ -627,6 +751,26 @@ export async function createAppContext(
               withProviderWorkContext(
                 {
                   scope: event.scope!,
+                  authorizationBasis: "HOST_SCOPE_MAINTENANCE",
+                  // Configured Host indexing owns this private Character view.
+                  // An old transport token is causal evidence, not a perpetual
+                  // maintenance credential. Lifecycle/Person removal still fence reads.
+                  verifyAuthority: async () => {
+                    if (memory !== service) return false;
+                    service.getKnowledgeReader(event.scope!);
+                    const source = event.lineage;
+                    if (
+                      source?.state !== "GROUNDED" ||
+                      !("authority" in source) ||
+                      source.authority.binding.state !== "RESOLVED" ||
+                      source.authority.audience.kind !== "PRIVATE"
+                    )
+                      return false;
+                    const id = source.authority.binding.personId;
+                    return composition?.people
+                      ? composition.people.readPerson(id) !== null
+                      : personAuthorityRevision(readProductSettings(bootEnv), id) !== null;
+                  },
                   cause:
                     event.lineage?.state === "GROUNDED"
                       ? event.lineage.parents[0]!.ref
@@ -681,11 +825,14 @@ export async function createAppContext(
                 .routes?.reasoning?.some((r) => r.enabled && r.configured && !r.mock) ?? false,
             withSourceContext: async (source, scope, call) => {
               if (!(await conversationHost?.readAuthority(source.parent, scope)))
-                throw new Error("MEMORY_SOURCE_AUTHORITY_UNAVAILABLE");
-              return withProviderWorkContext(
+                throw new MemoryAuthorityError("MEMORY_SOURCE_AUTHORITY_REVOKED");
+              const result = await withProviderWorkContext(
                 { scope, cause: source.parent, isCurrent: () => memory === service },
                 call
               );
+              if (!(await conversationHost?.readAuthority(source.parent, scope)))
+                throw new MemoryAuthorityError("MEMORY_SOURCE_AUTHORITY_REVOKED");
+              return result;
             }
           },
           postgresProvider.authority.pool

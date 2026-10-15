@@ -15,6 +15,10 @@ import {
 
 const poolHealth = new WeakMap<object, { failures: number; lastFailureAt: string | null }>();
 export class PostgresMemoryAuthority {
+  /** Host live authority check; the transaction can lock revocable grants through commit. */
+  authorizeSource?:
+    | ((input: MemoryWriteEventInput, transaction?: AuthorityQuery) => Promise<boolean>)
+    | undefined;
   constructor(
     readonly pool: AuthorityPool,
     readonly indexModel?: string
@@ -35,6 +39,16 @@ export class PostgresMemoryAuthority {
   }
   async prepare(producer: EvidenceProducer, input: MemoryWriteEventInput): Promise<void> {
     this.validate(input);
+    const committed = (
+      await this.pool.query(
+        "select digest from memory_authority_records where scope=$1 and logical_key=$2",
+        [input.scope, input.idempotencyKey]
+      )
+    ).rows[0];
+    if (!committed && this.authorizeSource && !(await this.authorizeSource(input)))
+      throw new MemoryAuthorityError("MEMORY_SOURCE_AUTHORITY_REVOKED");
+    if (committed && committed["digest"] !== input.payloadDigest)
+      throw new MemoryAuthorityError("MEMORY_PAYLOAD_CONFLICT");
     if (input.lineage?.state !== "GROUNDED" || input.lineage.derivation.kind !== producer)
       throw new MemoryAuthorityError("MEMORY_PRODUCER_MISMATCH");
     const inserted = await this.pool.query(
@@ -125,6 +139,8 @@ export class PostgresMemoryAuthority {
           throw new MemoryAuthorityError("MEMORY_PAYLOAD_CONFLICT");
         return { event: old.rows[0]["event"] as MemoryEvent, inserted: false };
       }
+      if (this.authorizeSource && !(await this.authorizeSource(input, tx)))
+        throw new MemoryAuthorityError("MEMORY_SOURCE_AUTHORITY_REVOKED");
       const targets = await this.validateTargets(tx, input);
       const version = (
         await tx.query(

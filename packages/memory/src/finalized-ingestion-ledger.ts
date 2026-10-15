@@ -1,3 +1,4 @@
+import { MemoryAuthorityError } from "./authority/types.js";
 import type { JournalEventRef } from "@companion/protocol";
 import {
   MemoryGroundingError,
@@ -1728,19 +1729,23 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
         ingestionInput.dialogueContext = await this.dialogueContext(input, source);
       extraction = await this.ingestionPolicy.build(ingestionInput);
     } catch (error) {
+      const retryable = Boolean(
+        this.ingestionPolicy.semanticOnly &&
+        !(
+          error instanceof Error &&
+          ["MEMORY_SEMANTIC_RETRY_EXHAUSTED", "MEMORY_SOURCE_AUTHORITY_REVOKED"].includes(
+            error.message
+          )
+        )
+      );
       return this.repository.admit({
         turn: {
           ...baseTurn,
-          status:
-            this.ingestionPolicy.semanticOnly &&
-            !(error instanceof Error && error.message === "MEMORY_SEMANTIC_RETRY_EXHAUSTED")
-              ? "retryable_failed"
-              : "terminal_failed",
-          nextAttemptAt: this.ingestionPolicy.semanticOnly
-            ? new Date(Date.now() + 30_000).toISOString()
-            : null,
+          status: retryable ? "retryable_failed" : "terminal_failed",
+          nextAttemptAt: retryable ? new Date(Date.now() + 30_000).toISOString() : null,
           failureStage: "materialization",
-          lastErrorCode: "MEMORY_MATERIALIZATION_FAILED",
+          lastErrorCode:
+            error instanceof MemoryAuthorityError ? error.code : "MEMORY_MATERIALIZATION_FAILED",
           lastErrorMessage: "Memory materialization policy build failed."
         },
         events: []

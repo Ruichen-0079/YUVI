@@ -270,7 +270,8 @@ export function freezeEffectRequest(raw: unknown): EffectIntentRequest {
       configurationRef: token,
       relatedReply: token.nullable(),
       target: z.object({ surface: token, recipient: token, generation: token }).strict().nullable(),
-      routingPlan: z.array(z.object({ provider: token, model: token.nullable() }).strict()).max(32)
+      routingPlan: z.array(z.object({ provider: token, model: token.nullable() }).strict()).max(32),
+      authorizationBasis: z.enum(["CAUSAL_SOURCE_HOST_POLICY", "HOST_SCOPE_MAINTENANCE"]).optional()
     })
     .strict();
   const payload = ["yuvi.provider.v1", "yuvi.publication.v1", "yuvi.playback.v1"].includes(

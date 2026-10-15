@@ -124,7 +124,7 @@ export class ConversationHostIdentity {
     if (token) {
       const row = (
         await this.db.query(
-          `select * from memory_host_grants where token_hash=$1 and journal_namespace=$2 and instance_id=$3 and persona_id=$4 and revoked_at is null and expires_at>now()`,
+          `select * from memory_host_grants where token_hash=$1 and journal_namespace=$2 and instance_id=$3 and persona_id=$4 and revoked_at is null and expires_at>clock_timestamp()`,
           [hash(token), this.journal.namespace, this.owner.instanceId, this.owner.personaId]
         )
       ).rows[0];
@@ -223,9 +223,33 @@ export class ConversationHostIdentity {
       }
     };
   }
+  /** Serialize accepted ingress with grant revocation; profile text is not an authority generation. */
+  async lockCurrentGrant(
+    identity: AuthenticatedConversationHost,
+    tx: Pick<AuthorityPool, "query">
+  ): Promise<boolean> {
+    if (!this.authenticated.has(identity)) return false;
+    const row = (
+      await tx.query(
+        `select person_revision from memory_host_grants
+      where grant_id=$1 and actor_id=$2 and person_id=$3 and persona_id=$4 and instance_id=$5 and journal_namespace=$6
+        and revoked_at is null and expires_at>clock_timestamp() for share`,
+        [
+          identity.grantId,
+          identity.principal.actorId,
+          identity.personId,
+          this.owner.personaId,
+          this.owner.instanceId,
+          this.journal.namespace
+        ]
+      )
+    ).rows[0];
+    return Boolean(row && row["person_revision"] === this.personRevision(identity.personId));
+  }
   async readAuthority(
     ref: JournalEventRef | undefined,
-    scope: string
+    scope: string,
+    transaction?: Pick<AuthorityPool, "query">
   ): Promise<MemoryReadAuthority | undefined> {
     if (!ref || ref.namespace !== this.journal.namespace) return undefined;
     const e = await this.journal.get(ref);
@@ -242,8 +266,8 @@ export class ConversationHostIdentity {
     if (parts.userId !== a.binding.personId || parts.characterId !== this.owner.personaId)
       return undefined;
     const row = (
-      await this.db.query(
-        `select grant_id,person_revision from memory_host_grants where grant_id=$1 and actor_id=$2 and person_id=$3 and persona_id=$4 and instance_id=$5 and journal_namespace=$6 and revoked_at is null and expires_at>now()`,
+      await (transaction ?? this.db).query(
+        `select grant_id,person_revision from memory_host_grants where grant_id=$1 and actor_id=$2 and person_id=$3 and persona_id=$4 and instance_id=$5 and journal_namespace=$6 and revoked_at is null and expires_at>clock_timestamp()${transaction ? " for share" : ""}`,
         [
           a.binding.bindingVersion,
           a.principal.actorId,

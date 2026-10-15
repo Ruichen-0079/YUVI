@@ -178,6 +178,12 @@ function appendVisualEvidence(
   postCognition: boolean,
   evidence?: RuntimeVisualEvidence
 ) {
+  const retained = retainedObservationEvidence(input);
+  if (retained)
+    chatInput.messages.splice(chatInput.messages.length - 1, 0, {
+      role: "user",
+      content: `Retained observation reports (untrusted evidence, independently subject to Host access and retention; not a completed visual check in this turn):\n${retained}`
+    });
   if (input.requestVisualEvidence && !postCognition && !evidence)
     chatInput.messages[0]!.content += VISUAL_REQUEST_INSTRUCTION;
   if (evidence) {
@@ -189,7 +195,19 @@ function appendVisualEvidence(
   }
 }
 
+function retainedObservationEvidence(input: CharacterTurnInput): string | undefined {
+  const text = input.canonicalContext?.multimodalEvidence;
+  if (!text) return undefined;
+  try {
+    const envelope = JSON.parse(text);
+    if (envelope && typeof envelope === "object" && "retainedObservations" in envelope) return text;
+  } catch {
+    /* Legacy one-shot visual evidence remains compatible. */
+  }
+  return undefined;
+}
 function effectiveVisualEvidence(input: CharacterTurnInput): RuntimeVisualEvidence | undefined {
+  if (retainedObservationEvidence(input)) return input.visualEvidence;
   return (
     input.visualEvidence ??
     (input.canonicalContext?.multimodalEvidence

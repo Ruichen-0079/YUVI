@@ -378,6 +378,7 @@ export class HostOutwardEffects implements ProviderAccountingPort {
     operation: string;
     digest: string;
     configurationRef: string;
+    authorizationBasis?: "CAUSAL_SOURCE_HOST_POLICY" | "HOST_SCOPE_MAINTENANCE" | undefined;
     scope: string;
     cause?: JournalEventRef | undefined;
     executionId?: string | undefined;
@@ -428,6 +429,7 @@ export class HostOutwardEffects implements ProviderAccountingPort {
             manifest: input.contextManifest ?? "A10_3_NOT_IMPLEMENTED"
           },
           configurationRef: input.configurationRef,
+          ...(input.authorizationBasis ? { authorizationBasis: input.authorizationBasis } : {}),
           relatedReply: input.replyId ?? null,
           target: input.target ?? null,
           routingPlan: input.routingPlan ?? []
@@ -505,6 +507,7 @@ export class HostOutwardEffects implements ProviderAccountingPort {
         operation: task.operation,
         digest: task.inputDigest,
         configurationRef: task.configurationRef,
+        authorizationBasis: task.context?.authorizationBasis ?? "CAUSAL_SOURCE_HOST_POLICY",
         routingPlan: task.routingPlan,
         scope: context?.scope ?? "host-provider-operation",
         cause: context?.cause,
@@ -512,7 +515,7 @@ export class HostOutwardEffects implements ProviderAccountingPort {
         replyId: context?.replyId,
         isCurrent: () => !signal?.aborted && (context?.isCurrent?.() ?? true)
       });
-      const sourceAuthority = work.verifyContext;
+      const sourceAuthority = task.context?.verifyAuthority ?? work.verifyContext;
       const snapshotAuthority = task.contextUse?.verifyAuthority ?? task.contextUse?.verifyCurrent;
       work.verifyContext = async () =>
         (!sourceAuthority || (await sourceAuthority())) &&

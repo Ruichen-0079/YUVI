@@ -285,6 +285,8 @@ export async function registerWebSocketRoutes(
               ...(hostIdentity ? { hostIdentity } : {}),
               sessionId: parsed.payload.sessionId,
               runtimeEventId: parsed.id,
+              traceId: parsed.traceId,
+              memoryWriteRequested: true,
               content: parsed.payload.content
             });
             sourceJournalRef = toConversationalJournalRef(receipt.envelope);

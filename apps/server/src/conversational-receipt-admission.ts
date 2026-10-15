@@ -33,7 +33,9 @@ export type ConversationalReceiptInput = {
   sessionId: string;
   runtimeEventId: string;
   content: string;
-  hasImageAttachment?: boolean;
+  hasImageAttachment?: boolean | undefined;
+  memoryWriteRequested?: boolean | undefined;
+  traceId?: string | undefined;
   /** In-process Host proof, never accepted from a message DTO. */
   hostIdentity?: AuthenticatedConversationHost;
 };
@@ -60,7 +62,9 @@ const ConversationalReceiptInputSchema = z
     sessionId: z.string().min(1).max(512),
     runtimeEventId: z.string().min(1).max(512),
     content: z.string().min(1),
-    hasImageAttachment: z.boolean().optional()
+    hasImageAttachment: z.boolean().optional(),
+    memoryWriteRequested: z.boolean().optional(),
+    traceId: z.string().min(1).max(512).optional()
   })
   .strict();
 
@@ -77,6 +81,14 @@ const SURFACE_REFERENCE: Record<ConversationalReceiptSurface, string> = {
  * provider, principal-binding, audience-membership or source-dedup authority.
  */
 export class HostConversationalReceiptAdmission implements ConversationalReceiptAdmission {
+  commitAcceptedSource?:
+    | ((
+        input: ConversationalReceiptInput,
+        append: JournalHostAppendInput,
+        authority: JournalAuthorityDraft,
+        identity?: AuthenticatedConversationHost
+      ) => Promise<JournalAppendResult>)
+    | undefined;
   constructor(
     private readonly journal: JournalRepository | null,
     private readonly createPayloadId: () => string = createOpaquePayloadId,
@@ -185,6 +197,8 @@ export class HostConversationalReceiptAdmission implements ConversationalReceipt
       command,
       retainedText: [{ ref: textRef, text: input.content }]
     };
+    if (this.commitAcceptedSource && input.memoryWriteRequested !== undefined)
+      return this.commitAcceptedSource(input, appendInput, authority, hostIdentity);
     return this.journal.appendWithHostAuthority(appendInput, authority);
   }
 
@@ -204,29 +218,37 @@ export function createOpaquePayloadId(): string {
 export function toConversationalAdmissionFailure(error: unknown): {
   code: "JOURNAL_UNAVAILABLE" | "JOURNAL_PERSISTENCE_FAILED" | "JOURNAL_ADMISSION_REJECTED";
   message: string;
+  admissionState: "UNAVAILABLE" | "REJECTED" | "UNKNOWN";
 } {
   if (error instanceof JournalStoreError) {
     switch (error.code) {
       case "DATABASE_UNAVAILABLE":
         return {
           code: "JOURNAL_UNAVAILABLE",
+          admissionState: "UNAVAILABLE",
           message: "Durable message admission is temporarily unavailable."
         };
       case "INVALID_PROPOSAL":
       case "UNSUPPORTED_SCHEMA_VERSION":
+      case "SOURCE_DEDUP_CONFLICT":
         return {
           code: "JOURNAL_ADMISSION_REJECTED",
+          admissionState: "REJECTED",
           message: "Message could not be admitted to the Journal."
         };
       default:
         return {
           code: "JOURNAL_PERSISTENCE_FAILED",
-          message: "Durable message admission did not commit."
+          admissionState: "UNKNOWN",
+          message:
+            "Durable message admission could not be confirmed. Query the original event before retrying."
         };
     }
   }
   return {
     code: "JOURNAL_PERSISTENCE_FAILED",
-    message: "Durable message admission did not commit."
+    admissionState: "UNKNOWN",
+    message:
+      "Durable message admission could not be confirmed. Query the original event before retrying."
   };
 }

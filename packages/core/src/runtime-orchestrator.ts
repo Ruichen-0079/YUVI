@@ -1502,7 +1502,14 @@ export class RuntimeOrchestrator {
     );
     const snapshotAuthority = async () => {
       if (!(await voiceAuthority())) return false;
-      const ids = retained.filter((o) => o.availability === "AVAILABLE").map((o) => o.id);
+      const ids = [
+        ...new Set([
+          ...retained.filter((o) => o.availability === "AVAILABLE").map((o) => o.id),
+          ...(observationEvent && this.reobservedIds.has(observationEvent)
+            ? [this.reobservedIds.get(observationEvent)!]
+            : [])
+        ])
+      ];
       if (
         ids.length &&
         observationEvent &&
@@ -4355,6 +4362,7 @@ export class RuntimeOrchestrator {
 
   private readonly memoryWriteDisabledTurns = new WeakSet<RuntimeUserTurnEvent>();
   private readonly visuallyGroundedTurns = new WeakSet<RuntimeUserTurnEvent>();
+  private readonly reobservedIds = new WeakMap<RuntimeUserTurnEvent, string>();
   private readonly observationAvailability = new WeakMap<
     RuntimeUserTurnEvent,
     "OK" | "UNAVAILABLE"
@@ -4699,6 +4707,7 @@ export class RuntimeOrchestrator {
               observations:
                 "Prior image expired, deleted, not retained or not authorized. No image detail may be inferred."
             };
+          this.reobservedIds.set(event, observationId);
           if (!(await port.verify(context, [observationId])))
             return { status: "UNAVAILABLE", observations: "Prior image access expired." };
           const output = await this.options.providers.getVisionProvider().analyzeImage(

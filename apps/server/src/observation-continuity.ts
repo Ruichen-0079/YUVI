@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import type { JournalRepository } from "@companion/journal";
-import type { JournalEventRef } from "@companion/protocol";
+import { ObservationEvidenceSchema, type JournalEventRef } from "@companion/protocol";
 import type { AuthorityPool } from "@companion/memory";
 import { contextUseDigest, buildMemoryScope } from "@companion/memory";
 import {
@@ -270,7 +270,7 @@ export class HostObservationContinuity implements RuntimeObservationPort {
     const evidence = row["evidence"] as ObservationEvidence["evidence"];
     if (!unavailableReason && contextUseDigest(evidence) !== row["evidence_digest"])
       throw Error("OBSERVATION_INTEGRITY_FAILED");
-    return {
+    return ObservationEvidenceSchema.parse({
       schema: "observation.v1",
       id: String(row["observation_id"]),
       kind: row["kind"] as ObservationEvidence["kind"],
@@ -294,7 +294,7 @@ export class HostObservationContinuity implements RuntimeObservationPort {
         : row["has_image"]
           ? "AVAILABLE"
           : "NOT_RETAINED"
-    };
+    });
   }
   async detail(context: ObservationContext, id: string) {
     const owner = await this.owner(context.sourceJournalRef);
@@ -311,7 +311,7 @@ export class HostObservationContinuity implements RuntimeObservationPort {
     return (await this.owner(context.sourceJournalRef)) ? record : null;
   }
   async verify(context: ObservationContext, ids: string[]) {
-    if (ids.length > 4) return false;
+    if (ids.length > 5) return false;
     const records = await Promise.all(ids.map((id) => this.detail(context, id)));
     return records.every((r) => r?.availability === "AVAILABLE");
   }

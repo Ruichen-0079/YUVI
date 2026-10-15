@@ -1,26 +1,8 @@
 import type { JournalEventRef } from "@companion/protocol";
 import type { VisionOutput } from "@companion/providers";
 
-export type ObservationEvidence = Readonly<{
-  schema: "observation.v1";
-  id: string;
-  kind: "VISION" | "READ_TEXT";
-  availability: "AVAILABLE" | "UNAVAILABLE";
-  unavailableReason?: "EXPIRED" | "DELETED" | "SOURCE_AUTHORITY_UNAVAILABLE" | undefined;
-  source: JournalEventRef;
-  observedAt: string;
-  expiresAt: string;
-  action: { attemptId: string; contractRef: string; certainty: "APPLIED" };
-  /** Execution success says nothing about overall Cognition goal completion. */
-  goalStatus: "NOT_INFERRED";
-  coverage: "BOUNDED_PROVIDER_REPORT";
-  provider: string | null;
-  model: string | null;
-  evidence?:
-    | { text: string; sceneSummary: string; objects: string[]; confidence: number | null }
-    | undefined;
-  sourceArtifact: "AVAILABLE" | "NOT_RETAINED" | "UNAVAILABLE";
-}>;
+import type { ObservationEvidence } from "@companion/protocol";
+export type { ObservationEvidence } from "@companion/protocol";
 export type ObservationContext = {
   sourceJournalRef?: JournalEventRef | undefined;
   sessionId: string;

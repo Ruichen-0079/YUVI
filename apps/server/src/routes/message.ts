@@ -165,13 +165,11 @@ export async function registerMessageRoutes(
         identity = { subjectUserId: hostIdentity.personId, personaId: hostIdentity.personaId };
       }
     } catch (e) {
-      return reply
-        .status(e instanceof ConversationHostIdentityError ? e.statusCode : 503)
-        .send({
-          schema: "host.error.v1",
-          status: e instanceof ConversationHostIdentityError ? "FAILED" : "UNKNOWN",
-          error: e instanceof ConversationHostIdentityError ? e.code : "HOST_IDENTITY_UNAVAILABLE"
-        });
+      return reply.status(e instanceof ConversationHostIdentityError ? e.statusCode : 503).send({
+        schema: "host.error.v1",
+        status: e instanceof ConversationHostIdentityError ? "FAILED" : "UNKNOWN",
+        error: e instanceof ConversationHostIdentityError ? e.code : "HOST_IDENTITY_UNAVAILABLE"
+      });
     }
     let event;
     let runtimeEventId: string | undefined;
@@ -197,6 +195,7 @@ export async function registerMessageRoutes(
           ...(hostIdentity ? { hostIdentity } : {}),
           sessionId: input.data.sessionId,
           runtimeEventId,
+          memoryWriteRequested: memoryOptions.writeMemory,
           content,
           ...(input.data.imageAttachment ? { hasImageAttachment: true } : {})
         });
