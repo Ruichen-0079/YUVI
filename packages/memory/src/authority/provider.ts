@@ -203,6 +203,11 @@ export class PostgresMemoryProvider implements MemoryProvider {
       ? record.event
       : null;
   }
+  async canUseSnapshot(input: Parameters<MemoryProvider["getEvent"]>[0]) {
+    if (!input.access) return false;
+    const record = await this.knowledge.detail(input.scope, input.id);
+    return Boolean(record && matchesReader(record.event, input.access));
+  }
   writeEvent(input: MemoryWriteEventInput): Promise<MemoryWriteEventOutcome> {
     return this.writeEventIdempotent(input);
   }

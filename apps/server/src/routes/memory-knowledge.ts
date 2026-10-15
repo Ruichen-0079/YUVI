@@ -126,6 +126,11 @@ export async function registerMemoryKnowledgeRoutes(
           return {
             schema: "memory.ingestion.v1",
             id: turn.finalizedTurnId,
+            sourceLifecycle:
+              turn.assistantMessageId === null ? "ACCEPTED_USER" : "FINALIZED_ASSISTANT",
+            sourceUserEventId: turn.sourceUserEventId,
+            assistantMessageId: turn.assistantMessageId,
+            rejectedPropositions: turn.rejectedPropositions ?? [],
             status: turn.status,
             stage: turn.failureStage,
             eligible: turn.eligibleEventCount,

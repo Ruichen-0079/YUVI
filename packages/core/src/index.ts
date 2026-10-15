@@ -275,3 +275,10 @@ export {
   createFileVoiceBindingReferences,
   type VoiceBindingReferences
 } from "./voice-binding-references.js";
+export {
+  structuredVisualEvidence,
+  observationContextText,
+  type ObservationEvidence,
+  type ObservationContext,
+  type RuntimeObservationPort
+} from "./observation-evidence.js";

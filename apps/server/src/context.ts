@@ -1,3 +1,6 @@
+import { observationRetentionConfig } from "./config.js";
+import { HostObservationContinuity } from "./observation-continuity.js";
+import { personAuthorityRevision } from "./services/product-store.js";
 import { ConversationHostIdentity } from "./conversation-host-identity.js";
 import {
   MemoryDecisionReassessment,
@@ -197,6 +200,7 @@ export type AppContext = {
   finalizedIngestionRepository: FinalizedIngestionRepository;
   conversationalReceiptAdmission: ConversationalReceiptAdmission;
   conversationHost?: ConversationHostIdentity | undefined;
+  observations?: HostObservationContinuity | undefined;
   memoryIntegrity?: MemoryIntegrityAudit | undefined;
   speechReceiptAdmission: SpeechReceiptAdmission;
   visionReceiptAdmission: VisionReceiptAdmission;
@@ -359,11 +363,12 @@ export async function createAppContext(
                 characterPersonaId(PRIMARY_CHARACTER))
           },
           (id) => {
-            if (composition?.people) return composition.people.readPerson(id)?.revision ?? null;
+            if (composition?.people) {
+              const person = composition.people.readPerson(id);
+              return person?.authorityRevision ?? person?.revision ?? null;
+            }
             const settings = readProductSettings(bootEnv);
-            return settings?.people.some((p) => p.id === id)
-              ? (settings.personRevisionById?.[id] ?? null)
-              : null;
+            return personAuthorityRevision(settings, id);
           }
         )
       : undefined;
@@ -393,6 +398,68 @@ export async function createAppContext(
   const voiceControlReceiptAdmission = new HostVoiceControlReceiptAdmission(journalRepository);
   const memoryRepository = createMemoryRepositoryFromEnv(bootEnv, databasePool);
   let conversationRepository: ConversationRepository | undefined;
+  const verifySourceAuthority = async (ref: import("@companion/protocol").JournalEventRef) => {
+    const source = await journalRepository?.get(ref);
+    if (!source) return false;
+    const binding = source.authority.binding;
+    // Anonymous operations retain their separate Host policy and cannot gain Memory access.
+    if (binding.state !== "RESOLVED") return true;
+    if (!conversationHost) return true;
+    const personaId = composition
+      ? characterPersonaId(composition.binding)
+      : (parseRuntimeConfig(bootEnv).memory.personaId ?? characterPersonaId(PRIMARY_CHARACTER));
+    return Boolean(
+      await conversationHost.readAuthority(ref, buildMemoryScope(binding.personId, personaId))
+    );
+  };
+  outwardEffects.verifySourceAuthority = verifySourceAuthority;
+  readTextEffects.verifySourceAuthority = verifySourceAuthority;
+
+  const observations =
+    databasePool && journalRepository && conversationHost
+      ? new HostObservationContinuity(
+          databasePool as AuthorityPool,
+          journalRepository,
+          conversationHost,
+          composition
+            ? characterPersonaId(composition.binding)
+            : (parseRuntimeConfig(bootEnv).memory.personaId ??
+                characterPersonaId(PRIMARY_CHARACTER)),
+          observationRetentionConfig(bootEnv)
+        )
+      : undefined;
+  readTextEffects.retainObservation = async (input, attemptId, result) => {
+    if (!observations || result.isError) return;
+    try {
+      const source = await journalRepository?.get(input.cause);
+      const conversation = source?.authority.correlations.find((c) => c.kind === "CONVERSATION");
+      if (!conversation || conversation.kind !== "CONVERSATION") return;
+      const text = result.content
+        .filter((p): p is { type: "text"; text: string } =>
+          Boolean(
+            p &&
+            typeof p === "object" &&
+            "type" in p &&
+            p.type === "text" &&
+            "text" in p &&
+            typeof p.text === "string"
+          )
+        )
+        .map((p) => p.text)
+        .join("\n");
+      await observations.saveReadText(
+        { sourceJournalRef: input.cause, sessionId: conversation.sessionId },
+        attemptId,
+        text,
+        input.expiresAt
+      );
+    } catch {
+      runtimeLogger.warn?.("Tool observation retention failed; A9 execution receipt retained", {
+        attemptId
+      });
+    }
+  };
+
   let finalizedIngestionRepository: FinalizedIngestionRepository | undefined;
   try {
     conversationRepository = createConversationRepositoryFromEnv(
@@ -404,7 +471,9 @@ export async function createAppContext(
       bootEnv,
       databasePool ?? memoryRepository.getDatabaseClient?.(),
       parseRuntimeConfig(bootEnv).memory.backend === "postgres"
-        ? characterPersonaId(composition?.binding ?? PRIMARY_CHARACTER)
+        ? composition
+          ? characterPersonaId(composition.binding)
+          : (parseRuntimeConfig(bootEnv).memory.personaId ?? characterPersonaId(PRIMARY_CHARACTER))
         : undefined
     );
   } catch (error) {
@@ -445,7 +514,56 @@ export async function createAppContext(
         return memory.getBackendKind() === "postgres";
       }
     },
-    journalRepository ? new JournalMemoryGroundingResolver(journalRepository) : undefined
+    journalRepository ? new JournalMemoryGroundingResolver(journalRepository) : undefined,
+    async (input, source) => {
+      if (
+        !input.sourceUserEventId ||
+        !conversationRepository.listMessagesBefore ||
+        !journalRepository
+      )
+        return [];
+      // The Host session fence prevents another actor joining this conversation.
+      // Recheck every user source; assistant text is interpretation only.
+      const rows = await conversationRepository.listMessagesBefore(input.sourceUserEventId, {
+        limit: 12,
+        maxCharacters: 12000
+      });
+      const context: NonNullable<
+        import("@companion/memory").MemoryIngestionInput["dialogueContext"]
+      > = [];
+      for (const row of rows) {
+        if (
+          row.status !== "completed" ||
+          row.metadata["memoryWriteDisabled"] === true ||
+          row.metadata["memoryEphemeral"] === true ||
+          row.metadata["observationDependent"] === true
+        )
+          continue;
+        if (row.role === "user") {
+          if (!row.sourceJournalRef) continue;
+          const prior = await new JournalMemoryGroundingResolver(journalRepository).resolve({
+            sourceJournalRef: row.sourceJournalRef,
+            sourceText: row.content
+          });
+          if (
+            contextUseDigest(prior.authority.principal) !==
+              contextUseDigest(source.authority.principal) ||
+            contextUseDigest(prior.authority.binding) !==
+              contextUseDigest(source.authority.binding) ||
+            contextUseDigest(prior.authority.audience) !==
+              contextUseDigest(source.authority.audience)
+          )
+            continue;
+        }
+        context.push({
+          id: row.id,
+          role: row.role,
+          content: row.content,
+          ...(row.sourceJournalRef ? { sourceJournalRef: row.sourceJournalRef } : {})
+        });
+      }
+      return context;
+    }
   );
   const ruleBasedExtractor = new RuleBasedMemoryExtractor();
   const runtimeLogger = createRuntimeLogger(logger);
@@ -545,9 +663,13 @@ export async function createAppContext(
             return [
               ...new Map(
                 [
-                  ...relevant.records,
-                  ...vectorRecords.filter((r) => r !== null),
-                  ...recent.records
+                  ...Array.from({ length: 32 }, (_, i) => [
+                    recent.records[i],
+                    relevant.records[i],
+                    vectorRecords[i]
+                  ])
+                    .flat()
+                    .filter((r): r is NonNullable<typeof r> => r != null)
                 ].map((r) => [r.id, r.event])
               ).values()
             ];
@@ -557,11 +679,14 @@ export async function createAppContext(
               providers
                 .getStatus()
                 .routes?.reasoning?.some((r) => r.enabled && r.configured && !r.mock) ?? false,
-            withSourceContext: (source, scope, call) =>
-              withProviderWorkContext(
+            withSourceContext: async (source, scope, call) => {
+              if (!(await conversationHost?.readAuthority(source.parent, scope)))
+                throw new Error("MEMORY_SOURCE_AUTHORITY_UNAVAILABLE");
+              return withProviderWorkContext(
                 { scope, cause: source.parent, isCurrent: () => memory === service },
                 call
-              )
+              );
+            }
           },
           postgresProvider.authority.pool
         )
@@ -699,6 +824,23 @@ export async function createAppContext(
       verifyContextOwners: async () => {
         if (!productDependency) return true;
         if (composition?.people) {
+          const current = personId ? composition.people.readPerson(personId) : null;
+          return Boolean(
+            current &&
+            (current.authorityRevision ?? current.revision) ===
+              (sharedPerson?.authorityRevision ?? sharedPerson?.revision)
+          );
+        }
+        const current = readProductSettings(bootEnv);
+        return (
+          personAuthorityRevision(current, personId!) ===
+            personAuthorityRevision(capturedProduct, personId!) &&
+          current?.primaryPersonId === capturedProduct?.primaryPersonId
+        );
+      },
+      checkContextOwnerFreshness: async () => {
+        if (!productDependency) return true;
+        if (composition?.people) {
           const person = personId ? composition.people.readPerson(personId) : null;
           return (
             contextUseDigest(
@@ -738,6 +880,7 @@ export async function createAppContext(
       ),
       proactiveStateStore,
       conversation: conversationRepository,
+      observations,
       finalizedIngestion,
       deferFinalizedMemoryAdmission:
         memory.getBackendKind() === "postgres" ||
@@ -769,6 +912,7 @@ export async function createAppContext(
                 canonicalContext: options.canonicalContext,
                 limits: config.cognitionInteraction,
                 runtimeAuthorizedPath: options?.runtimeAuthorizedPath,
+                onObservation: options.onObservation,
                 readTextEffects,
                 effectContext: options.effectContext,
                 ...(pluginCapabilities === undefined ? {} : { pluginCapabilities }),
@@ -908,6 +1052,7 @@ export async function createAppContext(
         context.runtime.observeAccountedPlayback(intent, request, observation)
     ),
     readTextEffects,
+    observations,
     existingMemoryEffectIntents: {
       async finalized(id) {
         return (await finalizedIngestionRepository!.listEvents(id)).map(
@@ -943,6 +1088,7 @@ export async function createAppContext(
     ttsReceiptAdmission,
     voiceControlReceiptAdmission,
     async closeDatabasePool() {
+      await observations?.stop();
       productPersonCommands.shutdown();
       outwardEffects.seal();
       context.mediaEffects.seal();

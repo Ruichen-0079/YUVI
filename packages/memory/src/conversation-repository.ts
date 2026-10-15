@@ -138,6 +138,11 @@ export interface ConversationRepository {
     sessionId: string,
     options?: ConversationListOptions
   ): Promise<ConversationMessage[]>;
+  /** Strictly before an accepted source; late workers must not observe future dialogue. */
+  listMessagesBefore?(
+    messageId: string,
+    options?: ConversationListOptions
+  ): Promise<ConversationMessage[]>;
   recoverStaleStreamingMessages?(
     options?: ConversationRecoveryOptions
   ): Promise<ConversationMessage[]>;
@@ -492,6 +497,21 @@ export class PostgresConversationRepository implements ConversationRepository {
     return applyConversationBounds(result.rows.map(mapConversationMessageRow).reverse(), options);
   }
 
+  async listMessagesBefore(
+    messageId: string,
+    options: ConversationListOptions = {}
+  ): Promise<ConversationMessage[]> {
+    const result = await this.pool.query(
+      `select cm.* from conversation_messages cm
+       where cm.session_id=(select session_id from conversation_messages where id=$1)
+         and cm.sequence<(select sequence from conversation_messages where id=$1)
+         and cm.status='completed' and cm.completed_at <= (select created_at from conversation_messages where id=$1)
+       order by cm.sequence desc limit $2`,
+      [messageId, clampLimit(options.limit ?? 12)]
+    );
+    return applyConversationBounds(result.rows.map(mapConversationMessageRow).reverse(), options);
+  }
+
   async close(): Promise<void> {
     if (this.ownsPool) {
       await this.pool.end();
@@ -736,6 +756,27 @@ export class InMemoryConversationRepository implements ConversationRepository {
     const messages = this.messages.get(sessionId) ?? [];
     return applyConversationBounds(
       messages.slice(-(options.limit ?? 24)).map(cloneConversationMessage),
+      options
+    );
+  }
+
+  async listMessagesBefore(
+    messageId: string,
+    options: ConversationListOptions = {}
+  ): Promise<ConversationMessage[]> {
+    const source = this.findMessage(messageId);
+    if (!source) return [];
+    return applyConversationBounds(
+      (this.messages.get(source.sessionId) ?? [])
+        .filter(
+          (m) =>
+            m.sequence < source.sequence &&
+            m.status === "completed" &&
+            m.completedAt !== null &&
+            m.completedAt <= source.createdAt
+        )
+        .slice(-(options.limit ?? 12))
+        .map(cloneConversationMessage),
       options
     );
   }

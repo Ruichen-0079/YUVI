@@ -201,3 +201,11 @@ function parseVectorDistance(value: string | undefined): "cosine" {
   }
   throw new Error(`Unsupported MEMORY_VECTOR_DISTANCE '${value}'. Supported value: cosine.`);
 }
+
+/** Host privacy policy; zero disables retention and subsequent observation disclosure. */
+export function observationRetentionConfig(env: Record<string, string | undefined>) {
+  const seconds = Number(env["YUVI_OBSERVATION_RETENTION_SECONDS"] ?? 0);
+  if (!Number.isInteger(seconds) || seconds < 0 || seconds > 86400)
+    throw new Error("YUVI_OBSERVATION_RETENTION_SECONDS must be an integer from 0 to 86400.");
+  return { seconds, retainImages: parseBoolean(env["YUVI_OBSERVATION_RETAIN_IMAGES"], false) };
+}

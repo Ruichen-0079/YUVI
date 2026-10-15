@@ -12,7 +12,15 @@ import { RuleBasedMemoryExtractor, isNonAssertiveMemoryInput } from "./extractor
 import { MEMORY_CLAIM_METADATA } from "./claim.js";
 import type { MemoryEvent } from "./provider.js";
 
+/** Interpretation material, never an independent admitted assertion. */
+export type MemoryDialogueContext = Array<{
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  sourceJournalRef?: import("@companion/protocol").JournalEventRef | undefined;
+}>;
 export type MemoryIngestionInput = {
+  dialogueContext?: MemoryDialogueContext | undefined;
   reassessment?: { proposition: string; originalKey: string } | undefined;
   userMessage: string;
   assistantMessage?: string | null | undefined;
@@ -37,6 +45,7 @@ export type MemoryIngestionInput = {
 export type MemoryIngestionResult = {
   turnKind: Mem0TurnKind;
   events: MemoryWriteEventInput[];
+  rejectedPropositions?: Array<{ index: number; code: string }> | undefined;
   skippedReason?: string | undefined;
 };
 

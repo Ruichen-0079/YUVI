@@ -45,6 +45,12 @@ export function characterMemoryProvider(
       checkEvent(result.event, input.scope);
       return result;
     },
+    ...(provider.canUseSnapshot ? {
+      async canUseSnapshot(input: Parameters<NonNullable<MemoryProvider["canUseSnapshot"]>>[0]) {
+        check(input);
+        return provider.canUseSnapshot!(input);
+      }
+    } : {}),
     ...(provider.prepareEvidence
       ? ({
           async prepareEvidence(producer, input) {

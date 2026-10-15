@@ -291,6 +291,8 @@ export interface MemoryProvider {
   ): Promise<void>;
   retrieveRelevant(input: MemoryRetrievalInput): Promise<MemoryRetrievalOutcome>;
   getEvent(input: MemoryGetEventInput): Promise<MemoryEvent | null>;
+  /** Access to a previously selected historical snapshot; supersession alone is not revocation. */
+  canUseSnapshot?(input: MemoryGetEventInput): Promise<boolean>;
   writeEvent(input: MemoryWriteEventInput): Promise<MemoryWriteEventOutcome>;
   writeEventIdempotent?(input: MemoryWriteEventInput): Promise<MemoryWriteEventOutcome>;
   reconcileEvent?(

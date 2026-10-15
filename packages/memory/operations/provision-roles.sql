@@ -15,6 +15,10 @@ select format('revoke update,delete on %I.%I from %I', :'schema_name', t, :'app_
  from unnest(array['memory_authority_records','memory_authority_relations','memory_authority_admissions','context_use_manifests','context_use_exposures','journal_events','journal_event_parents']) t \gexec
 -- An app credential cannot edit the schema receipts to bypass the startup gate.
 select format('revoke insert,update,delete on %I.yuvi_schema_migrations from %I', :'schema_name', :'app_role') \gexec
+-- Retention may clear payloads; application credentials cannot rewrite observation ownership,
+-- execution provenance, digests or expiry, nor delete the durable receipt projection.
+select format('revoke update,delete on %I.retained_observations from %I', :'schema_name', :'app_role') \gexec
+select format('grant update(evidence,image_bytes,erased_at,erased_by_source) on %I.retained_observations to %I', :'schema_name', :'app_role') \gexec
 commit;
 -- If PUBLIC has CREATE, or this role inherits the owner/superuser, startup still rejects it.
 -- Repeat grants after additive migrations with the schema owner; never give the app DDL.

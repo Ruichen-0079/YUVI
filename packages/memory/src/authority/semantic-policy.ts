@@ -8,22 +8,15 @@ import type { MemoryExtractorStatus } from "../types.js";
 import type { MemoryEvent, MemoryWriteEventInput } from "../provider.js";
 import { MemoryAuthorityError } from "./types.js";
 
-const proposalSchema = z
+const propositionSchema = z
   .object({
-    propositions: z
-      .array(
-        z
-          .object({
-            content: z.string().min(1).max(4000),
-            evidenceText: z.string().min(1).max(8000),
-            relation: z.enum(["new", "supersedes", "conflicts", "supports"]),
-            targetIds: z.array(z.string().min(1)).max(8)
-          })
-          .strict()
-      )
-      .max(12)
+    content: z.string().min(1).max(4000),
+    evidenceText: z.string().min(1).max(8000),
+    relation: z.enum(["new", "supersedes", "conflicts", "supports"]),
+    targetIds: z.array(z.string().min(1)).max(8)
   })
   .strict();
+const proposalSchema = z.object({ propositions: z.array(z.unknown()).max(12) }).strict();
 /** Model proposes meaning; Host verifies source selection, ownership and persistence. No rule fallback. */
 export class SemanticMemoryPolicy {
   readonly semanticOnly = true;
@@ -64,8 +57,14 @@ export class SemanticMemoryPolicy {
       })
     );
     await db.query(
-      `insert into memory_semantic_jobs(scope,job_id,source_digest,source_ref,status) values($1,$2,$3,$4,'pending') on conflict do nothing`,
-      [input.scope, jobId, digest, input.groundedSource!.parent]
+      `insert into memory_semantic_jobs(scope,job_id,source_digest,source_ref,status,input_context) values($1,$2,$3,$4,'pending',$5::jsonb) on conflict do nothing`,
+      [
+        input.scope,
+        jobId,
+        digest,
+        input.groundedSource!.parent,
+        JSON.stringify(input.dialogueContext ?? [])
+      ]
     );
     await db.query(
       `update memory_semantic_jobs set status='terminal_failed',error_code='MEMORY_SEMANTIC_RETRY_EXHAUSTED',lease_owner=null,lease_until=null where scope=$1 and job_id=$2 and status='processing' and attempts>=8 and lease_until<=now()`,
@@ -92,7 +91,13 @@ export class SemanticMemoryPolicy {
     if (!claimed.rows.length) throw new MemoryAuthorityError("MEMORY_SEMANTIC_JOB_NOT_DUE");
     const started = Date.now();
     try {
-      const result = await this.evaluate(input, owner);
+      const result = await this.evaluate(
+        {
+          ...input,
+          dialogueContext: (old["input_context"] ?? []) as MemoryIngestionInput["dialogueContext"]
+        },
+        owner
+      );
       const done = await db.query(
         `update memory_semantic_jobs set status='complete',result=$4,lease_owner=null,lease_until=null,error_code=null,duration_ms=$5,updated_at=now()
         where scope=$1 and job_id=$2 and lease_owner=$3 and lease_until>now() returning job_id`,
@@ -172,6 +177,7 @@ export class SemanticMemoryPolicy {
                 sourceAt: source.recordedAt,
                 sourceCommitSeq: source.commitSeq ?? null,
                 origin: source.origin,
+                dialogueContext: input.dialogueContext ?? [],
                 prior: prior.map((e) => ({
                   id: e.id,
                   content: e.content,
@@ -208,24 +214,39 @@ export class SemanticMemoryPolicy {
       /^```(?:json)?\s*|\s*```$/gu,
       ""
     );
-    const proposals = proposalSchema.parse(JSON.parse(text)).propositions;
+    const parsed = proposalSchema.parse(JSON.parse(text)).propositions;
+    const proposals = parsed.map((p) => propositionSchema.safeParse(p));
+    const invalid: Array<{ index: number; code: string }> = [];
     if (
       input.reassessment &&
-      (proposals.length !== 1 || proposals[0]!.content !== input.reassessment.proposition)
+      (proposals.length !== 1 ||
+        !proposals[0]!.success ||
+        proposals[0]!.data.content !== input.reassessment.proposition)
     )
       throw new MemoryAuthorityError("MEMORY_REASSESSMENT_UNRESOLVED");
     const events: MemoryWriteEventInput[] = [];
-    for (const p of proposals) {
-      if (!source.selectedText.includes(p.evidenceText))
-        throw new MemoryAuthorityError("MEMORY_SEMANTIC_EVIDENCE_NOT_SELECTED");
+    for (const [index, parsed] of proposals.entries()) {
+      if (!parsed.success) {
+        invalid.push({ index, code: "MEMORY_SEMANTIC_PROPOSITION_INVALID" });
+        continue;
+      }
+      const p = parsed.data;
+      if (!source.selectedText.includes(p.evidenceText)) {
+        invalid.push({ index, code: "MEMORY_SEMANTIC_EVIDENCE_NOT_SELECTED" });
+        continue;
+      }
       if (
         (p.relation === "new") !== (p.targetIds.length === 0) ||
         p.targetIds.some((id) => !prior.some((e) => e.id === id && e.scope === input.scope))
-      )
-        throw new MemoryAuthorityError("MEMORY_SEMANTIC_TARGET_NOT_PRESENTED");
+      ) {
+        invalid.push({ index, code: "MEMORY_SEMANTIC_TARGET_NOT_PRESENTED" });
+        continue;
+      }
       const start = source.selectedText.indexOf(p.evidenceText);
-      if (source.selectedText.indexOf(p.evidenceText, start + 1) !== -1)
-        throw new MemoryAuthorityError("MEMORY_SEMANTIC_EVIDENCE_SELECTION_AMBIGUOUS");
+      if (source.selectedText.indexOf(p.evidenceText, start + 1) !== -1) {
+        invalid.push({ index, code: "MEMORY_SEMANTIC_EVIDENCE_SELECTION_AMBIGUOUS" });
+        continue;
+      }
       events.push({
         scope: input.scope,
         content: p.content,
@@ -253,8 +274,9 @@ export class SemanticMemoryPolicy {
     return {
       turnKind: "normal",
       events,
+      ...(invalid.length ? { rejectedPropositions: invalid } : {}),
       ...(events.length ? {} : { skippedReason: "semantic-no-long-term-value" })
     };
   }
 }
-const INSTRUCTION = `Evaluate every source for useful long-term memory. Return ONLY JSON {"propositions":[{"content":"a single proposition","evidenceText":"unique exact contiguous source quote","relation":"new|supersedes|conflicts|supports","targetIds":[]}]}. You decide semantics, not permissions. Split independent propositions even in the same message. Retain future useful facts, preferences, goals, decisions, unresolved issues and confirmed experiences; ignore transient chatter. Content may restate meaning but must be supported by the exact selected evidence. User assertions are self reports, not independently verified truth. Never treat assistant plans or prose as actual execution. Never treat quotes, hypotheticals, questions or third-party claims as personal confirmations. Mixed quotation does not invalidate other asserted facts. For an explicit natural correction (including pronouns and multilingual references), supersedes only the specific prior proposition(s) actually retracted. Conflicting assertions without explicit retraction use conflicts and keep both sources; repeated equivalent facts use supports. Do not use word overlap as proof of equivalence. Targets must be presented prior IDs. If ambiguous or no long-term value return an empty array. Do not invent dates, people, permissions or certainty.`;
+const INSTRUCTION = `Evaluate every source for useful long-term memory. Return ONLY JSON {"propositions":[{"content":"a single proposition","evidenceText":"unique exact contiguous source quote","relation":"new|supersedes|conflicts|supports","targetIds":[]}]}. You decide semantics, not permissions. Split independent propositions even in the same message. Retain future useful facts, preferences, goals, decisions, unresolved issues and confirmed experiences; ignore transient chatter. Content may restate meaning but must be supported by the exact selected evidence. dialogueContext is bounded preceding conversation for interpreting ellipsis and pronouns ONLY. Assistant questions are NOT user assertions. An elliptical user answer may assert the answer to the preceding question; cite ONLY a unique exact quote from source, never dialogueContext. Do not infer unsupported missing detail. User assertions are self reports, not independently verified truth. Never treat assistant plans or prose as actual execution. Never treat quotes, hypotheticals, questions or third-party claims as personal confirmations. Mixed quotation does not invalidate other asserted facts. For an explicit natural correction (including pronouns and multilingual references), supersedes only the specific prior proposition(s) actually retracted. Conflicting assertions without explicit retraction use conflicts and keep both sources; repeated equivalent facts use supports. Do not use word overlap as proof of equivalence. Targets must be presented prior IDs. If ambiguous or no long-term value return an empty array. Do not invent dates, people, permissions or certainty.`;

@@ -7,11 +7,12 @@ import {
   type CharacterBinding
 } from "@companion/core";
 import type { NativeControllerBindingOwner } from "@companion/memory";
-import { readProductSettings } from "./services/product-store.js";
+import { readProductSettings, personAuthorityRevision } from "./services/product-store.js";
 
 export type ProductPersonProjection = Readonly<{
   person: Readonly<{ id: string; displayName: string }>;
   revision: string | null;
+  authorityRevision?: string | null;
 }>;
 
 /** A world-identity read view. It carries neither Memory nor Character relationship. */
@@ -29,7 +30,8 @@ export function fileProductPersonSource(envDirectory: string): ProductPersonSour
       return person
         ? Object.freeze({
             person: Object.freeze({ id: person.id, displayName: person.displayName }),
-            revision: settings?.personRevisionById?.[id] ?? null
+            revision: settings?.personRevisionById?.[id] ?? null,
+            authorityRevision: personAuthorityRevision(settings, id)
           })
         : null;
     }

@@ -53,6 +53,8 @@ export class HostOutwardEffects implements ProviderAccountingPort {
   private readonly grants = new Map<string, Grant>();
   private readonly tasks = new Map<string, Work>();
   private accepting = true;
+  /** Host-owned live transport authority; evaluated again immediately before dispatch. */
+  verifySourceAuthority?: ((cause: JournalEventRef) => Promise<boolean>) | undefined;
   private readonly replies = new Map<
     string,
     { requestId: string | undefined; cause: JournalEventRef; sessionId: string }
@@ -219,6 +221,9 @@ export class HostOutwardEffects implements ProviderAccountingPort {
       work = {
         request: intent.request as Work["request"],
         identity: intent.authorization.identity,
+        verifyContext: this.verifySourceAuthority
+          ? () => this.verifySourceAuthority!(intent.request.causalRefs[0]!)
+          : undefined,
         isCurrent: () => this.accepting && live.current()
       };
     } else {
@@ -400,6 +405,9 @@ export class HostOutwardEffects implements ProviderAccountingPort {
     });
     const work: Work = {
       identity,
+      verifyContext: this.verifySourceAuthority
+        ? () => this.verifySourceAuthority!(cause)
+        : undefined,
       isCurrent: () => this.accepting && (input.isCurrent?.() ?? true),
       request: {
         contractRef: input.contractRef,
@@ -504,7 +512,11 @@ export class HostOutwardEffects implements ProviderAccountingPort {
         replyId: context?.replyId,
         isCurrent: () => !signal?.aborted && (context?.isCurrent?.() ?? true)
       });
-      work.verifyContext = task.contextUse?.verifyCurrent;
+      const sourceAuthority = work.verifyContext;
+      const snapshotAuthority = task.contextUse?.verifyAuthority ?? task.contextUse?.verifyCurrent;
+      work.verifyContext = async () =>
+        (!sourceAuthority || (await sourceAuthority())) &&
+        (!snapshotAuthority || (await snapshotAuthority()));
       this.tasks.set(task.operationId, work);
     }
     return work;

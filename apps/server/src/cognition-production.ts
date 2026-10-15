@@ -21,6 +21,7 @@ export function executeProductionCognition(input: {
   canonicalContext?: CanonicalContext | undefined;
   runtimeAuthorizedPath?: string | undefined;
   readTextEffects?: HostReadTextEffects | undefined;
+  onObservation?: (() => void) | undefined;
   effectContext?: Pick<ReadTextEffectInput, "scope" | "cause"> | undefined;
   pluginCapabilities?: ServerPluginRuntimeCapabilitySurface | undefined;
   signal?: AbortSignal | undefined;
@@ -74,7 +75,7 @@ export function executeProductionCognition(input: {
         if (!input.readTextEffects || !input.effectContext)
           throw new Error("Durable read-text authority unavailable");
         const { scope, cause } = input.effectContext;
-        return input.readTextEffects.execute({
+        const result = await input.readTextEffects.execute({
           path,
           scope,
           cause,
@@ -84,6 +85,8 @@ export function executeProductionCognition(input: {
           isCurrent: () => input.execution.isCurrent(),
           signal: options?.signal
         });
+        input.onObservation?.();
+        return result;
       }
     }
   });
