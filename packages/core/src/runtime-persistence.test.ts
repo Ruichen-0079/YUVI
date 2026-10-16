@@ -1606,7 +1606,7 @@ async function runFinalizedStatusSchedule(fixture: {
       ) => Promise<MemoryConversationTurnWriteResult>;
     }
   ).scheduleMem0TurnWrite.bind(runtime);
-  return schedule(sourceEvent, reply, fixture.admitted.turn.assistantMessageId, fixture.turnId);
+  return schedule(sourceEvent, reply, fixture.admitted.turn.assistantMessageId!, fixture.turnId);
 }
 
 function createMockProviders() {

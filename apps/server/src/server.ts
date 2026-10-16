@@ -1,3 +1,4 @@
+import { registerObservationRoutes } from "./routes/observations.js";
 import { registerMemoryOperationRoutes } from "./routes/memory-operations.js";
 import { registerConversationHostRoutes } from "./routes/conversation-host.js";
 import { registerMemoryKnowledgeRoutes } from "./routes/memory-knowledge.js";
@@ -202,6 +203,7 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   }
 
   context.readTextEffects.start();
+  context.observations?.start();
 
   // Seal/drain generic work before Fastify waits for active HTTP handlers to close.
   // The dispatch-start marker preserves UNKNOWN even if a caller cannot finish the drain.
@@ -244,6 +246,7 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   if (!options.characterComposition) await registerPeopleVoiceRoutes(app, context, config);
   if (!options.characterComposition) await registerSystemRoutes(app, config);
   await registerConversationHostRoutes(app, context, config);
+  await registerObservationRoutes(app, context);
   await registerMessageRoutes(app, context);
   await registerConversationHistoryRoutes(app, context);
   await registerMessageStreamRoutes(app, context);

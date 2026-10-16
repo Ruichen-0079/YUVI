@@ -23,7 +23,8 @@ export const ContextSourceUseSchema = z
       "PERSON",
       "VOICE_BINDING",
       "P8",
-      "INPUT"
+      "INPUT",
+      "OBSERVATION"
     ]),
     reference: token,
     revision: token.nullable(),
@@ -75,6 +76,13 @@ export const ContextExposureSchema = z
     projectionVersion: token,
     declaredVersions: z.array(token).max(32).optional(),
     inputDigest: digest,
+    snapshot: z
+      .object({
+        policy: z.literal("CAPTURED_AS_OF"),
+        freshness: z.enum(["CURRENT", "STALE", "UNKNOWN"])
+      })
+      .strict()
+      .optional(),
     fields: z
       .array(
         z
@@ -118,5 +126,9 @@ export type PendingContextUse = {
     sourceReferences: string[];
     epistemicState?: string | undefined;
   }>;
+  /** Permission to expose the captured snapshot, independent of current knowledge. */
+  verifyAuthority?: (() => Promise<boolean>) | undefined;
+  checkFreshness?: (() => Promise<"CURRENT" | "STALE" | "UNKNOWN">) | undefined;
+  /** Legacy consumers retain their strict check until explicitly migrated. */
   verifyCurrent?: (() => Promise<boolean>) | undefined;
 };

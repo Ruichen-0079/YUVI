@@ -15,7 +15,7 @@ import {parseConversationRepositoryEnv} from './packages/memory/src/conversation
 const {env, root}=JSON.parse(readFileSync(0,'utf8'));
 const r=parseRuntimeConfig(env), p=createProviderRegistryConfigFromEnv(env), s=deriveConfigFromEnv(root,env), h=loadServerConfig(env);
 if(parseMemoryRepositoryEnv(env).kind!==r.memory.repository || parseConversationRepositoryEnv(env).kind!==r.memory.repository) throw Error('storage factory differs from configuration');
-console.log(JSON.stringify({runtime:r.memory.backend,supervisor:s.memoryBackend,repository:r.memory.repository,mem0:s.autostartMem0,mocks:[r.providers.allowMocks,p.allowMocks],modes:[r.environment,p.environment,h.runtimeMode]}));
+console.log(JSON.stringify({runtime:r.memory.backend,supervisor:s.memoryBackend,repository:r.memory.repository,mem0:s.autostartMem0,mocks:[r.providers.allowMocks,p.allowMocks],modes:[r.environment,p.environment,h.runtimeMode],ports:[r.server.port,h.port]}));
 `;
 
 it("uses the same storage, mock and mode semantics across actual Runtime/Provider/Server/Supervisor imports in a child process", () => {
@@ -24,6 +24,7 @@ it("uses the same storage, mock and mode semantics across actual Runtime/Provide
     for (const backend of [undefined, "legacy", " MeM0 ", " Postgres "]) {
       const env = {
         NODE_ENV: " TeSt ",
+        SERVER_PORT: "0",
         MEMORY_BACKEND: backend,
         MEMORY_REPOSITORY: " POSTGRES ",
         PROVIDER_ALLOW_MOCKS: " ON ",
@@ -48,7 +49,8 @@ it("uses the same storage, mock and mode semantics across actual Runtime/Provide
         repository: "postgres",
         mem0: expected === "mem0",
         mocks: [true, true],
-        modes: ["test", "test", "test"]
+        modes: ["test", "test", "test"],
+        ports: [0, 0]
       });
     }
   } finally {

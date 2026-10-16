@@ -14,6 +14,9 @@ export type ProviderWorkContext = {
   executionId?: string | undefined;
   replyId?: string | undefined;
   isCurrent?: (() => boolean) | undefined;
+  /** Host-owned execution permission, distinct from the historical causal source. Never a model/DTO field. */
+  verifyAuthority?: (() => Promise<boolean>) | undefined;
+  authorizationBasis?: "CAUSAL_SOURCE_HOST_POLICY" | "HOST_SCOPE_MAINTENANCE" | undefined;
 };
 export type ProviderTaskDescriptor = {
   operationId: string;

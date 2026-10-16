@@ -119,6 +119,11 @@ export interface ConversationRepository {
   healthCheck(): Promise<{ status: "healthy" | "unavailable"; message?: string }>;
   ensureSession(sessionId: string): Promise<void>;
   appendMessage(message: ConversationMessageInput): Promise<ConversationMessage>;
+  /** Host ingress can atomically commit its Journal source and accepted user row. */
+  appendAcceptedUserInTransaction?(
+    client: PoolClient,
+    message: ConversationMessageInput
+  ): Promise<ConversationMessage>;
   appendMessageContent(messageId: string, delta: string): Promise<ConversationMessage>;
   appendReplyComponent?(
     input: ConversationReplyComponentInput
@@ -136,6 +141,11 @@ export interface ConversationRepository {
   ): Promise<ConversationMessage>;
   listRecentMessages(
     sessionId: string,
+    options?: ConversationListOptions
+  ): Promise<ConversationMessage[]>;
+  /** Strictly before an accepted source; late workers must not observe future dialogue. */
+  listMessagesBefore?(
+    messageId: string,
     options?: ConversationListOptions
   ): Promise<ConversationMessage[]>;
   recoverStaleStreamingMessages?(
@@ -192,10 +202,27 @@ export class PostgresConversationRepository implements ConversationRepository {
   }
 
   async appendMessage(message: ConversationMessageInput): Promise<ConversationMessage> {
+    return this.appendWithClient(this.pool, message);
+  }
+  async appendAcceptedUserInTransaction(
+    client: PoolClient,
+    message: ConversationMessageInput
+  ): Promise<ConversationMessage> {
+    if (message.role !== "user" || message.status !== "completed")
+      throw Error("ACCEPTED_USER_REQUIRED");
+    return this.appendWithClient(client, message);
+  }
+  private async appendWithClient(
+    client: Pick<ConversationDatabaseClient, "query">,
+    message: ConversationMessageInput
+  ): Promise<ConversationMessage> {
     const sourceJournalRef = normalizeSourceJournalRef(message.sourceJournalRef);
     assertUserJournalAncestry(message.role, sourceJournalRef);
-    await this.ensureSession(message.sessionId);
-    const result = await this.pool.query(
+    await client.query(
+      `insert into conversation_sessions(id) values($1) on conflict(id) do update set updated_at=now()`,
+      [message.sessionId]
+    );
+    const result = await client.query(
       `insert into conversation_messages (
         id, session_id, trace_id, parent_message_id, role, content, status,
         created_at, completed_at, metadata, source_user_event_id, finalized_turn_id,
@@ -229,7 +256,7 @@ export class PostgresConversationRepository implements ConversationRepository {
       return mapConversationMessageRow(result.rows[0]);
     }
 
-    const existing = await this.pool.query("select * from conversation_messages where id = $1", [
+    const existing = await client.query("select * from conversation_messages where id = $1", [
       message.id
     ]);
     const existingMessage = mapConversationMessageRow(requireConversationRow(existing.rows));
@@ -492,6 +519,21 @@ export class PostgresConversationRepository implements ConversationRepository {
     return applyConversationBounds(result.rows.map(mapConversationMessageRow).reverse(), options);
   }
 
+  async listMessagesBefore(
+    messageId: string,
+    options: ConversationListOptions = {}
+  ): Promise<ConversationMessage[]> {
+    const result = await this.pool.query(
+      `select cm.* from conversation_messages cm
+       where cm.session_id=(select session_id from conversation_messages where id=$1)
+         and cm.sequence<(select sequence from conversation_messages where id=$1)
+         and cm.status='completed' and cm.completed_at <= (select created_at from conversation_messages where id=$1)
+       order by cm.sequence desc limit $2`,
+      [messageId, clampLimit(options.limit ?? 12)]
+    );
+    return applyConversationBounds(result.rows.map(mapConversationMessageRow).reverse(), options);
+  }
+
   async close(): Promise<void> {
     if (this.ownsPool) {
       await this.pool.end();
@@ -736,6 +778,27 @@ export class InMemoryConversationRepository implements ConversationRepository {
     const messages = this.messages.get(sessionId) ?? [];
     return applyConversationBounds(
       messages.slice(-(options.limit ?? 24)).map(cloneConversationMessage),
+      options
+    );
+  }
+
+  async listMessagesBefore(
+    messageId: string,
+    options: ConversationListOptions = {}
+  ): Promise<ConversationMessage[]> {
+    const source = this.findMessage(messageId);
+    if (!source) return [];
+    return applyConversationBounds(
+      (this.messages.get(source.sessionId) ?? [])
+        .filter(
+          (m) =>
+            m.sequence < source.sequence &&
+            m.status === "completed" &&
+            m.completedAt !== null &&
+            m.completedAt <= source.createdAt
+        )
+        .slice(-(options.limit ?? 12))
+        .map(cloneConversationMessage),
       options
     );
   }

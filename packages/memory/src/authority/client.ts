@@ -42,6 +42,10 @@ export class MemoryKnowledgeClient {
     return this.request<{
       schema: "memory.ingestion.v1";
       status: string;
+      sourceLifecycle: "ACCEPTED_USER" | "FINALIZED_ASSISTANT";
+      sourceUserEventId: string | null;
+      assistantMessageId: string | null;
+      rejectedPropositions: Array<{ index: number; code: string }>;
       errorCode?: string | null;
     }>(this.url("ingestion", { scope, id }));
   }

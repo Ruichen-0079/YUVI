@@ -673,7 +673,7 @@ export class MemoryIngestionCoordinator implements MemoryIngestionCoordinatorPor
       userMessage: userMessage.content,
       sourceText: userMessage.content,
       sourceJournalRef: userMessage.sourceJournalRef,
-      assistantMessage: row.content,
+      assistantMessage: row.assistantMessageId === null ? "" : row.content,
       sessionId: row.conversationId
     });
   }
@@ -748,7 +748,9 @@ export class MemoryIngestionCoordinator implements MemoryIngestionCoordinatorPor
       : undefined;
     return {
       ...this.provider,
-      ...(this.provider.prepareEvidence ? { prepareEvidence: this.provider.prepareEvidence.bind(this.provider) } : {}),
+      ...(this.provider.prepareEvidence
+        ? { prepareEvidence: this.provider.prepareEvidence.bind(this.provider) }
+        : {}),
       ...(writeEventIdempotent ? { writeEventIdempotent } : {})
     };
   }

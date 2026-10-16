@@ -490,6 +490,9 @@ function parseEventBus(value: string | undefined): EventBusDriver {
 }
 
 function parsePort(value: string | undefined, fallback: number): number {
+  // Explicit OS-assigned listener. Host parents learn the bound port from
+  // Server readiness; never reserve/release a supposedly free port first.
+  if (value?.trim() === "0") return 0;
   const port = parsePositiveInteger(value, fallback);
   return port > 65535 ? fallback : port;
 }

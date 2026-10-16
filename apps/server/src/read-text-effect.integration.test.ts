@@ -141,6 +141,32 @@ describe.skipIf(!url)("A9.2 real host read-text / Journal / PostgreSQL integrati
       ).rows[0]["count"]
     ).toBe("1");
   });
+  it("keeps the actual APPLIED receipt when report retention fails and never rereads to repair it", async () => {
+    const g = input();
+    let saves = 0;
+    host.retainObservation = async () => {
+      saves++;
+      throw Error("injected report persistence failure");
+    };
+    try {
+      await expect(host.execute(g)).rejects.toThrow("injected report persistence failure");
+      const id = effectIntentId("yuvi.read-text.v1", g.logicalKey);
+      expect((await host.dispatcher!.diagnostic(id))?.evidence).toMatchObject({
+        certainty: "APPLIED",
+        reason: "RETURNED"
+      });
+      await expect(host.execute(g)).rejects.toThrow("not pending");
+      expect(saves).toBe(1);
+      // This is an explicit incomplete lifecycle, not a successful recovery:
+      // A9 proves execution but cannot reconstruct the lost transient report.
+      expect(
+        (await pool.query("select count(*)::int n from effect_attempts where intent_id=$1", [id]))
+          .rows[0].n
+      ).toBe(1);
+    } finally {
+      host.retainObservation = undefined;
+    }
+  });
   it("missing Journal ancestry fails closed", async () => {
     const g = input();
     g.cause = { ...cause, eventId: "jev1_missing_authority" };
@@ -154,6 +180,41 @@ describe.skipIf(!url)("A9.2 real host read-text / Journal / PostgreSQL integrati
     const i = await admission.get(effectIntentId("yuvi.read-text.v1", g.logicalKey));
     expect(i?.decision).toBe("DENIED");
     expect(i?.request.payload).toBeUndefined();
+  });
+  it("rechecks a capability revoked while live source authorization awaits", async () => {
+    const g = input();
+    let current = true;
+    let entered!: () => void, release!: () => void;
+    const checking = new Promise<void>((resolve) => {
+      entered = resolve;
+    });
+    const blocked = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    g.isCurrent = () => current;
+    g.path = join(dir, "must-not-open-missing-file");
+    host.verifySourceAuthority = async () => {
+      entered();
+      await blocked;
+      return true;
+    };
+    try {
+      const result = host.execute(g).catch((error: unknown) => error);
+      await checking;
+      current = false;
+      release();
+      expect(await result).toBeInstanceOf(Error);
+      const recorded = await host.dispatcher!.diagnostic(
+        effectIntentId("yuvi.read-text.v1", g.logicalKey)
+      );
+      expect(recorded?.evidence).toMatchObject({
+        certainty: "PROVEN_NOT_APPLIED",
+        reason: "AUTHORITY_REVOKED"
+      });
+    } finally {
+      release();
+      host.verifySourceAuthority = undefined;
+    }
   });
   it("restart has no volatile grant and cannot read admitted pending file", async () => {
     const g = input();

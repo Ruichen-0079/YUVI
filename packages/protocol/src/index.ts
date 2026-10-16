@@ -191,3 +191,10 @@ export * from "./media-effects.js";
 export * from "./presentation-permission.js";
 
 export * from "./context-use.js";
+export {
+  ObservationEvidenceSchema,
+  ObservationPageSchema,
+  ObservationClient,
+  type ObservationEvidence,
+  type ObservationPage
+} from "./observations.js";

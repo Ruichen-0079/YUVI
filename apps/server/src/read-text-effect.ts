@@ -21,6 +21,7 @@ export type ReadTextEffectInput = {
   cause: JournalEventRef;
   expiresAt: string;
   isCurrent(): boolean;
+  verifyAuthority?: (() => Promise<boolean>) | undefined;
   signal?: AbortSignal | undefined;
 };
 /** The active local adapter: file contents exist only in the transient Runtime return value. */
@@ -56,6 +57,14 @@ export class HostReadTextEffects {
   private readonly grants = new Map<string, ReadTextEffectInput>();
   readonly dispatcher: EffectDispatcher | null;
   private accepting = true;
+  verifySourceAuthority?: ((cause: JournalEventRef) => Promise<boolean>) | undefined;
+  retainObservation?:
+    | ((
+        input: ReadTextEffectInput,
+        attemptId: string,
+        result: ServerMcpToolResult
+      ) => Promise<void>)
+    | undefined;
   captureContext?:
     | ((key: string, input: unknown) => Promise<{ manifestId: string; exposureId: string }>)
     | undefined;
@@ -85,7 +94,24 @@ export class HostReadTextEffects {
               contractRef: "yuvi.read-text.v1",
               adapter: EFFECT_DELIVERY_CONTRACTS["yuvi.read-text.v1"].adapter,
               isCurrent: current,
-              async invoke(i, _a, signal) {
+              invoke: async (i, a, signal) => {
+                if (
+                  (grants.get(i.intentId)?.verifyAuthority &&
+                    !(await grants.get(i.intentId)!.verifyAuthority!())) ||
+                  (this.verifySourceAuthority &&
+                    !(await this.verifySourceAuthority(i.request.causalRefs[0]!))) ||
+                  // Both live checks may await I/O. A controller revoke while
+                  // they run must still fence the leaf before opening the file.
+                  !current(i)
+                )
+                  return {
+                    evidence: {
+                      certainty: "PROVEN_NOT_APPLIED" as const,
+                      layer: "LOCAL_PROTOCOL" as const,
+                      reason: "AUTHORITY_REVOKED" as const,
+                      remoteEffectId: null
+                    }
+                  };
                 // No provider selection, MCP network transport, or publication is hidden in this adapter.
                 const grantSignal = grants.get(i.intentId)?.signal;
                 const result = await readAuthorizedLocalText(
@@ -99,7 +125,7 @@ export class HostReadTextEffects {
                     reason: "RETURNED",
                     remoteEffectId: null
                   },
-                  transientResult: result
+                  transientResult: { ...result, sourceAttemptId: a.attemptId }
                 };
               }
             }
@@ -117,6 +143,8 @@ export class HostReadTextEffects {
     const g = { ...raw, cause: { ...raw.cause } };
     if (!this.accepting || !this.dispatcher || !this.journal)
       throw Error("Durable read-text effects unavailable.");
+    if (g.verifyAuthority && !(await g.verifyAuthority()))
+      throw Error("Read-text authorization revoked before admission.");
     const receipt = await this.journal.get(g.cause);
     if (!receipt || receipt.command.kind !== "RECEIPT")
       throw Error("Committed read-text cause unavailable.");
@@ -173,8 +201,11 @@ export class HostReadTextEffects {
         const result = await this.dispatcher.run(intent.intentId);
         if (!isCurrent() || !result.recorded || result.transientResult === undefined)
           throw Error("Read-text result unavailable or stale.");
-        // Adapter is the only producer of this transient shape; it is not loaded from durable JSON.
-        return result.transientResult as ServerMcpToolResult;
+        // Only a recorded A9 result can create a retained observation. A9 remains
+        // authoritative if retention fails; never dispatch the file operation again.
+        const value = result.transientResult as ServerMcpToolResult & { sourceAttemptId?: string };
+        if (value.sourceAttemptId) await this.retainObservation?.(g, value.sourceAttemptId, value);
+        return value;
       } finally {
         g.signal?.removeEventListener("abort", abort);
         if (this.grants.get(id) === g) this.grants.delete(id);

@@ -65,12 +65,11 @@ describe("HostRuntimeControlReceiptAdmission", () => {
     expect(JSON.stringify(calls[0])).not.toContain("provenance");
   });
 
-  it("does not accept paths, session IDs, arbitrary targets, or unknown fields", async () => {
+  it("does not accept paths or arbitrary targets; audits explicit capability scope", async () => {
     const calls: Array<{ input: JournalHostAppendInput; authority: JournalAuthorityDraft }> = [];
     const admission = new HostRuntimeControlReceiptAdmission(repository(calls));
     for (const input of [
       { operation: "READ_TEXT_AUTHORIZE", path: "/private/marker" },
-      { operation: "READ_TEXT_AUTHORIZE", sessionId: "private-session" },
       {
         operation: "P8_CORRECTION",
         action: "REVISE",
@@ -93,6 +92,10 @@ describe("HostRuntimeControlReceiptAdmission", () => {
     expect(calls).toHaveLength(1);
     expect(calls[0]!.input.retainedText?.[0]?.text).toBe(
       JSON.stringify({ operation: "capability.read-text.authorize" })
+    );
+    await admission.admit({ operation: "READ_TEXT_REVOKE", sessionId: "synthetic-session" });
+    expect(calls[1]!.input.retainedText?.[0]?.text).toBe(
+      JSON.stringify({ operation: "capability.read-text.revoke", sessionId: "synthetic-session" })
     );
   });
 

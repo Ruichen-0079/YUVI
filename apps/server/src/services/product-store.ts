@@ -14,6 +14,7 @@ export type ProductSettings = {
   revision: number;
   /** Missing entries on old files mean LEGACY_UNLINEAGED, not a reconstructed revision. */
   personRevisionById?: Record<string, string>;
+  personAuthorityRevisionById?: Record<string, string>;
   primaryPersonRevision?: string | null;
   productCommandReceipts?: ProductPersonCommandReceipt[];
   productCommandFences?: Record<string, ProductPersonCommandFence>;
@@ -65,6 +66,12 @@ export function readProductSettings(env = process.env): ProductSettings | null {
         ([personId, revision]) => !personId || typeof revision !== "string" || !revision.trim()
       )
     )) throw new Error("Invalid Product Person revision envelope.");
+    if (value.personAuthorityRevisionById !== undefined && (
+      !value.personAuthorityRevisionById || typeof value.personAuthorityRevisionById !== "object" ||
+      Array.isArray(value.personAuthorityRevisionById) || Object.entries(value.personAuthorityRevisionById).some(
+        ([id, revision]) => !id || typeof revision !== "string" || !revision.trim()
+      )
+    )) throw new Error("Invalid Person authority revision envelope.");
     if (value.primaryPersonRevision !== undefined &&
       value.primaryPersonRevision !== null &&
       (typeof value.primaryPersonRevision !== "string" || !value.primaryPersonRevision.trim())
@@ -142,6 +149,11 @@ function canonicalJson(value: unknown): string {
   }
   return JSON.stringify(value) ?? "null";
 }
+/** Old grants remain valid on the first non-identity edit; never fabricate legacy lineage. */
+export function personAuthorityRevision(settings: ProductSettings | null, id: string): string | null {
+  if (!settings?.people.some((p) => p.id === id)) return null;
+  return settings.personAuthorityRevisionById?.[id] ?? settings.personRevisionById?.[id] ?? null;
+}
 function samePerson(left: Person | undefined, right: Person | undefined): boolean {
   return left?.id === right?.id && left?.displayName === right?.displayName &&
     left?.personaId === right?.personaId && left?.notes === right?.notes;
@@ -151,10 +163,14 @@ export function commitProductSettings(saved: ProductSettings, previous: ProductS
   const before = previous ?? defaultProductSettings();
   const oldRevisions = before.personRevisionById ?? {};
   const revisions: Record<string, string> = {};
+  const authorityRevisions: Record<string, string> = {};
   for (const person of saved.people) {
     const old = before.people.find((entry) => entry.id === person.id);
     const revision = samePerson(old, person) ? oldRevisions[person.id] : randomUUID();
     if (revision) revisions[person.id] = revision;
+    const authorityRevision = old && old.personaId === person.personaId
+      ? personAuthorityRevision(before, person.id) : randomUUID();
+    if (authorityRevision) authorityRevisions[person.id] = authorityRevision;
   }
   const primaryPersonRevision = before.primaryPersonId === saved.primaryPersonId
     ? (before.primaryPersonRevision ?? null)
@@ -163,6 +179,7 @@ export function commitProductSettings(saved: ProductSettings, previous: ProductS
     ...saved,
     revision: before.revision + 1,
     personRevisionById: revisions,
+    personAuthorityRevisionById: authorityRevisions,
     primaryPersonRevision,
     ...(previous?.productCommandReceipts ? { productCommandReceipts: previous.productCommandReceipts } : {}),
     ...(previous?.productCommandFences ? { productCommandFences: previous.productCommandFences } : {})

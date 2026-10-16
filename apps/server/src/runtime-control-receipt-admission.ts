@@ -24,7 +24,11 @@ export type RuntimeControlReceiptInput =
       targetKind: "AUTHORED_INVARIANT";
       invariantTarget: "identity" | "persona";
     }
-  | { operation: "READ_TEXT_AUTHORIZE" };
+  | {
+      operation: "READ_TEXT_AUTHORIZE" | "READ_TEXT_REVOKE";
+      sessionId?: string | undefined;
+      personId?: string | undefined;
+    };
 
 export interface RuntimeControlReceiptAdmission {
   admit(input: RuntimeControlReceiptInput): Promise<void>;
@@ -46,12 +50,19 @@ const RuntimeControlReceiptInputSchema = z.union([
       invariantTarget: z.enum(["identity", "persona"])
     })
     .strict(),
-  z.object({ operation: z.literal("READ_TEXT_AUTHORIZE") }).strict()
+  z
+    .object({
+      operation: z.enum(["READ_TEXT_AUTHORIZE", "READ_TEXT_REVOKE"]),
+      sessionId: z.string().min(1).optional(),
+      personId: z.string().min(1).optional()
+    })
+    .strict()
 ]);
 
 const SURFACE_REFERENCE: Record<RuntimeControlReceiptInput["operation"], string> = {
   P8_CORRECTION: "yuvi:http:/p8/corrections",
-  READ_TEXT_AUTHORIZE: "yuvi:http:/capabilities/read-text/authorize"
+  READ_TEXT_AUTHORIZE: "yuvi:http:/capabilities/read-text/authorize",
+  READ_TEXT_REVOKE: "yuvi:http:/capabilities/read-text/revoke"
 };
 
 /** Host-only admission seam. It receives only fixed control facts, never domain inputs. */
@@ -161,7 +172,15 @@ function summarizeRuntimeControl(input: RuntimeControlReceiptInput): string {
           : {})
       });
     case "READ_TEXT_AUTHORIZE":
-      return JSON.stringify({ operation: "capability.read-text.authorize" });
+    case "READ_TEXT_REVOKE":
+      return JSON.stringify({
+        operation:
+          input.operation === "READ_TEXT_AUTHORIZE"
+            ? "capability.read-text.authorize"
+            : "capability.read-text.revoke",
+        ...(input.sessionId ? { sessionId: input.sessionId } : {}),
+        ...(input.personId ? { personId: input.personId } : {})
+      });
   }
 }
 

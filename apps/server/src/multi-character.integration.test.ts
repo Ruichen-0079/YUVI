@@ -103,7 +103,11 @@ describe.skipIf(!databaseUrl)("Core multi-Character durable composition acceptan
       worldEnv
     );
     people = fileProductPersonSource(join(root, "world"));
-    expect(people.readPerson(person.id)).toEqual({ person, revision: "person-revision:1" });
+    expect(people.readPerson(person.id)).toEqual({
+      person,
+      revision: "person-revision:1",
+      authorityRevision: "person-revision:1"
+    });
     expect(JSON.stringify(people.readPerson(person.id))).not.toContain("PRIVATE_YUVI_NOTES");
     admin = createPostgresPool(databaseUrl!);
     claimCharacterFiles(bindings[0]!, composition(0).env, false);

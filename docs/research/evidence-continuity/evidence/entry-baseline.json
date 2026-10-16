@@ -1,0 +1,15 @@
+{
+  "schema": "evidence-continuity-entry.v1",
+  "runtimeSha": "ce5e078f8b646da5ee55c0ddf1fc7d53fa41fb6d",
+  "verified": false,
+  "kind": "deterministic-provider-real-server-postgresql",
+  "preRuntimeCrash": {
+    "journalSources": 1,
+    "acceptedSources": 0
+  },
+  "calls": [],
+  "sources": [],
+  "observations": [],
+  "effects": [],
+  "exposures": []
+}

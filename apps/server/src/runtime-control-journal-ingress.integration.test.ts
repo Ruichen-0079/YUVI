@@ -129,8 +129,8 @@ function correction(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function readTextGrants(context: AppContext): Map<string, string> {
-  return (context.runtime as unknown as { authorizedReadText: Map<string, string> })
+function readTextGrants(context: AppContext): Map<string, { path: string }> {
+  return (context.runtime as unknown as { authorizedReadText: Map<string, { path: string }> })
     .authorizedReadText;
 }
 
@@ -525,7 +525,7 @@ describe.skipIf(!databaseUrl)("A8.2e2 Runtime control receipts with real Postgre
       await blocker.query("commit");
       const response = await request;
       expect(response.statusCode).toBe(200);
-      expect(readTextGrants(run.context).get(sessionId)).toBe(privatePath);
+      expect(readTextGrants(run.context).get(sessionId)?.path).toBe(privatePath);
       expect(await events(namespace)).toHaveLength(1);
 
       const repeated = await run.app.inject({
@@ -535,7 +535,7 @@ describe.skipIf(!databaseUrl)("A8.2e2 Runtime control receipts with real Postgre
         payload: { sessionId, path: "/tmp/SECOND_PRIVATE_PATH_MARKER.txt" }
       });
       expect(repeated.statusCode).toBe(200);
-      expect(readTextGrants(run.context).get(sessionId)).toBe(
+      expect(readTextGrants(run.context).get(sessionId)?.path).toBe(
         "/tmp/SECOND_PRIVATE_PATH_MARKER.txt"
       );
       const rows = await events(namespace);
@@ -546,7 +546,7 @@ describe.skipIf(!databaseUrl)("A8.2e2 Runtime control receipts with real Postgre
       expect(serialized).not.toContain(privatePath);
       expect(serialized).not.toContain("ABSOLUTE_PATH_PRIVATE_MARKER");
       expect(serialized).not.toContain("SECOND_PRIVATE_PATH_MARKER");
-      expect(serialized).not.toContain(sessionId);
+      expect(serialized).toContain(sessionId); // Explicit controller scope is audited; file path is not.
     } finally {
       await blocker.query("rollback").catch(() => undefined);
       blocker.release();
@@ -599,9 +599,9 @@ describe.skipIf(!databaseUrl)("A8.2e2 Runtime control receipts with real Postgre
         })
     );
     expect(
-      (rebuilt as unknown as { authorizedReadText: Map<string, string> }).authorizedReadText.has(
-        "restart-session"
-      )
+      (
+        rebuilt as unknown as { authorizedReadText: Map<string, { path: string }> }
+      ).authorizedReadText.has("restart-session")
     ).toBe(false);
     expect(
       (

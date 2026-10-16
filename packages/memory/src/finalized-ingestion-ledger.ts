@@ -1,3 +1,4 @@
+import { MemoryAuthorityError } from "./authority/types.js";
 import type { JournalEventRef } from "@companion/protocol";
 import {
   MemoryGroundingError,
@@ -61,7 +62,7 @@ export type FinalizedIngestionEventOutcome =
 
 export type FinalizedIngestionTurn = {
   finalizedTurnId: string;
-  assistantMessageId: string;
+  assistantMessageId: string | null;
   sourceUserEventId: string | null;
   conversationId: string;
   traceId: string;
@@ -71,6 +72,8 @@ export type FinalizedIngestionTurn = {
   finalizedAt: string;
   ingestionRequested: boolean;
   ingestionSkipReason: string | null;
+  /** Per-proposition rejection is not a successful empty extraction. */
+  rejectedPropositions?: Array<{ index: number; code: string }>;
   failureStage: "materialization" | null;
   status: FinalizedIngestionTurnStatus;
   policyVersion: string;
@@ -121,7 +124,7 @@ export type FinalizedIngestionEvent = {
 
 export type FinalizedIngestionAdmissionInput = {
   finalizedTurnId: string;
-  assistantMessageId: string;
+  assistantMessageId: string | null;
   sourceUserEventId?: string | null | undefined;
   conversationId: string;
   traceId: string;
@@ -147,7 +150,7 @@ export type FinalizedIngestionRepositoryKind = MemoryRepositoryKind;
 
 export type MissingFinalizedConversationTurn = {
   finalizedTurnId: string;
-  assistantMessageId: string;
+  assistantMessageId: string | null;
   sourceUserEventId: string | null;
   conversationId: string;
   traceId: string;
@@ -335,10 +338,10 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
           ingestion_requested, ingestion_skip_reason, status, policy_version, source_digest,
           failure_stage,
           eligible_event_count, pending_event_count, skipped_event_count,
-          completed_at, last_error_code, last_error_message, updated_at
+          completed_at, last_error_code, last_error_message, rejected_propositions, updated_at
         ) values (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-          $15, $16, $17, $18, $19, $20, $21, now()
+          $15, $16, $17, $18, $19, $20, $21, $22::jsonb, now()
         ) on conflict (finalized_turn_id) do nothing
           returning finalized_turn_id`,
         [
@@ -362,7 +365,8 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
           turn.skippedEventCount,
           turn.completedAt,
           turn.lastErrorCode,
-          turn.lastErrorMessage
+          turn.lastErrorMessage,
+          JSON.stringify(turn.rejectedPropositions ?? [])
         ]
       );
 
@@ -383,7 +387,7 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
         ) {
           await tx.query(
             `update finalized_ingestion_turns set status=$2,failure_stage=$3,last_error_code=$4,last_error_message=$5,
-            next_attempt_at=$6,ingestion_skip_reason=$7,version=version+1,updated_at=now() where finalized_turn_id=$1`,
+            next_attempt_at=$6,ingestion_skip_reason=$7,rejected_propositions=$8::jsonb,version=version+1,updated_at=now() where finalized_turn_id=$1`,
             [
               turn.finalizedTurnId,
               turn.status,
@@ -391,7 +395,8 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
               turn.lastErrorCode,
               turn.lastErrorMessage,
               turn.nextAttemptAt,
-              turn.ingestionSkipReason
+              turn.ingestionSkipReason,
+              JSON.stringify(turn.rejectedPropositions ?? [])
             ]
           );
         } else
@@ -657,7 +662,7 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
   async listMissingAdmissions(limit = 100): Promise<MissingFinalizedConversationTurn[]> {
     const result = await this.client.query(
       `select
-         cm.id as assistant_message_id,
+         case when cm.role='assistant' then cm.id else null end as assistant_message_id,
          cm.finalized_turn_id,
          cm.source_user_event_id,
          cm.session_id as conversation_id,
@@ -671,7 +676,8 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
        from conversation_messages cm
        left join finalized_ingestion_turns fit
          on fit.finalized_turn_id = cm.finalized_turn_id
-       where ($2::text is null or cm.persona_id=$2) and cm.role = 'assistant'
+       where ($2::text is null or cm.persona_id=$2)
+         and (cm.role = 'assistant' or (cm.role='user' and cm.finalized_turn_id='accepted-user:' || cm.id))
          and cm.status = 'completed'
          and cm.ingestion_requested = true
          and nullif(btrim(cm.persona_id), '') is not null
@@ -951,10 +957,12 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
           status = case
             when fit.ingestion_requested = false then 'skipped'
             when fit.status = 'terminal_failed' and fit.last_error_code is not null then 'terminal_failed'
+            when counts.eligible_event_count = 0 and jsonb_array_length(fit.rejected_propositions)>0 then 'terminal_failed'
             when counts.eligible_event_count = 0 then 'skipped'
             when counts.ambiguous_event_count > 0 then 'reconcile_required'
             when counts.retryable_failed_event_count > 0 then 'retryable_failed'
             when counts.processing_event_count > 0 then 'processing'
+            when counts.complete_event_count + counts.unchanged_event_count = counts.eligible_event_count and jsonb_array_length(fit.rejected_propositions)>0 then 'partial'
             when counts.complete_event_count + counts.unchanged_event_count = counts.eligible_event_count then 'complete'
             when counts.complete_event_count + counts.unchanged_event_count + counts.skipped_event_count = counts.eligible_event_count
               and counts.complete_event_count + counts.unchanged_event_count = 0 then 'skipped'
@@ -973,8 +981,8 @@ export class PostgresFinalizedIngestionRepository implements FinalizedIngestionR
               then coalesce(fit.completed_at, now())
             else fit.completed_at
           end,
-          last_error_code = counts.last_error_code,
-          last_error_message = counts.last_error_message,
+          last_error_code = coalesce(counts.last_error_code, case when jsonb_array_length(fit.rejected_propositions)>0 then 'MEMORY_SEMANTIC_PROPOSITIONS_REJECTED' end),
+          last_error_message = coalesce(counts.last_error_message, case when jsonb_array_length(fit.rejected_propositions)>0 then 'Independent invalid propositions were not admitted; inspect rejection details.' end),
           updated_at = now(),
           version = version + 1
       from counts
@@ -1468,7 +1476,7 @@ export class InMemoryFinalizedIngestionRepository implements FinalizedIngestionR
     } else if (turn.status === "terminal_failed" && turn.lastErrorCode) {
       turn.status = "terminal_failed";
     } else if (events.length === 0) {
-      turn.status = "skipped";
+      turn.status = turn.rejectedPropositions?.length ? "terminal_failed" : "skipped";
     } else if (turn.ambiguousEventCount > 0) {
       turn.status = "reconcile_required";
     } else if (events.some((event) => event.status === "retryable_failed")) {
@@ -1476,7 +1484,7 @@ export class InMemoryFinalizedIngestionRepository implements FinalizedIngestionR
     } else if (events.some((event) => event.status === "processing")) {
       turn.status = "processing";
     } else if (turn.completeEventCount + turn.unchangedEventCount === events.length) {
-      turn.status = "complete";
+      turn.status = turn.rejectedPropositions?.length ? "partial" : "complete";
       turn.completedAt ??= new Date().toISOString();
     } else if (
       turn.completeEventCount + turn.unchangedEventCount + turn.skippedEventCount ===
@@ -1514,7 +1522,11 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
     private readonly ingestionPolicy: Pick<MemoryIngestionPolicy, "build"> & {
       readonly semanticOnly?: boolean;
     } = new MemoryIngestionPolicy(),
-    private readonly groundingResolver?: MemoryGroundingResolver
+    private readonly groundingResolver?: MemoryGroundingResolver,
+    private readonly dialogueContext?: (
+      input: FinalizedIngestionAdmissionInput,
+      source: GroundedMemorySource
+    ) => Promise<MemoryIngestionInput["dialogueContext"]>
   ) {}
 
   private get policyVersion() {
@@ -1713,31 +1725,45 @@ export class FinalizedIngestionService implements FinalizedIngestionPort {
       });
     let extraction: Awaited<ReturnType<typeof this.ingestionPolicy.build>>;
     try {
+      if (this.ingestionPolicy.semanticOnly && this.dialogueContext)
+        ingestionInput.dialogueContext = await this.dialogueContext(input, source);
       extraction = await this.ingestionPolicy.build(ingestionInput);
     } catch (error) {
+      const retryable = Boolean(
+        this.ingestionPolicy.semanticOnly &&
+        !(
+          error instanceof Error &&
+          ["MEMORY_SEMANTIC_RETRY_EXHAUSTED", "MEMORY_SOURCE_AUTHORITY_REVOKED"].includes(
+            error.message
+          )
+        )
+      );
       return this.repository.admit({
         turn: {
           ...baseTurn,
-          status:
-            this.ingestionPolicy.semanticOnly &&
-            !(error instanceof Error && error.message === "MEMORY_SEMANTIC_RETRY_EXHAUSTED")
-              ? "retryable_failed"
-              : "terminal_failed",
-          nextAttemptAt: this.ingestionPolicy.semanticOnly
-            ? new Date(Date.now() + 30_000).toISOString()
-            : null,
+          status: retryable ? "retryable_failed" : "terminal_failed",
+          nextAttemptAt: retryable ? new Date(Date.now() + 30_000).toISOString() : null,
           failureStage: "materialization",
-          lastErrorCode: "MEMORY_MATERIALIZATION_FAILED",
+          lastErrorCode:
+            error instanceof MemoryAuthorityError ? error.code : "MEMORY_MATERIALIZATION_FAILED",
           lastErrorMessage: "Memory materialization policy build failed."
         },
         events: []
+      });
+    }
+    if (extraction.rejectedPropositions?.length) {
+      Object.assign(baseTurn, {
+        rejectedPropositions: extraction.rejectedPropositions,
+        lastErrorCode: "MEMORY_SEMANTIC_PROPOSITIONS_REJECTED",
+        lastErrorMessage:
+          "Independent invalid propositions were not admitted; inspect rejection details."
       });
     }
     if (extraction.events.length === 0) {
       return this.repository.admit({
         turn: {
           ...baseTurn,
-          status: "skipped",
+          status: extraction.rejectedPropositions?.length ? "terminal_failed" : "skipped",
           ingestionSkipReason: extraction.skippedReason ?? "no-factual-memory",
           ...(extraction.skippedReason === "MEMORY_SEMANTIC_EXTRACTION_FAILED"
             ? {
@@ -2131,7 +2157,7 @@ function outcomeRequiresDispatchMarker(
 function mapTurnRow(row: QueryResultRow): FinalizedIngestionTurn {
   return {
     finalizedTurnId: String(row["finalized_turn_id"]),
-    assistantMessageId: String(row["assistant_message_id"]),
+    assistantMessageId: nullableString(row["assistant_message_id"]),
     sourceUserEventId: nullableString(row["source_user_event_id"]),
     conversationId: String(row["conversation_id"]),
     traceId: String(row["trace_id"]),
@@ -2141,6 +2167,10 @@ function mapTurnRow(row: QueryResultRow): FinalizedIngestionTurn {
     finalizedAt: toIsoString(row["finalized_at"]),
     ingestionRequested: Boolean(row["ingestion_requested"]),
     ingestionSkipReason: nullableString(row["ingestion_skip_reason"]),
+    rejectedPropositions: (row["rejected_propositions"] ?? []) as Array<{
+      index: number;
+      code: string;
+    }>,
     failureStage:
       row["failure_stage"] === null || row["failure_stage"] === undefined
         ? null
@@ -2198,7 +2228,7 @@ function mapEventRow(row: QueryResultRow): FinalizedIngestionEvent {
 function mapMissingRow(row: QueryResultRow): MissingFinalizedConversationTurn {
   return {
     finalizedTurnId: String(row["finalized_turn_id"]),
-    assistantMessageId: String(row["assistant_message_id"]),
+    assistantMessageId: nullableString(row["assistant_message_id"]),
     sourceUserEventId: nullableString(row["source_user_event_id"]),
     conversationId: String(row["conversation_id"]),
     traceId: String(row["trace_id"]),

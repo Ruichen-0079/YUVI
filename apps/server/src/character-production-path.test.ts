@@ -668,11 +668,16 @@ it.skipIf(!originalEnv["YUVI_EFFECT_TEST_DATABASE_URL"]).each([false, true])(
         }))
       ).toEqual([
         { role: "user", content: "Verify the count" },
-        { role: "assistant", content: "The count is forty-two." }
+        {
+          role: "assistant",
+          content:
+            "[Observation-dependent reply withheld from history; re-query authorized observation sources.]"
+        }
       ]);
       expect((await app.inject("/memory/recent?limit=20")).json().memories).toEqual([]);
 
-      // A later turn may receive the final conversation, never the ephemeral evidence.
+      // The published reply remains real, but later Context cannot bypass an
+      // observation's retention/disclosure lifetime via an answer cache.
       const laterStart = requests.length;
       replies.push('{"disposition":"RESPOND"}', "You are welcome.");
       const later = await app.inject({
@@ -686,7 +691,7 @@ it.skipIf(!originalEnv["YUVI_EFFECT_TEST_DATABASE_URL"]).each([false, true])(
       });
       expect(later.statusCode, later.body).toBe(200);
       const laterContext = JSON.stringify(requests.slice(laterStart));
-      expect(laterContext).toContain("The count is forty-two.");
+      expect(laterContext).not.toContain("The count is forty-two.");
       expect(laterContext).not.toMatch(
         /EXECUTION_EVIDENCE_ONLY_7f2a|Read the authorized count evidence|Verify the same admitted evidence again|The evidence says forty-two\.|Status: SUCCESS/
       );

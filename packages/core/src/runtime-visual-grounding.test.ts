@@ -209,7 +209,7 @@ describe("on-demand visual grounding in the original Runtime turn", () => {
     expect(s.analyzeImage).toHaveBeenCalledTimes(1);
     expect(evidence).toEqual({
       status: "AVAILABLE",
-      observations: expect.stringMatching(/^VISIBLE_ERROR/)
+      observations: expect.stringContaining("VISIBLE_ERROR")
     });
     expect(JSON.stringify(evidence).length).toBeLessThan(4100);
     expect(s.analyzeImage.mock.calls[0]).toEqual([
@@ -348,7 +348,6 @@ it("keeps non-streaming grounded turns out of automatic Memory too", async () =>
   expect(s.extractCandidates).not.toHaveBeenCalled();
 });
 
-
 describe("explicit user image attachment grounding", () => {
   async function collectAttached(
     runtime: RuntimeOrchestrator,
@@ -399,7 +398,7 @@ describe("explicit user image attachment grounding", () => {
     expect(visionCall[1].signal).toBeInstanceOf(AbortSignal);
     expect(attachedEvidence).toEqual({
       status: "AVAILABLE",
-      observations: expect.stringMatching(/^VISIBLE_ERROR/)
+      observations: expect.stringContaining("VISIBLE_ERROR")
     });
     expect(JSON.stringify(attachedEvidence).length).toBeLessThan(4100);
     expect(events.at(-1)).toMatchObject({

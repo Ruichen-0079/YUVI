@@ -73,6 +73,48 @@ function makeHost(override: EffectDispatchStore = store) {
   return { dispatcher: d, host };
 }
 describe.skipIf(!url)("A9.3 canonical provider/publication PostgreSQL boundaries", () => {
+  it("requires live Host maintenance authority independently of an expired causal transport", async () => {
+    const previous = host.verifySourceAuthority;
+    host.verifySourceAuthority = async () => false;
+    let calls = 0;
+    try {
+      const interactive = task();
+      await expect(
+        host.invoke(interactive, leaf, async () => {
+          calls++;
+          return "forbidden";
+        })
+      ).rejects.toThrow();
+      const maintenance = task();
+      maintenance.context = {
+        scope: "host-maintenance",
+        authorizationBasis: "HOST_SCOPE_MAINTENANCE",
+        verifyAuthority: async () => true
+      };
+      expect(
+        await host.invoke(maintenance, leaf, async () => {
+          calls++;
+          return "indexed";
+        })
+      ).toBe("indexed");
+      const revoked = task();
+      revoked.context = {
+        scope: "host-maintenance",
+        authorizationBasis: "HOST_SCOPE_MAINTENANCE",
+        verifyAuthority: async () => false
+      };
+      await expect(
+        host.invoke(revoked, leaf, async () => {
+          calls++;
+          return "forbidden";
+        })
+      ).rejects.toThrow();
+      expect(calls).toBe(1);
+      expect((await store.diagnostic(taskId(maintenance)))?.certainty).toBe("APPLIED");
+    } finally {
+      host.verifySourceAuthority = previous;
+    }
+  });
   beforeAll(async () => {
     admin = createPostgresPool(url!);
     await admin.query(`create schema "${schema}"`);

@@ -19,6 +19,11 @@ describe.skipIf(!url)("Authority application role database enforcement", () => {
       `grant select,insert,update,delete on all tables in schema public to ${role}`
     );
     await admin.query(`grant usage,select on all sequences in schema public to ${role}`);
+    await admin.query(`revoke update,delete on retained_observations from ${role}`);
+    await admin.query(
+      `grant update(evidence,image_bytes,erased_at,erased_by_source) on retained_observations to ${role}`
+    );
+
     await admin.query(`revoke truncate on all tables in schema public from ${role}`);
     await admin.query(
       `revoke update,delete on memory_authority_records,memory_authority_relations,memory_authority_admissions,context_use_manifests,context_use_exposures,journal_events,journal_event_parents from ${role}`
@@ -66,7 +71,10 @@ describe.skipIf(!url)("Authority application role database enforcement", () => {
       "delete from memory_authority_records",
       "truncate memory_authority_records",
       "create table forbidden_ddl(x int)",
-      "update yuvi_schema_migrations set digest=digest"
+      "update yuvi_schema_migrations set digest=digest",
+      "delete from retained_observations where false",
+      "update retained_observations set actor_id='forged' where false",
+      "update retained_observations set expires_at=now() where false"
     ])
       await expect(app.query(sql)).rejects.toMatchObject({ code: "42501" });
     expect(

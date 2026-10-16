@@ -73,6 +73,7 @@ export type RuntimeOrchestratorOptions = {
     | undefined;
   contextOwnerSources?: readonly import("@companion/protocol").ContextSourceUse[] | undefined;
   verifyContextOwners?: (() => Promise<boolean>) | undefined;
+  checkContextOwnerFreshness?: (() => Promise<boolean>) | undefined;
   eventBus: EventBus;
   memory: RuntimeMemoryPort;
   promptBuilder: RuntimePromptBuilderPort;
@@ -82,6 +83,7 @@ export type RuntimeOrchestratorOptions = {
   /** Model extraction uses the persisted finalized turn and existing recovery worker. */
   deferFinalizedMemoryAdmission?: boolean | undefined;
   memoryIngestionCoordinator?: MemoryIngestionCoordinatorPort | undefined;
+  observations?: import("./observation-evidence.js").RuntimeObservationPort | undefined;
   memoryRepository?: string | undefined;
   directContext?: Partial<DirectContextConfig> | undefined;
   memoryContextBuilder?: Pick<MemoryContextBuilder, "build"> | undefined;
@@ -147,6 +149,9 @@ export type RuntimeCharacterCognitionExecutor = (
     canonicalContext?: CanonicalContext | undefined;
     signal?: AbortSignal | undefined;
     runtimeAuthorizedPath?: string | undefined;
+    runtimeReadTextIsCurrent?: (() => boolean) | undefined;
+    runtimeReadTextVerifyAuthority?: (() => Promise<boolean>) | undefined;
+    onObservation?: (() => void) | undefined;
     effectContext?:
       | { scope: string; cause: import("@companion/protocol").JournalEventRef }
       | undefined;
@@ -214,7 +219,9 @@ export type RuntimeCharacterTurnInput = Readonly<{
   /** Pre-resolved evidence from one explicit user image attachment. */
   visualEvidence?: RuntimeVisualEvidence | undefined;
   requestVisualEvidence?:
-    | ((request: Readonly<{ need: string }>) => Promise<RuntimeVisualEvidence>)
+    | ((
+        request: Readonly<{ need: string; observationId?: string | undefined }>
+      ) => Promise<RuntimeVisualEvidence>)
     | undefined;
   prompt: PromptBuildOutput;
   canonicalContext?: CanonicalContext | undefined;

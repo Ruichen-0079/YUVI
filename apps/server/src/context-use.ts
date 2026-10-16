@@ -23,8 +23,11 @@ export class HostContextUse {
     if (task.context?.isCurrent && !task.context.isCurrent())
       throw Error("Context consumer is no longer current.");
     const pending = task.contextUse;
-    if (pending?.verifyCurrent && !(await pending.verifyCurrent()))
-      throw Error("Current context dependency is stale or unavailable.");
+    const verifyAuthority = pending?.verifyAuthority ?? pending?.verifyCurrent;
+    if (verifyAuthority && !(await verifyAuthority())) throw Error("CONTEXT_AUTHORITY_REVOKED");
+    const freshness = pending?.checkFreshness
+      ? await pending.checkFreshness().catch(() => "UNKNOWN" as const)
+      : undefined;
     let base = pending ? this.contextBases.get(pending) : undefined;
     if (!base) {
       const refs = task.context?.cause ? [JSON.stringify(task.context.cause)] : [];
@@ -102,7 +105,8 @@ export class HostContextUse {
       manifestId: contextManifestId(base),
       consumerOperationSlot: `${task.operation}:${task.operationId}`,
       exposureOrdinal: "1",
-      ...task.exposure
+      ...task.exposure,
+      ...(freshness ? { snapshot: { policy: "CAPTURED_AS_OF" as const, freshness } } : {})
     };
     const admitted = await repository.admit(base, exposure);
     if (!admitted.exposureId) throw Error("Required context exposure missing.");
