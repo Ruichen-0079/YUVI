@@ -53,9 +53,12 @@ export function structuredVisualEvidence(
     /* Free text stays explicitly a Provider report, never a Runtime instruction. */
   }
   return {
-    text: (fields.text ?? "").slice(0, 32000),
-    sceneSummary: (fields.sceneSummary ?? "").slice(0, 4000),
-    objects: (fields.objects ?? []).slice(0, 32).map((o) => o.slice(0, 160)),
+    // Serialized per-field bounds also fit the 80 KB PostgreSQL JSONB contract
+    // for CJK/control text. Preserve both ends and mark omissions at storage,
+    // before the smaller Context projection applies its separate budget.
+    text: boundedJsonText(fields.text ?? "", 16000),
+    sceneSummary: boundedJsonText(fields.sceneSummary ?? "", 4000),
+    objects: (fields.objects ?? []).slice(0, 32).map((o) => boundedJsonText(o, 160)),
     confidence:
       typeof fields.confidence === "number" && Number.isFinite(fields.confidence)
         ? Math.max(0, Math.min(1, fields.confidence))
@@ -64,14 +67,18 @@ export function structuredVisualEvidence(
 }
 function boundedJsonText(value: string, budget: number): string {
   if (JSON.stringify(value).length <= budget) return value;
-  let take = Math.min(value.length - 1, budget);
-  while (take > 0) {
-    const half = Math.floor(take / 2);
+  let low = 0,
+    high = Math.min(value.length - 1, budget);
+  let best = "[…omitted…]";
+  while (low <= high) {
+    const half = Math.floor((low + high) / 2);
     const text = value.slice(0, half) + " […middle omitted…] " + value.slice(-half);
-    if (JSON.stringify(text).length <= budget) return text;
-    take -= Math.max(1, Math.ceil((JSON.stringify(text).length - budget) / 2));
+    if (JSON.stringify(text).length <= budget) {
+      best = text;
+      low = half + 1;
+    } else high = half - 1;
   }
-  return "[…omitted…]";
+  return best;
 }
 export function observationContextText(e: NonNullable<ObservationEvidence["evidence"]>) {
   const text = boundedJsonText(e.text, 2000),

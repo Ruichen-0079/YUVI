@@ -106,7 +106,7 @@ export class HostObservationContinuity implements RuntimeObservationPort {
       context,
       attemptId,
       "READ_TEXT",
-      { text: text.slice(0, 64000), sceneSummary: "", objects: [], confidence: null },
+      structuredVisualEvidence({ text, sceneSummary: "", objects: [] }),
       "host.read_text",
       null,
       undefined
@@ -245,7 +245,7 @@ export class HostObservationContinuity implements RuntimeObservationPort {
     return {
       schema: "observations.page.v1" as const,
       status: "OK" as const,
-      records,
+      records: records.map(expireAtDisclosure),
       nextCursor:
         rows.length > limit && last
           ? Buffer.from(
@@ -258,13 +258,14 @@ export class HostObservationContinuity implements RuntimeObservationPort {
     };
   }
   private async project(row: Record<string, unknown>): Promise<ObservationEvidence> {
-    const expired = new Date(String(row["expires_at"])).getTime() <= Date.now();
     const source = row["source_ref"] as JournalEventRef;
+    const sourceAuthorized = await this.owner(source);
+    const expired = new Date(String(row["expires_at"])).getTime() <= Date.now();
     const unavailableReason = expired
       ? "EXPIRED"
       : row["erased_at"]
         ? "DELETED"
-        : !(await this.owner(source))
+        : !sourceAuthorized
           ? "SOURCE_AUTHORITY_UNAVAILABLE"
           : undefined;
     const evidence = row["evidence"] as ObservationEvidence["evidence"];
@@ -308,7 +309,9 @@ export class HostObservationContinuity implements RuntimeObservationPort {
       )
     ).rows[0];
     const record = row ? await this.project(row) : null;
-    return (await this.owner(context.sourceJournalRef)) ? record : null;
+    return (await this.owner(context.sourceJournalRef)) && record
+      ? expireAtDisclosure(record)
+      : null;
   }
   async verify(context: ObservationContext, ids: string[]) {
     if (ids.length > 5) return false;
@@ -351,4 +354,16 @@ export class HostObservationContinuity implements RuntimeObservationPort {
       )
     ).rows.length;
   }
+}
+
+function expireAtDisclosure(record: ObservationEvidence): ObservationEvidence {
+  if (record.availability !== "AVAILABLE" || Date.parse(record.expiresAt) > Date.now())
+    return record;
+  const { evidence: _evidence, ...withoutContent } = record;
+  return {
+    ...withoutContent,
+    availability: "UNAVAILABLE",
+    unavailableReason: "EXPIRED",
+    sourceArtifact: "UNAVAILABLE"
+  };
 }
