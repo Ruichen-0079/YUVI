@@ -155,6 +155,41 @@ describe.skipIf(!url)("A9.2 real host read-text / Journal / PostgreSQL integrati
     expect(i?.decision).toBe("DENIED");
     expect(i?.request.payload).toBeUndefined();
   });
+  it("rechecks a capability revoked while live source authorization awaits", async () => {
+    const g = input();
+    let current = true;
+    let entered!: () => void, release!: () => void;
+    const checking = new Promise<void>((resolve) => {
+      entered = resolve;
+    });
+    const blocked = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    g.isCurrent = () => current;
+    g.path = join(dir, "must-not-open-missing-file");
+    host.verifySourceAuthority = async () => {
+      entered();
+      await blocked;
+      return true;
+    };
+    try {
+      const result = host.execute(g).catch((error: unknown) => error);
+      await checking;
+      current = false;
+      release();
+      expect(await result).toBeInstanceOf(Error);
+      const recorded = await host.dispatcher!.diagnostic(
+        effectIntentId("yuvi.read-text.v1", g.logicalKey)
+      );
+      expect(recorded?.evidence).toMatchObject({
+        certainty: "PROVEN_NOT_APPLIED",
+        reason: "AUTHORITY_REVOKED"
+      });
+    } finally {
+      release();
+      host.verifySourceAuthority = undefined;
+    }
+  });
   it("restart has no volatile grant and cannot read admitted pending file", async () => {
     const g = input();
     const identity = fixtureIdentity;

@@ -81,6 +81,49 @@ describe.skipIf(!url)("R5 PostgreSQL authority invariants", () => {
     await provider.prepareEvidence!("FINALIZED_INGESTION", input);
     return provider.writeEventIdempotent(input);
   }
+  it("checks live source authority at commit and preserves exact applied truth after later revocation", async () => {
+    const accepted = await event("Live source authority", 42);
+    let allowed = true;
+    const transactions: boolean[] = [];
+    authority.authorizeSource = async (_input, tx) => {
+      transactions.push(Boolean(tx));
+      return allowed;
+    };
+    try {
+      await provider.prepareEvidence!("FINALIZED_INGESTION", accepted);
+      const applied = await provider.writeEventIdempotent(accepted);
+      expect(applied.status).toBe("written");
+      expect(transactions).toContain(true);
+      const pending = await event("A not-yet-applied candidate", 43);
+      await provider.prepareEvidence!("FINALIZED_INGESTION", pending);
+      allowed = false;
+      expect(await provider.writeEventIdempotent(pending)).toMatchObject({
+        status: "rejected",
+        errorCode: "MEMORY_SOURCE_AUTHORITY_REVOKED"
+      });
+      expect(
+        await provider.reconcileEvent({
+          scope,
+          idempotencyKey: pending.idempotencyKey,
+          payloadDigest: pending.payloadDigest
+        })
+      ).toMatchObject({ status: "not_applied" });
+      await provider.prepareEvidence!("FINALIZED_INGESTION", accepted);
+      expect(await provider.writeEventIdempotent(accepted)).toMatchObject({
+        status: "unchanged",
+        eventId: applied.eventId
+      });
+      expect(
+        await provider.reconcileEvent({
+          scope,
+          idempotencyKey: accepted.idempotencyKey,
+          payloadDigest: accepted.payloadDigest
+        })
+      ).toMatchObject({ status: "applied", eventId: applied.eventId });
+    } finally {
+      authority.authorizeSource = undefined;
+    }
+  });
   it("corrects exactly one proposition, preserves same-Journal independent fact and history", async () => {
     const a = await write(await event("Editor A", 1));
     const independent = await write(await event("Tea preference", 1));
