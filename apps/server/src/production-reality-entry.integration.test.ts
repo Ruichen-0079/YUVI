@@ -131,12 +131,9 @@ describe.skipIf(!url)("normal Server entrypoint production reality", () => {
         });
         await new Promise<void>((resolve) => gateway.listen(0, "127.0.0.1", resolve));
         const gatewayPort = (gateway.address() as { port: number }).port;
-        const reservation = createServer();
-        await new Promise<void>((resolve) => reservation.listen(0, "127.0.0.1", resolve));
-        const port = (reservation.address() as { port: number }).port;
-        await new Promise<void>((resolve) => reservation.close(() => resolve()));
-        const base = `http://127.0.0.1:${port}`;
+        let base = "";
         const start = async (mode: string, mocks: string) => {
+          base = "";
           child = spawn(
             process.execPath,
             ["--conditions=development", "--import", "tsx", "apps/server/src/index.ts"],
@@ -154,7 +151,7 @@ describe.skipIf(!url)("normal Server entrypoint production reality", () => {
                 YUVI_DATA_ROOT: join(root, "data"),
                 YUVI_CACHE_ROOT: join(root, "cache"),
                 SERVER_HOST: "127.0.0.1",
-                SERVER_PORT: String(port),
+                SERVER_PORT: "0",
                 LOG_LEVEL: "error",
                 DATABASE_URL: connection.toString(),
                 MEMORY_BACKEND: "postgres",
@@ -178,9 +175,18 @@ describe.skipIf(!url)("normal Server entrypoint production reality", () => {
                 YUVI_AUTO_MIGRATE: "0",
                 DASHBOARD_DEV_TOKEN: "synthetic-operator-token"
               },
-              stdio: ["ignore", "pipe", "pipe"]
+              stdio: ["ignore", "pipe", "pipe", "ipc"]
             }
           );
+          child.on("message", (message) => {
+            const ready = message as { schema?: string; port?: number };
+            if (
+              ready.schema === "yuvi.server-ready.v1" &&
+              Number.isInteger(ready.port) &&
+              ready.port! > 0
+            )
+              base = `http://127.0.0.1:${ready.port}`;
+          });
           child.stdout?.on("data", (data) => {
             log = (log + data.toString()).slice(-10000);
           });
@@ -190,7 +196,7 @@ describe.skipIf(!url)("normal Server entrypoint production reality", () => {
           for (let attempt = 0; attempt < 200; attempt++) {
             if (child.exitCode !== null) throw new Error(`Isolated Server startup failed: ${log}`);
             try {
-              if ((await fetch(`${base}/health`)).ok) return;
+              if (base && (await fetch(`${base}/health`)).ok) return;
             } catch {
               /* startup only */
             }

@@ -291,11 +291,17 @@ const original=RuntimeOrchestrator.prototype.handleUserMessage;
 RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input.payload?.content?.includes("EC_BEFORE_RUNTIME")) process.exit(73); return original.call(this,input,...args);};`
       );
       const start = async (enabled: boolean, crashBeforeRuntime = false) => {
-        const listener = createServer();
-        await new Promise<void>((resolve) => listener.listen(0, "127.0.0.1", resolve));
-        const port = (listener.address() as { port: number }).port;
-        await new Promise<void>((resolve) => listener.close(() => resolve()));
-        base = `http://127.0.0.1:${port}`;
+        let legacyPort = 0;
+        base = "";
+        // Historical checkouts predate readiness IPC. Only the explicit
+        // baseline replay uses the old allocation; normal CI binds atomically.
+        if (process.env["YUVI_EVIDENCE_RUNTIME_CHECKOUT"]) {
+          const listener = createServer();
+          await new Promise<void>((resolve) => listener.listen(0, "127.0.0.1", resolve));
+          legacyPort = (listener.address() as { port: number }).port;
+          await new Promise<void>((resolve) => listener.close(() => resolve()));
+          base = `http://127.0.0.1:${legacyPort}`;
+        }
         child = spawn(
           process.execPath,
           [
@@ -317,7 +323,7 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
               YUVI_DATA_ROOT: join(root, "data"),
               YUVI_CACHE_ROOT: join(root, "cache"),
               SERVER_HOST: "127.0.0.1",
-              SERVER_PORT: String(port),
+              SERVER_PORT: String(legacyPort),
               LOG_LEVEL: "warn",
               DATABASE_URL: connection.toString(),
               MEMORY_BACKEND: "postgres",
@@ -343,9 +349,18 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
               YUVI_AUTO_MIGRATE: "0",
               DASHBOARD_DEV_TOKEN: "synthetic-operator"
             },
-            stdio: ["ignore", "pipe", "pipe"]
+            stdio: ["ignore", "pipe", "pipe", "ipc"]
           }
         );
+        child.on("message", (message) => {
+          const ready = message as { schema?: string; port?: number };
+          if (
+            ready.schema === "yuvi.server-ready.v1" &&
+            Number.isInteger(ready.port) &&
+            ready.port! > 0
+          )
+            base = `http://127.0.0.1:${ready.port}`;
+        });
         for (const stream of [child.stdout, child.stderr])
           stream?.on("data", (d) => {
             log = (log + d.toString()).slice(-10000);
@@ -353,7 +368,7 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
         for (let i = 0; i < 200; i++) {
           if (child.exitCode !== null) throw Error(log);
           try {
-            if ((await fetch(base + "/health")).ok) return;
+            if (base && (await fetch(base + "/health")).ok) return;
           } catch {
             /* startup */
           }
