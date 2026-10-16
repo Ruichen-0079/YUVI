@@ -16,7 +16,7 @@
 
 ## 真实模型
 
-2026-10-15/16 实机只读核对独立安装：DeepInfra compatible Chat `deepseek-ai/DeepSeek-V4-Flash-0731`，Reasoning 配置 `zai-org/GLM-5.3-Flash`，实际安装仍 `MEMORY_BACKEND=mem0`、repository postgres。本分支没有成为她的运行版本。
+2026-10-15/16 实机只读核对独立安装的进程环境：DeepInfra compatible Chat `deepseek-ai/DeepSeek-V4-Flash-0731`，Reasoning 配置 `zai-org/GLM-5.3-Flash`，环境仍声明 `MEMORY_BACKEND=mem0`、repository postgres。没有读取其私人数据库；环境声明不等同于对所有持久配置覆盖的完整审计。本分支没有成为她的运行版本。
 
 隔离实验明确将 Reasoning 路由设为同一个 DeepSeek，**不是隐式 fallback，也没有修改安装配置**；本批没有重测 GLM 可用性。temperature=0、max_tokens=2048、声明窗口 65,536；Persona `evidence-synthetic-v1`、独立 Character、Person/scope/schema、正式可信 Host grants。向量索引关闭，故本批不证明完整混合检索质量。
 
@@ -43,4 +43,4 @@
 
 图片观察的结构、TTL、跨重启、复查与身份边界是 **真实 PostgreSQL + fixture Vision** 证据，本批没有独立核实可用于实验的真实 Vision 路由并调用它。不能把这个测试写成视觉语义效果提升。
 
-观察报告写入尚未与 A9 终态统一提交，跨所有 crash 点恢复未完成；持续来源审计、全资产迁移、产品 Host、QQ PRIVATE/GROUP、全域隐私删除等继续开放。没有百万级新观察压力、长期队列成本、全模型空间或真实 Alice 切换验收。参考 [总矩阵](README.zh.md)，这些不是 CI 绿色能消除的缺口。
+观察报告写入尚未与 A9 终态统一提交，跨所有 crash 点恢复未完成。实际 read_text/PG 故障注入验证：report persistence 抛错后动作仍 APPLIED，相同逻辑键不能重读，只有一个 attempt；这是保留执行真相的证据，**不是丢失报告已恢复**。持续来源审计、全资产迁移、产品 Host、QQ PRIVATE/GROUP、全域隐私删除等继续开放。没有百万级新观察压力、长期队列成本、全模型空间或真实 Alice 切换验收。参考 [总矩阵](README.zh.md)，这些不是 CI 绿色能消除的缺口。
