@@ -89,4 +89,4 @@ for name in names:
 (output / 'model-results.json').write_text(json.dumps(summaries, ensure_ascii=False, indent=2) + '\n')
 (output / 'model-input-summary.json').write_text(json.dumps(inputs, ensure_ascii=False, indent=2) + '\n')
 with (output / 'model-calls.csv').open('w') as file:
-    writer = csv.DictWriter(file, fieldnames=list(rows[0])); writer.writeheader(); writer.writerows(rows)
+    writer = csv.DictWriter(file, fieldnames=list(rows[0]), lineterminator='\n'); writer.writeheader(); writer.writerows(rows)
