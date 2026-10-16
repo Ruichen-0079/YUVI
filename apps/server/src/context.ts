@@ -1059,6 +1059,8 @@ export async function createAppContext(
                 canonicalContext: options.canonicalContext,
                 limits: config.cognitionInteraction,
                 runtimeAuthorizedPath: options?.runtimeAuthorizedPath,
+                runtimeReadTextIsCurrent: options.runtimeReadTextIsCurrent,
+                runtimeReadTextVerifyAuthority: options.runtimeReadTextVerifyAuthority,
                 onObservation: options.onObservation,
                 readTextEffects,
                 effectContext: options.effectContext,

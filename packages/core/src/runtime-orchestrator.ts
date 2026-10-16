@@ -792,12 +792,33 @@ export class RuntimeOrchestrator {
     { observation: STTOutput; sessionId: string; journalRef: JournalEventRef; at: number }
   >();
 
-  private readonly authorizedReadText = new Map<string, string>();
+  private readonly authorizedReadText = new Map<
+    string,
+    {
+      path: string;
+      consumed: boolean;
+      verifySource?:
+        | ((ref: import("@companion/protocol").JournalEventRef | undefined) => Promise<boolean>)
+        | undefined;
+    }
+  >();
 
-  authorizeReadText(sessionId: string, path: string): void {
+  authorizeReadText(
+    sessionId: string,
+    path: string,
+    verifySource?: (
+      ref: import("@companion/protocol").JournalEventRef | undefined
+    ) => Promise<boolean>
+  ): void {
     if (!sessionId.trim() || !path.trim() || path !== path.trim() || path.length > 4096)
       throw new Error("Invalid read-text authorization");
-    this.authorizedReadText.set(sessionId, path);
+    this.authorizedReadText.set(sessionId, { path, consumed: false, verifySource });
+  }
+
+  revokeReadText(sessionId: string): void {
+    // An in-flight turn retains the same grant object; deletion invalidates it
+    // at dispatch too. It does not rewrite an already recorded APPLIED receipt.
+    this.authorizedReadText.delete(sessionId);
   }
 
   private readonly voiceSpeakers = new WeakMap<RuntimeUserTurnEvent, P8CharacterSpeakerView>();
@@ -4597,8 +4618,40 @@ export class RuntimeOrchestrator {
     prompt: PromptBuildOutput,
     signal?: AbortSignal
   ): Promise<RuntimeCharacterFinalTurnResult> {
-    const runtimeAuthorizedPath = this.authorizedReadText.get(event.payload.sessionId);
-    this.authorizedReadText.delete(event.payload.sessionId);
+    const candidate = this.authorizedReadText.get(event.payload.sessionId);
+    const grant =
+      candidate &&
+      !candidate.consumed &&
+      (!candidate.verifySource || (await candidate.verifySource(event.payload.sourceJournalRef)))
+        ? candidate
+        : undefined;
+    if (grant) grant.consumed = true;
+    const current = () =>
+      Boolean(grant && this.authorizedReadText.get(event.payload.sessionId) === grant);
+    try {
+      return await this.executeCharacterTurnWithReadText(
+        event,
+        prompt,
+        signal,
+        grant?.path,
+        current,
+        async () =>
+          current() &&
+          (!grant?.verifySource || (await grant.verifySource(event.payload.sourceJournalRef)))
+      );
+    } finally {
+      if (current()) this.authorizedReadText.delete(event.payload.sessionId);
+    }
+  }
+
+  private async executeCharacterTurnWithReadText(
+    event: RuntimeUserTurnEvent,
+    prompt: PromptBuildOutput,
+    signal: AbortSignal | undefined,
+    runtimeAuthorizedPath: string | undefined,
+    runtimeReadTextIsCurrent: () => boolean,
+    runtimeReadTextVerifyAuthority: () => Promise<boolean>
+  ): Promise<RuntimeCharacterFinalTurnResult> {
     const character = this.options.character;
     if (!character) {
       throw new Error("Runtime Character generation is not configured.");
@@ -4829,6 +4882,8 @@ export class RuntimeOrchestrator {
       canonicalContext,
       signal: cognitionSignal,
       runtimeAuthorizedPath,
+      runtimeReadTextIsCurrent,
+      runtimeReadTextVerifyAuthority,
       onObservation: () => this.observationDependentTurns.add(event),
       ...(event.payload.sourceJournalRef
         ? {

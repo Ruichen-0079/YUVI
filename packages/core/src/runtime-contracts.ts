@@ -149,6 +149,8 @@ export type RuntimeCharacterCognitionExecutor = (
     canonicalContext?: CanonicalContext | undefined;
     signal?: AbortSignal | undefined;
     runtimeAuthorizedPath?: string | undefined;
+    runtimeReadTextIsCurrent?: (() => boolean) | undefined;
+    runtimeReadTextVerifyAuthority?: (() => Promise<boolean>) | undefined;
     onObservation?: (() => void) | undefined;
     effectContext?:
       | { scope: string; cause: import("@companion/protocol").JournalEventRef }

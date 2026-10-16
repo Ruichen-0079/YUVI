@@ -2,7 +2,7 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { JournalRepository, JournalAuthorityDraft } from "@companion/journal";
 import type { JournalEventRef } from "@companion/protocol";
 import type { AuthorityPool, MemoryReadAuthority } from "@companion/memory";
-import { parseMemoryScope } from "@companion/memory";
+import { buildMemoryScope, parseMemoryScope } from "@companion/memory";
 import { isDesktopAllowedOrigin } from "./cors.js";
 
 export class ConversationHostIdentityError extends Error {
@@ -86,6 +86,21 @@ export class ConversationHostIdentity {
     return {
       schema: "host.grant.revocation.v1" as const,
       status: r.rows.length ? "REVOKED" : "UNKNOWN"
+    };
+  }
+  /** Local controller target, never inferred from the session name or model. */
+  readTextTarget(personId?: string) {
+    const revision = personId ? this.personRevision(personId) : null;
+    if (personId && !revision) throw new ConversationHostIdentityError("HOST_PERSON_NOT_VERSIONED");
+    return async (ref: JournalEventRef | undefined): Promise<boolean> => {
+      if (!ref || ref.namespace !== this.journal.namespace) return false;
+      const source = await this.journal.get(ref);
+      if (!source) return false;
+      if (!personId) return source.authority.binding.state === "UNRESOLVED";
+      if (this.personRevision(personId) !== revision) return false;
+      return Boolean(
+        await this.readAuthority(ref, buildMemoryScope(personId, this.owner.personaId))
+      );
     };
   }
   async authorize(

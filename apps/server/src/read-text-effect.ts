@@ -21,6 +21,7 @@ export type ReadTextEffectInput = {
   cause: JournalEventRef;
   expiresAt: string;
   isCurrent(): boolean;
+  verifyAuthority?: (() => Promise<boolean>) | undefined;
   signal?: AbortSignal | undefined;
 };
 /** The active local adapter: file contents exist only in the transient Runtime return value. */
@@ -95,8 +96,10 @@ export class HostReadTextEffects {
               isCurrent: current,
               invoke: async (i, a, signal) => {
                 if (
-                  this.verifySourceAuthority &&
-                  !(await this.verifySourceAuthority(i.request.causalRefs[0]!))
+                  (grants.get(i.intentId)?.verifyAuthority &&
+                    !(await grants.get(i.intentId)!.verifyAuthority!())) ||
+                  (this.verifySourceAuthority &&
+                    !(await this.verifySourceAuthority(i.request.causalRefs[0]!)))
                 )
                   return {
                     evidence: {
@@ -137,6 +140,8 @@ export class HostReadTextEffects {
     const g = { ...raw, cause: { ...raw.cause } };
     if (!this.accepting || !this.dispatcher || !this.journal)
       throw Error("Durable read-text effects unavailable.");
+    if (g.verifyAuthority && !(await g.verifyAuthority()))
+      throw Error("Read-text authorization revoked before admission.");
     const receipt = await this.journal.get(g.cause);
     if (!receipt || receipt.command.kind !== "RECEIPT")
       throw Error("Committed read-text cause unavailable.");

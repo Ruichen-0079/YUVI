@@ -20,6 +20,8 @@ export function executeProductionCognition(input: {
   problem: string;
   canonicalContext?: CanonicalContext | undefined;
   runtimeAuthorizedPath?: string | undefined;
+  runtimeReadTextIsCurrent?: (() => boolean) | undefined;
+  runtimeReadTextVerifyAuthority?: (() => Promise<boolean>) | undefined;
   readTextEffects?: HostReadTextEffects | undefined;
   onObservation?: (() => void) | undefined;
   effectContext?: Pick<ReadTextEffectInput, "scope" | "cause"> | undefined;
@@ -82,7 +84,9 @@ export function executeProductionCognition(input: {
           executionId: input.execution.executionId,
           logicalKey: `read-text:${cause.namespace}:${cause.eventId}:round:${readOrdinal++}`,
           expiresAt,
-          isCurrent: () => input.execution.isCurrent(),
+          isCurrent: () =>
+            input.execution.isCurrent() && (input.runtimeReadTextIsCurrent?.() ?? true),
+          verifyAuthority: input.runtimeReadTextVerifyAuthority,
           signal: options?.signal
         });
         input.onObservation?.();
