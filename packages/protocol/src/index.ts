@@ -192,6 +192,10 @@ export * from "./presentation-permission.js";
 
 export * from "./context-use.js";
 export {
+  ObservationRetentionSchema,
+  ObservationExecutionSchema,
+  type ObservationRetention,
+  type ObservationExecution,
   ObservationEvidenceSchema,
   ObservationPageSchema,
   ObservationClient,

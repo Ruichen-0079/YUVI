@@ -4,3 +4,4 @@ export * from "./store.js";
 export * from "./dispatch-model.js";
 export * from "./dispatch-store.js";
 export * from "./dispatcher.js";
+export * from "./result-projection.js";

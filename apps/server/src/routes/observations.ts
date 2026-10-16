@@ -32,21 +32,17 @@ export async function registerObservationRoutes(app: FastifyInstance, context: A
             sessionId: query.data.sessionId
           });
           if (!identity)
-            return reply
-              .code(401)
-              .send({
-                schema: "observation.error.v1",
-                status: "UNAVAILABLE",
-                error: "HOST_IDENTITY_REQUIRED"
-              });
+            return reply.code(401).send({
+              schema: "observation.error.v1",
+              status: "UNAVAILABLE",
+              error: "HOST_IDENTITY_REQUIRED"
+            });
           if (!context.observations)
-            return reply
-              .code(503)
-              .send({
-                schema: "observation.error.v1",
-                status: "UNAVAILABLE",
-                error: "OBSERVATION_STORAGE_UNAVAILABLE"
-              });
+            return reply.code(503).send({
+              schema: "observation.error.v1",
+              status: "UNAVAILABLE",
+              error: "OBSERVATION_STORAGE_UNAVAILABLE"
+            });
           const source = await context.conversationalReceiptAdmission.admit({
             surface: "HTTP_MESSAGE",
             sessionId: query.data.sessionId,
@@ -69,24 +65,20 @@ export async function registerObservationRoutes(app: FastifyInstance, context: A
                   scope: "OBSERVATION_PAYLOAD_AND_IMAGE",
                   actionReceipt: "RETAINED"
                 }
-              : reply
-                  .code(404)
-                  .send({
-                    schema: "observation.error.v1",
-                    status: "UNAVAILABLE",
-                    error: "NOT_FOUND_OR_NOT_VISIBLE"
-                  });
+              : reply.code(404).send({
+                  schema: "observation.error.v1",
+                  status: "UNAVAILABLE",
+                  error: "NOT_FOUND_OR_NOT_VISIBLE"
+                });
           }
           const record = await context.observations.detail(access, id.data.id);
           return (
             record ??
-            reply
-              .code(404)
-              .send({
-                schema: "observation.error.v1",
-                status: "UNAVAILABLE",
-                error: "NOT_FOUND_OR_NOT_VISIBLE"
-              })
+            reply.code(404).send({
+              schema: "observation.error.v1",
+              status: "UNAVAILABLE",
+              error: "NOT_FOUND_OR_NOT_VISIBLE"
+            })
           );
         } catch (error) {
           return reply
@@ -103,12 +95,16 @@ export async function registerObservationRoutes(app: FastifyInstance, context: A
       }
     });
   }
-  app.get("/observations/v1", async (request, reply) => {
-    const query = querySchema.safeParse(request.query);
-    if (!query.success)
+  app.get("/observations/v1/executions/:attemptId", async (request, reply) => {
+    const query = querySchema.pick({ sessionId: true }).safeParse(request.query);
+    const params = z
+      .object({ attemptId: z.string().regex(/^ea1_[a-f0-9]{64}$/u) })
+      .safeParse(request.params);
+    if (!query.success || !params.success)
       return reply
         .code(400)
         .send({ schema: "observation.error.v1", status: "FAILED", error: "INVALID_REQUEST" });
+    reply.header("Cache-Control", "no-store");
     try {
       const identity = await context.conversationHost?.authorize(request, {
         sessionId: query.data.sessionId
@@ -129,6 +125,65 @@ export async function registerObservationRoutes(app: FastifyInstance, context: A
             status: "UNAVAILABLE",
             error: "OBSERVATION_STORAGE_UNAVAILABLE"
           });
+      const source = await context.conversationalReceiptAdmission.admit({
+        surface: "HTTP_MESSAGE",
+        sessionId: query.data.sessionId,
+        runtimeEventId: randomUUID(),
+        content: `Observation execution ${params.data.attemptId}`,
+        hostIdentity: identity
+      });
+      const evidence = await context.observations.execution(
+        {
+          sourceJournalRef: toConversationalJournalRef(source.envelope),
+          sessionId: query.data.sessionId
+        },
+        params.data.attemptId
+      );
+      return (
+        evidence ??
+        reply
+          .code(404)
+          .send({
+            schema: "observation.error.v1",
+            status: "UNAVAILABLE",
+            error: "NOT_FOUND_OR_NOT_VISIBLE"
+          })
+      );
+    } catch (error) {
+      return reply
+        .code(error instanceof ConversationHostIdentityError ? error.statusCode : 503)
+        .send({
+          schema: "observation.error.v1",
+          status: "UNAVAILABLE",
+          error:
+            error instanceof ConversationHostIdentityError
+              ? error.code
+              : "OBSERVATION_QUERY_UNAVAILABLE"
+        });
+    }
+  });
+  app.get("/observations/v1", async (request, reply) => {
+    const query = querySchema.safeParse(request.query);
+    if (!query.success)
+      return reply
+        .code(400)
+        .send({ schema: "observation.error.v1", status: "FAILED", error: "INVALID_REQUEST" });
+    try {
+      const identity = await context.conversationHost?.authorize(request, {
+        sessionId: query.data.sessionId
+      });
+      if (!identity)
+        return reply.code(401).send({
+          schema: "observation.error.v1",
+          status: "UNAVAILABLE",
+          error: "HOST_IDENTITY_REQUIRED"
+        });
+      if (!context.observations)
+        return reply.code(503).send({
+          schema: "observation.error.v1",
+          status: "UNAVAILABLE",
+          error: "OBSERVATION_STORAGE_UNAVAILABLE"
+        });
       const source = await context.conversationalReceiptAdmission.admit({
         surface: "HTTP_MESSAGE",
         sessionId: query.data.sessionId,

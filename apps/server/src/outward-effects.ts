@@ -10,6 +10,7 @@ import {
   effectDigest,
   effectIntentId,
   protocolEvidence,
+  prepareResultProjection,
   freezeEffectRequest,
   requestEffectDigest,
   HostEffectIntentAdmission,
@@ -21,6 +22,7 @@ import {
   type EffectEvidence,
   type EffectProgressFact
 } from "@companion/effects";
+import type { EffectAdapterResult, EffectResultProjection } from "@companion/effects";
 import type { JournalRepository } from "@companion/journal";
 import type { JournalEventRef } from "@companion/protocol";
 import {
@@ -43,10 +45,7 @@ type Work = {
 };
 type Grant = {
   work: Work;
-  invoke(
-    attempt: EffectAttemptV1,
-    signal: AbortSignal
-  ): Promise<{ evidence: EffectEvidence; transientResult?: unknown }>;
+  invoke(attempt: EffectAttemptV1, signal: AbortSignal): Promise<EffectAdapterResult>;
 };
 /** Volatile invocation grants only. All durable admission/attempt/outcome lives in canonical A9. */
 export class HostOutwardEffects implements ProviderAccountingPort {
@@ -55,6 +54,9 @@ export class HostOutwardEffects implements ProviderAccountingPort {
   private accepting = true;
   /** Host-owned live transport authority; evaluated again immediately before dispatch. */
   verifySourceAuthority?: ((cause: JournalEventRef) => Promise<boolean>) | undefined;
+  projectProviderResult?:
+    | ((task: ProviderTaskDescriptor, attemptId: string, result: unknown) => EffectResultProjection)
+    | undefined;
   private readonly replies = new Map<
     string,
     { requestId: string | undefined; cause: JournalEventRef; sessionId: string }
@@ -593,7 +595,14 @@ export class HostOutwardEffects implements ProviderAccountingPort {
               reason: "RETURNED",
               remoteEffectId: null
             },
-            transientResult: value
+            transientResult: value,
+            ...(task.operation === "analyzeImage" && this.projectProviderResult
+              ? {
+                  projection: prepareResultProjection(() =>
+                    this.projectProviderResult!(task, a.attemptId, value)
+                  )
+                }
+              : {})
           };
         } catch (error) {
           if (isCertifiedProviderNotStarted(error)) {
@@ -622,7 +631,14 @@ export class HostOutwardEffects implements ProviderAccountingPort {
                 layer: "PROVIDER_RESPONSE",
                 reason: "RETURNED",
                 remoteEffectId: null
-              }
+              },
+              ...(task.operation === "analyzeImage" && this.projectProviderResult
+                ? {
+                    projection: prepareResultProjection(() => {
+                      throw Error("PROVIDER_REPORT_UNUSABLE");
+                    })
+                  }
+                : {})
             };
           }
           return { evidence: protocolEvidence("CALL_UNCERTAIN", true) };

@@ -1,5 +1,52 @@
 import { z } from "zod";
 import { JournalEventRefSchema } from "./life-event-journal.js";
+/** Immutable retention fact at terminal COMMIT, never current disclosure permission. */
+export const ObservationRetentionSchema = z
+  .object({
+    version: z.literal("observation-retention.v1"),
+    state: z.enum(["STORED", "NOT_REQUESTED", "WITHHELD", "EXPIRED", "FAILED"]),
+    reportId: z
+      .string()
+      .regex(/^ob1_[a-f0-9]{64}$/u)
+      .nullable(),
+    digest: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/u)
+      .nullable(),
+    expiresAt: z.string().datetime().nullable(),
+    reason: z
+      .enum([
+        "POLICY_DISABLED",
+        "SOURCE_NOT_AUTHORIZED",
+        "RETENTION_EXPIRED",
+        "REPORT_PERSISTENCE_FAILED"
+      ])
+      .nullable()
+  })
+  .strict()
+  .superRefine((r, ctx) => {
+    if (r.state === "STORED" && (!r.reportId || !r.digest || !r.expiresAt || r.reason))
+      ctx.addIssue({
+        code: "custom",
+        message: "Stored report needs its exact committed reference."
+      });
+    const reason = {
+      NOT_REQUESTED: "POLICY_DISABLED",
+      WITHHELD: "SOURCE_NOT_AUTHORIZED",
+      EXPIRED: "RETENTION_EXPIRED",
+      FAILED: "REPORT_PERSISTENCE_FAILED"
+    } as const;
+    if (r.state !== "STORED" && r.reason !== reason[r.state])
+      ctx.addIssue({ code: "custom", message: "Report disposition and reason disagree." });
+    if (r.state === "NOT_REQUESTED" && (r.digest !== null || r.expiresAt !== null))
+      ctx.addIssue({
+        code: "custom",
+        message: "Opted-out reports persist no content fingerprint or expiry."
+      });
+    if (r.state !== "STORED" && r.reportId !== null)
+      ctx.addIssue({ code: "custom", message: "Unavailable report has no stored reference." });
+  });
+export type ObservationRetention = z.infer<typeof ObservationRetentionSchema>;
 /** Retained reports are neither confirmed world facts nor task-completion receipts. */
 export const ObservationEvidenceSchema = z
   .object({
@@ -7,7 +54,15 @@ export const ObservationEvidenceSchema = z
     id: z.string().regex(/^ob1_[a-f0-9]{64}$/u),
     kind: z.enum(["VISION", "READ_TEXT"]),
     availability: z.enum(["AVAILABLE", "UNAVAILABLE"]),
-    unavailableReason: z.enum(["EXPIRED", "DELETED", "SOURCE_AUTHORITY_UNAVAILABLE"]).optional(),
+    unavailableReason: z
+      .enum([
+        "EXPIRED",
+        "DELETED",
+        "SOURCE_AUTHORITY_UNAVAILABLE",
+        "RETENTION_DISABLED",
+        "EXECUTION_INTEGRITY_CONFLICT"
+      ])
+      .optional(),
     source: JournalEventRefSchema,
     observedAt: z.string().datetime(),
     expiresAt: z.string().datetime(),
@@ -61,6 +116,35 @@ export const ObservationPageSchema = z
   })
   .strict();
 export type ObservationPage = z.infer<typeof ObservationPageSchema>;
+/** A9 execution truth and the current privacy lifecycle are separate facts.
+ * No body, source parameters or inaccessible object IDs are returned here. */
+export const ObservationExecutionSchema = z
+  .object({
+    schema: z.literal("observation.execution.v1"),
+    attemptId: z.string().regex(/^ea1_[a-f0-9]{64}$/u),
+    execution: z.enum(["NOT_STARTED", "UNKNOWN", "APPLIED", "NOT_APPLIED", "INTEGRITY_CONFLICT"]),
+    hasAppliedReceipt: z.boolean(),
+    retentionAtCommit: ObservationRetentionSchema.nullable(),
+    report: z.enum([
+      "NOT_PRODUCED",
+      "UNKNOWN",
+      "NOT_REQUESTED",
+      "AVAILABLE",
+      "EXPIRED",
+      "DELETED",
+      "WITHHELD",
+      "FAILED",
+      "LEGACY_MISSING",
+      "UNAVAILABLE"
+    ]),
+    reportId: z
+      .string()
+      .regex(/^ob1_[a-f0-9]{64}$/u)
+      .nullable(),
+    goalStatus: z.literal("NOT_INFERRED")
+  })
+  .strict();
+export type ObservationExecution = z.infer<typeof ObservationExecutionSchema>;
 /** Caller supplies its authenticated Host transport; credentials never appear in URLs. */
 export class ObservationClient {
   constructor(
@@ -76,6 +160,13 @@ export class ObservationClient {
     return ObservationEvidenceSchema.parse(
       await this.request(
         `/observations/v1/${encodeURIComponent(id)}?${new URLSearchParams({ sessionId })}`
+      )
+    );
+  }
+  async execution(sessionId: string, attemptId: string) {
+    return ObservationExecutionSchema.parse(
+      await this.request(
+        `/observations/v1/executions/${encodeURIComponent(attemptId)}?${new URLSearchParams({ sessionId })}`
       )
     );
   }

@@ -13,11 +13,6 @@ export interface RuntimeObservationPort {
     context: ObservationContext
   ): Promise<{ status: "OK" | "UNAVAILABLE"; records: ObservationEvidence[] }>;
   verify(context: ObservationContext, ids: string[]): Promise<boolean>;
-  saveVision(
-    context: ObservationContext,
-    output: VisionOutput,
-    image?: { imageBase64: string; mimeType: string }
-  ): Promise<void>;
   image(
     context: ObservationContext,
     id: string

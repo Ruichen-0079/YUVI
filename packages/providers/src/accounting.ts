@@ -19,6 +19,9 @@ export type ProviderWorkContext = {
   authorizationBasis?: "CAUSAL_SOURCE_HOST_POLICY" | "HOST_SCOPE_MAINTENANCE" | undefined;
 };
 export type ProviderTaskDescriptor = {
+  /** Host-only transient Vision input for consented result projection. Never
+   * serialize this task object into A9, diagnostics, or logs. */
+  transientInput?: unknown;
   operationId: string;
   operation: string;
   inputDigest: string;
@@ -84,6 +87,7 @@ function taskFor(
   return {
     operationId: contexts.getStore()?.operationKey ?? randomUUID(),
     operation,
+    ...(operation === "analyzeImage" ? { transientInput: args[0] } : {}),
     inputDigest: providerInputDigest(args[0]),
     configurationRef,
     routingPlan,

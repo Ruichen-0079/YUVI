@@ -5,11 +5,13 @@ import {
   effectIntentId,
   EffectIdentitySnapshotSchema,
   EFFECT_DELIVERY_CONTRACTS,
+  prepareResultProjection,
   type EffectIntentAdmissionPort,
   type EffectDispatchStore,
   type EffectIntent,
   type EffectCausalReader
 } from "@companion/effects";
+import type { EffectResultProjection } from "@companion/effects";
 import type { JournalEventRef } from "@companion/protocol";
 import type { ServerMcpToolResult } from "./mcp-client.js";
 
@@ -58,12 +60,12 @@ export class HostReadTextEffects {
   readonly dispatcher: EffectDispatcher | null;
   private accepting = true;
   verifySourceAuthority?: ((cause: JournalEventRef) => Promise<boolean>) | undefined;
-  retainObservation?:
+  projectObservation?:
     | ((
         input: ReadTextEffectInput,
         attemptId: string,
         result: ServerMcpToolResult
-      ) => Promise<void>)
+      ) => EffectResultProjection)
     | undefined;
   captureContext?:
     | ((key: string, input: unknown) => Promise<{ manifestId: string; exposureId: string }>)
@@ -125,7 +127,14 @@ export class HostReadTextEffects {
                     reason: "RETURNED",
                     remoteEffectId: null
                   },
-                  transientResult: { ...result, sourceAttemptId: a.attemptId }
+                  transientResult: { ...result, sourceAttemptId: a.attemptId },
+                  ...(this.projectObservation
+                    ? {
+                        projection: prepareResultProjection(() =>
+                          this.projectObservation!(grants.get(i.intentId)!, a.attemptId, result)
+                        )
+                      }
+                    : {})
                 };
               }
             }
@@ -201,10 +210,9 @@ export class HostReadTextEffects {
         const result = await this.dispatcher.run(intent.intentId);
         if (!isCurrent() || !result.recorded || result.transientResult === undefined)
           throw Error("Read-text result unavailable or stale.");
-        // Only a recorded A9 result can create a retained observation. A9 remains
-        // authoritative if retention fails; never dispatch the file operation again.
         const value = result.transientResult as ServerMcpToolResult & { sourceAttemptId?: string };
-        if (value.sourceAttemptId) await this.retainObservation?.(g, value.sourceAttemptId, value);
+        // Both result reference and retention disposition now belong to the
+        // same terminal transaction; there is no post-COMMIT report write.
         return value;
       } finally {
         g.signal?.removeEventListener("abort", abort);

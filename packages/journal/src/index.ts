@@ -80,6 +80,9 @@ export class JournalStoreError extends Error {
   }
 }
 
+export type JournalReadTransaction = {
+  query(sql: string, values?: unknown[]): Promise<{rows: Record<string, unknown>[]}>
+};
 export interface JournalRepository {
   readonly namespace: string;
   append(input: JournalAppendInput): Promise<JournalAppendResult>;
@@ -93,7 +96,9 @@ export interface JournalRepository {
     input: JournalHostAppendInput,
     authority: JournalAuthorityDraft
   ): Promise<JournalAppendResult>;
-  get(ref: JournalEventRef): Promise<DeepReadonly<JournalCommittedEnvelope> | null>;
+  /** Shared-owner SQL reads must reuse the terminal transaction connection;
+   * acquiring a nested pool lease can deadlock a saturated worker pool. */
+  get(ref: JournalEventRef, transaction?: JournalReadTransaction): Promise<DeepReadonly<JournalCommittedEnvelope> | null>;
   resolveRetainedText(ref: JournalPayloadDescriptor["ref"]): Promise<{
     descriptor: DeepReadonly<JournalPayloadDescriptor>;
     text: string;
@@ -368,10 +373,10 @@ export class PostgresJournalRepository implements JournalRepository {
     }
   }
 
-  async get(ref: JournalEventRef): Promise<DeepReadonly<JournalCommittedEnvelope> | null> {
+  async get(ref: JournalEventRef, transaction?: JournalReadTransaction): Promise<DeepReadonly<JournalCommittedEnvelope> | null> {
     if (ref.namespace !== this.namespace) return null;
     try {
-      return await this.readEnvelope(this.pool, ref.eventId);
+      return await this.readEnvelope(transaction ?? this.pool, ref.eventId);
     } catch (error) {
       throw normalizeStoreError(error);
     }
@@ -419,7 +424,7 @@ export class PostgresJournalRepository implements JournalRepository {
     }
   }
 
-  private async readParentHistory(client: PgClient | Pool, refs: readonly JournalEventRef[]): Promise<JournalHistoryEntry[]> {
+  private async readParentHistory(client: JournalReadTransaction, refs: readonly JournalEventRef[]): Promise<JournalHistoryEntry[]> {
     for (const ref of refs) {
       if (ref.namespace !== this.namespace) {
         throw new JournalContractError(
@@ -447,7 +452,7 @@ export class PostgresJournalRepository implements JournalRepository {
   }
 
   private async readEnvelope(
-    client: PgClient | Pool,
+    client: JournalReadTransaction,
     eventId: string
   ): Promise<DeepReadonly<JournalCommittedEnvelope> | null> {
     const result = await client.query(

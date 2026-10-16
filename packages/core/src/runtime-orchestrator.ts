@@ -4550,22 +4550,6 @@ export class RuntimeOrchestrator {
       );
       this.attachedVisualEvidence.set(event, evidence);
       this.observationDependentTurns.add(event);
-      if (!this.memoryWriteDisabledTurns.has(event)) {
-        try {
-          await this.options.observations?.saveVision(
-            {
-              sourceJournalRef: event.payload.sourceJournalRef,
-              sessionId: event.payload.sessionId
-            },
-            output,
-            attachment
-          );
-        } catch {
-          this.options.logger?.warn?.("Vision observation retention failed", {
-            traceId: event.traceId
-          });
-        }
-      }
     } catch {
       assertCurrent();
       this.attachedVisualEvidence.set(

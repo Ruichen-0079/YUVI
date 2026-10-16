@@ -267,7 +267,7 @@ export class ConversationHostIdentity {
     transaction?: Pick<AuthorityPool, "query">
   ): Promise<MemoryReadAuthority | undefined> {
     if (!ref || ref.namespace !== this.journal.namespace) return undefined;
-    const e = await this.journal.get(ref);
+    const e = await this.journal.get(ref, transaction);
     const a = e?.authority;
     if (
       !a ||
