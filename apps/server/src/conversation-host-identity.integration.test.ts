@@ -56,6 +56,31 @@ describe.skipIf(!url)("Host identity and session ownership with actual PostgreSQ
       personId: "x"
     });
     expect(await host.readAuthority(ref, buildMemoryScope("y", personaId))).toBeUndefined();
+    const single = createPostgresPool(url!, { max: 1, connectionTimeoutMillis: 1000 });
+    const singleJournal = new PostgresJournalRepository(single, {
+      namespace,
+      authorityBuilder() {
+        throw Error("Host only");
+      }
+    });
+    const singleHost = new ConversationHostIdentity(
+      single,
+      singleJournal,
+      { instanceId: "r5p2-host", personaId },
+      (id) => (["x", "y"].includes(id) ? `person-${id}-1` : null)
+    );
+    const client = await single.connect();
+    try {
+      await client.query("begin");
+      // Both Journal verification and the grant FOR SHARE use this same lease.
+      expect(
+        await singleHost.readAuthority(ref, buildMemoryScope("x", personaId), client)
+      ).toBeDefined();
+      await client.query("rollback");
+    } finally {
+      client.release();
+      await single.end();
+    }
     await host.revoke(a.grantId);
     expect(await host.readAuthority(ref, buildMemoryScope("x", personaId))).toBeUndefined();
     await expect(host.authorize(request(a.token), { sessionId: randomUUID() })).rejects.toThrow(

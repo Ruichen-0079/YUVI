@@ -144,16 +144,21 @@ describe.skipIf(!url)("A9.2 real host read-text / Journal / PostgreSQL integrati
   it("keeps the actual APPLIED receipt when report retention fails and never rereads to repair it", async () => {
     const g = input();
     let saves = 0;
-    host.retainObservation = async () => {
-      saves++;
-      throw Error("injected report persistence failure");
-    };
+    host.projectObservation = () => ({
+      digest: "a".repeat(64),
+      async commit(tx) {
+        saves++;
+        await tx.query("insert into deliberately_missing_report_table values(1)");
+        throw Error("unreachable");
+      }
+    });
     try {
-      await expect(host.execute(g)).rejects.toThrow("injected report persistence failure");
+      expect((await host.execute(g)).content).toBeDefined();
       const id = effectIntentId("yuvi.read-text.v1", g.logicalKey);
       expect((await host.dispatcher!.diagnostic(id))?.evidence).toMatchObject({
         certainty: "APPLIED",
-        reason: "RETURNED"
+        reason: "RETURNED",
+        reportRetention: { state: "FAILED", reason: "REPORT_PERSISTENCE_FAILED" }
       });
       await expect(host.execute(g)).rejects.toThrow("not pending");
       expect(saves).toBe(1);
@@ -164,7 +169,7 @@ describe.skipIf(!url)("A9.2 real host read-text / Journal / PostgreSQL integrati
           .rows[0].n
       ).toBe(1);
     } finally {
-      host.retainObservation = undefined;
+      host.projectObservation = undefined;
     }
   });
   it("missing Journal ancestry fails closed", async () => {
