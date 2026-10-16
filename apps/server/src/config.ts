@@ -4,6 +4,7 @@ import {
   type RuntimeCognitionLimits
 } from "@companion/core";
 import {
+  parseRuntimeConfig,
   parseMemoryExtractorDriver,
   parseRuntimeEnvironment as parseRuntimeMode,
   parseBooleanSetting as parseBoolean
@@ -74,7 +75,7 @@ export function loadServerConfig(
       timeBudgetMs: cognitionLimit(env["COGNITION_TIME_BUDGET_MS"], "timeBudgetMs")
     },
     host: env["SERVER_HOST"] ?? "127.0.0.1",
-    port: Number.parseInt(env["SERVER_PORT"] ?? "6121", 10),
+    port: parseRuntimeConfig(env).server.port,
     logLevel: env["LOG_LEVEL"] ?? "info",
     runtimeMode: parseRuntimeMode(env["RUNTIME_MODE"] ?? env["NODE_ENV"]),
     eventBus: parseEventBus(env["EVENT_BUS"] ?? env["EVENT_BUS_DRIVER"]),

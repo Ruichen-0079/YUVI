@@ -32,6 +32,7 @@ const app = await buildServer(config, composition ? { characterComposition: comp
 const shutdown = async (signal: string) => {
   app.log.info({ signal }, "shutting down server");
   await app.close();
+  if (process.connected) process.disconnect();
 };
 
 process.on("SIGINT", () => {
@@ -43,3 +44,8 @@ process.on("SIGTERM", () => {
 });
 
 await app.listen({ host: config.host, port: config.port });
+// Optional Host process status, not a test-only Runtime or alternate entrypoint.
+// No provider/identity data crosses this channel.
+const address = app.server.address();
+if (process.connected && process.send && address && typeof address !== "string")
+  process.send({ schema: "yuvi.server-ready.v1", port: address.port }, () => undefined);
