@@ -141,6 +141,32 @@ describe.skipIf(!url)("A9.2 real host read-text / Journal / PostgreSQL integrati
       ).rows[0]["count"]
     ).toBe("1");
   });
+  it("keeps the actual APPLIED receipt when report retention fails and never rereads to repair it", async () => {
+    const g = input();
+    let saves = 0;
+    host.retainObservation = async () => {
+      saves++;
+      throw Error("injected report persistence failure");
+    };
+    try {
+      await expect(host.execute(g)).rejects.toThrow("injected report persistence failure");
+      const id = effectIntentId("yuvi.read-text.v1", g.logicalKey);
+      expect((await host.dispatcher!.diagnostic(id))?.evidence).toMatchObject({
+        certainty: "APPLIED",
+        reason: "RETURNED"
+      });
+      await expect(host.execute(g)).rejects.toThrow("not pending");
+      expect(saves).toBe(1);
+      // This is an explicit incomplete lifecycle, not a successful recovery:
+      // A9 proves execution but cannot reconstruct the lost transient report.
+      expect(
+        (await pool.query("select count(*)::int n from effect_attempts where intent_id=$1", [id]))
+          .rows[0].n
+      ).toBe(1);
+    } finally {
+      host.retainObservation = undefined;
+    }
+  });
   it("missing Journal ancestry fails closed", async () => {
     const g = input();
     g.cause = { ...cause, eventId: "jev1_missing_authority" };
