@@ -221,7 +221,7 @@ export class HostObservationContinuity implements RuntimeObservationPort {
     const rows = (
       await this.db.query(
         `select observation_id,attempt_id,kind,source_ref,provider,model,observed_at,expires_at,erased_at,evidence,evidence_digest,
-      (image_bytes is not null) as has_image from retained_observations
+      (image_bytes is not null) as has_image,expires_at<=clock_timestamp() as database_expired from retained_observations
       where namespace=$1 and persona_id=$2 and person_id=$3 and principal_namespace=$4 and actor_id=$5 and audience_ref=$6
       and ($7::timestamptz is null or (observed_at,observation_id)<($7::timestamptz,$8::text))
       order by observed_at desc,observation_id desc limit $9`,
@@ -260,7 +260,9 @@ export class HostObservationContinuity implements RuntimeObservationPort {
   private async project(row: Record<string, unknown>): Promise<ObservationEvidence> {
     const source = row["source_ref"] as JournalEventRef;
     const sourceAuthorized = await this.owner(source);
-    const expired = new Date(String(row["expires_at"])).getTime() <= Date.now();
+    const expired =
+      row["database_expired"] === true ||
+      new Date(String(row["expires_at"])).getTime() <= Date.now();
     const unavailableReason = expired
       ? "EXPIRED"
       : row["erased_at"]
@@ -303,7 +305,7 @@ export class HostObservationContinuity implements RuntimeObservationPort {
     const row = (
       await this.db.query(
         `select observation_id,attempt_id,kind,source_ref,provider,model,observed_at,expires_at,erased_at,evidence,evidence_digest,
-      image_bytes is not null as has_image from retained_observations
+      image_bytes is not null as has_image,expires_at<=clock_timestamp() as database_expired from retained_observations
       where namespace=$1 and persona_id=$2 and person_id=$3 and principal_namespace=$4 and actor_id=$5 and audience_ref=$6 and observation_id=$7`,
         [...this.ownerValues(owner), id]
       )
@@ -323,7 +325,7 @@ export class HostObservationContinuity implements RuntimeObservationPort {
     if (record?.availability !== "AVAILABLE" || record.sourceArtifact !== "AVAILABLE") return null;
     const row = (
       await this.db.query(
-        "select image_bytes,image_mime,image_digest from retained_observations where observation_id=$1 and erased_at is null and expires_at>now()",
+        "select image_bytes,image_mime,image_digest from retained_observations where observation_id=$1 and erased_at is null and expires_at>clock_timestamp()",
         [id]
       )
     ).rows[0];
@@ -348,8 +350,8 @@ export class HostObservationContinuity implements RuntimeObservationPort {
   async purgeExpired(limit = 100) {
     return (
       await this.db.query(
-        `with batch as (select observation_id from retained_observations where expires_at<=now() and erased_at is null and namespace=$2 and persona_id=$3 order by expires_at limit $1)
-      update retained_observations o set evidence=null,image_bytes=null,erased_at=now() from batch where o.observation_id=batch.observation_id returning o.observation_id`,
+        `with batch as (select observation_id from retained_observations where expires_at<=clock_timestamp() and erased_at is null and namespace=$2 and persona_id=$3 order by expires_at limit $1 for update skip locked)
+      update retained_observations o set evidence=null,image_bytes=null,erased_at=clock_timestamp() from batch where o.observation_id=batch.observation_id and o.erased_at is null returning o.observation_id`,
         [Math.min(1000, Math.max(1, limit)), this.journal.namespace, this.personaId]
       )
     ).rows.length;
