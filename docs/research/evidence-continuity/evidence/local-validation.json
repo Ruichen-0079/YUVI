@@ -1,0 +1,45 @@
+{
+  "schema": "evidence-continuity-local-validation.v1",
+  "sha": "6b12071e93cc14852a576d8733f89a72f9c9378e",
+  "productionDiff": [],
+  "checks": [
+    {
+      "command": "pnpm check",
+      "result": "PASS"
+    },
+    {
+      "command": "pnpm build",
+      "result": "PASS"
+    },
+    {
+      "command": "pnpm test with all six PostgreSQL env variables against isolated localhost:31508/yuvi_pr_*",
+      "result": "PASS",
+      "server": {
+        "passed": 716,
+        "skipped": 48
+      },
+      "note": "Remaining optional suites skip; skip is not quality or product integration evidence."
+    }
+  ],
+  "baseline": {
+    "sha": "ce5e078f8b646da5ee55c0ddf1fc7d53fa41fb6d",
+    "preRuntimeCrash": {
+      "journalSources": 1,
+      "acceptedSources": 0
+    },
+    "expectedFailure": true
+  },
+  "safety": {
+    "aliceModified": false,
+    "deployed": false,
+    "merged": false,
+    "realQqMessages": false
+  },
+  "openGates": [
+    "OBSERVATION_REPORT_A9_ATOMIC_RECOVERY",
+    "REAL_VISION_QUALITY",
+    "OBSERVATION_PERMANENT_SEMANTIC_INGESTION",
+    "PLUGIN_SIDE_EFFECT_MIGRATION",
+    "GLOBAL_R5_MIGRATION_AUDIT_PRODUCT_HOST_PRIVACY"
+  ]
+}

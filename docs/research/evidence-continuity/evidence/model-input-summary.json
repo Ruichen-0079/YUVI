@@ -1,0 +1,2186 @@
+[
+  {
+    "run": "run-three",
+    "ordinal": 0,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5347,
+        "digest": "02af5a18f343dd1aaf53e42665f1529181dae0d67576acef94eeea855a0a5307"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 82,
+        "digest": "40d44ffff44f97057664cec1b720f2127b6eb22aebe4d660db1067b9753f0391"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 1,
+    "phase": "SEMANTIC",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 1629,
+        "digest": "c5d70b99ca029f15553b90d1035aff4236e1f58dd433f5e252e4e022da5483bb"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 211,
+        "digest": "38caf9c6017d0dcbf5814ab8669d8497f176d34f6c8aa623f8a3ad940ef25064"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null,
+    "semanticInput": {
+      "source": "我下周要参加青穗-19ee60项目的面试。你问问我具体是哪一天。",
+      "dialogue": [],
+      "priorCount": 0
+    }
+  },
+  {
+    "run": "run-three",
+    "ordinal": 2,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 3885,
+        "digest": "bcd4fe9e9aa0c1566a1348871809eed917e72d00a914e43740ef04f452f34c94"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 82,
+        "digest": "40d44ffff44f97057664cec1b720f2127b6eb22aebe4d660db1067b9753f0391"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 3,
+    "phase": "SEMANTIC",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 1629,
+        "digest": "c5d70b99ca029f15553b90d1035aff4236e1f58dd433f5e252e4e022da5483bb"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 848,
+        "digest": "a8cd442cd054c8e5285c9f71f5661de95427cd6178a15ad4295c26e9ed05e281"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null,
+    "semanticInput": {
+      "source": "周三。",
+      "dialogue": [
+        {
+          "role": "user",
+          "content": "我下周要参加青穗-19ee60项目的面试。你问问我具体是哪一天。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，那我先问一下——你下周具体是哪一天面试青穗-19ee60项目？"
+        }
+      ],
+      "priorCount": 1
+    }
+  },
+  {
+    "run": "run-three",
+    "ordinal": 4,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5679,
+        "digest": "84b5e599696d3a735eb264ec138ab79947b9d011bf52acad3cb304d70dc67ddf"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 335,
+        "digest": "358456cc9a6a727ce75f49c738278fc21aac66edc1411f4083b5876b2a664891"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 9,
+        "digest": "1936e7431d6adb1443053bb9a501a7e2eb0eab6f42f6b345d6fe5ef62d4ce0b8"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 5,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 4217,
+        "digest": "6d45e908f6558191829a8d70999052be11d4a610d20cf6a7cdc4ea36d9acab89"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 335,
+        "digest": "358456cc9a6a727ce75f49c738278fc21aac66edc1411f4083b5876b2a664891"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 9,
+        "digest": "1936e7431d6adb1443053bb9a501a7e2eb0eab6f42f6b345d6fe5ef62d4ce0b8"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 6,
+    "phase": "SEMANTIC",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 1629,
+        "digest": "c5d70b99ca029f15553b90d1035aff4236e1f58dd433f5e252e4e022da5483bb"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 848,
+        "digest": "a8cd442cd054c8e5285c9f71f5661de95427cd6178a15ad4295c26e9ed05e281"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null,
+    "semanticInput": {
+      "source": "周三。",
+      "dialogue": [
+        {
+          "role": "user",
+          "content": "我下周要参加青穗-19ee60项目的面试。你问问我具体是哪一天。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，那我先问一下——你下周具体是哪一天面试青穗-19ee60项目？"
+        }
+      ],
+      "priorCount": 1
+    }
+  },
+  {
+    "run": "run-three",
+    "ordinal": 7,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 6404,
+        "digest": "b31f25472e51d62f17380ff57fd4fa916e802a99540387186ecc14fe58cbaefe"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 55,
+        "digest": "b0d0bd337d6bea8221dc7b58516b06e8afddcbb150e1bb8486078330ab26906e"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 8,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 4942,
+        "digest": "580d808152b06e9e4eca813e9a586e530644bae0819981b8e426e8405d621cba"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 55,
+        "digest": "b0d0bd337d6bea8221dc7b58516b06e8afddcbb150e1bb8486078330ab26906e"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 9,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 6001,
+        "digest": "bdcb6d5b3b5cf9f1c463f5bcc218dc5d813684452f0c31082234080d239cb3ed"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 652,
+        "digest": "6c0d3aa08dcb98496107163d83bd474cde90ee350f94b8cfb45ca2edc326dd99"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 30,
+        "digest": "d1c43f8e071f6611163fa2451da4c2f02df4488407692a6c720822088fe63113"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 10,
+    "phase": "SEMANTIC",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 1629,
+        "digest": "c5d70b99ca029f15553b90d1035aff4236e1f58dd433f5e252e4e022da5483bb"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 1430,
+        "digest": "51425c625dc29b88ec4b26075b0d4934842c407bfe5e2e4a93c921d2e36d3f4b"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null,
+    "semanticInput": {
+      "source": "刚才说错了，是周四。",
+      "dialogue": [
+        {
+          "role": "user",
+          "content": "我下周要参加青穗-19ee60项目的面试。你问问我具体是哪一天。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，那我先问一下——你下周具体是哪一天面试青穗-19ee60项目？"
+        },
+        {
+          "role": "user",
+          "content": "周三。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，周三。那我记下了——你下周周三参加青穗-19ee60项目的面试。\n\n需要我帮你做点什么准备吗？比如整理一下可能会被问到的问题，或者帮你过一遍项目相关的要点？"
+        }
+      ],
+      "priorCount": 1
+    }
+  },
+  {
+    "run": "run-three",
+    "ordinal": 11,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 4539,
+        "digest": "b8171ec8867cb6746b792540d84c4e05de4bbe11c741bb64773125aaddb228bf"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 652,
+        "digest": "6c0d3aa08dcb98496107163d83bd474cde90ee350f94b8cfb45ca2edc326dd99"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 30,
+        "digest": "d1c43f8e071f6611163fa2451da4c2f02df4488407692a6c720822088fe63113"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 12,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 6715,
+        "digest": "b11b68883a96a829e5fe7eb6cdc812032e93d8d2e5e031173dc221a0988db577"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 85,
+        "digest": "ea8720dc9cc4e89ee7d6b997382f101839f41655b712a10cc34cc70ef3c654b2"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 13,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5253,
+        "digest": "210ba331df383541d3e98dc1f869daff1a45e23c01564abfd5f4bc54c91498b2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 85,
+        "digest": "ea8720dc9cc4e89ee7d6b997382f101839f41655b712a10cc34cc70ef3c654b2"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 14,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 6566,
+        "digest": "0ced62ca6778a3ef5f146bf8ab9828b54368c7b79237dfb3639cff18f4294287"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 64,
+        "digest": "9236ea5907a6fcb56d0933fa799cb699847b0c8bc1dba26765e72f7fdf7b653f"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": true,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 15,
+    "phase": "SEMANTIC",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 1629,
+        "digest": "c5d70b99ca029f15553b90d1035aff4236e1f58dd433f5e252e4e022da5483bb"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 433,
+        "digest": "b119dd715ccbb5e193fedff924a1c61d1831d8e6ade51ba92493be3515388c0f"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": true,
+    "requestsCapability": false,
+    "control": null,
+    "semanticInput": {
+      "source": "另外，我现在用的内部编辑器代号是澄雨-a936d0。",
+      "dialogue": [],
+      "priorCount": 1
+    }
+  },
+  {
+    "run": "run-three",
+    "ordinal": 16,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 6857,
+        "digest": "d28b481629cb84d292f4fbcce80987364879a0f1037d03501f59ac70815fcc35"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 51,
+        "digest": "9de5fdfd662e5df8e5dbd12668373c1a90b012f5e6c29114a535c6e3c57368a5"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": true,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 17,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5395,
+        "digest": "e7420409a7810d58f96b8eead6797e3a73075e42c3bb75ade9a267c63db70fdd"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 51,
+        "digest": "9de5fdfd662e5df8e5dbd12668373c1a90b012f5e6c29114a535c6e3c57368a5"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": true,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 18,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 6566,
+        "digest": "29b79542aaff3c55a1b6657700e73e67fb962faedca1dea1c9d2f0c59e532dce"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 12,
+        "digest": "6fd8c45faf06755868bbd5ca9505d7200d1157f14ebe598bdc67403cc6a67262"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 19,
+    "phase": "SEMANTIC",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 1629,
+        "digest": "c5d70b99ca029f15553b90d1035aff4236e1f58dd433f5e252e4e022da5483bb"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 607,
+        "digest": "5a9662981f1f2b261b399aae225ae014e79f050beb1e92c4a045cf15978638d8"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": true,
+    "requestsCapability": false,
+    "control": null,
+    "semanticInput": {
+      "source": "早上好。",
+      "dialogue": [],
+      "priorCount": 2
+    }
+  },
+  {
+    "run": "run-three",
+    "ordinal": 20,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5104,
+        "digest": "bb468f29c339dbccd722e6b410a0f7ed30764108798e2e34a57870745645fc98"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 12,
+        "digest": "6fd8c45faf06755868bbd5ca9505d7200d1157f14ebe598bdc67403cc6a67262"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 21,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5347,
+        "digest": "e14bec0240ada664418f4f87530b1d2813348c281884423f5cbfa84b25f813fd"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 82,
+        "digest": "28e8735fe95ed51aa477c18fc9b97b4ad9c3d3e946db3c9debef1b9b6ca40f0e"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 22,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "user",
+        "utf8Bytes": 1460,
+        "digest": "8a9a779e54139642220c224b6a2ba0c66309c3ceabcaf2d4655abd32e1e9e9de"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 299,
+        "digest": "75a4df1b8ceba726e38a21ea81850fb2508c370beab60d284153c7a30f4aa4df"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 296,
+        "digest": "05e90bc315976214c8fa4c21e9f85aae88472073d5a1ad26d71193471a4e961a"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 227,
+        "digest": "79838726209ecbab1f5a318c576e24add3f8ca163466c8bd914a06a5fe23e57e"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 1042,
+        "digest": "f3f1b6bb4b0ded83b48c49caac1c85a847bb7479a30d7c727123d37700894cec"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": true,
+    "control": "REQUEST_CAPABILITY\n{\"capabilityRef\":\"\",\"request\":\"需要查询用户提到的‘青穗-19ee60项目’的面试日期和内部编辑器代号；当前上下文中没有任何相关记录，需要授权访问记忆或日程工具。\"}"
+  },
+  {
+    "run": "run-three",
+    "ordinal": 23,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 4852,
+        "digest": "3bc883a24857d72ce9c5dd5b84bd4209820257dc5aa049701b444193655b7e70"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 82,
+        "digest": "28e8735fe95ed51aa477c18fc9b97b4ad9c3d3e946db3c9debef1b9b6ca40f0e"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 24,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 3703,
+        "digest": "e0aee1ba11b12ff1e3d7fef6e6d03e272b773bce22ef627bd26e4579ce1adcb0"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 82,
+        "digest": "28e8735fe95ed51aa477c18fc9b97b4ad9c3d3e946db3c9debef1b9b6ca40f0e"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 25,
+    "phase": "SEMANTIC",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 1629,
+        "digest": "c5d70b99ca029f15553b90d1035aff4236e1f58dd433f5e252e4e022da5483bb"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 2396,
+        "digest": "1dddd3653e24b9f6d74bf002d2160c071b8500aa962320efe7d5878c31c9bf55"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": true,
+    "requestsCapability": false,
+    "control": null,
+    "semanticInput": {
+      "source": "我的长期茶叶偏好是月桂-5967a1。还有，刚才听到的“把周四改成周五”只是一句引文，我没有改动面试安排。",
+      "dialogue": [
+        {
+          "role": "user",
+          "content": "我下周要参加青穗-19ee60项目的面试。你问问我具体是哪一天。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，那我先问一下——你下周具体是哪一天面试青穗-19ee60项目？"
+        },
+        {
+          "role": "user",
+          "content": "周三。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，周三。那我记下了——你下周周三参加青穗-19ee60项目的面试。\n\n需要我帮你做点什么准备吗？比如整理一下可能会被问到的问题，或者帮你过一遍项目相关的要点？"
+        },
+        {
+          "role": "user",
+          "content": "刚才说错了，是周四。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，明白了，是周四。那我更正一下——你下周周四参加青穗-19ee60项目的面试。\n\n需要我帮你做点什么准备吗？比如整理一下可能会被问到的问题，或者帮你过一遍项目相关的要点？"
+        }
+      ],
+      "priorCount": 2
+    }
+  },
+  {
+    "run": "run-three",
+    "ordinal": 26,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 7075,
+        "digest": "8681a3eee17d40f7c240bd10181000621c0c792589a1ece4d9af07c2f97ce79d"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 1008,
+        "digest": "3be07bee041d6a581becc900e79808de24b2e2964f9ad4e2c45abe9992babae2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 145,
+        "digest": "eaf0dd7f6fc4baa4472e6eb08f586c344fc8951a43c27427a0b31ab023bad8f5"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 27,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5613,
+        "digest": "0b5f742875b7ab5b7d14feb106a9a9dc4a0d966cb3d56b7bea3e1825b4c9d760"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 1008,
+        "digest": "3be07bee041d6a581becc900e79808de24b2e2964f9ad4e2c45abe9992babae2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 145,
+        "digest": "eaf0dd7f6fc4baa4472e6eb08f586c344fc8951a43c27427a0b31ab023bad8f5"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 28,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 7781,
+        "digest": "728d2e413b60b98e6fe5fcf742b335394139133f97430c5e4fabaca9d3f191ce"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 106,
+        "digest": "bf2c3022fc4c47f1aa6432cfc0b513d414487b3318c25ba866acf6380f430f8d"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-three",
+    "ordinal": 29,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 6319,
+        "digest": "1574cb81ec443c7b85849451d79380684e25d69a3f97414ccf640622a9cb5753"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 106,
+        "digest": "bf2c3022fc4c47f1aa6432cfc0b513d414487b3318c25ba866acf6380f430f8d"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-six",
+    "ordinal": 0,
+    "phase": "SEMANTIC",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 2120,
+        "digest": "0913f773651a28068748f4e0ed49c5ff4dcb1e8d508ac403009eb2e80fee4165"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 217,
+        "digest": "2ef618446053fa3056a76687df59d5d86c985aea1fbba5c089d1d2bee8e6d3f8"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null,
+    "semanticInput": {
+      "source": "我接下来要参加霁川-f2058d项目的面试。你可以问我具体是哪一天。",
+      "dialogue": [],
+      "priorCount": 0
+    }
+  },
+  {
+    "run": "run-six",
+    "ordinal": 1,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5347,
+        "digest": "df0ae0c07ba324e57f2d2dccb50a1b2faa6b3e699649923a4e4ab6e4ca26fee5"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 88,
+        "digest": "a915e4d9ee47782ed47d1783a8422268dd56720dcbdc8908083dd264eed096d2"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-six",
+    "ordinal": 2,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 3885,
+        "digest": "7c62e54b9d7907c9a2601c08c26ca6e9be95ad5027030b230ce1b8d84e088ae4"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 88,
+        "digest": "a915e4d9ee47782ed47d1783a8422268dd56720dcbdc8908083dd264eed096d2"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-six",
+    "ordinal": 3,
+    "phase": "SEMANTIC",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 2120,
+        "digest": "0913f773651a28068748f4e0ed49c5ff4dcb1e8d508ac403009eb2e80fee4165"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 1125,
+        "digest": "d1256744aa19ab55e33fdf1c0fc50b79560cc39d08033e08582cdc231cc31b44"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null,
+    "semanticInput": {
+      "source": "周三。",
+      "dialogue": [
+        {
+          "role": "user",
+          "content": "我接下来要参加霁川-f2058d项目的面试。你可以问我具体是哪一天。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，那我先记下这件事——你接下来要参加霁川-f2058d项目的面试。不过关于具体是哪一天，我目前还没有这个信息，所以想请你告诉我一下。\n\n另外，如果你愿意的话，也可以顺便说说这个面试大概是什么岗位、什么方向，这样我后续帮你准备的时候能更有针对性。"
+        }
+      ],
+      "priorCount": 1
+    }
+  },
+  {
+    "run": "run-six",
+    "ordinal": 4,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5953,
+        "digest": "d77ffd3ae972739b910d8d65c253fa31f4cf1e30e5c434f5509e699598e92fae"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 607,
+        "digest": "3b2eb7c15733b9bd9d07e29c29c9c804395b130a3538627916a8b918925260f7"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 9,
+        "digest": "1936e7431d6adb1443053bb9a501a7e2eb0eab6f42f6b345d6fe5ef62d4ce0b8"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-six",
+    "ordinal": 5,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 4491,
+        "digest": "c9e0d067847db41d3e8234024b325168d5a83e2a024cc8542af745d89117b721"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 607,
+        "digest": "3b2eb7c15733b9bd9d07e29c29c9c804395b130a3538627916a8b918925260f7"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 9,
+        "digest": "1936e7431d6adb1443053bb9a501a7e2eb0eab6f42f6b345d6fe5ef62d4ce0b8"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-six",
+    "ordinal": 6,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 7053,
+        "digest": "e7f0a509cc3cad71d939eb302d01879d0d4545923e3ea4922546d5bb79a1c9bd"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 79,
+        "digest": "45c881412063ccea8f44e8ff82c436fccde085ca524beaa1d34aa73b9e04678d"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-six",
+    "ordinal": 7,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5591,
+        "digest": "a13d8ab1c906a7e7bd139c241d7f1418dcfe51115a1360d24272d73dee385325"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 79,
+        "digest": "45c881412063ccea8f44e8ff82c436fccde085ca524beaa1d34aa73b9e04678d"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-six",
+    "ordinal": 8,
+    "phase": "SEMANTIC",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 2120,
+        "digest": "0913f773651a28068748f4e0ed49c5ff4dcb1e8d508ac403009eb2e80fee4165"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 2191,
+        "digest": "e99309e63967392eda432a0171dc6fe71996e473e19a319c82cc324654cab73c"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null,
+    "semanticInput": {
+      "source": "刚才日期说错了，是周四。",
+      "dialogue": [
+        {
+          "role": "user",
+          "content": "我接下来要参加霁川-f2058d项目的面试。你可以问我具体是哪一天。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，那我先记下这件事——你接下来要参加霁川-f2058d项目的面试。不过关于具体是哪一天，我目前还没有这个信息，所以想请你告诉我一下。\n\n另外，如果你愿意的话，也可以顺便说说这个面试大概是什么岗位、什么方向，这样我后续帮你准备的时候能更有针对性。"
+        },
+        {
+          "role": "user",
+          "content": "周三。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，周三。那我记下：你接下来要参加霁川-f2058d项目的面试，时间是周三。\n\n不过关于这个“周三”具体是哪一天，我目前还不太确定——是这周三（10月21日）还是下周三（10月28日）呢？方便的话告诉我一下，我好帮你把时间定准。\n\n另外，如果方便的话，也可以顺便说说这个面试大概是什么岗位、什么方向，这样我后续帮你准备的时候能更有针对性。"
+        }
+      ],
+      "priorCount": 2
+    }
+  },
+  {
+    "run": "run-six",
+    "ordinal": 9,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 6524,
+        "digest": "f4edc35f34ee47c4a0c2af0db3350d92816aba840a40f4e02c05f11d3d0ad721"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 1171,
+        "digest": "6252030038b5ac08e62382a4429ebc8928e3f8ebb82e211343e636773a815f21"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 36,
+        "digest": "bdfff7c8ce832120c5dbdd7e2803eb199122381db0555fb4778bc96fad741c99"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-six",
+    "ordinal": 10,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5062,
+        "digest": "6a44809eca79914e7e3fc275679bcefa9aa37a5ab6d39a6c4688209c931343dd"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 1171,
+        "digest": "6252030038b5ac08e62382a4429ebc8928e3f8ebb82e211343e636773a815f21"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 36,
+        "digest": "bdfff7c8ce832120c5dbdd7e2803eb199122381db0555fb4778bc96fad741c99"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-six",
+    "ordinal": 11,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 7304,
+        "digest": "8b4623a8b5eaec9b814c36030bdf353071460cd477992964272b961ab166b492"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 82,
+        "digest": "25aba15bab355053afa272a2dab3eced612cb3bd6332b8b309a8435f4d4cb605"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-six",
+    "ordinal": 12,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5842,
+        "digest": "1810bd767ebe8f49e1022a227e135e3147e942d53c54783abeadbd6dc5f6ce21"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 82,
+        "digest": "25aba15bab355053afa272a2dab3eced612cb3bd6332b8b309a8435f4d4cb605"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-six",
+    "ordinal": 13,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 7041,
+        "digest": "518e3bf28a088973167f730f5c46c0471f1841aafc60b0ade9df1b1563e8dcd5"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 52,
+        "digest": "49fa8cd3a702c0624311c574626fdcfe20af79da1647e798ca404e04e978a7e7"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-six",
+    "ordinal": 14,
+    "phase": "SEMANTIC",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 2120,
+        "digest": "0913f773651a28068748f4e0ed49c5ff4dcb1e8d508ac403009eb2e80fee4165"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 629,
+        "digest": "5d593f31fddfc81ffb3ad20d3a921186af71e51a44776631995108e4e87ecaf7"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null,
+    "semanticInput": {
+      "source": "我平时工作的编辑器代号是澄湖-f2058d。",
+      "dialogue": [],
+      "priorCount": 2
+    }
+  },
+  {
+    "run": "run-six",
+    "ordinal": 15,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 7320,
+        "digest": "65dbf8ee9dba1004a789b771e0aad010b7738f08e46c2534175d5d903a5f1aa4"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 45,
+        "digest": "f47681b6183bc0febe5e584776ba543b1532189bc4373e0189ef947fdc8c466d"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-six",
+    "ordinal": 16,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5858,
+        "digest": "278bf2f7fa5b5c58dbb382aeccc21e411384dcd1e21efaa73d1f02be2a20ea63"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 45,
+        "digest": "f47681b6183bc0febe5e584776ba543b1532189bc4373e0189ef947fdc8c466d"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-six",
+    "ordinal": 17,
+    "phase": "SEMANTIC",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 2120,
+        "digest": "0913f773651a28068748f4e0ed49c5ff4dcb1e8d508ac403009eb2e80fee4165"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 809,
+        "digest": "d778f2561bc3459284f692e8d1ef036e03d1e136a75ed97732cb18d0c9c9be70"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null,
+    "semanticInput": {
+      "source": "早上好。",
+      "dialogue": [],
+      "priorCount": 3
+    }
+  },
+  {
+    "run": "run-six",
+    "ordinal": 18,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 7041,
+        "digest": "8dd271839f6db9e453f05f14c91bd8a2507bcb66c6fefc1f7985c77be602adba"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 12,
+        "digest": "6fd8c45faf06755868bbd5ca9505d7200d1157f14ebe598bdc67403cc6a67262"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-six",
+    "ordinal": 19,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5579,
+        "digest": "9311138edba74cbc0dc42d9bbd820115f767cb81fa7bc28b8010273d29e4efa4"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 12,
+        "digest": "6fd8c45faf06755868bbd5ca9505d7200d1157f14ebe598bdc67403cc6a67262"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool",
+    "ordinal": 0,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5347,
+        "digest": "b8248506465b531780e59c6a4f550c4dee6ee3d890f45223bc1f32abee85e7db"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 78,
+        "digest": "9b8f9236595076f3aea1f9c6d2c643c61de60d3d005db1745c9455b04fcaaa1b"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool",
+    "ordinal": 1,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "user",
+        "utf8Bytes": 1460,
+        "digest": "c3a5d09686c749ea04bd6a12e6a175b5e25bb4a4258cc93774c4b39d45436f06"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 299,
+        "digest": "75a4df1b8ceba726e38a21ea81850fb2508c370beab60d284153c7a30f4aa4df"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 425,
+        "digest": "944dd2e49c5ff5d9461a4fb4f51a53d4c49c3c072f019ac7b24145f1c0f9eb8d"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 388,
+        "digest": "4505ceb3e708abd6cdc2dd42029f7f577fee58a9c7ffece9ab3513dd01606e8d"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 1042,
+        "digest": "f3f1b6bb4b0ded83b48c49caac1c85a847bb7479a30d7c727123d37700894cec"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": true,
+    "control": "REQUEST_CAPABILITY\n{\"capabilityRef\":\"capability://opaque/read-authorized-text\",\"request\":\"读取当前会话中本地控制器明确授权的单个文本文件，以获取其开头与结尾的两个标记。\"}"
+  },
+  {
+    "run": "run-tool",
+    "ordinal": 2,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 7488,
+        "digest": "34687ed53998ac60092b999793166c86a7f147d2c0212d3e8ff7e587d9db1b84"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 78,
+        "digest": "9b8f9236595076f3aea1f9c6d2c643c61de60d3d005db1745c9455b04fcaaa1b"
+      }
+    ],
+    "hasFileMarkers": true,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool",
+    "ordinal": 3,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 6339,
+        "digest": "399e5e15033f8772ef51d392aca0f541a653d908228b747571ac1f0461dad586"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 78,
+        "digest": "9b8f9236595076f3aea1f9c6d2c643c61de60d3d005db1745c9455b04fcaaa1b"
+      }
+    ],
+    "hasFileMarkers": true,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool",
+    "ordinal": 4,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5347,
+        "digest": "e36c4b35f199b0a279f8f65989ad75058f91596d8792e042c1b7346787eaa4b0"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 117,
+        "digest": "86de8d218066fbf4231612e0c67f33430e234b036d875fdb2c2a43d2d7e7b7d7"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool",
+    "ordinal": 5,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "user",
+        "utf8Bytes": 1460,
+        "digest": "a28111ca46af14686947eb802736472bf97d8b3e7053019839369b3c9283b3fd"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 299,
+        "digest": "75a4df1b8ceba726e38a21ea81850fb2508c370beab60d284153c7a30f4aa4df"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 286,
+        "digest": "01591fcf4558163a0dce8861db20e3b1e37c350fe7434ae7e165b24418769048"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 227,
+        "digest": "79838726209ecbab1f5a318c576e24add3f8ca163466c8bd914a06a5fe23e57e"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 1042,
+        "digest": "f3f1b6bb4b0ded83b48c49caac1c85a847bb7479a30d7c727123d37700894cec"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": "COMPLETE\n我无法确认“刚才”读取了什么文件，因为当前会话的近期对话上下文为空，且没有检索到任何记忆证据或文件读取记录。我也没有被授权调用任何文件读取能力（能力清单为空）。因此，我无法给出文件开头和结尾标记，也无法确认任务是否真正完成。请提供具体文件路径或授权相应的读取能力，我才能继续。"
+  },
+  {
+    "run": "run-tool",
+    "ordinal": 6,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5280,
+        "digest": "bd05a6a78faef0a1d8b7ea328f169268617d27046364e9e46be76df999e48713"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 117,
+        "digest": "86de8d218066fbf4231612e0c67f33430e234b036d875fdb2c2a43d2d7e7b7d7"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool",
+    "ordinal": 7,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 4131,
+        "digest": "4cb4a821eebd5cfeb9223b575d994860b878d02bdea643e5eca7ad882fd42536"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 117,
+        "digest": "86de8d218066fbf4231612e0c67f33430e234b036d875fdb2c2a43d2d7e7b7d7"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool",
+    "ordinal": 8,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5347,
+        "digest": "ddfc0157c9c1756142519ecf0cba775daad47efaa6e35ac0898dab7f3036c72b"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 60,
+        "digest": "c4b5736b748d7f27be25699d7db4d46562c6aef29036e91e1a9421b9f445565e"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool",
+    "ordinal": 9,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "user",
+        "utf8Bytes": 1460,
+        "digest": "dcf5e01e0c57340c4cb63e30382c02f4e737cad67e4cf3de3cde543e7935ddc8"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 299,
+        "digest": "75a4df1b8ceba726e38a21ea81850fb2508c370beab60d284153c7a30f4aa4df"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 187,
+        "digest": "b43c4165f7acbc21f95368b8bd284f784b9fce76599d2ff1f894217fa41beded"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 227,
+        "digest": "79838726209ecbab1f5a318c576e24add3f8ca163466c8bd914a06a5fe23e57e"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 1042,
+        "digest": "f3f1b6bb4b0ded83b48c49caac1c85a847bb7479a30d7c727123d37700894cec"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": "COMPLETE\n无法确定文件中的两个标记，因为当前没有提供任何关于该文件内容、读取记录或相关证据的信息。"
+  },
+  {
+    "run": "run-tool",
+    "ordinal": 10,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 4998,
+        "digest": "b4fd79c2cd12dc147bddcbb44f2c09a2e5a4778e30b3189281b3c0556c1b975a"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 60,
+        "digest": "c4b5736b748d7f27be25699d7db4d46562c6aef29036e91e1a9421b9f445565e"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool",
+    "ordinal": 11,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5076,
+        "digest": "2648f8a5f651670e448b486b176aa57fb606a1136b98398a74b8a66cc318e36a"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 60,
+        "digest": "c4b5736b748d7f27be25699d7db4d46562c6aef29036e91e1a9421b9f445565e"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool",
+    "ordinal": 12,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 3849,
+        "digest": "61d2bf7fef701e6f5539dd0bf87d7e5552b2a3af9040b1b62f1630a017e74feb"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 60,
+        "digest": "c4b5736b748d7f27be25699d7db4d46562c6aef29036e91e1a9421b9f445565e"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool-retain",
+    "ordinal": 0,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5347,
+        "digest": "e3a08e32da84b74c975622ca2f679187c9d4e5e897e4c76a476875aa475464fb"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 78,
+        "digest": "9b8f9236595076f3aea1f9c6d2c643c61de60d3d005db1745c9455b04fcaaa1b"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool-retain",
+    "ordinal": 1,
+    "phase": "SEMANTIC",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 2120,
+        "digest": "0913f773651a28068748f4e0ed49c5ff4dcb1e8d508ac403009eb2e80fee4165"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 207,
+        "digest": "a037059adf4fe88c33772cc0947f940a8a8bca2d368ce2da578db5ef52edd590"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null,
+    "semanticInput": {
+      "source": "帮我查看已授权文件，告诉我其中开头与结尾的两个标记。",
+      "dialogue": [],
+      "priorCount": 0
+    }
+  },
+  {
+    "run": "run-tool-retain",
+    "ordinal": 2,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "user",
+        "utf8Bytes": 1460,
+        "digest": "66e06fbe3afbf22441f160ea48f2093ab64b89ce25b9a1cc9e73181357923d0a"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 299,
+        "digest": "75a4df1b8ceba726e38a21ea81850fb2508c370beab60d284153c7a30f4aa4df"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 365,
+        "digest": "5b12ab25e472c20a52f9c79a9e4e8687ea3d6660258196ab9cbfaa42f7a75fd9"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 388,
+        "digest": "4505ceb3e708abd6cdc2dd42029f7f577fee58a9c7ffece9ab3513dd01606e8d"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 1042,
+        "digest": "f3f1b6bb4b0ded83b48c49caac1c85a847bb7479a30d7c727123d37700894cec"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": true,
+    "control": "REQUEST_CAPABILITY\n{\"capabilityRef\":\"capability://opaque/read-authorized-text\",\"request\":\"读取当前轮次本地控制器明确授权的单个文本文件，以获取其开头与结尾的两个标记。\"}"
+  },
+  {
+    "run": "run-tool-retain",
+    "ordinal": 3,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 7488,
+        "digest": "62e48c351ce6d22bd898e5fb96205fa3baddd77c91f64e4ddbf71e67662ede29"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 78,
+        "digest": "9b8f9236595076f3aea1f9c6d2c643c61de60d3d005db1745c9455b04fcaaa1b"
+      }
+    ],
+    "hasFileMarkers": true,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool-retain",
+    "ordinal": 4,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 6339,
+        "digest": "ea8fd50f311bbb00aac39e924d0be85fe5d5ee9b1e620300185f65f9d108f32b"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 78,
+        "digest": "9b8f9236595076f3aea1f9c6d2c643c61de60d3d005db1745c9455b04fcaaa1b"
+      }
+    ],
+    "hasFileMarkers": true,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool-retain",
+    "ordinal": 5,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5853,
+        "digest": "579a71779976a5b8577de4928c0a6a2c82ddec72d2b982240aeed8340999c1f6"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 3116,
+        "digest": "ac032986e7acf8c95dee7aecc2b8ccb198d08390f4959992c85e7f11efa0cf7a"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 117,
+        "digest": "86de8d218066fbf4231612e0c67f33430e234b036d875fdb2c2a43d2d7e7b7d7"
+      }
+    ],
+    "hasFileMarkers": true,
+    "hasRetainedReport": true,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool-retain",
+    "ordinal": 6,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 4391,
+        "digest": "57f97c8aaaccb325a1792731d0e2736c8319a01a4720c8756fd878f19449bdcb"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 3116,
+        "digest": "ac032986e7acf8c95dee7aecc2b8ccb198d08390f4959992c85e7f11efa0cf7a"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 117,
+        "digest": "86de8d218066fbf4231612e0c67f33430e234b036d875fdb2c2a43d2d7e7b7d7"
+      }
+    ],
+    "hasFileMarkers": true,
+    "hasRetainedReport": true,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool-retain",
+    "ordinal": 7,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5347,
+        "digest": "3412e0cc755a49f94a44f677f8b705e7451b73f49c8fcba3887e122b82399698"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 60,
+        "digest": "c4b5736b748d7f27be25699d7db4d46562c6aef29036e91e1a9421b9f445565e"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool-retain",
+    "ordinal": 8,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "user",
+        "utf8Bytes": 1460,
+        "digest": "82618d225837f0050d0acc85a2efbc5de00fb9f13c25a6bfb0294f3040d5d966"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 299,
+        "digest": "75a4df1b8ceba726e38a21ea81850fb2508c370beab60d284153c7a30f4aa4df"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 194,
+        "digest": "a70534ec4c7e5451789347ff1dc404b81604011933ea2b1b1ddf56b16dedd07f"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 227,
+        "digest": "79838726209ecbab1f5a318c576e24add3f8ca163466c8bd914a06a5fe23e57e"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 1042,
+        "digest": "f3f1b6bb4b0ded83b48c49caac1c85a847bb7479a30d7c727123d37700894cec"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": "COMPLETE\n我无法确定刚才另一位用户读取的文件中提到了哪两个标记，因为当前没有提供该文件的内容、读取记录或任何相关证据。我没有访问该文件或相关日志的能力，也没有被授予任何可用的工具来检索这些信息。请提供该文件的内容或授权我访问相关记录，我才能给出准确答案。"
+  },
+  {
+    "run": "run-tool-retain",
+    "ordinal": 9,
+    "phase": "CONTROL_OR_REASONING",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 5232,
+        "digest": "bafe536aa026829bfb1077e54efb8ef618cd3ecd8a9366e3435853aba174a768"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 60,
+        "digest": "c4b5736b748d7f27be25699d7db4d46562c6aef29036e91e1a9421b9f445565e"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  },
+  {
+    "run": "run-tool-retain",
+    "ordinal": 10,
+    "phase": "BODY",
+    "messages": [
+      {
+        "role": "system",
+        "utf8Bytes": 4083,
+        "digest": "3eda16ebebe423cb5ea2552a9bef41074a9996c527843f1b502f2d8f8b1167b4"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 118,
+        "digest": "0df9c880fd67aa378bc21227b4e3826349682de5846475232e688feac01645f2"
+      },
+      {
+        "role": "user",
+        "utf8Bytes": 60,
+        "digest": "c4b5736b748d7f27be25699d7db4d46562c6aef29036e91e1a9421b9f445565e"
+      }
+    ],
+    "hasFileMarkers": false,
+    "hasRetainedReport": false,
+    "hasInitialEditor": false,
+    "requestsCapability": false,
+    "control": null
+  }
+]
