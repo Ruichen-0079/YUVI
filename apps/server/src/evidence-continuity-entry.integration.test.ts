@@ -808,6 +808,12 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
             cwd: runtimeCheckout,
             encoding: "utf8"
           }).trim(),
+          runtimeDirty: Boolean(
+            execFileSync("git", ["status", "--porcelain"], {
+              cwd: runtimeCheckout,
+              encoding: "utf8"
+            }).trim()
+          ),
           verified,
           kind: "deterministic-provider-real-server-postgresql",
           preRuntimeCrash: {
