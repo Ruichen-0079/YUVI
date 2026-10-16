@@ -99,7 +99,10 @@ export class HostReadTextEffects {
                   (grants.get(i.intentId)?.verifyAuthority &&
                     !(await grants.get(i.intentId)!.verifyAuthority!())) ||
                   (this.verifySourceAuthority &&
-                    !(await this.verifySourceAuthority(i.request.causalRefs[0]!)))
+                    !(await this.verifySourceAuthority(i.request.causalRefs[0]!))) ||
+                  // Both live checks may await I/O. A controller revoke while
+                  // they run must still fence the leaf before opening the file.
+                  !current(i)
                 )
                   return {
                     evidence: {
