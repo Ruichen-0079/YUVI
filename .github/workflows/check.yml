@@ -79,6 +79,9 @@ jobs:
       - name: Test
         run: pnpm test
 
+      - name: Retrieval evaluation attribution contract
+        run: python3 -m unittest discover -s docs/research/compositional-retrieval/experiments -p 'grading_test.py'
+
       - name: Smoke
         env:
           DATABASE_URL: postgres://yuvi_smoke:yuvi_smoke_ci@127.0.0.1:5432/yuvi_smoke
