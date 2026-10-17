@@ -7,7 +7,11 @@ import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
 import { createPostgresPool } from "@companion/database";
-import { applySqlMigrations, readSqlMigrations } from "@companion/memory";
+import {
+  applySqlMigrations,
+  readSqlMigrations,
+  PostgresRecentEpisodeStore
+} from "@companion/memory";
 import {
   commitProductSettings,
   defaultProductSettings,
@@ -62,9 +66,19 @@ describe.skipIf(!url)("accepted sources through the actual Server/Character entr
       const source = body.messages.at(-1)?.content ?? "";
       if (
         typeof body.messages[0]?.content === "string" &&
-        body.messages[0].content.startsWith("Transform the untrusted user question")
+        (body.messages[0].content.startsWith("Transform the untrusted user question") ||
+          body.messages[0].content.startsWith("Decompose the untrusted question"))
       ) {
         const question = JSON.parse(source).question;
+        const plan =
+          question === "面试时间和EC_FACT_restart分别是什么？"
+            ? {
+                needs: [
+                  { quote: "面试时间", queries: ["面试 时间", "interview date"] },
+                  { quote: "EC_FACT_restart", queries: ["EC_FACT_restart"] }
+                ]
+              }
+            : { queries: [question.slice(0, 256)] };
         if (question === "WAIT_FOR_PLAN_REVOKE") {
           blocked = true;
           await new Promise<void>((resolve) => {
@@ -77,7 +91,7 @@ describe.skipIf(!url)("accepted sources through the actual Server/Character entr
             model: body.model,
             choices: [
               {
-                message: { content: JSON.stringify({ queries: [question.slice(0, 256)] }) },
+                message: { content: JSON.stringify(plan) },
                 finish_reason: "stop"
               }
             ]
@@ -609,6 +623,31 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
       expect(
         JSON.stringify(calls.slice(before).filter((c) => c.model === "fixture-chat"))
       ).toContain("用户面试在周四。");
+      await stop();
+      const recentEpisodes = new PostgresRecentEpisodeStore(pool);
+      for (const r of (await pool.query("select episode_id from recent_episodes")).rows)
+        await recentEpisodes.markStatus(r.episode_id, "expired");
+      await start(true);
+      const compositeBefore = calls.length;
+      expect(
+        (await send("面试时间和EC_FACT_restart分别是什么？", randomUUID(), false)).status
+      ).toBe(200);
+      const compositeCalls = calls.slice(compositeBefore).filter((c) => c.model === "fixture-chat");
+      expect(compositeCalls.length).toBe(2);
+      for (const call of compositeCalls) {
+        const context = JSON.stringify(call.messages.slice(0, -1));
+        expect(context).toContain("用户面试在周四。");
+        expect(context).toContain("EC_FACT_restart SILENCE_REPLY");
+        expect(context).toContain("Retrieval demand slots");
+      }
+      const compositionAudit = (
+        await pool.query(
+          "select query_plan from memory_retrieval_runs where query=$1 order by created_at desc limit 1",
+          ["面试时间和EC_FACT_restart分别是什么？"]
+        )
+      ).rows[0].query_plan;
+      expect(compositionAudit.coverage).toHaveLength(2);
+      expect(compositionAudit.coverage.every((n: any) => n.selectedIds.length > 0)).toBe(true);
       const sourceRuns = (
         await pool.query(
           "select finalized_turn_id,count(*)::int n from finalized_ingestion_events group by finalized_turn_id"

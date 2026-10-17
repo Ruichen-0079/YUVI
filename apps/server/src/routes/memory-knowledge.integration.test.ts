@@ -9,7 +9,9 @@ import {
   PostgresMemoryAuthority,
   buildMemoryScope,
   MemoryIntegrityAudit,
-  importLegacyMemoryBatch
+  importLegacyMemoryBatch,
+  applySqlMigrations,
+  readSqlMigrations
 } from "@companion/memory";
 import { loadServerConfig } from "../config.js";
 import type { AppContext } from "../context.js";
@@ -35,6 +37,7 @@ describe.skipIf(!db)("R5 product API actual PostgreSQL routes", () => {
   const token = "r5-synthetic-api-token";
   let recordId: string;
   beforeAll(async () => {
+    await applySqlMigrations(pool, await readSqlMigrations());
     await importLegacyMemoryBatch(provider.authority, {
       migrationId: randomUUID(),
       scope,
@@ -133,6 +136,15 @@ describe.skipIf(!db)("R5 product API actual PostgreSQL routes", () => {
     });
     expect(response.statusCode).toBe(200);
     expect(response.json()).toMatchObject({ schema: "memory.verify.v1", mismatches: [] });
+    const lexical = await app.inject({
+      method: "POST",
+      url: "/memory/v1/operations",
+      remoteAddress: "127.0.0.1",
+      headers: { authorization: `Bearer ${token}` },
+      payload: { scope, operation: "LEXICAL_ADVANCE", limit: 10 }
+    });
+    expect(lexical.statusCode).toBe(200);
+    expect(lexical.json()).toMatchObject({ schema: "memory.lexical-index.v1", status: "READY" });
     const unauthorized = await app.inject({
       method: "POST",
       url: "/memory/v1/operations",
