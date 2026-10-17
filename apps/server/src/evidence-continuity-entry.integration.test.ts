@@ -766,7 +766,9 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
       ).toBe(200);
       expect((await send("READ_OBSERVATION_PROBE", fileSession)).status).toBe(200);
       const toolRecord = (
-        await pool.query("select observation_id from retained_observations where kind='READ_TEXT'")
+        await pool.query(
+          "select observation_id,attempt_id from retained_observations where kind='READ_TEXT'"
+        )
       ).rows[0];
       expect(toolRecord).toBeDefined();
       const beforeToolFollow = calls.length;
@@ -778,6 +780,54 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
       const afterExpiry = calls.length;
       expect((await send("What did we read after expiry?", fileSession, false)).status).toBe(200);
       expect(JSON.stringify(calls.slice(afterExpiry))).not.toContain("TOOL_OBSERVATION_RANDOM_");
+      // Restart invokes the real expiry purge. Deletion of an already erased
+      // tombstone is a successful postcondition, not a provenance rewrite.
+      await stop();
+      await start(true);
+      let purged;
+      for (let n = 0; n < 50; n++) {
+        purged = (
+          await pool.query(
+            "select erased_at,erased_by_source from retained_observations where observation_id=$1",
+            [toolRecord.observation_id]
+          )
+        ).rows[0];
+        if (purged?.erased_at) break;
+        await delay(20);
+      }
+      expect(purged.erased_at).not.toBeNull();
+      const expiredDeleteUrl = `/observations/v1/${toolRecord.observation_id}?sessionId=${randomUUID()}`;
+      for (let retry = 0; retry < 2; retry++) {
+        const erasedExpired = await fetch(base + expiredDeleteUrl, {
+          method: "DELETE",
+          headers: { authorization: "Bearer " + grant.token }
+        });
+        expect(erasedExpired.status).toBe(200);
+      }
+      expect(
+        (
+          await pool.query(
+            "select evidence,image_bytes from retained_observations where observation_id=$1",
+            [toolRecord.observation_id]
+          )
+        ).rows[0]
+      ).toMatchObject({ evidence: null, image_bytes: null });
+      expect(
+        (
+          await pool.query(
+            "select erased_at,erased_by_source from retained_observations where observation_id=$1",
+            [toolRecord.observation_id]
+          )
+        ).rows[0]
+      ).toEqual(purged);
+      expect(
+        (
+          await pool.query(
+            "select evidence from effect_observations where attempt_id=$1 and category='TERMINAL'",
+            [toolRecord.attempt_id]
+          )
+        ).rows[0].evidence.certainty
+      ).toBe("APPLIED");
       const toolCalls = async () =>
         (
           await pool.query(
