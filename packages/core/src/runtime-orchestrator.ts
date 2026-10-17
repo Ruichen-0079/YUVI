@@ -1213,6 +1213,24 @@ export class RuntimeOrchestrator {
     }
     const memoryProjection = projectMemoryVNextToCharacterAbi({
       ...assembly.characterProjection,
+      ...(memory.semanticOutcome?.coverage?.length &&
+      assembly.characterProjection.memoryEvidence.summary
+        ? {
+            memoryEvidence: {
+              ...assembly.characterProjection.memoryEvidence,
+              summary:
+                assembly.characterProjection.memoryEvidence.summary +
+                "\nRetrieval demand slots (candidate availability only; not entailment or proof of absence): " +
+                JSON.stringify(
+                  memory.semanticOutcome?.coverage.map((n) => ({
+                    questionSpan: n.quote,
+                    status: n.status,
+                    selectedReferences: n.selectedIds
+                  }))
+                )
+            }
+          }
+        : {}),
       ...(!direct.enabled ? { recentConversation: { state: "UNAVAILABLE" as const } } : {})
     });
     this.semanticContexts.set(prompt, [

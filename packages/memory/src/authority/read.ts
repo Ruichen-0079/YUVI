@@ -1,5 +1,6 @@
 import type { MemoryEvent } from "../provider.js";
 import { MemoryLineageV1Schema } from "../lineage.js";
+import { lexicalQueryTerms } from "./lexical-index.js";
 import {
   canonicalScope,
   MemoryAuthorityError,
@@ -119,11 +120,59 @@ export class MemoryKnowledgeReader {
     scope: string,
     text: string,
     limit = 8
-  ): Promise<{ records: KnowledgeRecord[]; watermark: string; candidateLimited: boolean }> {
+  ): Promise<{
+    records: KnowledgeRecord[];
+    watermark: string;
+    candidateLimited: boolean;
+    lexicalIndex?: string;
+    relevanceById?: Record<string, number>;
+  }> {
     const health = await this.requireProjection(scope);
     // Bound the query, not the corpus. All candidates are resolved against the current projection.
     const terms = searchTerms(text).slice(0, 32);
     if (!terms.length) return { records: [], watermark: health.version, candidateLimited: false };
+    const index = (
+      await this.db.query(
+        `select l.status from memory_authority_scopes s left join memory_lexical_generations l
+       on l.scope=s.scope and l.generation=s.projection_generation where s.scope=$1`,
+        [scope]
+      )
+    ).rows[0]?.["status"];
+    if (index === "READY") {
+      // Each posting list is an ordered B-tree seek, never an unbounded OR rank.
+      // The per-term bound is visible: a frequent term can omit older candidates.
+      const tokens = lexicalQueryTerms(terms);
+      const rows = await this.db.query(
+        `with snapshot as materialized (select projection_generation from memory_authority_scopes where scope=$1),
+         probes as materialized (
+          select q.term,q.weight,p.id,p.version from jsonb_to_recordset($2::jsonb) q(term text,weight float8)
+          cross join snapshot s cross join lateral (
+           select id,version from memory_lexical_postings where scope=$1 and generation=s.projection_generation
+            and term=q.term order by version desc,id limit 33
+          ) p
+         ), frequencies as (select term,count(*) as df from probes group by term),
+         ranked as materialized (
+          select p.id,max(p.version) version,sum(p.weight/ln(2+f.df)) as relevance
+          from probes p join frequencies f using(term) group by p.id
+          order by relevance desc,version desc,p.id limit $3::int+1
+         ) select r.*,c.state,k.relevance,
+          ((select count(*) from ranked)>$3 or exists(select 1 from frequencies where df=33)) as candidate_limited
+          from ranked k join memory_authority_records r on r.scope=$1 and r.id=k.id
+          join memory_authority_projection_rows c on c.scope=$1 and c.id=k.id
+           and c.generation=(select projection_generation from snapshot)
+          where c.state in ('current','conflicted') order by k.relevance desc,k.version desc,k.id limit $3`,
+        [scope, JSON.stringify(tokens), boundLimit(limit)]
+      );
+      return {
+        records: rows.rows.map(mapRecord),
+        watermark: health.version,
+        candidateLimited: rows.rows[0]?.["candidate_limited"] === true,
+        lexicalIndex: "POSTINGS_V1",
+        relevanceById: Object.fromEntries(
+          rows.rows.map((r) => [String(r["id"]), Number(r["relevance"])])
+        )
+      };
+    }
     // Existing Chinese documents are indexed as bigrams. A one-Han search
     // term must match a leading bigram (e.g. a topic noun), rather than require
     // an impossible unigram lexeme. No fact- or intent-specific vocabulary.
@@ -144,7 +193,8 @@ export class MemoryKnowledgeReader {
     return {
       records: rows.rows.map(mapRecord),
       watermark: health.version,
-      candidateLimited: rows.rows[0]?.["candidate_limited"] === true
+      candidateLimited: true,
+      lexicalIndex: "BACKFILL_PENDING_GIN_FALLBACK"
     };
   }
   /** Resolve a bounded candidate set against ONE current generation/version snapshot.

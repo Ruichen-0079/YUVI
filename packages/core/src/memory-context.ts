@@ -48,6 +48,7 @@ export function normalizeMemoryTextForDedupe(value: string): string {
 }
 
 export type MemoryContextDiagnostics = {
+  coverage?: MemoryRetrievalOutcome["coverage"];
   selectedCount: number;
   droppedCount: number;
   droppedReasons?: Partial<Record<MemoryContextDropReason, number>>;
@@ -138,6 +139,7 @@ export class MemoryContextBuilder {
       ...(outcome
         ? {
             retrievalStatus: outcome.status,
+            ...(outcome.coverage ? { coverage: outcome.coverage } : {}),
             retrievalErrorCode: outcome.errorCode ?? null,
             providerSource: outcome.source,
             rawCount: outcome.rawCount ?? sourceEvents.length,
