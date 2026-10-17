@@ -60,6 +60,25 @@ describe.skipIf(!url)("accepted sources through the actual Server/Character entr
       const body = JSON.parse(Buffer.concat(chunks).toString());
       calls.push(body);
       const source = body.messages.at(-1)?.content ?? "";
+      if (
+        typeof body.messages[0]?.content === "string" &&
+        body.messages[0].content.startsWith("Transform the untrusted user question")
+      ) {
+        const question = JSON.parse(source).question;
+        response.writeHead(200, { "content-type": "application/json" });
+        response.end(
+          JSON.stringify({
+            model: body.model,
+            choices: [
+              {
+                message: { content: JSON.stringify({ queries: [question.slice(0, 256)] }) },
+                finish_reason: "stop"
+              }
+            ]
+          })
+        );
+        return;
+      }
       if (body.model === "fixture-vision") {
         if (holdVision) {
           holdVision = false;
@@ -335,6 +354,7 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
               LOG_LEVEL: "warn",
               DATABASE_URL: connection.toString(),
               MEMORY_BACKEND: "postgres",
+              MEMORY_QUERY_EXPANSION_ENABLED: "true",
               MEMORY_REPOSITORY: "postgres",
               CONVERSATION_REPOSITORY: "postgres",
               YUVI_JOURNAL_NAMESPACE: schema,
@@ -970,11 +990,18 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
       const appliedGate = await pool.query(
         `select o.evidence from effect_observations o join effect_attempts a using(attempt_id)
         join effect_intents i using(intent_id) join conversation_messages cm on cm.source_journal_ref=i.intent->'request'->'causalRefs'->0
-        where cm.content=$1 and cm.role='user' and o.category='TERMINAL' and o.evidence->>'certainty'='APPLIED'`,
+        where cm.content=$1 and cm.role='user' and i.intent->'request'->'payload'->>'operation'='generateReply' and o.category='TERMINAL' and o.evidence->>'certainty'='APPLIED'`,
         [revokeText]
       );
       expect(appliedGate.rows.length).toBe(1);
       expect((await send("Revoked identity must fail")).status).toBe(401);
+      expect(
+        (
+          await pool.query(
+            "select query_plan from memory_retrieval_runs where query_plan->>'status'='APPLIED' limit 1"
+          )
+        ).rows
+      ).toHaveLength(1);
       verified = true;
     } finally {
       await stop();
