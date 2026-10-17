@@ -54,6 +54,7 @@ export class PostgresMemoryProvider implements MemoryProvider {
         errorCode: "MEMORY_CANCELLED"
       };
     try {
+      const queryInputLimited = input.text.length > 4000;
       let textError = false;
       let lexicalPending = false;
       let planError = false;
@@ -302,7 +303,8 @@ export class PostgresMemoryProvider implements MemoryProvider {
             ? events.length
               ? "partial"
               : "unavailable"
-            : coverageLimited ||
+            : queryInputLimited ||
+                coverageLimited ||
                 planError ||
                 result.candidateLimited ||
                 vectorPending ||
@@ -316,6 +318,7 @@ export class PostgresMemoryProvider implements MemoryProvider {
         events,
         ...(coverage.length ? { coverage } : {}),
         limited:
+          queryInputLimited ||
           coverageLimited ||
           result.candidateLimited ||
           planError ||
@@ -324,27 +327,29 @@ export class PostgresMemoryProvider implements MemoryProvider {
           vectorPending ||
           vectorLimited ||
           compatibilityPending,
-        limitReason: coverageLimited
-          ? "MEMORY_DEMAND_COVERAGE_INCOMPLETE"
-          : textError && vectorError
-            ? "MEMORY_RETRIEVAL_CHANNELS_UNAVAILABLE"
-            : textError
-              ? "MEMORY_TEXT_UNAVAILABLE"
-              : planError
-                ? "MEMORY_QUERY_PLAN_UNAVAILABLE"
-                : vectorError
-                  ? "MEMORY_VECTOR_UNAVAILABLE"
-                  : vectorPending
-                    ? "MEMORY_VECTOR_INDEX_PENDING"
-                    : vectorLimited
-                      ? "MEMORY_VECTOR_CANDIDATE_BOUND"
-                      : lexicalPending
-                        ? "MEMORY_LEXICAL_INDEX_PENDING"
-                        : result.candidateLimited
-                          ? "MEMORY_TEXT_CANDIDATE_BOUND"
-                          : compatibilityPending
-                            ? "MEMORY_LEGACY_OR_UNATTRIBUTED_REQUIRES_REVIEW"
-                            : null,
+        limitReason: queryInputLimited
+          ? "MEMORY_QUERY_INPUT_BOUND"
+          : coverageLimited
+            ? "MEMORY_DEMAND_COVERAGE_INCOMPLETE"
+            : textError && vectorError
+              ? "MEMORY_RETRIEVAL_CHANNELS_UNAVAILABLE"
+              : textError
+                ? "MEMORY_TEXT_UNAVAILABLE"
+                : planError
+                  ? "MEMORY_QUERY_PLAN_UNAVAILABLE"
+                  : vectorError
+                    ? "MEMORY_VECTOR_UNAVAILABLE"
+                    : vectorPending
+                      ? "MEMORY_VECTOR_INDEX_PENDING"
+                      : vectorLimited
+                        ? "MEMORY_VECTOR_CANDIDATE_BOUND"
+                        : lexicalPending
+                          ? "MEMORY_LEXICAL_INDEX_PENDING"
+                          : result.candidateLimited
+                            ? "MEMORY_TEXT_CANDIDATE_BOUND"
+                            : compatibilityPending
+                              ? "MEMORY_LEGACY_OR_UNATTRIBUTED_REQUIRES_REVIEW"
+                              : null,
         selectedCount: events.length,
         watermark: result.watermark
       };
@@ -376,6 +381,7 @@ export class PostgresMemoryProvider implements MemoryProvider {
         modelTag: this.vectors?.modelTag,
         queryPlan: {
           schema: "memory.search-plan.v1",
+          originalQueryTruncated: queryInputLimited,
           status: this.expandQuery ? (planError ? "UNAVAILABLE" : "APPLIED") : "DISABLED",
           queries,
           model: plan?.model ?? null,

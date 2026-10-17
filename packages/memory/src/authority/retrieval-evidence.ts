@@ -27,6 +27,7 @@ const coverageSchema = z
 export const RetrievalQueryPlanSchema = z
   .object({
     schema: z.literal("memory.search-plan.v1"),
+    originalQueryTruncated: z.boolean().optional(),
     status: z.enum(["DISABLED", "APPLIED", "UNAVAILABLE"]),
     queries: z.array(z.string().max(4000)).max(3),
     model: z.string().max(512).nullable(),
