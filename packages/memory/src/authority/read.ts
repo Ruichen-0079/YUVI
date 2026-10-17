@@ -147,8 +147,9 @@ export class MemoryKnowledgeReader {
          probes as materialized (
           select q.term,q.weight,p.id,p.version from jsonb_to_recordset($2::jsonb) q(term text,weight float8)
           cross join snapshot s cross join lateral (
-           select id,version from memory_lexical_postings where scope=$1 and generation=s.projection_generation
-            and term=q.term order by version desc,id limit 33
+           select id,version from memory_lexical_postings
+            where (scope || chr(31) || generation::text || chr(31) || term)=($1 || chr(31) || s.projection_generation::text || chr(31) || q.term)
+            order by version desc,id limit 33
           ) p
          ), frequencies as (select term,count(*) as df from probes group by term),
          ranked as materialized (
@@ -157,10 +158,12 @@ export class MemoryKnowledgeReader {
           order by relevance desc,version desc,p.id limit $3::int+1
          ) select r.*,c.state,k.relevance,
           ((select count(*) from ranked)>$3 or exists(select 1 from frequencies where df=33)) as candidate_limited
-          from ranked k join memory_authority_records r on r.scope=$1 and r.id=k.id
-          join memory_authority_projection_rows c on c.scope=$1 and c.id=k.id
-           and c.generation=(select projection_generation from snapshot)
-          where c.state in ('current','conflicted') order by k.relevance desc,k.version desc,k.id limit $3`,
+          from ranked k cross join lateral (
+           select state from memory_authority_projection_rows where scope=$1 and id=k.id
+            and generation=(select projection_generation from snapshot) limit 1
+          ) c cross join lateral (
+           select * from memory_authority_records where scope=$1 and id=k.id limit 1
+          ) r where c.state in ('current','conflicted') order by k.relevance desc,k.version desc,k.id limit $3`,
         [scope, JSON.stringify(tokens), boundLimit(limit)]
       );
       return {

@@ -83,6 +83,7 @@ export class PostgresMemoryProvider implements MemoryProvider {
         lexicalIndex?: string;
       }> = [];
       let textNeedRanks = new Map<string, string[]>();
+      let textNeedScores = new Map<string, Map<string, number>>();
       const loadText = async () => {
         const results = await Promise.allSettled(
           tasks.map((t) =>
@@ -143,6 +144,7 @@ export class PostgresMemoryProvider implements MemoryProvider {
               (BigInt(records.get(a)!.version) > BigInt(records.get(b)!.version) ? -1 : 1)
           );
         textNeedRanks = new Map([...needScores].map(([id, values]) => [id, order(values)]));
+        textNeedScores = needScores;
         const chosen = coverageSelection(
           order(scores),
           needs.map((n) => ({ id: n.id, ranking: textNeedRanks.get(n.id) ?? [] })),
@@ -253,8 +255,8 @@ export class PostgresMemoryProvider implements MemoryProvider {
           vector = vectorNeedRanks.get(n.id) ?? [];
         const ids = [...new Set([...text, ...vector])].filter((id) => eligible.has(id));
         const score = (id: string) =>
-          (text.includes(id) ? 1 / (60 + text.indexOf(id)) : 0) +
-          (vector.includes(id) ? 1 / (32 + vector.indexOf(id)) : 0);
+          (textNeedScores.get(n.id)?.get(id) ?? 0) +
+          (vector.includes(id) ? 1 / (60 + vector.indexOf(id)) : 0);
         return { id: n.id, ranking: ids.sort((a, b) => score(b) - score(a) || a.localeCompare(b)) };
       });
       const selected = coverageSelection(
