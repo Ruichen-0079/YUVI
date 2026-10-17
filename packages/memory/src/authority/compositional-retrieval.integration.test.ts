@@ -145,6 +145,17 @@ describe.skipIf(!url)(
       expect(r.status).toBe("partial");
       const audit = await p.retrievalEvidence.detail(scope, r.retrievalId!);
       expect(audit?.queryPlan?.channels[0]?.queryTermsLimited).toBe(true);
+      const long = await p.retrieveRelevant({
+        scope,
+        access,
+        text: "unmatched ".repeat(500) + "露川-4A87"
+      });
+      expect(long.status).toBe("partial");
+      expect(long.limitReason).toBe("MEMORY_QUERY_INPUT_BOUND");
+      expect(
+        (await p.retrievalEvidence.detail(scope, long.retrievalId!))?.queryPlan
+          ?.originalQueryTruncated
+      ).toBe(true);
     });
     it("incomplete backfill is visible, restartable, idempotent and includes concurrent new writes", async () => {
       const g = (
