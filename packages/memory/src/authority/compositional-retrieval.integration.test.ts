@@ -10,6 +10,7 @@ import { PostgresMemoryAuthority } from "./store.js";
 import { PostgresMemoryProvider } from "./provider.js";
 import { advanceLexicalIndex } from "./lexical-index.js";
 import { MemoryProjectionRebuild } from "./projection-rebuild.js";
+import { MemoryVectorIndexer } from "./vector.js";
 const url = process.env["YUVI_MEMORY_R5_TEST_DATABASE_URL"],
   schema = "composition_test_" + randomUUID().replaceAll("-", "");
 const admin = new pg.Pool({ connectionString: url }),
@@ -125,21 +126,21 @@ describe.skipIf(!url)(
       expect(r.events.map((e) => e.id)).toContain(ids.get("editor"));
       expect(r.coverage).toBeUndefined();
     });
+    it("does not invent an indexing backlog for a scope with no committed history", async () => {
+      const r = await new PostgresMemoryProvider(authority).retrieveRelevant({
+        scope: scope.replace("composition-persona", "empty-persona"),
+        access,
+        text: "tea"
+      });
+      expect(r.status).toBe("empty");
+      expect(r.limited).toBe(false);
+    });
     it("reports lexical query truncation instead of claiming a complete empty search", async () => {
       const p = new PostgresMemoryProvider(authority);
       const r = await p.retrieveRelevant({
         scope,
         access,
         text: Array.from({ length: 40 }, (_, i) => `unmatchedword${i}`).join(" ") + " 露川-4A87"
-      });
-      it("does not invent an indexing backlog for a scope with no committed history", async () => {
-        const r = await new PostgresMemoryProvider(authority).retrieveRelevant({
-          scope: scope.replace("composition-persona", "empty-persona"),
-          access,
-          text: "tea"
-        });
-        expect(r.status).toBe("empty");
-        expect(r.limited).toBe(false);
       });
       expect(r.status).toBe("partial");
       const audit = await p.retrievalEvidence.detail(scope, r.retrievalId!);
@@ -197,6 +198,53 @@ describe.skipIf(!url)(
       const p = new PostgresMemoryProvider(authority);
       const r = await p.retrieveRelevant({ scope, access, text: "喜欢的茶" });
       expect(r.events.map((e) => e.id)).toContain(next);
+      expect(r.events.map((e) => e.id)).not.toContain(old);
+    });
+    it("rejects a higher-scoring superseded vector and never mixes model spaces", async () => {
+      const old = await write({ key: "ann-old", text: "路线的旧代号是RIDGE-11。" });
+      const current = await write({
+        key: "ann-current",
+        text: "路线当前代号是RIDGE-22。",
+        supersedes: "ann-old"
+      });
+      const q = Array.from({ length: 512 }, (_, i) => (i === 0 ? 1 : 0)),
+        near = Array.from({ length: 512 }, (_, i) => (i < 2 ? 1 : 0));
+      // Geometric protocol fixture: validates real SQL/state, not embedding semantics.
+      const indexer = new MemoryVectorIndexer(authority, {
+        name: "state-contract",
+        model: "space-v1",
+        dimensions: 512,
+        mock: false,
+        embedText: async () => q
+      });
+      for (const [id, vector] of [
+        [old, q],
+        [current, near]
+      ] as const) {
+        const version = (await new PostgresMemoryProvider(authority).knowledge.detail(scope, id))!
+          .version;
+        await pool.query(
+          "insert into memory_authority_vectors(scope,id,model_tag,authority_version,embedding) values($1,$2,$3,$4,$5::vector)",
+          [scope, id, indexer.modelTag, version, JSON.stringify(vector)]
+        );
+      }
+      const found = await indexer.searchWithEvidence(scope, "route", 5);
+      expect(found.candidateCount).toBe(2);
+      expect(found.ids).toContain(current);
+      expect(found.ids).not.toContain(old);
+      const mismatch = new MemoryVectorIndexer(authority, {
+        name: "state-contract",
+        model: "space-v2",
+        dimensions: 512,
+        mock: false,
+        embedText: async () => q
+      });
+      expect((await mismatch.searchWithEvidence(scope, "route", 5)).ids).toEqual([]);
+      const p = new PostgresMemoryProvider(authority, mismatch),
+        r = await p.retrieveRelevant({ scope, access, text: "RIDGE-22" });
+      expect(r.status).toBe("partial");
+      expect(r.limitReason).toBe("MEMORY_VECTOR_CANDIDATE_BOUND");
+      expect(r.events.map((e) => e.id)).toContain(current);
       expect(r.events.map((e) => e.id)).not.toContain(old);
     });
   }
