@@ -515,8 +515,13 @@ export class HostObservationContinuity implements RuntimeObservationPort {
     const owner = await this.owner(context.sourceJournalRef);
     if (!owner) return false;
     const result = await this.db.query(
-      `update retained_observations set erased_at=coalesce(erased_at,now()),erased_by_source=coalesce(erased_by_source,$8::jsonb),evidence=null,image_bytes=null
-      where namespace=$1 and persona_id=$2 and person_id=$3 and principal_namespace=$4 and actor_id=$5 and audience_ref=$6 and observation_id=$7 returning observation_id`,
+      `with target as materialized (
+      select observation_id,erased_at from retained_observations
+      where namespace=$1 and persona_id=$2 and person_id=$3 and principal_namespace=$4 and actor_id=$5 and audience_ref=$6 and observation_id=$7 for update
+      ), erased as (
+      update retained_observations o set erased_at=clock_timestamp(),erased_by_source=$8::jsonb,evidence=null,image_bytes=null
+      from target t where o.observation_id=t.observation_id and t.erased_at is null returning o.observation_id
+      ) select observation_id from erased union all select observation_id from target where erased_at is not null`,
       [...this.ownerValues(owner), id, context.sourceJournalRef]
     );
     return result.rows.length === 1;
