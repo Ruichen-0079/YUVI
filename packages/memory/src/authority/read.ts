@@ -126,10 +126,12 @@ export class MemoryKnowledgeReader {
     candidateLimited: boolean;
     lexicalIndex?: string;
     relevanceById?: Record<string, number>;
+    queryTermsLimited?: boolean;
   }> {
     const health = await this.requireProjection(scope);
     // Bound the query, not the corpus. All candidates are resolved against the current projection.
-    const terms = searchTerms(text).slice(0, 32);
+    const allTerms = searchTerms(text);
+    const terms = allTerms.slice(0, 32);
     if (!terms.length) return { records: [], watermark: health.version, candidateLimited: false };
     const index = (
       await this.db.query(
@@ -142,6 +144,7 @@ export class MemoryKnowledgeReader {
       // Each posting list is an ordered B-tree seek, never an unbounded OR rank.
       // The per-term bound is visible: a frequent term can omit older candidates.
       const tokens = lexicalQueryTerms(terms);
+      const queryTermsLimited = allTerms.length > 32 || lexicalQueryTerms(terms, 33).length > 32;
       const rows = await this.db.query(
         `with snapshot as materialized (select projection_generation from memory_authority_scopes where scope=$1),
          probes as materialized (
@@ -169,7 +172,8 @@ export class MemoryKnowledgeReader {
       return {
         records: rows.rows.map(mapRecord),
         watermark: health.version,
-        candidateLimited: rows.rows[0]?.["candidate_limited"] === true,
+        candidateLimited: queryTermsLimited || rows.rows[0]?.["candidate_limited"] === true,
+        queryTermsLimited,
         lexicalIndex: "POSTINGS_V1",
         relevanceById: Object.fromEntries(
           rows.rows.map((r) => [String(r["id"]), Number(r["relevance"])])

@@ -81,6 +81,8 @@ export class PostgresMemoryProvider implements MemoryProvider {
         status: "OK" | "UNAVAILABLE";
         ids: string[];
         lexicalIndex?: string;
+        queryTermsLimited?: boolean;
+        candidateLimited?: boolean;
       }> = [];
       let textNeedRanks = new Map<string, string[]>();
       let textNeedScores = new Map<string, Map<string, number>>();
@@ -113,7 +115,11 @@ export class PostgresMemoryProvider implements MemoryProvider {
             status: channel.status === "rejected" ? "UNAVAILABLE" : "OK",
             ids: available.map((r) => r.id),
             ...(channel.status === "fulfilled" && channel.value.lexicalIndex
-              ? { lexicalIndex: channel.value.lexicalIndex }
+              ? {
+                  lexicalIndex: channel.value.lexicalIndex,
+                  queryTermsLimited: channel.value.queryTermsLimited ?? false,
+                  candidateLimited: channel.value.candidateLimited
+                }
               : {})
           });
           if (channel.status === "rejected") {

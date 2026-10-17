@@ -76,12 +76,15 @@ function progress(row: Record<string, unknown>) {
 }
 
 /** Same normalization as existing bigrams, plus bounded Han unigrams. */
-export function lexicalQueryTerms(terms: string[]): Array<{ term: string; weight: number }> {
+export function lexicalQueryTerms(
+  terms: string[],
+  limit = 32
+): Array<{ term: string; weight: number }> {
   const values = new Map<string, number>();
   for (const term of terms)
     values.set(term, /^\p{Script=Han}$/u.test(term) ? 0.2 : /[\p{N}_-]/u.test(term) ? 4 : 1);
   for (const term of terms)
     if (/^\p{Script=Han}+$/u.test(term))
       for (const char of term) if (!values.has(char)) values.set(char, 0.2);
-  return [...values].slice(0, 32).map(([term, weight]) => ({ term, weight }));
+  return [...values].slice(0, limit).map(([term, weight]) => ({ term, weight }));
 }
