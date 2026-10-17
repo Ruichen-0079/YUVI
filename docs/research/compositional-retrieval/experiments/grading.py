@@ -11,3 +11,9 @@ def responsibility_stage(*, formed, current, authorized, channel, candidate, sel
     return 'CORRECT_VALUE'
 def shortest_label_contradiction(answer):
     return bool(re.search(r'(?:A[:：]\s*12|Bar A[:：]\s*12)[^\n]{0,80}shortest',answer,re.I))
+def observation_stage(*, report_correct, entered_context, question_supported, answer_consistent):
+    if not report_correct: return 'OBSERVATION_ERROR'
+    if not entered_context: return 'CONTEXT_DROP'
+    if not question_supported:
+        return 'CORRECT_ABSTENTION' if answer_consistent else 'UNSUPPORTED_HALLUCINATION'
+    return 'GROUNDED' if answer_consistent else 'ANSWER_GROUNDING_ERROR'
