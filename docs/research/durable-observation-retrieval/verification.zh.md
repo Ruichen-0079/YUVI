@@ -34,4 +34,4 @@ pnpm --filter @companion/server exec vitest run \
  src/conversation-host-identity.integration.test.ts
 ```
 
-测试要求本地 31508/yuvi_pr_* 或显式 CI 隔离库，不能向任意数据库注入强停。故障套件和正常入口进入 CI 的正式 PostgreSQL 门禁。最终 check/build/test 与远端 CI 以 PR 最新结果为准；CI 全绿不等于 R5 全部迁移、产品接管、全域删除或长期可靠性已完成。
+测试要求本地 31508/yuvi_pr_* 或显式 CI 隔离库，不能向任意数据库注入强停。故障套件和正常入口进入 CI 的正式 PostgreSQL 门禁。2026-10-17 本地 `pnpm check`、`pnpm build`、全仓 `pnpm test` 通过；实际 PostgreSQL Effects 129 项与本轮正常入口/原子故障/Host 14 项通过。远端 CI 以 PR 最新结果为准；CI 全绿不等于 R5 全部迁移、产品接管、全域删除或长期可靠性已完成。

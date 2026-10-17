@@ -39,4 +39,4 @@ summary.update({'evidenceKind':'real-provider-normal-server-character-isolated-p
 (target / 'vision-results.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2))
 (target / 'vision-input-summary.json').write_text(json.dumps(calls,ensure_ascii=False,indent=2))
 with (target / 'vision-calls.csv').open('w') as f:
-    w = csv.DictWriter(f, fieldnames=list(calls[0])); w.writeheader(); w.writerows(calls)
+    w = csv.DictWriter(f, fieldnames=list(calls[0]), lineterminator="\n"); w.writeheader(); w.writerows(calls)
