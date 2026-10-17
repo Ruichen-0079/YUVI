@@ -145,6 +145,21 @@ describe.skipIf(!db)("R5 product API actual PostgreSQL routes", () => {
     });
     expect(lexical.statusCode).toBe(200);
     expect(lexical.json()).toMatchObject({ schema: "memory.lexical-index.v1", status: "READY" });
+    for (const [operation, expected] of [
+      ["LEXICAL_REBUILD", "BUILDING"],
+      ["LEXICAL_ADVANCE", "READY"],
+      ["LEXICAL_VERIFY", "VERIFIED_BATCH"]
+    ]) {
+      const result = await app.inject({
+        method: "POST",
+        url: "/memory/v1/operations",
+        remoteAddress: "127.0.0.1",
+        headers: { authorization: `Bearer ${token}` },
+        payload: { scope, operation, limit: 10 }
+      });
+      expect(result.statusCode).toBe(200);
+      expect(result.json().status).toBe(expected);
+    }
     const unauthorized = await app.inject({
       method: "POST",
       url: "/memory/v1/operations",

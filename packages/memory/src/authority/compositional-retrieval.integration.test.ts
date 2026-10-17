@@ -8,7 +8,7 @@ import { freezeFinalizedMemoryEvent } from "../finalized-memory-lineage.js";
 import { lineageDigest, canonicalLineageJson } from "../lineage-encoding.js";
 import { PostgresMemoryAuthority } from "./store.js";
 import { PostgresMemoryProvider } from "./provider.js";
-import { advanceLexicalIndex } from "./lexical-index.js";
+import { advanceLexicalIndex, rebuildLexicalIndex, verifyLexicalIndex } from "./lexical-index.js";
 import { MemoryProjectionRebuild } from "./projection-rebuild.js";
 import { MemoryVectorIndexer } from "./vector.js";
 const url = process.env["YUVI_MEMORY_R5_TEST_DATABASE_URL"],
@@ -169,8 +169,14 @@ describe.skipIf(!url)(
         g
       ]);
       await pool.query(
-        "update memory_lexical_generations set status='BUILDING',checkpoint='' where scope=$1 and generation=$2",
-        [scope, g]
+        "insert into memory_lexical_postings(scope,generation,term,id,version) values($1,$2,'corrupted-extra-term',$3,0)",
+        [scope, g, ids.get("editor")]
+      );
+      const detected = await verifyLexicalIndex(authority, scope, "", 200, "test-operator");
+      expect(detected.status).toBe("MISMATCH");
+      expect(detected.mismatches).toContain(ids.get("editor"));
+      expect((await rebuildLexicalIndex(authority, scope, "test-operator")).status).toBe(
+        "BUILDING"
       );
       const p = new PostgresMemoryProvider(authority);
       const before = await p.retrieveRelevant({ scope, access, text: "编辑器" });
@@ -192,6 +198,9 @@ describe.skipIf(!url)(
         (await pool.query("select count(*) from memory_lexical_postings where scope=$1", [scope]))
           .rows[0]!.count
       ).toBe(count);
+      expect(
+        (await verifyLexicalIndex(authority, scope, "", 200, "test-operator")).mismatches
+      ).toEqual([]);
     });
     it("shadow generation rebuild and current correction update the same lexical index", async () => {
       const rebuild = new MemoryProjectionRebuild(authority);
