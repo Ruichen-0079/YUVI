@@ -130,6 +130,13 @@ export class MemoryKnowledgeReader {
   }> {
     const health = await this.requireProjection(scope);
     // Bound the query, not the corpus. All candidates are resolved against the current projection.
+    if (health.version === "0" && health.records === "0")
+      return {
+        records: [],
+        watermark: health.version,
+        candidateLimited: false,
+        lexicalIndex: "EMPTY_SCOPE"
+      };
     const allTerms = searchTerms(text);
     const terms = allTerms.slice(0, 32);
     if (!terms.length) return { records: [], watermark: health.version, candidateLimited: false };
