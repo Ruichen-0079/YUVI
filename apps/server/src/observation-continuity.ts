@@ -509,7 +509,11 @@ export class HostObservationContinuity implements RuntimeObservationPort {
       throw Error("OBSERVATION_IMAGE_INTEGRITY_FAILED");
     if (!(await this.owner(context.sourceJournalRef)) || !(await this.owner(record.source)))
       return null;
-    return { imageBase64: bytes.toString("base64"), mimeType: String(row["image_mime"]) };
+    const imageBase64 = bytes.toString("base64");
+    // Grant checks and encoding can outlive the valid SQL snapshot. Never
+    // disclose an original artifact after its independently bounded deadline.
+    if (Date.parse(record.expiresAt) <= Date.now()) return null;
+    return { imageBase64, mimeType: String(row["image_mime"]) };
   }
   async erase(context: ObservationContext, id: string) {
     const owner = await this.owner(context.sourceJournalRef);
