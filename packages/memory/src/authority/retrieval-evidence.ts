@@ -11,6 +11,8 @@ const coverageSchema = z
         quote: z.string().max(512),
         candidateIds: z.array(z.string().max(1024)).max(64),
         selectedIds: z.array(z.string().max(1024)).max(64),
+        preferredId: z.string().max(1024).nullable().optional(),
+        preferredSelected: z.boolean().optional(),
         status: z.enum([
           "SELECTED_CANDIDATE",
           "NO_AUTHORIZED_CANDIDATE",

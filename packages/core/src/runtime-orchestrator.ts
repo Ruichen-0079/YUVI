@@ -1225,6 +1225,8 @@ export class RuntimeOrchestrator {
                   memory.semanticOutcome?.coverage.map((n) => ({
                     questionSpan: n.quote,
                     status: n.status,
+                    preferredReference: n.preferredId,
+                    preferredSelected: n.preferredSelected,
                     selectedReferences: n.selectedIds
                   }))
                 )

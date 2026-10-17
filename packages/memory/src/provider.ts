@@ -184,6 +184,8 @@ export type MemoryRetrievalOutcome = {
     quote: string;
     candidateIds: string[];
     selectedIds: string[];
+    preferredId: string | null;
+    preferredSelected: boolean;
     status:
       | "SELECTED_CANDIDATE"
       | "NO_AUTHORIZED_CANDIDATE"

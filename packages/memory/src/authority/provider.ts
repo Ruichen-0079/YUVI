@@ -270,12 +270,16 @@ export class PostgresMemoryProvider implements MemoryProvider {
       const coverage = needs.map((n) => {
         const candidates = needRanks.find((v) => v.id === n.id)!.ranking;
         const selectedIds = selected.filter((r) => candidates.includes(r.id)).map((r) => r.id);
+        const preferredId = candidates[0] ?? null;
+        const preferredSelected = preferredId !== null && selectedIds.includes(preferredId);
         return {
           id: n.id,
           quote: n.quote,
           candidateIds: candidates,
           selectedIds,
-          status: selectedIds.length
+          preferredId,
+          preferredSelected,
+          status: preferredSelected
             ? ("SELECTED_CANDIDATE" as const)
             : candidates.length
               ? ("RESULT_BOUND" as const)
@@ -285,7 +289,7 @@ export class PostgresMemoryProvider implements MemoryProvider {
                 : ("NO_AUTHORIZED_CANDIDATE" as const)
         };
       });
-      const coverageLimited = coverage.some((n) => !n.selectedIds.length);
+      const coverageLimited = coverage.some((n) => !n.preferredSelected);
       const outcome: MemoryRetrievalOutcome = {
         status:
           vectorError || textError
