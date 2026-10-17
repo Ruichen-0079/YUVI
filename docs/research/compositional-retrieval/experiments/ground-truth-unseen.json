@@ -1,0 +1,19 @@
+{
+ "schema":"memory.composition-ground-truth.v1",
+ "facts":[
+  {"key":"lina","text":"Lina 的报告截止日期是11月6日。"},
+  {"key":"marco","text":"Marco 使用的相机代号是ORBIT-62。"},
+  {"key":"nori","text":"Nori 的饮食禁忌是贝类。"},
+  {"key":"aperture","text":"观测站的望远镜口径为245毫米。"},
+  {"key":"battery","text":"The replacement battery model is QUARTZ-37."},
+  {"key":"temperature-old","text":"会议室温度设定为23摄氏度。"},
+  {"key":"temperature","text":"会议室温度现在设定为21摄氏度。","supersedes":"temperature-old"}
+ ],
+ "distractors":{"count":32,"template":"报告协作经历第{n}次：曾经讨论过材料整理方法，未决定截止时间。"},
+ "cases":[
+  {"id":"unseen-three-people","split":"unseen-after-code-freeze","query":"Lina的报告日期、Marco的相机以及Nori的饮食禁忌是什么？","needs":[{"quote":"Lina的报告日期","queries":["Lina 报告日期","Lina report deadline"],"keys":["lina"]},{"quote":"Marco的相机","queries":["Marco 相机","Marco camera"],"keys":["marco"]},{"quote":"Nori的饮食禁忌","queries":["Nori 饮食禁忌","Nori food restriction"],"keys":["nori"]}]},
+  {"id":"unseen-en-zh","split":"unseen-after-code-freeze","query":"What are the telescope aperture and current room temperature?","needs":[{"quote":"telescope aperture","queries":["望远镜口径","telescope aperture"],"keys":["aperture"]},{"quote":"current room temperature","queries":["当前会议室温度","current room temperature"],"keys":["temperature"]}]},
+  {"id":"unseen-zh-en","split":"unseen-after-code-freeze","query":"替换电池的型号是什么？","needs":[{"quote":"替换电池的型号","queries":["替换电池型号","replacement battery model"],"keys":["battery"]}]},
+  {"id":"unseen-five","split":"unseen-after-code-freeze","query":"Lina的截止日期、Marco的相机、望远镜口径、替换电池型号和当前会议室温度分别是什么？","needs":[{"quote":"Lina的截止日期","queries":["Lina 截止日期","Lina deadline"],"keys":["lina"]},{"quote":"Marco的相机","queries":["Marco 相机","Marco camera"],"keys":["marco"]},{"quote":"望远镜口径","queries":["望远镜口径","telescope aperture"],"keys":["aperture"]},{"quote":"替换电池型号","queries":["替换电池型号","replacement battery model"],"keys":["battery"]},{"quote":"当前会议室温度","queries":["当前会议室温度","current room temperature"],"keys":["temperature"]}]}
+ ]
+}
