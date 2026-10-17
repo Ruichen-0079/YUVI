@@ -102,7 +102,7 @@ describe.skipIf(!url)(
           model: "protocol-fixture",
           usage: null
         }));
-      const r = await p.retrieveRelevant({ scope, access, text: c.query, limit: 5 }),
+        const r = await p.retrieveRelevant({ scope, access, text: c.query, limit: 5 }),
           selected = r.events.map((e) => e.id);
         for (const n of c.needs)
           for (const k of n.keys) expect(selected, c.id + " " + k).toContain(ids.get(k));
@@ -124,6 +124,17 @@ describe.skipIf(!url)(
       expect(r.limitReason).toBe("MEMORY_QUERY_PLAN_UNAVAILABLE");
       expect(r.events.map((e) => e.id)).toContain(ids.get("editor"));
       expect(r.coverage).toBeUndefined();
+    });
+    it("reports lexical query truncation instead of claiming a complete empty search", async () => {
+      const p = new PostgresMemoryProvider(authority);
+      const r = await p.retrieveRelevant({
+        scope,
+        access,
+        text: Array.from({ length: 40 }, (_, i) => `unmatchedword${i}`).join(" ") + " 露川-4A87"
+      });
+      expect(r.status).toBe("partial");
+      const audit = await p.retrievalEvidence.detail(scope, r.retrievalId!);
+      expect(audit?.queryPlan?.channels[0]?.queryTermsLimited).toBe(true);
     });
     it("incomplete backfill is visible, restartable, idempotent and includes concurrent new writes", async () => {
       const g = (
