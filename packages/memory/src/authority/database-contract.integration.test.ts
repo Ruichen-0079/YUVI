@@ -74,7 +74,8 @@ describe.skipIf(!url)("Authority application role database enforcement", () => {
       "update yuvi_schema_migrations set digest=digest",
       "delete from retained_observations where false",
       "update retained_observations set actor_id='forged' where false",
-      "update retained_observations set expires_at=now() where false"
+      "update retained_observations set expires_at=now() where false",
+      "update retained_observations set commit_digest=commit_digest where false"
     ])
       await expect(app.query(sql)).rejects.toMatchObject({ code: "42501" });
     expect(

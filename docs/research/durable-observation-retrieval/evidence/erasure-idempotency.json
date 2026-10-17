@@ -1,0 +1,21 @@
+{
+  "schema": "observation.erasure-idempotency.v1",
+  "kind": "actual-server-character-postgresql-protocol-fixture",
+  "baseline": {
+    "sha": "066072d44e3ca035cde46c1e297198b6502498ae",
+    "httpStatus": 503,
+    "logDigest": "9e388756ac7edb9b843399e5dc929484a4440b7eaf3902b1691ab38b157e7ad7"
+  },
+  "revised": {
+    "httpStatuses": [
+      200,
+      200
+    ],
+    "erasedAtUnchanged": true,
+    "erasedBySourceUnchanged": true,
+    "content": null,
+    "image": null,
+    "execution": "APPLIED",
+    "logDigest": "ac3e42d1cb547fab52bdc468a073860d66d2dc63f32d2dde7a0e26bd7a3ba41d"
+  }
+}

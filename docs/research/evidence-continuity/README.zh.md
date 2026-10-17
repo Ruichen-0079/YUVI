@@ -1,5 +1,7 @@
 # 经历、观察与授权分离
 
+2026-10-17 后续：[Durable Observation 提交合同与真实 Vision](../durable-observation-retrieval/README.zh.md)。A9 与有界报告同事务，保留 UNKNOWN/TTL/擦除；检索质量及 R5 整体门槛仍开放。
+
 **阶段性交付，不能据此切换真实 Alice，也不代表 Memory R5 完成。** 基于 #327 `ce5e078`，依赖 #326→#325→#324→#323→#322 全部保留。独立工作树、独立 PostgreSQL schema、合成 Person/Persona/图片/文件；没有部署、迁移或重启 Alice，没有 QQ 测试消息。
 
 本批改变三个实际行为：

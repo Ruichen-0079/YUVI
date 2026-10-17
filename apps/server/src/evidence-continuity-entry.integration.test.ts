@@ -48,6 +48,7 @@ describe.skipIf(!url)("accepted sources through the actual Server/Character entr
     let reobserveTarget: string | undefined;
     let reobserveRequested = false;
     let holdReasoning = false;
+    let holdVision = false;
     let retentionSeconds = 1200;
     let child: ChildProcess | undefined;
     let log = "";
@@ -60,6 +61,13 @@ describe.skipIf(!url)("accepted sources through the actual Server/Character entr
       calls.push(body);
       const source = body.messages.at(-1)?.content ?? "";
       if (body.model === "fixture-vision") {
+        if (holdVision) {
+          holdVision = false;
+          blocked = true;
+          await new Promise<void>((resolve) => {
+            release = resolve;
+          });
+        }
         const detail = {
           text: "LONG_OCR ".repeat(2000) + " OCR_TAIL_DETAIL",
           sceneSummary: "SCENE_MARKER",
@@ -598,10 +606,22 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
       expect(imageReply.status, await imageReply.text()).toBe(200);
       const imageRecord = (
         await pool.query(
-          "select observation_id,octet_length(image_bytes) bytes from retained_observations where kind='VISION'"
+          "select observation_id,attempt_id,commit_digest,octet_length(image_bytes) bytes from retained_observations where kind='VISION'"
         )
       ).rows[0];
       expect(imageRecord?.bytes).toBeGreaterThan(0);
+      expect(imageRecord?.commit_digest).toMatch(/^[a-f0-9]{64}$/u);
+      const executionUrl = `/observations/v1/executions/${imageRecord.attempt_id}?sessionId=${randomUUID()}`;
+      const executionEvidence = await fetch(base + executionUrl, {
+        headers: { authorization: "Bearer " + grant.token }
+      });
+      expect(executionEvidence.status).toBe(200);
+      expect(await executionEvidence.json()).toMatchObject({
+        execution: "APPLIED",
+        hasAppliedReceipt: true,
+        retentionAtCommit: { state: "STORED", digest: imageRecord.commit_digest },
+        report: "AVAILABLE"
+      });
       for (const round of [2, 3, 4, 5]) {
         const before = calls.length;
         expect((await send(`Follow-up image round ${round}`, imageSession, false)).status).toBe(
@@ -627,10 +647,24 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
       expect(imageData.evidence.text).toContain("OCR_TAIL_DETAIL");
       expect(imageData.action.certainty).toBe("APPLIED");
       expect(imageData.goalStatus).toBe("NOT_INFERRED");
+      const imageRowsBeforeReobserve = (
+        await pool.query("select count(*)::int n from retained_observations where kind='VISION'")
+      ).rows[0].n;
       reobserveTarget = imageRecord.observation_id;
       const beforeReobserve = calls.filter((c) => c.model === "fixture-vision").length;
       expect((await send("REOBSERVE_IMAGE", imageSession, false)).status).toBe(200);
       expect(calls.filter((c) => c.model === "fixture-vision")).toHaveLength(beforeReobserve + 1);
+      expect(
+        (await pool.query("select count(*)::int n from retained_observations where kind='VISION'"))
+          .rows[0].n
+      ).toBe(imageRowsBeforeReobserve);
+      expect(
+        (
+          await pool.query(
+            "select evidence from effect_observations where category='TERMINAL' and evidence->'reportRetention'->>'state'='NOT_REQUESTED'"
+          )
+        ).rows.length
+      ).toBeGreaterThan(0);
       const beforeHistory = await fetch(
         base + `/v1/conversations/history?sessionId=${imageSession}`
       );
@@ -649,11 +683,31 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
         { headers: { authorization: "Bearer " + otherGrant.token } }
       );
       expect(deniedImage.status).toBe(404);
+      const otherExecution = await fetch(base + executionUrl, {
+        headers: { authorization: "Bearer " + otherGrant.token }
+      });
+      // A session claimed by the first Person remains isolated even for metadata queries.
+      expect([404, 409]).toContain(otherExecution.status);
+      const invisibleExecution = await fetch(
+        base + `/observations/v1/executions/${imageRecord.attempt_id}?sessionId=${randomUUID()}`,
+        { headers: { authorization: "Bearer " + otherGrant.token } }
+      );
+      expect(invisibleExecution.status).toBe(404);
       const erasedImage = await fetch(base + detailUrl, {
         method: "DELETE",
         headers: { authorization: "Bearer " + grant.token }
       });
       expect(erasedImage.status).toBe(200);
+      expect(
+        await (
+          await fetch(base + executionUrl, { headers: { authorization: "Bearer " + grant.token } })
+        ).json()
+      ).toMatchObject({
+        execution: "APPLIED",
+        hasAppliedReceipt: true,
+        report: "DELETED",
+        retentionAtCommit: { state: "STORED" }
+      });
       reobserveRequested = false;
       const unavailableReobserve = calls.filter((c) => c.model === "fixture-vision").length;
       expect((await send("REOBSERVE_IMAGE", imageSession, false)).status).toBe(200);
@@ -686,7 +740,9 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
       ).toBe(200);
       expect((await send("READ_OBSERVATION_PROBE", fileSession)).status).toBe(200);
       const toolRecord = (
-        await pool.query("select observation_id from retained_observations where kind='READ_TEXT'")
+        await pool.query(
+          "select observation_id,attempt_id from retained_observations where kind='READ_TEXT'"
+        )
       ).rows[0];
       expect(toolRecord).toBeDefined();
       const beforeToolFollow = calls.length;
@@ -698,6 +754,54 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
       const afterExpiry = calls.length;
       expect((await send("What did we read after expiry?", fileSession, false)).status).toBe(200);
       expect(JSON.stringify(calls.slice(afterExpiry))).not.toContain("TOOL_OBSERVATION_RANDOM_");
+      // Restart invokes the real expiry purge. Deletion of an already erased
+      // tombstone is a successful postcondition, not a provenance rewrite.
+      await stop();
+      await start(true);
+      let purged;
+      for (let n = 0; n < 50; n++) {
+        purged = (
+          await pool.query(
+            "select erased_at,erased_by_source from retained_observations where observation_id=$1",
+            [toolRecord.observation_id]
+          )
+        ).rows[0];
+        if (purged?.erased_at) break;
+        await delay(20);
+      }
+      expect(purged.erased_at).not.toBeNull();
+      const expiredDeleteUrl = `/observations/v1/${toolRecord.observation_id}?sessionId=${randomUUID()}`;
+      for (let retry = 0; retry < 2; retry++) {
+        const erasedExpired = await fetch(base + expiredDeleteUrl, {
+          method: "DELETE",
+          headers: { authorization: "Bearer " + grant.token }
+        });
+        expect(erasedExpired.status).toBe(200);
+      }
+      expect(
+        (
+          await pool.query(
+            "select evidence,image_bytes from retained_observations where observation_id=$1",
+            [toolRecord.observation_id]
+          )
+        ).rows[0]
+      ).toMatchObject({ evidence: null, image_bytes: null });
+      expect(
+        (
+          await pool.query(
+            "select erased_at,erased_by_source from retained_observations where observation_id=$1",
+            [toolRecord.observation_id]
+          )
+        ).rows[0]
+      ).toEqual(purged);
+      expect(
+        (
+          await pool.query(
+            "select evidence from effect_observations where attempt_id=$1 and category='TERMINAL'",
+            [toolRecord.attempt_id]
+          )
+        ).rows[0].evidence.certainty
+      ).toBe("APPLIED");
       const toolCalls = async () =>
         (
           await pool.query(
@@ -730,6 +834,136 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
       release?.();
       await revokedRead;
       expect(await toolCalls()).toBe(priorToolCalls);
+      // Actual Provider/Dispatcher path: SQL failure is a retention failure,
+      // never an invented failed external invocation or a retry of Vision.
+      const imageBody = (content: string) => ({
+        sessionId: randomUUID(),
+        content,
+        imageAttachment: {
+          mimeType: "image/png",
+          imageBase64:
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jD9sAAAAASUVORK5CYII="
+        }
+      });
+      const receiptFor = async (content: string) =>
+        (
+          await pool.query(
+            `select o.evidence,a.attempt_id from effect_observations o join effect_attempts a using(attempt_id)
+        join effect_intents i using(intent_id) join conversation_messages cm on cm.source_journal_ref=i.intent->'request'->'causalRefs'->0
+        where cm.content=$1 and cm.role='user' and i.intent->'request'->'payload'->>'operation'='analyzeImage' and o.category='TERMINAL' order by o.observation_id desc limit 1`,
+            [content]
+          )
+        ).rows[0];
+      await pool.query(`create function fail_report_fixture() returns trigger language plpgsql as $$ begin raise exception 'synthetic SQL report failure'; end $$;
+        create trigger fail_report_fixture before insert on retained_observations for each row execute function fail_report_fixture()`);
+      const visionBeforeFailure = calls.filter((c) => c.model === "fixture-vision").length;
+      expect((await request("/message", imageBody("REPORT_SQL_FAILURE"), grant.token)).status).toBe(
+        200
+      );
+      const failedReport = await receiptFor("REPORT_SQL_FAILURE");
+      expect(failedReport.evidence).toMatchObject({
+        certainty: "APPLIED",
+        reportRetention: { state: "FAILED" }
+      });
+      expect(calls.filter((c) => c.model === "fixture-vision")).toHaveLength(
+        visionBeforeFailure + 1
+      );
+      expect(
+        (
+          await pool.query("select * from retained_observations where attempt_id=$1", [
+            failedReport.attempt_id
+          ])
+        ).rows
+      ).toHaveLength(0);
+      expect(
+        await (
+          await fetch(
+            base +
+              `/observations/v1/executions/${failedReport.attempt_id}?sessionId=${randomUUID()}`,
+            { headers: { authorization: "Bearer " + grant.token } }
+          )
+        ).json()
+      ).toMatchObject({ execution: "APPLIED", report: "FAILED" });
+      await pool.query(
+        "drop trigger fail_report_fixture on retained_observations; drop function fail_report_fixture()"
+      );
+      // Revocation after Provider invocation does not falsify APPLIED, but
+      // prevents the private response from entering retained storage or Context.
+      const shortGrant = (await (
+        await request("/host/v1/conversation-grants/issue", { personId: "ec-person" })
+      ).json()) as any;
+      blocked = false;
+      holdVision = true;
+      const revokedVision = request(
+        "/message",
+        imageBody("REPORT_SOURCE_REVOKED"),
+        shortGrant.token
+      ).catch(() => null);
+      for (let i = 0; i < 150 && !blocked; i++) await delay(20);
+      expect(blocked).toBe(true);
+      expect(
+        (await request("/host/v1/conversation-grants/revoke", { grantId: shortGrant.grantId }))
+          .status
+      ).toBe(200);
+      release?.();
+      await revokedVision;
+      const withheldReport = await receiptFor("REPORT_SOURCE_REVOKED");
+      expect(withheldReport.evidence).toMatchObject({
+        certainty: "APPLIED",
+        reportRetention: { state: "WITHHELD" }
+      });
+      expect(
+        (
+          await pool.query("select * from retained_observations where attempt_id=$1", [
+            withheldReport.attempt_id
+          ])
+        ).rows
+      ).toHaveLength(0);
+      // TTL can elapse during the SQL COMMIT path. STORED means committed,
+      // never a promise that content remains AVAILABLE at disclosure time.
+      await stop();
+      retentionSeconds = 1;
+      await start(true);
+      await pool.query(`create function delay_report_fixture() returns trigger language plpgsql as $$ begin perform pg_sleep(1.2); return new; end $$;
+        create trigger delay_report_fixture before insert on retained_observations for each row execute function delay_report_fixture()`);
+      await request("/message", imageBody("REPORT_TTL_AT_COMMIT"), grant.token);
+      const expiredReport = await receiptFor("REPORT_TTL_AT_COMMIT");
+      expect(expiredReport.evidence).toMatchObject({
+        certainty: "APPLIED",
+        reportRetention: { state: "STORED" }
+      });
+      expect(
+        await (
+          await fetch(
+            base +
+              `/observations/v1/executions/${expiredReport.attempt_id}?sessionId=${randomUUID()}`,
+            { headers: { authorization: "Bearer " + grant.token } }
+          )
+        ).json()
+      ).toMatchObject({ execution: "APPLIED", report: "EXPIRED" });
+      const expiredDetail = (await (
+        await fetch(
+          base +
+            `/observations/v1/${expiredReport.evidence.reportRetention.reportId}?sessionId=${randomUUID()}`,
+          { headers: { authorization: "Bearer " + grant.token } }
+        )
+      ).json()) as any;
+      expect(expiredDetail.availability).toBe("UNAVAILABLE");
+      expect(expiredDetail.evidence).toBeUndefined();
+      await pool.query(
+        "drop trigger delay_report_fixture on retained_observations; drop function delay_report_fixture()"
+      );
+      await stop();
+      retentionSeconds = 0;
+      await start(true);
+      await request("/message", imageBody("REPORT_RETENTION_OFF"), grant.token);
+      expect((await receiptFor("REPORT_RETENTION_OFF")).evidence).toMatchObject({
+        certainty: "APPLIED",
+        reportRetention: { state: "NOT_REQUESTED", digest: null }
+      });
+      await stop();
+      retentionSeconds = 10;
+      await start(true);
       blocked = false;
       const raceText = "EC_FACT_NORMAL_REPLY WAIT_FOR_SUPERSEDE";
       const running = send(raceText, randomUUID(), false);
@@ -850,6 +1084,12 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
             await pool.query(`select kind,erased_at is not null as erased,
             evidence is not null as has_payload,image_bytes is not null as has_image from retained_observations`)
           ).rows,
+          reportCommitStates: (
+            await pool.query(
+              `select evidence->'reportRetention'->>'state' as state,count(*)::int from effect_observations where category='TERMINAL' and evidence ? 'reportRetention' group by 1`
+            )
+          ).rows,
+          executionReportContract: "same-postgresql-terminal-transaction-v1",
           effects: (
             await pool.query(`select evidence->>'certainty' as certainty,evidence->>'reason' as reason,
             count(*)::int from effect_observations where category='TERMINAL' group by 1,2`)

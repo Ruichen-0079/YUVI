@@ -429,12 +429,8 @@ export async function createAppContext(
           observationRetentionConfig(bootEnv)
         )
       : undefined;
-  readTextEffects.retainObservation = async (input, attemptId, result) => {
-    if (!observations || result.isError) return;
-    try {
-      const source = await journalRepository?.get(input.cause);
-      const conversation = source?.authority.correlations.find((c) => c.kind === "CONVERSATION");
-      if (!conversation || conversation.kind !== "CONVERSATION") return;
+  if (observations) {
+    readTextEffects.projectObservation = (input, attemptId, result) => {
       const text = result.content
         .filter((p): p is { type: "text"; text: string } =>
           Boolean(
@@ -448,18 +444,20 @@ export async function createAppContext(
         )
         .map((p) => p.text)
         .join("\n");
-      await observations.saveReadText(
-        { sourceJournalRef: input.cause, sessionId: conversation.sessionId },
+      return observations.projectReadText(
+        { sourceJournalRef: input.cause, sessionId: "" },
         attemptId,
-        text,
-        input.expiresAt
+        text
       );
-    } catch {
-      runtimeLogger.warn?.("Tool observation retention failed; A9 execution receipt retained", {
-        attemptId
-      });
-    }
-  };
+    };
+    outwardEffects.projectProviderResult = (task, attemptId, output) =>
+      observations.projectVision(
+        { sourceJournalRef: task.context?.cause, sessionId: "" },
+        attemptId,
+        output as import("@companion/providers").VisionOutput,
+        task.transientInput as import("@companion/providers").VisionInput
+      );
+  }
 
   let finalizedIngestionRepository: FinalizedIngestionRepository | undefined;
   try {

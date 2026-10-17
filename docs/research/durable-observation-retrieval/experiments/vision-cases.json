@@ -1,0 +1,57 @@
+{
+  "retainSyntheticImages": true,
+  "turns": [
+    {
+      "text": "Describe this synthetic card. Report what you can actually see, including text and scene details.",
+      "syntheticImage": "vision-card.png",
+      "session": "vision-card-session"
+    },
+    {
+      "text": "What date and stamp did you observe on the card?",
+      "session": "vision-card-session",
+      "writeMemory": false
+    },
+    {
+      "text": "Which colored shape appeared on that card?",
+      "session": "vision-card-session",
+      "writeMemory": false
+    },
+    {
+      "text": "What was the largest chart value and its label?",
+      "session": "vision-card-session",
+      "writeMemory": false
+    },
+    {
+      "text": "What is the footer code and formula on the earlier card? If the retained report is insufficient, inspect the retained original.",
+      "session": "vision-card-session",
+      "writeMemory": false,
+      "restart": true
+    },
+    {
+      "text": "Please describe this new synthetic document, including text, stamp, shape and date.",
+      "syntheticImage": "vision-long-ocr.png",
+      "session": "vision-long-session"
+    },
+    {
+      "text": "What final code and date appear in the long document?",
+      "session": "vision-long-session",
+      "writeMemory": false
+    },
+    {
+      "text": "What stamp and colored shape were on the long document?",
+      "session": "vision-long-session",
+      "writeMemory": false
+    },
+    {
+      "text": "What was on the document? Do not guess without an authorized observation.",
+      "person": "person-b",
+      "writeMemory": false
+    },
+    {
+      "text": "Read the footer code on the previous card again. Tell me if its source is unavailable.",
+      "writeMemory": false,
+      "eraseObservations": true,
+      "restart": true
+    }
+  ]
+}

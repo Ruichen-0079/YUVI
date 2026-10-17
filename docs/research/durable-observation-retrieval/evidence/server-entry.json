@@ -1,0 +1,2601 @@
+{
+  "schema": "evidence-continuity-entry.v1",
+  "runtimeSha": "e67160cfad43a0246d72b880c0b79b0d999e9ca3",
+  "runtimeDirty": true,
+  "verified": true,
+  "kind": "deterministic-provider-real-server-postgresql",
+  "preRuntimeCrash": {
+    "journalSources": 1,
+    "acceptedSources": 1
+  },
+  "calls": [
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "21be7e36de679c9189216f61861e6bde3f7acbe25a6a4283c8e88235dffe6c6b",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 8674
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 31
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "270d763d96579a9d0697f22dce4b2ca49202ab3c4a8e795751ef97260a78d722",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 180
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "b6c788feeb441c50438ecf675bc5334ce9f252417994ae6b607372d814dc607e",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 178
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "317abb2d2d2d4cd3fee4be104ec15d7e9e77288d1af5d59dcbd80654009f3ab3",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 8674
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 22
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "5f5e9dce51426da58646618ee33efc2c52c841c92c3a051fe9ec4d0c4e76349d",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 600
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "eed8fe291d5e57369fc0814b375a1564f527c0251720e0b995ae3dff99b17c9b",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 7141
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 22
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "e1fac1450fe426840d47fa6f91dc6262f3f2d95a6702d08ebcf3aa86784cb772",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 807
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "c7762b0c8e0ee50f26dd739f25065787c0d599f3f86d3369940d631326f4cfd5",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9253
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 23
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "44acf538a789f6f94e6707500b9065ab63629ca0ca43737c5b07824b275fc962",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 1016
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "f8981c94c4d58136ea57990286abfaa2b7a1de958adf3934a752b0bab7031bb7",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9253
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 25
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "ec12846f23e6c20b96f12f6479d64066bc6f30406d17537ae87e3562c4e888b7",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 1221
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "df5ce64a9bcbc73793806e6de9e2c1afea3b6ae225914539e4991c3457b334ef",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9253
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 21
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "76dea26226e2bc103f4438785d3101bf296e78cb05a17325d72e7455ed5f978c",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 7720
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 21
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "67b01c4a6a87505d2d8f3cd9a417d553e0bcc9e2e4067a7abbd88c7ed19f00f6",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9253
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 18
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "2fd8c5099b5fb4261b4b34ff988fc9a6db087a522984b4a93befcfe90de930f6",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 1423
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "c465bd79e8cf19df99db7a263da09db653e069a512dcd29d49cda7995aaf25fc",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9331
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 18
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "8988e6c01c487ace9cc9054aa08f839123c78f5fc976d258d2228b6c87b1d2bf",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 1636
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "7db7945f3e8a5bce33438cca849a23dba152b2cddc26049d6973db70b977f2a1",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9253
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 29
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "6e7e529858e6b3ec898019dcbd8666f9824ea98cdee4d759efcc60e9069a8306",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 1844
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "b9e1e768d503b18545f6e8dea7d82bf49b7a90aae6cfbdb7d65bd01187aa0b78",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9253
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 23
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "c4e007c8e72e5484bd173849b8d8abf88cbf1bc82a391dfa350bbef325cff611",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 7720
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 23
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "bacae1c4f0c77876073b744fd9e3ae68989abd1bdaa9abc563c2805dcb0afc36",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 2219
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "7a2c8b16ff09b0a51fc7affe26e9d1025b22fc6798feaff5c72ac51c13b5e5af",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9464
+        },
+        {
+          "role": "user",
+          "bytes": 209
+        },
+        {
+          "role": "user",
+          "bytes": 11
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "da61a6ffc6ff7285cd610525a96f29b4a8eac00f4491003bcae7c7294e1e69a8",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 7931
+        },
+        {
+          "role": "user",
+          "bytes": 209
+        },
+        {
+          "role": "user",
+          "bytes": 11
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "0fe8a30c5b6a82af36b849816f5736f1bdd3dc57b2d8cdc8f1351a2edf0fe7ca",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 2846
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "dfe3ccb74646ef564f41bb46d5d6331f2bd448a2d554d412eee2a2bf6cb3a3aa",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9608
+        },
+        {
+          "role": "user",
+          "bytes": 350
+        },
+        {
+          "role": "user",
+          "bytes": 23
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "6d8e55cf0f6819e64a3689ad9915bd3f01f301ba08427ffcf0492d35a4570351",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 8075
+        },
+        {
+          "role": "user",
+          "bytes": 350
+        },
+        {
+          "role": "user",
+          "bytes": 23
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "c358336c046ff5de247c9baa8b31757c999e7235df964eb6c844842665cfb0f1",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9900
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 16
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "f4ffe0e9e443383d3626b438399dce1c4eade831287fb1a5b826ede7ab250968",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 8367
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 16
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "c583ccaa36485f0fa3d13a20e1ae8c4e1f6f82f54a4bb7220665b12220490ccc",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9908
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 19
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "cfe7c88ee18f27edc6efa53675adcafb41c274d0202a1737593d039d7d7ef5ff",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 8375
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 19
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "8ba8ed5b3231750484574d0f5b5802284c55e732778d809b87321ddc8e5dca39",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10452
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 32
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "56ad866bbf023dfe215b83fa4ba07b20f4fd6831708db56dd22269a0389e8ba8",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 8919
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 32
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-vision",
+      "stream": false,
+      "digest": "1b5f421e4f76f427d9fc51ecda55d352424311a229ca670dd4d22644d43a78d6",
+      "messages": [
+        {
+          "role": "user",
+          "bytes": 596
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "45ac57dc6689b0ef7d0dd7ac2ee19713def10be46821556c14816c0351b29be5",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 2063
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "2f2c9147e1273e06ae0bf4da4fc429b0731a2637efbad3598743050306573e8d",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10050
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 2393
+        },
+        {
+          "role": "user",
+          "bytes": 31
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "7945ac2821d52de763745ba8bea8d4d4277973fc168ee633ae2613ea8ce4dccb",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 8517
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 2393
+        },
+        {
+          "role": "user",
+          "bytes": 31
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "1c135cbdd1bd197825a7d6a806d5a69884c1cadeb2910d395d32b081ca80c00c",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10625
+        },
+        {
+          "role": "user",
+          "bytes": 297
+        },
+        {
+          "role": "user",
+          "bytes": 3216
+        },
+        {
+          "role": "user",
+          "bytes": 25
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "f4b7d491a40f2b900ad0d3dcbe2f8d1177e9e1a302cfef525b2b73cfba9e5b05",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9092
+        },
+        {
+          "role": "user",
+          "bytes": 297
+        },
+        {
+          "role": "user",
+          "bytes": 3216
+        },
+        {
+          "role": "user",
+          "bytes": 25
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "79fbdcf3fa8d794de5f738a36958b1aaf220edbed4a563289186b1f460eda0a5",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 11043
+        },
+        {
+          "role": "user",
+          "bytes": 504
+        },
+        {
+          "role": "user",
+          "bytes": 3216
+        },
+        {
+          "role": "user",
+          "bytes": 25
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "f712a60c31c771f5d192cb4de8c4bb0327bd57d688640822a2033d783839188e",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9510
+        },
+        {
+          "role": "user",
+          "bytes": 504
+        },
+        {
+          "role": "user",
+          "bytes": 3216
+        },
+        {
+          "role": "user",
+          "bytes": 25
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "e3651f85236df276c62c8027a9a7667af9bb503437dba8ef725b4b08ace9e52d",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 11045
+        },
+        {
+          "role": "user",
+          "bytes": 711
+        },
+        {
+          "role": "user",
+          "bytes": 3216
+        },
+        {
+          "role": "user",
+          "bytes": 25
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "f4fac9c52a0dd1f29b01b0b28cfbb819a851965ea88e36694a219ea4e75b15af",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9512
+        },
+        {
+          "role": "user",
+          "bytes": 711
+        },
+        {
+          "role": "user",
+          "bytes": 3216
+        },
+        {
+          "role": "user",
+          "bytes": 25
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "cb0a016d0c7ff472659535c591373b3bb89db597468a88cd22f8239d0e3d9e70",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 11515
+        },
+        {
+          "role": "user",
+          "bytes": 918
+        },
+        {
+          "role": "user",
+          "bytes": 3216
+        },
+        {
+          "role": "user",
+          "bytes": 25
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "17b39e48b8ac54fa0b47d1a17a504ebfec0f37700ac1a83069ced342ca5f5996",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9982
+        },
+        {
+          "role": "user",
+          "bytes": 918
+        },
+        {
+          "role": "user",
+          "bytes": 3216
+        },
+        {
+          "role": "user",
+          "bytes": 25
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "6a56c59e42ef18c6bcdab0bd91c5d3c366e3c520b8690847da48c6b9654fc595",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10457
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 3216
+        },
+        {
+          "role": "user",
+          "bytes": 28
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "e459bc620f9d302282e50f10595802cc7a3d3371e52fa5635929b7e90659d7fc",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 8924
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 3216
+        },
+        {
+          "role": "user",
+          "bytes": 28
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "64d929e53ede8896be385f5372d93374715900aaa47e2462332b275e8cd5aee3",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 11465
+        },
+        {
+          "role": "user",
+          "bytes": 1125
+        },
+        {
+          "role": "user",
+          "bytes": 3216
+        },
+        {
+          "role": "user",
+          "bytes": 17
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-vision",
+      "stream": false,
+      "digest": "36b6a59e3af3281e2a95f39d4640d08143917765064bc4944a08b8822e6dce38",
+      "messages": [
+        {
+          "role": "user",
+          "bytes": 372
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "f542b0eae342179fb99f72a84fe65a46ad1ede6c42fa77a319dc3b9975e52000",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 11166
+        },
+        {
+          "role": "user",
+          "bytes": 1125
+        },
+        {
+          "role": "user",
+          "bytes": 3216
+        },
+        {
+          "role": "user",
+          "bytes": 2393
+        },
+        {
+          "role": "user",
+          "bytes": 17
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "ec77adb44a3a5849665c7d6656e947c31a4e52c2b2f8c1d8c7b1bc3672d6837d",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9633
+        },
+        {
+          "role": "user",
+          "bytes": 1125
+        },
+        {
+          "role": "user",
+          "bytes": 3216
+        },
+        {
+          "role": "user",
+          "bytes": 2393
+        },
+        {
+          "role": "user",
+          "bytes": 17
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "a87323899f4e53beda10fcd98205e3770d21b312cf963e7e92ab75e81118b910",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 11667
+        },
+        {
+          "role": "user",
+          "bytes": 1324
+        },
+        {
+          "role": "user",
+          "bytes": 994
+        },
+        {
+          "role": "user",
+          "bytes": 17
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "9435c9fd6a4120adee9a9108b36b02e3fc2a9239b101bfaa855daaaf8ee6253e",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 11368
+        },
+        {
+          "role": "user",
+          "bytes": 1324
+        },
+        {
+          "role": "user",
+          "bytes": 994
+        },
+        {
+          "role": "user",
+          "bytes": 191
+        },
+        {
+          "role": "user",
+          "bytes": 17
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "baa44b5a9f0673f395dc14579aab0a28536ff1c2b37abea54f92a894a0517dcb",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9835
+        },
+        {
+          "role": "user",
+          "bytes": 1324
+        },
+        {
+          "role": "user",
+          "bytes": 994
+        },
+        {
+          "role": "user",
+          "bytes": 191
+        },
+        {
+          "role": "user",
+          "bytes": 17
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "0ca2ea3ed807e3ba90e8497750ebd7a6525e3fbbfe8be84b621723bed2f7ef5b",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 11869
+        },
+        {
+          "role": "user",
+          "bytes": 1523
+        },
+        {
+          "role": "user",
+          "bytes": 994
+        },
+        {
+          "role": "user",
+          "bytes": 28
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "6346233f00be20abb1b5e402b3f6efe251725f8a693010641d4da85cd2215a8d",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10336
+        },
+        {
+          "role": "user",
+          "bytes": 1523
+        },
+        {
+          "role": "user",
+          "bytes": 994
+        },
+        {
+          "role": "user",
+          "bytes": 28
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "a3b91380d282e550177deaa38facb847e0b5008ea6207627e056a2767ee78f97",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 2056
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "24ccf78ef0a27235006aca81d21b8f3a8628878000aadc22d01f2add9c319a95",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10349
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 994
+        },
+        {
+          "role": "user",
+          "bytes": 24
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "dd1aae291ac8d936e8b73644f8313c711b5795c39022984f5f8a9bba7df0df0f",
+      "messages": [
+        {
+          "role": "user",
+          "bytes": 6360
+        },
+        {
+          "role": "user",
+          "bytes": 226
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 87
+        },
+        {
+          "role": "user",
+          "bytes": 396
+        },
+        {
+          "role": "user",
+          "bytes": 1057
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "7889fe8c2b4aeb8ca15653f5c726865155defcaf43bbef7dfd6c4e0eccdf943a",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10365
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 994
+        },
+        {
+          "role": "user",
+          "bytes": 24
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": true,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "328b7e2f31f1a599aec9c0688e6150acbc5aa862e8cc8d5930455dcaf3e9a4e3",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9176
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 994
+        },
+        {
+          "role": "user",
+          "bytes": 24
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": true,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "04f33b6093336e0e946c344bc25c75d16cdde48bbd09f0210d61cab3b847cb87",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10642
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 1992
+        },
+        {
+          "role": "user",
+          "bytes": 28
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": true,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "f6d4653af154d44681130156970e6b30e9b981130d9a78b95010933e6c50c137",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9109
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 1992
+        },
+        {
+          "role": "user",
+          "bytes": 28
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": true,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "61f04e4aedecb49d96076229290a2b834b209952aab0ed0911cd9f4df435e4d4",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10618
+        },
+        {
+          "role": "user",
+          "bytes": 290
+        },
+        {
+          "role": "user",
+          "bytes": 1756
+        },
+        {
+          "role": "user",
+          "bytes": 32
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "c53282d8e071768faa14c637b243916bdbb9a1cd3c2636792bd830d897d4f3de",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9085
+        },
+        {
+          "role": "user",
+          "bytes": 290
+        },
+        {
+          "role": "user",
+          "bytes": 1756
+        },
+        {
+          "role": "user",
+          "bytes": 32
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "995598224ea4d5a523e43dcc17ea5f1f802cd49716c171e901016c57fba08d35",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10642
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 1756
+        },
+        {
+          "role": "user",
+          "bytes": 24
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "c77c83f20208db925707137622d8d2f4154ab09edcbb7e30c5f42cbd93c4112d",
+      "messages": [
+        {
+          "role": "user",
+          "bytes": 6653
+        },
+        {
+          "role": "user",
+          "bytes": 226
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 87
+        },
+        {
+          "role": "user",
+          "bytes": 231
+        },
+        {
+          "role": "user",
+          "bytes": 1057
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "3cf643a02762186ac308a741c3f1bed21eef28b0d16e84aba16c5cf5d2c6668c",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10117
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 1756
+        },
+        {
+          "role": "user",
+          "bytes": 24
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "e2e995ec38bcce278419543036f6c8be4ec96a51a5a2c1ce33dd214d614640ce",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 8928
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 1756
+        },
+        {
+          "role": "user",
+          "bytes": 24
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "ff474422d0caa55ac352a1fe9ea195a22654398bfc1edcd3c8a6285cf0aa1db0",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10642
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 1756
+        },
+        {
+          "role": "user",
+          "bytes": 24
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "2efc89de5d8a6307caabc8f08cecaa67065f2f51908ecf031ad6e54c4bf71d0e",
+      "messages": [
+        {
+          "role": "user",
+          "bytes": 6653
+        },
+        {
+          "role": "user",
+          "bytes": 226
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 87
+        },
+        {
+          "role": "user",
+          "bytes": 396
+        },
+        {
+          "role": "user",
+          "bytes": 1057
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "7f405b91c58c0044116709e96317b282f33387d2e51d5ab4cc5a46c90050ac2b",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10117
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 1756
+        },
+        {
+          "role": "user",
+          "bytes": 24
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "650af35cd4189a15e2ba707da4fcb487972aed33b55d8a5c0994960b676ed16e",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 8928
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 1756
+        },
+        {
+          "role": "user",
+          "bytes": 24
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-vision",
+      "stream": false,
+      "digest": "c3f7633749213e14a495cd1ea07981a51d165dc21d7712551eb31a36244ea9f7",
+      "messages": [
+        {
+          "role": "user",
+          "bytes": 585
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "7b1cc0345fae9c7c8eb9922cc4be3e7895d5e82bf9cb49b62dafa2283b6e0dac",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 2052
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "a3689b0d0e77157490989a597a57eb1859060185c01fb6040e9f45fabd794bf6",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10343
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 4098
+        },
+        {
+          "role": "user",
+          "bytes": 2393
+        },
+        {
+          "role": "user",
+          "bytes": 20
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "bdc739f74d2d12580d3f8234672072bfcd2b2ce90c4bedd4ce5aff4b591e7521",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 8810
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 4098
+        },
+        {
+          "role": "user",
+          "bytes": 2393
+        },
+        {
+          "role": "user",
+          "bytes": 20
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-vision",
+      "stream": false,
+      "digest": "a43399a41343f17c287fca5177d485121e714e53c8bd566a7198167527c7ddc4",
+      "messages": [
+        {
+          "role": "user",
+          "bytes": 588
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "30afc2ce8a2542ca8ce8dfdc6c0af368524bcf2d313158415d90463635bae131",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 2055
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-vision",
+      "stream": false,
+      "digest": "bffe5ec069b038139d3015858dbc67c41c0101aea600c6a717c6e5154157f833",
+      "messages": [
+        {
+          "role": "user",
+          "bytes": 587
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "611dc27a36983e2dafe8749616ab80d6b3ebfa1ffa17f072d4e186a77ff7a361",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 2054
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "c89eb190d933acca42f9e7491edea90509291874d9ad2a84550f6bf5d85d2451",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10343
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 4098
+        },
+        {
+          "role": "user",
+          "bytes": 2393
+        },
+        {
+          "role": "user",
+          "bytes": 22
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "752df5f57fcfff1b56d638995bdc3ef16aa879d9b7feab77909caeb22db8e1b3",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 8810
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 4098
+        },
+        {
+          "role": "user",
+          "bytes": 2393
+        },
+        {
+          "role": "user",
+          "bytes": 22
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-vision",
+      "stream": false,
+      "digest": "5cea9e3502f58f78bcf0203b7aa4269157531bdc9f450397a153841a2de52295",
+      "messages": [
+        {
+          "role": "user",
+          "bytes": 587
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "779fb0e81e91c7bccd9df9251ff4d84a8ed0e8636a348122b825bef767d1038f",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 2054
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "34f67ef5adf2392e72ec049d13400ab2d4c0b29eab04d37bee11902c1d6d3ff1",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10343
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 2393
+        },
+        {
+          "role": "user",
+          "bytes": 22
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "d55b972fae07861620bb98b83810e4ac6e53a0656100067e7f6c9625d85500ac",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 8810
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 2393
+        },
+        {
+          "role": "user",
+          "bytes": 22
+        }
+      ],
+      "hasScene": true,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "26c6f0c924ea08d698b59a7c98c8b02092619b665c8da27ed3a74047027d8efa",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10741
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 2514
+        },
+        {
+          "role": "user",
+          "bytes": 41
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "digest": "5297999f53fba4153351650e2a730d82c1741af32a2399bd89604eb0907aa2c2",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 2138
+        },
+        {
+          "role": "user",
+          "bytes": 2048
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "9fe4a59420ae89d5ab7bdc1bfa8248aebcb75bbb38f78b86a14680f41de3026f",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10642
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 2514
+        },
+        {
+          "role": "user",
+          "bytes": 16
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "136f97ea47bfce48d20826cfd0265a6310dceb8e1ad6a8d588d0ce38056af00c",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9109
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 2514
+        },
+        {
+          "role": "user",
+          "bytes": 16
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "5c72463972073d8f22e1a8cede0380a739ee19fcee849aca53ffd9643457665f",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9536
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 2514
+        },
+        {
+          "role": "user",
+          "bytes": 41
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "647a7ddc9972ff35a0c45599fdf38445b76d3d49e25102000c818acc01db2803",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10636
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 2514
+        },
+        {
+          "role": "user",
+          "bytes": 16
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "digest": "c4549bfea2bbe63fcafcd891c64c00de13366f9e4de268cb8909a78537b3660c",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 9431
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 2514
+        },
+        {
+          "role": "user",
+          "bytes": 16
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "digest": "d816260e98ed070034bbe0c840fb67e515e1ad47fb4fe45bb3fe8bcb4ed3f3b3",
+      "messages": [
+        {
+          "role": "system",
+          "bytes": 10636
+        },
+        {
+          "role": "user",
+          "bytes": 121
+        },
+        {
+          "role": "user",
+          "bytes": 2514
+        },
+        {
+          "role": "user",
+          "bytes": 17
+        }
+      ],
+      "hasScene": false,
+      "hasToolObservation": false,
+      "hasSnapshotNotice": false
+    }
+  ],
+  "sources": [
+    {
+      "content": "EC_FACT_crash EC_BEFORE_RUNTIME",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "complete",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "EC_FACT_restart SILENCE_REPLY",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "complete",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "EC_FACT_NORMAL_REPLY",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "complete",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "EC_FACT_SILENCE_REPLY",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "complete",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "EC_FACT_TERMINATE_REPLY",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "complete",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "EC_FACT_REJECT_BODY",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "complete",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "EC_FACT_BAD_GATE",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "complete",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "EC_FACT_cancel CANCEL_REPLY",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "complete",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "问我面试时间。",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "skipped",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "周三。",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "complete",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "不对，是周四。",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "complete",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "EC_FACT_optout",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "memory-disabled",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "EC_FACT_anonymous",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "authority-unresolved",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "面试当前在什么时候？",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "memory-disabled",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "Inspect this synthetic image.",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "skipped",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "Follow-up image round 2",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "memory-disabled",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "Follow-up image round 3",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "memory-disabled",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "Follow-up image round 4",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "memory-disabled",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "Follow-up image round 5",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "memory-disabled",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "Image detail after restart",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "memory-disabled",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "REOBSERVE_IMAGE",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "memory-disabled",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "REOBSERVE_IMAGE",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "memory-disabled",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "Image detail after erasure",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "memory-disabled",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "READ_OBSERVATION_PROBE",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "skipped",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "What did we actually read?",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "memory-disabled",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "What did we read after expiry?",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "memory-disabled",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "READ_OBSERVATION_PROBE",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "memory-disabled",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "READ_OBSERVATION_PROBE",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "memory-disabled",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "REPORT_SQL_FAILURE",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "skipped",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "REPORT_SOURCE_REVOKED",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "skipped",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "REPORT_TTL_AT_COMMIT",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "skipped",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "REPORT_RETENTION_OFF",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "skipped",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "EC_FACT_NORMAL_REPLY WAIT_FOR_SUPERSEDE",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "memory-disabled",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "EC_REPLACEMENT",
+      "ingestion_requested": true,
+      "ingestion_skip_reason": null,
+      "status": "complete",
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "WAIT_FOR_NOTES",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "memory-disabled",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    },
+    {
+      "content": "WAIT_FOR_REVOKE",
+      "ingestion_requested": false,
+      "ingestion_skip_reason": "memory-disabled",
+      "status": null,
+      "last_error_code": null,
+      "user_only": true
+    }
+  ],
+  "observations": [
+    {
+      "kind": "VISION",
+      "erased": true,
+      "has_payload": false,
+      "has_image": false
+    },
+    {
+      "kind": "READ_TEXT",
+      "erased": true,
+      "has_payload": false,
+      "has_image": false
+    },
+    {
+      "kind": "VISION",
+      "erased": true,
+      "has_payload": false,
+      "has_image": false
+    }
+  ],
+  "reportCommitStates": [
+    {
+      "state": "FAILED",
+      "count": 1
+    },
+    {
+      "state": "NOT_REQUESTED",
+      "count": 2
+    },
+    {
+      "state": "STORED",
+      "count": 3
+    },
+    {
+      "state": "WITHHELD",
+      "count": 1
+    }
+  ],
+  "executionReportContract": "same-postgresql-terminal-transaction-v1",
+  "effects": [
+    {
+      "certainty": "APPLIED",
+      "reason": "RETURNED",
+      "count": 123
+    },
+    {
+      "certainty": "PROVEN_NOT_APPLIED",
+      "reason": "AUTHORITY_REVOKED",
+      "count": 1
+    },
+    {
+      "certainty": "UNKNOWN",
+      "reason": "CALL_UNCERTAIN",
+      "count": 2
+    }
+  ],
+  "exposures": [
+    {
+      "snapshot": null,
+      "count": 23
+    },
+    {
+      "snapshot": {
+        "policy": "CAPTURED_AS_OF",
+        "freshness": "CURRENT"
+      },
+      "count": 71
+    },
+    {
+      "snapshot": {
+        "policy": "CAPTURED_AS_OF",
+        "freshness": "STALE"
+      },
+      "count": 3
+    }
+  ]
+}

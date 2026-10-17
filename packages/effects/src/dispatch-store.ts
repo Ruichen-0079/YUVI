@@ -1,4 +1,5 @@
 import type { Pool, PoolClient } from "pg";
+import { EffectReportRetentionSchema, type EffectResultProjection } from "./result-projection.js";
 import {
   canonicalEffectJson,
   effectDigest,
@@ -17,6 +18,7 @@ import {
   type EffectProgressFact,
   effectAttemptId,
   protocolEvidence,
+  sameExecutionEvidence,
   retryPermitted,
   type EffectAttemptV1,
   type EffectEvidence,
@@ -40,7 +42,8 @@ export interface EffectDispatchStore {
   start(claim: EffectClaim, current: () => boolean): Promise<boolean>;
   record(
     attempt: EffectAttemptV1,
-    evidence: EffectEvidence
+    evidence: EffectEvidence,
+    projection?: EffectResultProjection
   ): Promise<"RECORDED" | "REPLAY" | "STALE" | "CONFLICT">;
   cancel(id: string): Promise<boolean>;
   diagnostic(id: string): Promise<EffectDiagnostic | null>;
@@ -378,8 +381,17 @@ export class PostgresEffectDispatchStore implements EffectDispatchStore {
       return "RECORDED" as const;
     });
   }
-  async record(a: EffectAttemptV1, raw: EffectEvidence) {
+  async record(a: EffectAttemptV1, raw: EffectEvidence, projection?: EffectResultProjection) {
     const e = EffectEvidenceSchema.parse(JSON.parse(canonicalEffectJson(raw)));
+    if (
+      projection &&
+      (e.certainty !== "APPLIED" ||
+        !["yuvi.read-text.v1", "yuvi.provider.v1"].includes(a.contractRef))
+    )
+      throw new EffectIntentError(
+        "INTEGRITY_FAILURE",
+        "Retention metadata belongs to the Host commit boundary."
+      );
     if (
       ![
         "LOCAL_PROTOCOL",
@@ -418,7 +430,23 @@ export class PostgresEffectDispatchStore implements EffectDispatchStore {
       )
         return "STALE" as const;
       const prior = await this.evidence(c, a.attemptId);
-      if (prior && canonicalEffectJson(prior) === canonicalEffectJson(e)) return "REPLAY" as const;
+      if (prior && sameExecutionEvidence(prior, e)) {
+        if (e.reportRetention && canonicalEffectJson(prior) !== canonicalEffectJson(e))
+          return "CONFLICT" as const;
+        if (
+          projection &&
+          prior.reportRetention?.digest &&
+          prior.reportRetention.digest !== projection.digest
+        )
+          return "CONFLICT" as const;
+        // Never recreate an erased/expired report during replay, including old APPLIED.
+        return "REPLAY" as const;
+      }
+      if (e.reportRetention)
+        throw new EffectIntentError(
+          "INTEGRITY_FAILURE",
+          "New retention metadata requires the Host commit boundary."
+        );
       if (l.a.integrityConflict) return "CONFLICT" as const;
       if (
         (prior && prior.certainty !== "UNKNOWN") ||
@@ -431,7 +459,33 @@ export class PostgresEffectDispatchStore implements EffectDispatchStore {
         return "CONFLICT" as const;
       }
       if (!l.live) return "STALE" as const;
-      await this.observe(c, l.a, e);
+      if (projection) {
+        await c.query("savepoint result_projection");
+        try {
+          const retained = EffectReportRetentionSchema.parse(await projection.commit(c));
+          if (retained.digest && retained.digest !== projection.digest)
+            throw Error("REPORT_COMMIT_DIGEST_CONFLICT");
+          await this.observe(c, l.a, { ...e, reportRetention: retained });
+          // Validate deferred cross-projection constraints while the savepoint
+          // can still preserve the independently proven execution on SQL failure.
+          await c.query("set constraints all immediate");
+          await c.query("release savepoint result_projection");
+        } catch {
+          await c.query("rollback to savepoint result_projection");
+          await c.query("release savepoint result_projection");
+          await this.observe(c, l.a, {
+            ...e,
+            reportRetention: {
+              version: "observation-retention.v1",
+              state: "FAILED",
+              reportId: null,
+              digest: projection.digest,
+              expiresAt: null,
+              reason: "REPORT_PERSISTENCE_FAILED"
+            }
+          });
+        }
+      } else await this.observe(c, l.a, e);
       // Reconciliation/next attempt can acquire a NEW fence; late invocation callbacks then fail closed.
       await c.query(
         "update effect_attempts set lease_expires_at=clock_timestamp() where attempt_id=$1",

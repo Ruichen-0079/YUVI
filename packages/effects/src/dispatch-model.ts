@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { EffectReportRetentionSchema } from "./result-projection.js";
 import { effectDigest, type EffectIntent } from "./model.js";
 
 /** Host-authored transport traits. Neither execution errors nor plugin metadata can strengthen them. */
@@ -125,10 +126,12 @@ export const EffectEvidenceSchema = z
       "OWNER_RECONCILED_NOT_APPLIED"
     ]),
     remoteEffectId: z.string().min(1).max(256).nullable(),
-    nativeOwnerCommit: NativeOwnerCommitV1Schema.optional()
+    nativeOwnerCommit: NativeOwnerCommitV1Schema.optional(),
+    reportRetention: EffectReportRetentionSchema.optional()
   })
   .strict()
   .refine((e) => {
+    if (e.reportRetention && e.certainty !== "APPLIED") return false;
     if (e.certainty === "UNKNOWN")
       return (
         e.layer === "LOCAL_PROTOCOL" &&
@@ -169,6 +172,12 @@ export const EffectEvidenceSchema = z
             ].includes(e.reason);
   });
 export type EffectEvidence = z.infer<typeof EffectEvidenceSchema>;
+/** Generated retention metadata is not a second execution outcome. */
+export function sameExecutionEvidence(a: EffectEvidence, b: EffectEvidence) {
+  const { reportRetention: _ar, ...aa } = a;
+  const { reportRetention: _br, ...bb } = b;
+  return effectDigest(aa) === effectDigest(bb);
+}
 export const EffectObservationV1Schema = z
   .object({
     version: z.literal("effect-observation.v1"),

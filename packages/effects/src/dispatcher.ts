@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { effectDigest, type EffectIntent } from "./model.js";
+import type { EffectIntent } from "./model.js";
 import {
   EFFECT_DELIVERY_CONTRACTS,
   protocolEvidence,
@@ -7,6 +7,13 @@ import {
   type EffectEvidence
 } from "./dispatch-model.js";
 import type { EffectClaim, EffectDispatchStore } from "./dispatch-store.js";
+import type { EffectResultProjection } from "./result-projection.js";
+import { sameExecutionEvidence } from "./dispatch-model.js";
+export type EffectAdapterResult = {
+  evidence: EffectEvidence;
+  transientResult?: unknown;
+  projection?: EffectResultProjection;
+};
 
 /** Host-bound implementation, never a model/plugin supplied callback or delivery declaration. */
 export interface EffectAdapter {
@@ -20,7 +27,7 @@ export interface EffectAdapter {
     intent: EffectIntent,
     attempt: EffectAttemptV1,
     signal: AbortSignal
-  ): Promise<{ evidence: EffectEvidence; transientResult?: unknown }>;
+  ): Promise<EffectAdapterResult>;
   /** Only a host contract permitting lookup may supply this. No invocation inside reconciliation. */
   reconcile?(
     intent: EffectIntent,
@@ -209,7 +216,7 @@ export class EffectDispatcher {
               );
               return { invoked: false, recorded: status === "RECORDED" || status === "REPLAY" };
             }
-            let result: { evidence: EffectEvidence; transientResult?: unknown };
+            let result: EffectAdapterResult;
             let renewalBusy = false;
             let renewalLost = false;
             let renewalInFlight: Promise<void> | undefined;
@@ -253,7 +260,11 @@ export class EffectDispatcher {
             if (renewalLost) result = { evidence: protocolEvidence("CALL_UNCERTAIN", true) };
             let recorded = false;
             try {
-              const status = await this.store.record(claim.attempt, result.evidence);
+              const status = await this.store.record(
+                claim.attempt,
+                result.evidence,
+                result.projection
+              );
               recorded = status === "RECORDED" || status === "REPLAY";
             } catch {
               const state = await this.store.diagnostic(id);
@@ -261,7 +272,11 @@ export class EffectDispatcher {
                 state?.currentAttempt?.attemptId === started.attemptId &&
                 state.currentAttempt.fence === started.fence &&
                 !!state.evidence &&
-                effectDigest(state.evidence) === effectDigest(result.evidence);
+                sameExecutionEvidence(state.evidence, result.evidence) &&
+                (!result.projection ||
+                  (!!state.evidence.reportRetention &&
+                    (!state.evidence.reportRetention.digest ||
+                      state.evidence.reportRetention.digest === result.projection.digest)));
             }
             return {
               invoked: true,
