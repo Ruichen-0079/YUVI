@@ -176,9 +176,21 @@ function appendVisualEvidence(
   chatInput: ChatInput,
   input: CharacterTurnInput,
   postCognition: boolean,
-  evidence?: RuntimeVisualEvidence
+  evidence?: RuntimeVisualEvidence,
+  responseBody = false
 ) {
   const retained = retainedObservationEvidence(input);
+  const retainedRecords = retained ? JSON.parse(retained).retainedObservations : [];
+  const hasReport =
+    evidence?.status === "AVAILABLE" ||
+    (Array.isArray(retainedRecords) &&
+      retainedRecords.some(
+        (record: unknown) =>
+          !!record && typeof record === "object" && "evidence" in record && !!record.evidence
+      ));
+  if (responseBody && hasReport)
+    chatInput.messages[0]!.content +=
+      "\nFor a comparison of observed quantities, state the reported label–value pairs before giving the ordering or difference. Tie each value to the supplied report; if a required value or detail is absent, identify that gap instead of completing it from expectation. This does not turn a Provider report into independently verified world truth.";
   if (retained)
     chatInput.messages.splice(chatInput.messages.length - 1, 0, {
       role: "user",
@@ -487,7 +499,7 @@ async function generateAcceptedCharacterProposal(
         input.canonicalContext?.conversationEvidence
       );
       // Preserve the same admitted evidence, including the one bounded visual cycle.
-      appendVisualEvidence(body, input, postCognition, visualEvidence);
+      appendVisualEvidence(body, input, postCognition, visualEvidence, true);
       body.maxTokens = modelBudget.outputTokens;
       return {
         output,
