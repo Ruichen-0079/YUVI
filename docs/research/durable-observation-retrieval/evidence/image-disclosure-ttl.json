@@ -1,0 +1,12 @@
+{
+  "schema": "observation.image-disclosure-ttl.v1",
+  "kind": "production-function-clock-fixture-not-database-atomicity",
+  "baseline": "066072d",
+  "productionFix": "0951265",
+  "case": "SQL snapshot valid; authorization/encoding phase crosses original TTL",
+  "baselineReturnedExpiredImage": true,
+  "fixedExpiredResult": null,
+  "unexpiredImageStillReturns": true,
+  "baselineLogDigest": "f92cf83e6a825f6f4dedb528aee47b54d56d134eba6708f16b2c98e6f075e80c",
+  "fixedLogDigest": "6c0105d92732f953597eacd68de7fcd1297b6df2b9ed927818e859d7a8e0caa4"
+}

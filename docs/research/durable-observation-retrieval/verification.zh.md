@@ -37,3 +37,5 @@ pnpm --filter @companion/server exec vitest run \
 测试要求本地 31508/yuvi_pr_* 或显式 CI 隔离库，不能向任意数据库注入强停。故障套件和正常入口进入 CI 的正式 PostgreSQL 门禁。2026-10-17 本地 `pnpm check`、`pnpm build`、全仓 `pnpm test` 通过；实际 PostgreSQL Effects 129 项与本轮正常入口/原子故障/Host 14 项通过。远端 CI 以 PR 最新结果为准；CI 全绿不等于 R5 全部迁移、产品接管、全域删除或长期可靠性已完成。
 
 后续实际复测补齐过期清理后的重复 DELETE：旧 `066072d` 正式 Server 在 tombstone 已擦除后返回 503（guard 拒绝补写新的删除来源），新实现对同一授权对象锁定检查，已擦除直接确认后置条件。连续两次均 200，擦除时间/来源未改、正文/图片仍为 null、原 A9 仍 APPLIED；没有复活内容或伪造新执行。见 [对照](evidence/erasure-idempotency.json)。
+
+原图读取另补最终披露时钟检查：合法 SQL snapshot 返回图片后，授权检查/编码也可能跨过 TTL；返回前再次判断原始 deadline。生产类的精确时钟 fixture 在旧 066072d 失败、新代码通过，未过期图片仍正常返回。[该单元边界证明](evidence/image-disclosure-ttl.json)不冒充真实 PostgreSQL 故障注入；真实库的 TTL 提交/读取场景仍见正式入口套件。
