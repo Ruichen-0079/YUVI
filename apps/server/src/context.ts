@@ -797,17 +797,21 @@ export async function createAppContext(
                 const scope = input.scope;
                 if (!scope) throw new MemoryAuthorityError("MEMORY_SCOPE_MISSING");
                 const verify = async () => {
-                  if (memory !== service || !input.scope || !input.access) return false;
-                  const actual = await conversationHost?.readAuthority(
-                    input.sourceJournalRef,
-                    input.scope
-                  );
-                  return (
-                    !!actual &&
-                    actual.personId === input.access.personId &&
-                    actual.principal.namespace === input.access.principal.namespace &&
-                    actual.principal.actorId === input.access.principal.actorId
-                  );
+                  try {
+                    if (memory !== service || !input.scope || !input.access) return false;
+                    const actual = await conversationHost?.readAuthority(
+                      input.sourceJournalRef,
+                      input.scope
+                    );
+                    return (
+                      !!actual &&
+                      actual.personId === input.access.personId &&
+                      actual.principal.namespace === input.access.principal.namespace &&
+                      actual.principal.actorId === input.access.principal.actorId
+                    );
+                  } catch {
+                    return false;
+                  }
                 };
                 if (!(await verify()))
                   throw new MemoryAuthorityError("MEMORY_READER_AUTHORITY_UNRESOLVED");
