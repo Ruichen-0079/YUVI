@@ -7,7 +7,7 @@ import { compressHierarchicalContext } from "./context-compression.js";
 import type { ConversationMessage } from "./conversation-repository.js";
 import { DreamConsolidationEngine, InMemoryDreamJobStore } from "./dream-consolidation.js";
 import { MemoryIngestionPolicy } from "./ingestion.js";
-import { assembleMemoryVNextContext } from "./memory-vnext.js";
+import { assembleMemoryVNextContext, plannedMemoryEvidence } from "./memory-vnext.js";
 import { runPostgresMigrations } from "./migrations.js";
 import { normalizePostgresConnectionString } from "./postgres-connection.js";
 import type { MemoryEvent, MemoryWriteEventOutcome } from "./provider.js";
@@ -17,6 +17,48 @@ import { projectThinTemporalContext } from "./temporal-projection.js";
 
 const now = new Date("2026-08-31T10:00:00.000Z");
 const timezone = "Asia/Shanghai";
+it("binds demand claims without rewriting values, speakers, conflicts or unavailable slots", () => {
+  const tea = event({
+      id: "tea",
+      content: "茶叶偏好是月桂-5967。",
+      metadata: { knowledgeState: "conflicted" }
+    }),
+    framework = event({ id: "framework", content: "CedarTest-91" });
+  const text = plannedMemoryEvidence({
+    status: "partial",
+    events: [tea, framework],
+    source: "postgres",
+    limited: true,
+    coverage: [
+      {
+        id: "n0",
+        quote: "茶叶偏好",
+        candidateIds: ["tea"],
+        selectedIds: ["tea"],
+        preferredId: "tea",
+        preferredSelected: true,
+        status: "SELECTED_CANDIDATE"
+      },
+      {
+        id: "n1",
+        quote: "座位",
+        candidateIds: [],
+        selectedIds: [],
+        preferredId: null,
+        preferredSelected: false,
+        status: "NO_AUTHORIZED_CANDIDATE"
+      }
+    ]
+  });
+  const rendered = JSON.parse(text.slice(text.indexOf("\n") + 1));
+  expect(rendered.demands[0].preferredEvidence).toMatchObject({
+    quotedClaim: "茶叶偏好是月桂-5967。",
+    source: "user",
+    state: "conflicted"
+  });
+  expect(rendered.demands[1].preferredEvidence).toBeNull();
+  expect(rendered.additionalClaims[0].quotedClaim).toBe("CedarTest-91");
+});
 
 function message(
   id: string,
