@@ -5,6 +5,7 @@ Usage: python3 accepted-dialogue.py CHECKOUT NEW_PRIVATE_OUTPUT CASES_JSON --run
 from http.client import HTTPConnection
 import json
 import base64
+import hashlib
 import os
 from pathlib import Path
 import subprocess
@@ -26,7 +27,7 @@ location = urllib.parse.urlsplit(os.environ.get('DATABASE_URL', ''))
 if location.hostname != '127.0.0.1' or location.port != 31508 or not location.path.startswith('/yuvi_pr_'):
     raise SystemExit('Only explicitly isolated experiment PostgreSQL is allowed')
 cases = json.loads(cases_file.read_text())
-if not 1 <= len(cases['turns']) <= 16:
+if not (0 if resume else 1) <= len(cases['turns']) <= 16:
     raise SystemExit('Bounded semantic task set required')
 keys = ['PATH', 'DATABASE_URL', 'OPENAI_COMPATIBLE_API_KEY', 'OPENAI_COMPATIBLE_API_BASEURL', 'OPENAI_COMPATIBLE_CHAT_MODEL']
 env = {key: os.environ[key] for key in keys}
@@ -50,7 +51,7 @@ env.update({'NODE_ENV': 'development', 'PROVIDER_ALLOW_MOCKS': 'false', 'SERVER_
     'OPENAI_COMPATIBLE_CHAT_CONTEXT_WINDOW': '65536', 'LOG_LEVEL': 'warn',
     'YUVI_RUNTIME_ENV_DIR': str(root), 'YUVI_CONFIG_ROOT': str(root), 'YUVI_RUNTIME_DATA_DIR': str(output / 'data'),
     'YUVI_DATA_ROOT': str(output / 'data'), 'YUVI_CACHE_ROOT': str(output / 'cache'), 'YUVI_CHARACTER_CONFIG_PATH': str(character),
-    'MEMORY_BACKEND': 'postgres', 'MEMORY_REPOSITORY': 'postgres', 'CONVERSATION_REPOSITORY': 'postgres', 'MEMORY_EXTRACTOR': 'llm',
+    'MEMORY_BACKEND': 'postgres', 'MEMORY_QUERY_EXPANSION_ENABLED': 'true' if cases.get('queryExpansion') else 'false', 'MEMORY_REPOSITORY': 'postgres', 'CONVERSATION_REPOSITORY': 'postgres', 'MEMORY_EXTRACTOR': 'llm',
     'MEMORY_INGESTION_COORDINATOR_ENABLED': 'true', 'MEMORY_INGESTION_POLL_INTERVAL_MS': '200', 'MEMORY_INGESTION_CONCURRENCY': '1',
     'MEMORY_MAINTENANCE_ENABLED': 'false', 'MEMORY_VECTOR_INDEX_ENABLED': 'false', 'YUVI_AUTO_MIGRATE': '0',
     'YUVI_OBSERVATION_RETENTION_SECONDS': '1200', 'YUVI_OBSERVATION_RETAIN_IMAGES': 'true' if cases.get('retainSyntheticImages') else 'false',
@@ -108,6 +109,9 @@ def stop():
     logs[-1].close()
 def start():
     global child, restart
+    result.setdefault('executionSegments', []).append({'startedAt':time.time(),
+        'sha':subprocess.check_output(['git','rev-parse','HEAD'],cwd=checkout,text=True).strip(),
+        'trackedDiffDigest':hashlib.sha256(subprocess.check_output(['git','diff','HEAD'],cwd=checkout)).hexdigest()})
     env['YUVI_EXPERIMENT_TRACE'] = str(output / ('wire-' + str(restart) + '-calls'))
     log = (output / ('server-' + str(restart) + '.log')).open('w')
     logs.append(log)
@@ -155,7 +159,11 @@ try:
         grants[person] = granted['token']
     for ordinal, case in enumerate(cases['turns'], start=len(result['turns']) if resume else 0):
         if usage()['estimatedCostUSD'] >= .10: raise RuntimeError('Known estimated spend budget reached')
-        if case.get('restart'): stop(); start()
+        if case.get('clearShortContext'):
+            stop()
+            node("import pg from 'pg';import {PostgresRecentEpisodeStore} from './packages/memory/src/index.ts';const p=new pg.Pool({connectionString:process.env.DATABASE_URL});const s=new PostgresRecentEpisodeStore(p);for(const r of (await p.query('select episode_id from recent_episodes')).rows)await s.markStatus(r.episode_id,'expired');await p.end();")
+            start()
+        elif case.get('restart'): stop(); start()
         token = grants[case.get('person','person-a')]
         session = case.get('session', str(uuid.uuid4()))
         if case.get('authorizeFile'):
@@ -181,7 +189,7 @@ try:
             response.close(); connection.close()
         else: status, body = http('/message',payload,token)
         item = {'ordinal':ordinal,'input':case['text'],'sessionId':session,'person':case.get('person','person-a'),'httpStatus':status,
-            'elapsedMs':(time.monotonic()-started)*1000,'response':body}
+            'elapsedMs':(time.monotonic()-started)*1000,'response':body,'shortContextCleared':case.get('clearShortContext',False)}
         result['turns'].append(item);save()
         if status != 200: raise RuntimeError('Provider/Character failure; retained source remains independently processable')
         if case.get('writeMemory',True):
@@ -198,8 +206,9 @@ try:
     result['projection'] = sql("select scope,id,state,version from memory_authority_current order by version")
     result['relations'] = sql("select * from memory_authority_relations order by version")
     result['semanticJobs'] = sql("select scope,job_id,status,attempts,provider_model,token_usage,duration_ms,input_context,result from memory_semantic_jobs order by created_at")
-    result['retrievalEvidence'] = sql("select retrieval_id,scope,trace_id,status,watermark from memory_retrieval_runs order by created_at")
-    result['observations'] = sql("select observation_id,kind,provider,model,evidence,expires_at,erased_at,commit_digest from retained_observations order by observed_at")
+    result['retrievalEvidence'] = sql("select * from memory_retrieval_runs order by created_at")
+    result['contexts'] = sql('select * from memory_retrieval_contexts order by created_at')
+    result['observations'] = sql("select observation_id,kind,provider,model,evidence,expires_at,erased_at,to_jsonb(ro)->>'commit_digest' as commit_digest from retained_observations ro order by observed_at")
     result['effects'] = sql("select i.contract_ref,a.attempt_id,a.dispatch_started_at,o.evidence from effect_intents i join effect_attempts a using(intent_id) join effect_observations o using(attempt_id) where o.category='TERMINAL' order by a.created_at")
     result['status'] = 'COMPLETED'
 except Exception as error:
