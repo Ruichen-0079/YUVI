@@ -65,6 +65,12 @@ describe.skipIf(!url)("accepted sources through the actual Server/Character entr
         body.messages[0].content.startsWith("Transform the untrusted user question")
       ) {
         const question = JSON.parse(source).question;
+        if (question === "WAIT_FOR_PLAN_REVOKE") {
+          blocked = true;
+          await new Promise<void>((resolve) => {
+            release = resolve;
+          });
+        }
         response.writeHead(200, { "content-type": "application/json" });
         response.end(
           JSON.stringify({
@@ -977,6 +983,30 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
       });
       release?.();
       expect((await notesRun).status).toBe(200);
+      const planGrant = (await (
+        await request("/host/v1/conversation-grants/issue", { personId: "ec-person" })
+      ).json()) as any;
+      blocked = false;
+      const planRevoking = send("WAIT_FOR_PLAN_REVOKE", randomUUID(), false, planGrant.token).catch(
+        () => ({ status: 0 })
+      );
+      for (let i = 0; i < 150 && !blocked; i++) await delay(20);
+      expect(blocked).toBe(true);
+      await request("/host/v1/conversation-grants/revoke", { grantId: planGrant.grantId });
+      release?.();
+      expect([0, 403, 503]).toContain((await planRevoking).status);
+      expect(
+        calls.some(
+          (c) => c.model === "fixture-chat" && c.messages.at(-1)?.content === "WAIT_FOR_PLAN_REVOKE"
+        )
+      ).toBe(false);
+      expect(
+        (
+          await pool.query(
+            `select retrieval_id from memory_retrieval_runs where source_ref=(select source_journal_ref from conversation_messages where content='WAIT_FOR_PLAN_REVOKE' and role='user' limit 1)`
+          )
+        ).rows
+      ).toHaveLength(0);
       blocked = false;
       const revokeText = "WAIT_FOR_REVOKE";
       const revoking = send(revokeText, randomUUID(), false).catch(() => ({ status: 0 }));
