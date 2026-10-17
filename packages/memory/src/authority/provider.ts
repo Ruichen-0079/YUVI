@@ -1,4 +1,5 @@
-import type { MemorySearchPlan } from "./query-expansion.js";
+import { validateSearchNeeds, type MemorySearchPlan } from "./query-expansion.js";
+import { coverageSelection } from "./coverage.js";
 import type { MemoryDecisionReassessment } from "./reassessment.js";
 import { MemoryRetrievalEvidence, type RetrievalCandidate } from "./retrieval-evidence.js";
 import type { MemoryVectorIndexer } from "./vector.js";
@@ -54,24 +55,49 @@ export class PostgresMemoryProvider implements MemoryProvider {
       };
     try {
       let textError = false;
+      let lexicalPending = false;
       let planError = false;
       let plan: MemorySearchPlan | undefined;
       // An explicit configured option; no new model call is hidden in the default path.
       if (this.expandQuery)
         try {
           plan = await this.expandQuery(input);
+          if (plan.needs) plan.needs = validateSearchNeeds(input.text, plan.needs);
         } catch (error) {
           if (error instanceof MemoryAuthorityError && error.code.includes("AUTHORITY"))
             throw error;
+          plan = undefined;
           planError = true;
         }
+      const needs = plan?.needs ?? [];
       const queries = [...new Set([input.text.slice(0, 4000), ...(plan?.queries ?? [])])];
-      const channels: Array<{ query: string; status: "OK" | "UNAVAILABLE"; ids: string[] }> = [];
+      const tasks = [
+        ...queries.map((query) => ({ query, needId: null as string | null })),
+        ...needs.flatMap((n) => n.queries.map((query) => ({ query, needId: n.id })))
+      ];
+      const channels: Array<{
+        query: string;
+        needId: string | null;
+        status: "OK" | "UNAVAILABLE";
+        ids: string[];
+        lexicalIndex?: string;
+        queryTermsLimited?: boolean;
+        candidateLimited?: boolean;
+      }> = [];
+      let textNeedRanks = new Map<string, string[]>();
+      let textNeedScores = new Map<string, Map<string, number>>();
       const loadText = async () => {
         const results = await Promise.allSettled(
-          queries.map((q) => this.knowledge.search(input.scope!, q, queries.length === 1 ? 32 : 16))
+          tasks.map((t) =>
+            this.knowledge.search(
+              input.scope!,
+              t.query,
+              needs.length ? 8 : queries.length === 1 ? 32 : 16
+            )
+          )
         );
         const scores = new Map<string, number>();
+        const needScores = new Map<string, Map<string, number>>();
         const records = new Map<
           string,
           Awaited<ReturnType<MemoryKnowledgeReader["search"]>>["records"][number]
@@ -79,39 +105,59 @@ export class PostgresMemoryProvider implements MemoryProvider {
         let limited = false,
           watermark = "0";
         for (const [ordinal, channel] of results.entries()) {
+          const task = tasks[ordinal]!;
+          const available =
+            channel.status === "fulfilled"
+              ? channel.value.records.filter((r) => matchesReader(r.event, input.access!))
+              : [];
           channels.push({
-            query: queries[ordinal]!,
+            ...task,
             status: channel.status === "rejected" ? "UNAVAILABLE" : "OK",
-            ids:
-              channel.status === "rejected"
-                ? []
-                : channel.value.records
-                    .filter((r) => matchesReader(r.event, input.access!))
-                    .map((r) => r.id)
+            ids: available.map((r) => r.id),
+            ...(channel.status === "fulfilled" && channel.value.lexicalIndex
+              ? {
+                  lexicalIndex: channel.value.lexicalIndex,
+                  queryTermsLimited: channel.value.queryTermsLimited ?? false,
+                  candidateLimited: channel.value.candidateLimited
+                }
+              : {})
           });
           if (channel.status === "rejected") {
             textError = true;
             continue;
           }
           watermark = channel.value.watermark;
+          lexicalPending ||= channel.value.lexicalIndex === "BACKFILL_PENDING_GIN_FALLBACK";
           limited ||= channel.value.candidateLimited;
-          channel.value.records.forEach((record, index) => {
+          available.forEach((record, index) => {
             records.set(record.id, record);
-            scores.set(record.id, (scores.get(record.id) ?? 0) + 1 / (60 + index));
+            // Rank alone loses the distinction between a translated phrase hit
+            // and one incidental character in another language channel.
+            const strength = channel.value.relevanceById?.[record.id];
+            const value = (strength === undefined ? 1 : Math.log1p(strength)) / (60 + index);
+            scores.set(record.id, (scores.get(record.id) ?? 0) + value);
+            if (task.needId) {
+              const values = needScores.get(task.needId) ?? new Map<string, number>();
+              values.set(record.id, (values.get(record.id) ?? 0) + value);
+              needScores.set(task.needId, values);
+            }
           });
         }
+        const order = (values: Map<string, number>) =>
+          [...values.keys()].sort(
+            (a, b) =>
+              (values.get(b) ?? 0) - (values.get(a) ?? 0) ||
+              (BigInt(records.get(a)!.version) > BigInt(records.get(b)!.version) ? -1 : 1)
+          );
+        textNeedRanks = new Map([...needScores].map(([id, values]) => [id, order(values)]));
+        textNeedScores = needScores;
+        const chosen = coverageSelection(
+          order(scores),
+          needs.map((n) => ({ id: n.id, ranking: textNeedRanks.get(n.id) ?? [] })),
+          32
+        );
         return {
-          records: [...records.values()]
-            .sort(
-              (a, b) =>
-                (scores.get(b.id) ?? 0) - (scores.get(a.id) ?? 0) ||
-                (BigInt(a.version) > BigInt(b.version)
-                  ? -1
-                  : BigInt(a.version) < BigInt(b.version)
-                    ? 1
-                    : a.id.localeCompare(b.id))
-            )
-            .slice(0, 32),
+          records: chosen.map((id) => records.get(id)!),
           watermark,
           candidateLimited: limited || records.size > 32
         };
@@ -125,15 +171,40 @@ export class PostgresMemoryProvider implements MemoryProvider {
       let vectorPending = false;
       let vectorLimited = false;
       let indexedIds: string[] = [];
-      if (this.vectors)
+      const vectorNeedRanks = new Map<string, string[]>();
+      const vectorChannels: Array<{
+        needId: string | null;
+        query: string;
+        status: "OK" | "UNAVAILABLE";
+        ids: string[];
+      }> = [];
+      if (this.vectors) {
         try {
           vectorPending = await this.vectors.hasPending(input.scope);
-          const vectorResult = await this.vectors.searchWithEvidence(input.scope, input.text, 32);
-          indexedIds = vectorResult.ids;
-          vectorLimited = vectorResult.limited;
         } catch {
           vectorError = true;
         }
+        const requests = [
+          { needId: null as string | null, query: input.text, limit: needs.length ? 8 : 32 },
+          ...needs.map((n) => ({ needId: n.id, query: n.queries.join(" "), limit: 4 }))
+        ];
+        const values = await Promise.allSettled(
+          requests.map((t) => this.vectors!.searchWithEvidence(input.scope!, t.query, t.limit))
+        );
+        for (const [i, value] of values.entries()) {
+          const task = requests[i]!;
+          if (value.status === "rejected") {
+            vectorError = true;
+            vectorChannels.push({ ...task, status: "UNAVAILABLE", ids: [] });
+            continue;
+          }
+          vectorLimited ||= value.value.limited;
+          vectorChannels.push({ ...task, status: "OK", ids: value.value.ids });
+          indexedIds.push(...value.value.ids);
+          if (task.needId) vectorNeedRanks.set(task.needId, value.value.ids);
+        }
+        indexedIds = [...new Set(indexedIds)].slice(0, 32);
+      }
       let resolved = await this.knowledge.resolveCandidates(input.scope, [
         ...new Set([...observedTextIds, ...result.records.map((r) => r.id), ...indexedIds])
       ]);
@@ -160,7 +231,7 @@ export class PostgresMemoryProvider implements MemoryProvider {
       const score = (id: string) =>
         (textRank.has(id) ? 1 / (60 + textRank.get(id)!) : 0) +
         (vectorRank.has(id) ? 1 / (32 + vectorRank.get(id)!) : 0);
-      const selected = [
+      const ranked = [
         ...new Map(
           [
             ...result.records,
@@ -183,18 +254,56 @@ export class PostgresMemoryProvider implements MemoryProvider {
               : BigInt(a.version) < BigInt(b.version)
                 ? 1
                 : a.id.localeCompare(b.id))
-        )
-        .slice(0, input.limit ?? 8);
+        );
+      const eligible = new Map(ranked.map((r) => [r.id, r]));
+      const needRanks = needs.map((n) => {
+        const text = textNeedRanks.get(n.id) ?? [],
+          vector = vectorNeedRanks.get(n.id) ?? [];
+        const ids = [...new Set([...text, ...vector])].filter((id) => eligible.has(id));
+        const score = (id: string) =>
+          (textNeedScores.get(n.id)?.get(id) ?? 0) +
+          (vector.includes(id) ? 1 / (60 + vector.indexOf(id)) : 0);
+        return { id: n.id, ranking: ids.sort((a, b) => score(b) - score(a) || a.localeCompare(b)) };
+      });
+      const selected = coverageSelection(
+        ranked.map((r) => r.id),
+        needRanks,
+        input.limit ?? 8
+      ).map((id) => eligible.get(id)!);
       const events = selected
         .map((r) => r.event)
         .filter((event) => matchesReader(event, input.access!));
+      const coverage = needs.map((n) => {
+        const candidates = needRanks.find((v) => v.id === n.id)!.ranking;
+        const selectedIds = selected.filter((r) => candidates.includes(r.id)).map((r) => r.id);
+        const preferredId = candidates[0] ?? null;
+        const preferredSelected = preferredId !== null && selectedIds.includes(preferredId);
+        return {
+          id: n.id,
+          quote: n.quote,
+          candidateIds: candidates,
+          selectedIds,
+          preferredId,
+          preferredSelected,
+          status: preferredSelected
+            ? ("SELECTED_CANDIDATE" as const)
+            : candidates.length
+              ? ("RESULT_BOUND" as const)
+              : channels.some((c) => c.needId === n.id && c.status === "UNAVAILABLE") ||
+                  vectorChannels.some((c) => c.needId === n.id && c.status === "UNAVAILABLE")
+                ? ("CHANNEL_UNAVAILABLE" as const)
+                : ("NO_AUTHORIZED_CANDIDATE" as const)
+        };
+      });
+      const coverageLimited = coverage.some((n) => !n.preferredSelected);
       const outcome: MemoryRetrievalOutcome = {
         status:
           vectorError || textError
             ? events.length
               ? "partial"
               : "unavailable"
-            : planError ||
+            : coverageLimited ||
+                planError ||
                 result.candidateLimited ||
                 vectorPending ||
                 vectorLimited ||
@@ -205,7 +314,9 @@ export class PostgresMemoryProvider implements MemoryProvider {
                 : "empty",
         source: "postgres",
         events,
+        ...(coverage.length ? { coverage } : {}),
         limited:
+          coverageLimited ||
           result.candidateLimited ||
           planError ||
           textError ||
@@ -213,8 +324,9 @@ export class PostgresMemoryProvider implements MemoryProvider {
           vectorPending ||
           vectorLimited ||
           compatibilityPending,
-        limitReason:
-          textError && vectorError
+        limitReason: coverageLimited
+          ? "MEMORY_DEMAND_COVERAGE_INCOMPLETE"
+          : textError && vectorError
             ? "MEMORY_RETRIEVAL_CHANNELS_UNAVAILABLE"
             : textError
               ? "MEMORY_TEXT_UNAVAILABLE"
@@ -226,11 +338,13 @@ export class PostgresMemoryProvider implements MemoryProvider {
                     ? "MEMORY_VECTOR_INDEX_PENDING"
                     : vectorLimited
                       ? "MEMORY_VECTOR_CANDIDATE_BOUND"
-                      : result.candidateLimited
-                        ? "MEMORY_TEXT_CANDIDATE_BOUND"
-                        : compatibilityPending
-                          ? "MEMORY_LEGACY_OR_UNATTRIBUTED_REQUIRES_REVIEW"
-                          : null,
+                      : lexicalPending
+                        ? "MEMORY_LEXICAL_INDEX_PENDING"
+                        : result.candidateLimited
+                          ? "MEMORY_TEXT_CANDIDATE_BOUND"
+                          : compatibilityPending
+                            ? "MEMORY_LEGACY_OR_UNATTRIBUTED_REQUIRES_REVIEW"
+                            : null,
         selectedCount: events.length,
         watermark: result.watermark
       };
@@ -267,6 +381,11 @@ export class PostgresMemoryProvider implements MemoryProvider {
           model: plan?.model ?? null,
           usage: plan?.usage ?? null,
           channels,
+          vectorChannels: vectorChannels.map((c) => ({
+            ...c,
+            ids: c.ids.filter((id) => eligible.has(id))
+          })),
+          ...(needs.length ? { coverage } : {}),
           textStatus: textError ? "PARTIAL_OR_UNAVAILABLE" : "OK",
           vectorStatus: this.vectors
             ? vectorError

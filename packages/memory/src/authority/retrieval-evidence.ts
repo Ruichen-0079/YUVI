@@ -3,6 +3,26 @@ import { ContextBlockSchema, ContextExposureSchema } from "@companion/protocol";
 import { randomUUID } from "node:crypto";
 import { canonicalScope, MemoryAuthorityError, type AuthorityQuery } from "./types.js";
 import type { MemoryRetrievalInput, MemoryRetrievalOutcome } from "../provider.js";
+const coverageSchema = z
+  .array(
+    z
+      .object({
+        id: z.string().max(16),
+        quote: z.string().max(512),
+        candidateIds: z.array(z.string().max(1024)).max(64),
+        selectedIds: z.array(z.string().max(1024)).max(64),
+        preferredId: z.string().max(1024).nullable().optional(),
+        preferredSelected: z.boolean().optional(),
+        status: z.enum([
+          "SELECTED_CANDIDATE",
+          "NO_AUTHORIZED_CANDIDATE",
+          "RESULT_BOUND",
+          "CHANNEL_UNAVAILABLE"
+        ])
+      })
+      .strip()
+  )
+  .max(5);
 
 export const RetrievalQueryPlanSchema = z
   .object({
@@ -23,12 +43,30 @@ export const RetrievalQueryPlanSchema = z
         z
           .object({
             query: z.string().max(4000),
+            needId: z.string().max(16).nullable().optional(),
+            lexicalIndex: z.string().max(64).optional(),
+            queryTermsLimited: z.boolean().optional(),
+            candidateLimited: z.boolean().optional(),
             status: z.enum(["OK", "UNAVAILABLE"]),
             ids: z.array(z.string().max(1024)).max(32)
           })
           .strip()
       )
-      .max(6),
+      .max(26),
+    coverage: coverageSchema.optional(),
+    vectorChannels: z
+      .array(
+        z
+          .object({
+            needId: z.string().max(16).nullable(),
+            query: z.string().max(4000),
+            status: z.enum(["OK", "UNAVAILABLE"]),
+            ids: z.array(z.string().max(1024)).max(32)
+          })
+          .strip()
+      )
+      .max(6)
+      .optional(),
     textStatus: z.enum(["OK", "PARTIAL_OR_UNAVAILABLE"]),
     vectorStatus: z.enum(["DISABLED", "OK", "UNAVAILABLE", "PENDING"])
   })
