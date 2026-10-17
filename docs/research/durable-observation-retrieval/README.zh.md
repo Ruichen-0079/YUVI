@@ -1,6 +1,6 @@
 # Durable Observation 与检索质量
 
-基线 #328 `a7b5e9b`，堆叠依赖 #322→#328；独立 worktree/分支 `feat/durable-observation-retrieval`。本切片完成 **A9 与限期报告的提交合同**，并完成两张合成图片的真实 Vision 小样本。检索工程独立推进，**本报告不表示 B 或 R5 整体验收完成**。没有修改、重启、迁移或部署真实 Alice，没有访问她的私人数据库或发送 QQ 消息。
+基线 #328 `a7b5e9b`，堆叠依赖 #322→#328；独立 worktree/分支 `feat/durable-observation-retrieval`。本切片完成 **A9 与限期报告的提交合同**，并完成两张合成图片的真实 Vision 小样本。后续检索切片见 [检索实测与残余失败](retrieval.zh.md)，**本报告不表示 B 或 R5 整体验收完成**。没有修改、重启、迁移或部署真实 Alice，没有访问她的私人数据库或发送 QQ 消息。
 
 ## 原失败与现在的行为
 

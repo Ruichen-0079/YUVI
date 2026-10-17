@@ -1,0 +1,1662 @@
+{
+  "schema": "memory.retrieval-quality.v1",
+  "groups": [
+    {
+      "sha": "a7b5e9bbcf810a425c398e7482bb768fbe8ae9e6",
+      "dirty": false,
+      "models": {
+        "OPENAI_COMPATIBLE_CHAT_MODEL": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "OPENAI_COMPATIBLE_REASONING_MODEL": "deepseek-ai/DeepSeek-V4-Flash-0731"
+      },
+      "provider": "https://api.deepinfra.com/v1/openai",
+      "personaVersion": "evidence-synthetic-v1",
+      "temperature": 0,
+      "maxTokens": 2048,
+      "usage": {
+        "calls": 40,
+        "input": 57067,
+        "output": 1686,
+        "cached": 15872,
+        "estimatedCostUSD": 0.00301326,
+        "unknownCostCalls": 0
+      },
+      "status": "COMPLETED",
+      "name": "baseline-328",
+      "turns": [
+        {
+          "ordinal": 0,
+          "input": "我目前使用的内部编辑器代号是澄雨-a936d0。",
+          "person": "person-a",
+          "shortContextCleared": false,
+          "httpStatus": 200,
+          "elapsedMs": 3799.247836000063,
+          "answer": "明白了，澄雨-a936d0。我记下这个代号了。有什么需要我帮忙的吗？",
+          "ingestion": {
+            "id": "ba90e4eb-84cc-4c8d-813a-40db7130565c",
+            "source_journal_ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_T0SNeGisGGN8WSJiG7JvYwNTnebxWJLI",
+              "namespace": "yuvi:character:ec-live-7544487a1c2b4465b29743354507e906"
+            },
+            "ingestion_requested": true,
+            "finalized_turn_id": "accepted-user:ba90e4eb-84cc-4c8d-813a-40db7130565c",
+            "status": "complete",
+            "last_error_code": null,
+            "rejected_propositions": []
+          },
+          "retrievals": [
+            {
+              "status": "empty",
+              "watermark": "0",
+              "candidates": [],
+              "queryPlan": null
+            }
+          ]
+        },
+        {
+          "ordinal": 1,
+          "input": "下周四我要参加青穗-19ee60项目的面试，这个日期已确认。",
+          "person": "person-a",
+          "shortContextCleared": false,
+          "httpStatus": 200,
+          "elapsedMs": 2449.4627609999498,
+          "answer": "明白了，青穗-19ee60项目的面试定在下周四，日期已确认。我记下这个安排了。需要我帮你做点什么准备吗？比如整理项目背景、常见面试问题，或者提醒你时间？",
+          "ingestion": {
+            "id": "11aaebc5-66a2-4301-9c1e-be80784ae9f5",
+            "source_journal_ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_2lFsbEG9yOPUGaVzmxVXq7kjcQB_Upvf",
+              "namespace": "yuvi:character:ec-live-7544487a1c2b4465b29743354507e906"
+            },
+            "ingestion_requested": true,
+            "finalized_turn_id": "accepted-user:11aaebc5-66a2-4301-9c1e-be80784ae9f5",
+            "status": "complete",
+            "last_error_code": null,
+            "rejected_propositions": []
+          },
+          "retrievals": [
+            {
+              "status": "empty",
+              "watermark": "1",
+              "candidates": [],
+              "queryPlan": null
+            }
+          ]
+        },
+        {
+          "ordinal": 2,
+          "input": "我的长期茶叶偏好是月桂-5967a1。",
+          "person": "person-a",
+          "shortContextCleared": false,
+          "httpStatus": 200,
+          "elapsedMs": 2126.9865639999352,
+          "answer": "明白了，你的长期茶叶偏好是月桂-5967a1。我记下了。需要我帮你做什么吗？比如推荐冲泡方式，或者安排提醒？",
+          "ingestion": {
+            "id": "5cdf3cb0-0e38-4aa6-8ade-5cb842361f8e",
+            "source_journal_ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_hOhYxkYRNosu98qFP-TX-yheDrPVKUoK",
+              "namespace": "yuvi:character:ec-live-7544487a1c2b4465b29743354507e906"
+            },
+            "ingestion_requested": true,
+            "finalized_turn_id": "accepted-user:5cdf3cb0-0e38-4aa6-8ade-5cb842361f8e",
+            "status": "complete",
+            "last_error_code": null,
+            "rejected_propositions": []
+          },
+          "retrievals": [
+            {
+              "status": "empty",
+              "watermark": "2",
+              "candidates": [],
+              "queryPlan": null
+            }
+          ]
+        },
+        {
+          "ordinal": 3,
+          "input": "For future work, my preferred unit-test framework is RIVER-BC91.",
+          "person": "person-a",
+          "shortContextCleared": false,
+          "httpStatus": 200,
+          "elapsedMs": 3315.434524000011,
+          "answer": "明白了，你偏好的单元测试框架是 RIVER-BC91。我记下这个偏好了。需要我帮你做什么吗？比如配置测试环境，或者写个示例用例？",
+          "ingestion": {
+            "id": "02b2ddee-f4df-40ae-b7c8-0e97178770ca",
+            "source_journal_ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_FgfWsTzBJ7bALTUMEa6jo8X4eTe2F_VU",
+              "namespace": "yuvi:character:ec-live-7544487a1c2b4465b29743354507e906"
+            },
+            "ingestion_requested": true,
+            "finalized_turn_id": "accepted-user:02b2ddee-f4df-40ae-b7c8-0e97178770ca",
+            "status": "complete",
+            "last_error_code": null,
+            "rejected_propositions": []
+          },
+          "retrievals": [
+            {
+              "status": "empty",
+              "watermark": "3",
+              "candidates": [],
+              "queryPlan": null
+            }
+          ]
+        },
+        {
+          "ordinal": 4,
+          "input": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+          "person": "person-a",
+          "shortContextCleared": false,
+          "httpStatus": 200,
+          "elapsedMs": 3369.6660460000203,
+          "answer": "你的面试安排在下周四，项目是青穗-19ee60，日期已确认。你使用的内部编辑器代号是澄雨-a936d0，长期茶叶偏好是月桂-5967a1。需要我帮你做面试准备或安排提醒吗？",
+          "ingestion": null,
+          "retrievals": [
+            {
+              "status": "ok",
+              "watermark": "4",
+              "candidates": [
+                {
+                  "id": "pgm1_91fa5792735a3298c203472ebd6d086850217344e6409854a7c9aa1410a0d435",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "下周四我要参加青穗-19ee60项目的面试，这个日期已确认。",
+                  "version": "2",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                }
+              ],
+              "queryPlan": null
+            }
+          ]
+        },
+        {
+          "ordinal": 5,
+          "input": "我偏好的单元测试框架是什么？",
+          "person": "person-a",
+          "shortContextCleared": false,
+          "httpStatus": 200,
+          "elapsedMs": 2089.1871879999826,
+          "answer": "你偏好的单元测试框架是 RIVER-BC91。",
+          "ingestion": null,
+          "retrievals": [
+            {
+              "status": "ok",
+              "watermark": "4",
+              "candidates": [
+                {
+                  "id": "pgm1_e68904ba47adfd5f75949aec3c0bb02c0307a55a3aa13231ea73a30da0c7bbb0",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "我偏好的单元测试框架是RIVER-BC91。",
+                  "version": "4",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                },
+                {
+                  "id": "pgm1_44f8504142251f6d58626be94876f67553b9ab36c0e55d7321ea20b51f7c8407",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "我的长期茶叶偏好是月桂-5967a1。",
+                  "version": "3",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                }
+              ],
+              "queryPlan": null
+            }
+          ]
+        },
+        {
+          "ordinal": 6,
+          "input": "昨天那个编辑器代号停用了。以后使用的是新代号露川-4A87，旧的澄雨-a936d0不再有效。",
+          "person": "person-a",
+          "shortContextCleared": false,
+          "httpStatus": 200,
+          "elapsedMs": 3105.033869999943,
+          "answer": "明白了，编辑器代号从澄雨-a936d0 换成露川-4A87，旧的已经停用。我记下这个更新了。还有什么需要调整的吗？",
+          "ingestion": {
+            "id": "aaa8249b-ff62-4d77-8bb5-79c21d6eabae",
+            "source_journal_ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_8X_oZeLwBi6Nmdv_PUsidvTcKMOcbnFo",
+              "namespace": "yuvi:character:ec-live-7544487a1c2b4465b29743354507e906"
+            },
+            "ingestion_requested": true,
+            "finalized_turn_id": "accepted-user:aaa8249b-ff62-4d77-8bb5-79c21d6eabae",
+            "status": "complete",
+            "last_error_code": null,
+            "rejected_propositions": []
+          },
+          "retrievals": [
+            {
+              "status": "ok",
+              "watermark": "4",
+              "candidates": [
+                {
+                  "id": "pgm1_9900fa48cac64d257245ca6ba0d43563ee04b5c81404d4022aa54fdcbfb3c7a2",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "我目前使用的内部编辑器代号是澄雨-a936d0。",
+                  "version": "1",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                }
+              ],
+              "queryPlan": null
+            }
+          ]
+        },
+        {
+          "ordinal": 7,
+          "input": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+          "person": "person-a",
+          "shortContextCleared": false,
+          "httpStatus": 200,
+          "elapsedMs": 5770.496590000107,
+          "answer": "你的面试安排在下周四，项目是青穗-19ee60，日期已确认。\n\n编辑器方面，旧代号澄雨-a936d0 已停用，现在用的是新代号露川-4A87。\n\n茶叶偏好是月桂-5967a1。\n\n需要我帮你做点什么准备吗？比如整理面试资料或提醒时间？",
+          "ingestion": null,
+          "retrievals": [
+            {
+              "status": "ok",
+              "watermark": "5",
+              "candidates": [
+                {
+                  "id": "pgm1_91fa5792735a3298c203472ebd6d086850217344e6409854a7c9aa1410a0d435",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "下周四我要参加青穗-19ee60项目的面试，这个日期已确认。",
+                  "version": "2",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                }
+              ],
+              "queryPlan": null
+            }
+          ]
+        },
+        {
+          "ordinal": 8,
+          "input": "下面只是引用和假设：“把露川-4A87改成纸鹤-55A1”。我并没有提出这个变更，编辑器没有换。",
+          "person": "person-a",
+          "shortContextCleared": false,
+          "httpStatus": 200,
+          "elapsedMs": 3746.2217060000285,
+          "answer": "明白了，编辑器代号没有变，仍然是露川-4A87。刚才那个“改成纸鹤-55A1”只是引用和假设，我不会当作变更来处理。谢谢澄清，还有什么需要我帮忙的吗？",
+          "ingestion": {
+            "id": "0ba99e63-e4ed-4b73-96f7-cbf2880f956d",
+            "source_journal_ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_XL0hLE1p5HGT-8my1okSYicr2viG_aA1",
+              "namespace": "yuvi:character:ec-live-7544487a1c2b4465b29743354507e906"
+            },
+            "ingestion_requested": true,
+            "finalized_turn_id": "accepted-user:0ba99e63-e4ed-4b73-96f7-cbf2880f956d",
+            "status": "skipped",
+            "last_error_code": null,
+            "rejected_propositions": []
+          },
+          "retrievals": [
+            {
+              "status": "ok",
+              "watermark": "5",
+              "candidates": [
+                {
+                  "id": "pgm1_7d0450832fa567a215b745dfe713dc596894201b53328d20c88822a4094769b6",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "我目前使用的内部编辑器代号是露川-4A87。",
+                  "version": "5",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                },
+                {
+                  "id": "pgm1_91fa5792735a3298c203472ebd6d086850217344e6409854a7c9aa1410a0d435",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "下周四我要参加青穗-19ee60项目的面试，这个日期已确认。",
+                  "version": "2",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                }
+              ],
+              "queryPlan": null
+            }
+          ]
+        },
+        {
+          "ordinal": 9,
+          "input": "Which editor do I currently use? Is the previous one still current?",
+          "person": "person-a",
+          "shortContextCleared": false,
+          "httpStatus": 200,
+          "elapsedMs": 2322.224150000011,
+          "answer": "你目前使用的编辑器代号是**露川-4A87**。旧的代号**澄雨-a936d0**已经停用，不再有效。",
+          "ingestion": null,
+          "retrievals": [
+            {
+              "status": "empty",
+              "watermark": "5",
+              "candidates": [],
+              "queryPlan": null
+            }
+          ]
+        },
+        {
+          "ordinal": 10,
+          "input": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+          "person": "person-b",
+          "shortContextCleared": false,
+          "httpStatus": 200,
+          "elapsedMs": 7302.638074000015,
+          "answer": "I don't have any retrieved memory or evidence about your interview time for project 青穗-19ee60, your internal editor, or your preferred tea. My memory evidence is currently empty, and no capability is available to look up these details. I can't answer any of the three parts of your question without authorized memory retrieval, which isn't available right now. Please provide the information directly, or enable a memory lookup capability if you want me to check stored records.",
+          "ingestion": null,
+          "retrievals": [
+            {
+              "status": "empty",
+              "watermark": "0",
+              "candidates": [],
+              "queryPlan": null
+            }
+          ]
+        },
+        {
+          "ordinal": 11,
+          "input": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+          "person": "person-a",
+          "shortContextCleared": true,
+          "httpStatus": 200,
+          "elapsedMs": 4917.618305999895,
+          "answer": "你的面试时间是**下周四**，项目是青穗-19ee60，这个日期已经确认了。\n\n至于你用的内部编辑器和偏好的茶，我目前没有相关的记录，所以不能凭空猜测。如果你之前告诉过我，我这边暂时没检索到；如果你愿意现在告诉我，我可以帮你记下来。",
+          "ingestion": null,
+          "retrievals": [
+            {
+              "status": "ok",
+              "watermark": "5",
+              "candidates": [
+                {
+                  "id": "pgm1_91fa5792735a3298c203472ebd6d086850217344e6409854a7c9aa1410a0d435",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "下周四我要参加青穗-19ee60项目的面试，这个日期已确认。",
+                  "version": "2",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                }
+              ],
+              "queryPlan": null
+            }
+          ]
+        },
+        {
+          "ordinal": 12,
+          "input": "我偏好的单元测试框架是什么？",
+          "person": "person-a",
+          "shortContextCleared": true,
+          "httpStatus": 200,
+          "elapsedMs": 2623.210156000141,
+          "answer": "你偏好的单元测试框架是 **RIVER-BC91**。",
+          "ingestion": null,
+          "retrievals": [
+            {
+              "status": "ok",
+              "watermark": "5",
+              "candidates": [
+                {
+                  "id": "pgm1_e68904ba47adfd5f75949aec3c0bb02c0307a55a3aa13231ea73a30da0c7bbb0",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "我偏好的单元测试框架是RIVER-BC91。",
+                  "version": "4",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                },
+                {
+                  "id": "pgm1_44f8504142251f6d58626be94876f67553b9ab36c0e55d7321ea20b51f7c8407",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "我的长期茶叶偏好是月桂-5967a1。",
+                  "version": "3",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                }
+              ],
+              "queryPlan": null
+            }
+          ]
+        },
+        {
+          "ordinal": 13,
+          "input": "Which editor do I currently use? Is the previous one still current?",
+          "person": "person-a",
+          "shortContextCleared": true,
+          "httpStatus": 200,
+          "elapsedMs": 6317.213718999938,
+          "answer": "Based on the context I have available, I don't have any record of which editor you use or have used previously. There's no stored memory or recent conversation evidence about that.\n\nCould you tell me which editor you're referring to? If you let me know the name, I can help you check or update that information.",
+          "ingestion": null,
+          "retrievals": [
+            {
+              "status": "empty",
+              "watermark": "5",
+              "candidates": [],
+              "queryPlan": null
+            }
+          ]
+        },
+        {
+          "ordinal": 14,
+          "input": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+          "person": "person-b",
+          "shortContextCleared": true,
+          "httpStatus": 200,
+          "elapsedMs": 6846.906978000106,
+          "answer": "I don't have any stored memory or retrieved evidence about your interview time for project 青穗-19ee60, your internal editor, or your tea preference. My memory evidence is currently empty, and no authorized memory lookup capability is available in this session.\n\nI can't answer these questions from what I know, and I won't guess or fabricate details. Please provide the information directly, or if you have a memory-management tool available on your end, you may need to check it separately.",
+          "ingestion": null,
+          "retrievals": [
+            {
+              "status": "empty",
+              "watermark": "0",
+              "candidates": [],
+              "queryPlan": null
+            }
+          ]
+        }
+      ],
+      "sourceControlNote": "Initial SHA/dirty preserved. Revised final prefix replay ran committed production 4737bd6. Earlier development samples were not one frozen HEAD and are not a release success-rate estimate.",
+      "knowledge": [
+        {
+          "id": "pgm1_9900fa48cac64d257245ca6ba0d43563ee04b5c81404d4022aa54fdcbfb3c7a2",
+          "content": "我目前使用的内部编辑器代号是澄雨-a936d0。",
+          "version": "1",
+          "state": "superseded"
+        },
+        {
+          "id": "pgm1_91fa5792735a3298c203472ebd6d086850217344e6409854a7c9aa1410a0d435",
+          "content": "下周四我要参加青穗-19ee60项目的面试，这个日期已确认。",
+          "version": "2",
+          "state": "current"
+        },
+        {
+          "id": "pgm1_44f8504142251f6d58626be94876f67553b9ab36c0e55d7321ea20b51f7c8407",
+          "content": "我的长期茶叶偏好是月桂-5967a1。",
+          "version": "3",
+          "state": "current"
+        },
+        {
+          "id": "pgm1_e68904ba47adfd5f75949aec3c0bb02c0307a55a3aa13231ea73a30da0c7bbb0",
+          "content": "我偏好的单元测试框架是RIVER-BC91。",
+          "version": "4",
+          "state": "current"
+        },
+        {
+          "id": "pgm1_7d0450832fa567a215b745dfe713dc596894201b53328d20c88822a4094769b6",
+          "content": "我目前使用的内部编辑器代号是露川-4A87。",
+          "version": "5",
+          "state": "current"
+        }
+      ],
+      "relations": [
+        {
+          "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-7544487a1c2b4465b29743354507e906",
+          "from_id": "pgm1_7d0450832fa567a215b745dfe713dc596894201b53328d20c88822a4094769b6",
+          "to_id": "pgm1_9900fa48cac64d257245ca6ba0d43563ee04b5c81404d4022aa54fdcbfb3c7a2",
+          "kind": "supersedes",
+          "version": "5"
+        }
+      ],
+      "semanticFailureEvidence": []
+    },
+    {
+      "sha": "066072d44e3ca035cde46c1e297198b6502498ae",
+      "dirty": true,
+      "models": {
+        "OPENAI_COMPATIBLE_CHAT_MODEL": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "OPENAI_COMPATIBLE_REASONING_MODEL": "deepseek-ai/DeepSeek-V4-Flash-0731"
+      },
+      "provider": "https://api.deepinfra.com/v1/openai",
+      "personaVersion": "evidence-synthetic-v1",
+      "temperature": 0,
+      "maxTokens": 2048,
+      "usage": {
+        "calls": 48,
+        "input": 42184,
+        "output": 2116,
+        "cached": 15616,
+        "estimatedCostUSD": 0.0022092,
+        "unknownCostCalls": 0
+      },
+      "status": "COMPLETED",
+      "name": "revised",
+      "turns": [
+        {
+          "ordinal": 0,
+          "input": "我目前使用的内部编辑器代号是澄雨-a936d0。",
+          "person": "person-a",
+          "shortContextCleared": false,
+          "httpStatus": 200,
+          "elapsedMs": 5299.85475799981,
+          "answer": "明白了，澄雨-a936d0。我记下这个代号了。\n\n不过要说明一下：你刚才告诉我的这个信息，我这边只是听到了，还没有真正写入长期记忆。如果你希望我把它保存下来，需要你明确确认一下，我才能去执行保存操作——而且保存是否成功，要等操作结果出来才能确认，我不会提前打包票。\n\n现在有什么需要我帮忙的吗？",
+          "ingestion": {
+            "id": "6d826932-c6ac-404e-8f90-f5dd9ff1e2d2",
+            "source_journal_ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_t3hpbOwTnwmfF0ef9w7OeVnKzOe2HgWa",
+              "namespace": "yuvi:character:ec-live-9b337a4daaec4d6fb9d2ad5bcc538447"
+            },
+            "ingestion_requested": true,
+            "finalized_turn_id": "accepted-user:6d826932-c6ac-404e-8f90-f5dd9ff1e2d2",
+            "status": "complete",
+            "last_error_code": null,
+            "rejected_propositions": []
+          },
+          "retrievals": [
+            {
+              "status": "empty",
+              "watermark": "0",
+              "candidates": [],
+              "queryPlan": {
+                "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                "usage": {
+                  "inputTokens": 109,
+                  "outputTokens": 27,
+                  "cachedInputTokens": 0
+                },
+                "schema": "memory.search-plan.v1",
+                "status": "APPLIED",
+                "queries": [
+                  "我目前使用的内部编辑器代号是澄雨-a936d0。",
+                  "澄雨-a936d0 内部编辑器",
+                  "Chengyu-a936d0 internal editor"
+                ],
+                "channels": [
+                  {
+                    "ids": [],
+                    "query": "我目前使用的内部编辑器代号是澄雨-a936d0。",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [],
+                    "query": "澄雨-a936d0 内部编辑器",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [],
+                    "query": "Chengyu-a936d0 internal editor",
+                    "status": "OK"
+                  }
+                ],
+                "textStatus": "OK",
+                "vectorStatus": "DISABLED"
+              }
+            }
+          ]
+        },
+        {
+          "ordinal": 1,
+          "input": "下周四我要参加青穗-19ee60项目的面试，这个日期已确认。",
+          "person": "person-a",
+          "shortContextCleared": false,
+          "httpStatus": 200,
+          "elapsedMs": 4070.7046910001736,
+          "answer": "好的，青穗-19ee60项目的面试定在下周四，这个日期我记下了。\n\n不过要说明一下：你刚才告诉我的这个信息，我这边只是听到了，还没有真正写入长期记忆。如果你希望我把它保存下来，需要你明确确认一下，我才能去执行保存操作——而且保存是否成功，要等操作结果出来才能确认，我不会提前打包票。\n\n现在有什么需要我帮忙准备的吗？比如面试相关的资料、流程，或者别的什么？",
+          "ingestion": {
+            "id": "a8cc952d-8581-4a8e-b23c-aaec0ed88552",
+            "source_journal_ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_kARao629N4zg-2cTSlk4ctR80Q_RRSs0",
+              "namespace": "yuvi:character:ec-live-9b337a4daaec4d6fb9d2ad5bcc538447"
+            },
+            "ingestion_requested": true,
+            "finalized_turn_id": "accepted-user:a8cc952d-8581-4a8e-b23c-aaec0ed88552",
+            "status": "complete",
+            "last_error_code": null,
+            "rejected_propositions": []
+          },
+          "retrievals": [
+            {
+              "status": "empty",
+              "watermark": "1",
+              "candidates": [],
+              "queryPlan": {
+                "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                "usage": {
+                  "inputTokens": 113,
+                  "outputTokens": 28,
+                  "cachedInputTokens": 0
+                },
+                "schema": "memory.search-plan.v1",
+                "status": "APPLIED",
+                "queries": [
+                  "下周四我要参加青穗-19ee60项目的面试，这个日期已确认。",
+                  "青穗-19ee60 项目 面试",
+                  "Qingsui-19ee60 project interview"
+                ],
+                "channels": [
+                  {
+                    "ids": [],
+                    "query": "下周四我要参加青穗-19ee60项目的面试，这个日期已确认。",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [],
+                    "query": "青穗-19ee60 项目 面试",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [],
+                    "query": "Qingsui-19ee60 project interview",
+                    "status": "OK"
+                  }
+                ],
+                "textStatus": "OK",
+                "vectorStatus": "DISABLED"
+              }
+            }
+          ]
+        },
+        {
+          "ordinal": 2,
+          "input": "我的长期茶叶偏好是月桂-5967a1。",
+          "person": "person-a",
+          "shortContextCleared": false,
+          "httpStatus": 200,
+          "elapsedMs": 5633.793990999948,
+          "answer": "好的，月桂-5967a1，我记下这个茶叶偏好了。\n\n不过要说明一下：你刚才告诉我的这个信息，我这边只是听到了，还没有真正写入长期记忆。如果你希望我把它保存下来，需要你明确确认一下，我才能去执行保存操作——而且保存是否成功，要等操作结果出来才能确认，我不会提前打包票。\n\n现在有什么需要我帮忙的吗？",
+          "ingestion": {
+            "id": "b8730845-0b65-48b0-b227-e4fafb332650",
+            "source_journal_ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_FTFPB15uja7NZDDQiiIuLzi-zc6V933z",
+              "namespace": "yuvi:character:ec-live-9b337a4daaec4d6fb9d2ad5bcc538447"
+            },
+            "ingestion_requested": true,
+            "finalized_turn_id": "accepted-user:b8730845-0b65-48b0-b227-e4fafb332650",
+            "status": "complete",
+            "last_error_code": null,
+            "rejected_propositions": []
+          },
+          "retrievals": [
+            {
+              "status": "empty",
+              "watermark": "2",
+              "candidates": [],
+              "queryPlan": {
+                "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                "usage": {
+                  "inputTokens": 108,
+                  "outputTokens": 30,
+                  "cachedInputTokens": 0
+                },
+                "schema": "memory.search-plan.v1",
+                "status": "APPLIED",
+                "queries": [
+                  "我的长期茶叶偏好是月桂-5967a1。",
+                  "月桂-5967a1 茶叶 偏好",
+                  "laurel-5967a1 tea preference"
+                ],
+                "channels": [
+                  {
+                    "ids": [],
+                    "query": "我的长期茶叶偏好是月桂-5967a1。",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [],
+                    "query": "月桂-5967a1 茶叶 偏好",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [],
+                    "query": "laurel-5967a1 tea preference",
+                    "status": "OK"
+                  }
+                ],
+                "textStatus": "OK",
+                "vectorStatus": "DISABLED"
+              }
+            }
+          ]
+        },
+        {
+          "ordinal": 3,
+          "input": "For future work, my preferred unit-test framework is RIVER-BC91.",
+          "person": "person-a",
+          "shortContextCleared": false,
+          "httpStatus": 200,
+          "elapsedMs": 4437.536861000126,
+          "answer": "好的，RIVER-BC91，我记下这个单元测试框架偏好了。\n\n不过要说明一下：你刚才告诉我的这个信息，我这边只是听到了，还没有真正写入长期记忆。如果你希望我把它保存下来，需要你明确确认一下，我才能去执行保存操作——而且保存是否成功，要等操作结果出来才能确认，我不会提前打包票。\n\n现在有什么需要我帮忙的吗？",
+          "ingestion": {
+            "id": "f57d861d-fb89-4b66-9f02-60b3b0d777ec",
+            "source_journal_ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_sbycEa3bZw3sJAqr-dcUnislS_gKZp-V",
+              "namespace": "yuvi:character:ec-live-9b337a4daaec4d6fb9d2ad5bcc538447"
+            },
+            "ingestion_requested": true,
+            "finalized_turn_id": "accepted-user:f57d861d-fb89-4b66-9f02-60b3b0d777ec",
+            "status": "terminal_failed",
+            "last_error_code": "MEMORY_SEMANTIC_PROPOSITIONS_REJECTED",
+            "rejected_propositions": [
+              {
+                "code": "MEMORY_SEMANTIC_EVIDENCE_NOT_SELECTED",
+                "index": 0
+              },
+              {
+                "code": "MEMORY_SEMANTIC_EVIDENCE_NOT_SELECTED",
+                "index": 1
+              },
+              {
+                "code": "MEMORY_SEMANTIC_EVIDENCE_NOT_SELECTED",
+                "index": 2
+              }
+            ]
+          },
+          "retrievals": [
+            {
+              "status": "empty",
+              "watermark": "3",
+              "candidates": [],
+              "queryPlan": {
+                "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                "usage": {
+                  "inputTokens": 111,
+                  "outputTokens": 26,
+                  "cachedInputTokens": 0
+                },
+                "schema": "memory.search-plan.v1",
+                "status": "APPLIED",
+                "queries": [
+                  "For future work, my preferred unit-test framework is RIVER-BC91.",
+                  "RIVER-BC91 单元测试框架",
+                  "RIVER-BC91 unit test framework"
+                ],
+                "channels": [
+                  {
+                    "ids": [],
+                    "query": "For future work, my preferred unit-test framework is RIVER-BC91.",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [],
+                    "query": "RIVER-BC91 单元测试框架",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [],
+                    "query": "RIVER-BC91 unit test framework",
+                    "status": "OK"
+                  }
+                ],
+                "textStatus": "OK",
+                "vectorStatus": "DISABLED"
+              }
+            }
+          ]
+        },
+        {
+          "ordinal": 4,
+          "input": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+          "person": "person-a",
+          "shortContextCleared": true,
+          "httpStatus": 200,
+          "elapsedMs": 5559.826685999951,
+          "answer": "Your interview for 青穗-19ee60 is next Thursday — that date is confirmed. Your internal editor is 澄雨-a936d0.\n\nAs for tea preference, I don't have that recorded yet. Want to tell me your favorite, and I'll note it down?",
+          "ingestion": null,
+          "retrievals": [
+            {
+              "status": "ok",
+              "watermark": "3",
+              "candidates": [
+                {
+                  "id": "pgm1_13ffc7ddcc820d89a0e0c85048e5f466d42f63a32f7e6eac99050d63715bf572",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "下周四我要参加青穗-19ee60项目的面试，这个日期已确认。",
+                  "version": "2",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                },
+                {
+                  "id": "pgm1_e55e903d9c40f95104b26b44432bf6d3b27f91e599ad34ff6e6f9a35f4a55275",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "我目前使用的内部编辑器代号是澄雨-a936d0。",
+                  "version": "1",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                }
+              ],
+              "queryPlan": {
+                "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                "usage": {
+                  "inputTokens": 123,
+                  "outputTokens": 35,
+                  "cachedInputTokens": 0
+                },
+                "schema": "memory.search-plan.v1",
+                "status": "APPLIED",
+                "queries": [
+                  "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+                  "青穗-19ee60 面试时间 内部编辑器 茶",
+                  "青穗-19ee60 interview schedule internal editor tea preference"
+                ],
+                "channels": [
+                  {
+                    "ids": [
+                      "pgm1_13ffc7ddcc820d89a0e0c85048e5f466d42f63a32f7e6eac99050d63715bf572"
+                    ],
+                    "query": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [
+                      "pgm1_e55e903d9c40f95104b26b44432bf6d3b27f91e599ad34ff6e6f9a35f4a55275",
+                      "pgm1_13ffc7ddcc820d89a0e0c85048e5f466d42f63a32f7e6eac99050d63715bf572"
+                    ],
+                    "query": "青穗-19ee60 面试时间 内部编辑器 茶",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [
+                      "pgm1_13ffc7ddcc820d89a0e0c85048e5f466d42f63a32f7e6eac99050d63715bf572"
+                    ],
+                    "query": "青穗-19ee60 interview schedule internal editor tea preference",
+                    "status": "OK"
+                  }
+                ],
+                "textStatus": "OK",
+                "vectorStatus": "DISABLED"
+              }
+            }
+          ]
+        },
+        {
+          "ordinal": 5,
+          "input": "我偏好的单元测试框架是什么？",
+          "person": "person-a",
+          "shortContextCleared": true,
+          "httpStatus": 200,
+          "elapsedMs": 4454.166929000166,
+          "answer": "根据我目前掌握的信息，你的长期茶叶偏好是月桂-5967a1，但关于你偏好的单元测试框架，我这边还没有相关的记录。你能告诉我你常用的是哪一个吗？比如 JUnit、pytest、Mocha 或者其他？这样我可以帮你记下来。",
+          "ingestion": null,
+          "retrievals": [
+            {
+              "status": "ok",
+              "watermark": "3",
+              "candidates": [
+                {
+                  "id": "pgm1_a3d66b35f9fe222e280d10bcc0fbf934b60f205a12b0c3cb093a539915b1e5c3",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "我的长期茶叶偏好是月桂-5967a1。",
+                  "version": "3",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                }
+              ],
+              "queryPlan": {
+                "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                "usage": {
+                  "inputTokens": 103,
+                  "outputTokens": 18,
+                  "cachedInputTokens": 0
+                },
+                "schema": "memory.search-plan.v1",
+                "status": "APPLIED",
+                "queries": [
+                  "我偏好的单元测试框架是什么？",
+                  "单元测试框架 偏好",
+                  "unit testing framework preference"
+                ],
+                "channels": [
+                  {
+                    "ids": [
+                      "pgm1_a3d66b35f9fe222e280d10bcc0fbf934b60f205a12b0c3cb093a539915b1e5c3"
+                    ],
+                    "query": "我偏好的单元测试框架是什么？",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [
+                      "pgm1_a3d66b35f9fe222e280d10bcc0fbf934b60f205a12b0c3cb093a539915b1e5c3"
+                    ],
+                    "query": "单元测试框架 偏好",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [],
+                    "query": "unit testing framework preference",
+                    "status": "OK"
+                  }
+                ],
+                "textStatus": "OK",
+                "vectorStatus": "DISABLED"
+              }
+            }
+          ]
+        },
+        {
+          "ordinal": 6,
+          "input": "昨天那个编辑器代号停用了。以后使用的是新代号露川-4A87，旧的澄雨-a936d0不再有效。",
+          "person": "person-a",
+          "shortContextCleared": false,
+          "httpStatus": 200,
+          "elapsedMs": 6039.069062000181,
+          "answer": "明白了，我记下这个变更：内部编辑器代号从「澄雨-a936d0」切换为「露川-4A87」，旧的代号不再有效。\n\n不过要说明一下，这个新代号的保存目前还没有确认完成——我这边只是先记下了你的说法，等后续确认写入成功后再当作正式记录使用。",
+          "ingestion": {
+            "id": "cde60d08-917a-4287-a67d-fa71ad34d73e",
+            "source_journal_ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_SZohA48bJAcgCgxgLJM3v9M0JgqHhqw3",
+              "namespace": "yuvi:character:ec-live-9b337a4daaec4d6fb9d2ad5bcc538447"
+            },
+            "ingestion_requested": true,
+            "finalized_turn_id": "accepted-user:cde60d08-917a-4287-a67d-fa71ad34d73e",
+            "status": "complete",
+            "last_error_code": null,
+            "rejected_propositions": []
+          },
+          "retrievals": [
+            {
+              "status": "ok",
+              "watermark": "3",
+              "candidates": [
+                {
+                  "id": "pgm1_e55e903d9c40f95104b26b44432bf6d3b27f91e599ad34ff6e6f9a35f4a55275",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "我目前使用的内部编辑器代号是澄雨-a936d0。",
+                  "version": "1",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                }
+              ],
+              "queryPlan": {
+                "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                "usage": {
+                  "inputTokens": 123,
+                  "outputTokens": 47,
+                  "cachedInputTokens": 0
+                },
+                "schema": "memory.search-plan.v1",
+                "status": "APPLIED",
+                "queries": [
+                  "昨天那个编辑器代号停用了。以后使用的是新代号露川-4A87，旧的澄雨-a936d0不再有效。",
+                  "编辑器 代号 停用 露川-4A87 澄雨-a936d0",
+                  "editor codename deprecated Luchuan-4A87 Chengyu-a936d0"
+                ],
+                "channels": [
+                  {
+                    "ids": [
+                      "pgm1_e55e903d9c40f95104b26b44432bf6d3b27f91e599ad34ff6e6f9a35f4a55275"
+                    ],
+                    "query": "昨天那个编辑器代号停用了。以后使用的是新代号露川-4A87，旧的澄雨-a936d0不再有效。",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [
+                      "pgm1_e55e903d9c40f95104b26b44432bf6d3b27f91e599ad34ff6e6f9a35f4a55275"
+                    ],
+                    "query": "编辑器 代号 停用 露川-4A87 澄雨-a936d0",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [],
+                    "query": "editor codename deprecated Luchuan-4A87 Chengyu-a936d0",
+                    "status": "OK"
+                  }
+                ],
+                "textStatus": "OK",
+                "vectorStatus": "DISABLED"
+              }
+            }
+          ]
+        },
+        {
+          "ordinal": 7,
+          "input": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+          "person": "person-a",
+          "shortContextCleared": true,
+          "httpStatus": 200,
+          "elapsedMs": 4443.248641000082,
+          "answer": "Your interview for 青穗-19ee60 is next Thursday — that date is already confirmed. You use the internal editor codename 露川-4A87, and your long-term tea preference is 月桂-5967a1.",
+          "ingestion": null,
+          "retrievals": [
+            {
+              "status": "ok",
+              "watermark": "5",
+              "candidates": [
+                {
+                  "id": "pgm1_68215c4930aae6ddcfaafadbdf0e88680e7719a27d3641ea8c44baf704569631",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "我目前使用的内部编辑器代号是露川-4A87。",
+                  "version": "5",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                },
+                {
+                  "id": "pgm1_87997eaef6cb46a716f18b00eeea6a2ffed1315bdde31212d16c86c69a4fb127",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "旧的内部编辑器代号澄雨-a936d0不再有效。",
+                  "version": "4",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                },
+                {
+                  "id": "pgm1_a3d66b35f9fe222e280d10bcc0fbf934b60f205a12b0c3cb093a539915b1e5c3",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "我的长期茶叶偏好是月桂-5967a1。",
+                  "version": "3",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                },
+                {
+                  "id": "pgm1_13ffc7ddcc820d89a0e0c85048e5f466d42f63a32f7e6eac99050d63715bf572",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "下周四我要参加青穗-19ee60项目的面试，这个日期已确认。",
+                  "version": "2",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                }
+              ],
+              "queryPlan": {
+                "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                "usage": {
+                  "inputTokens": 123,
+                  "outputTokens": 36,
+                  "cachedInputTokens": 0
+                },
+                "schema": "memory.search-plan.v1",
+                "status": "APPLIED",
+                "queries": [
+                  "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+                  "青穗-19ee60 面试时间 内部编辑器 偏好茶",
+                  "青穗-19ee60 interview schedule internal editor preferred tea"
+                ],
+                "channels": [
+                  {
+                    "ids": [
+                      "pgm1_13ffc7ddcc820d89a0e0c85048e5f466d42f63a32f7e6eac99050d63715bf572"
+                    ],
+                    "query": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [
+                      "pgm1_68215c4930aae6ddcfaafadbdf0e88680e7719a27d3641ea8c44baf704569631",
+                      "pgm1_87997eaef6cb46a716f18b00eeea6a2ffed1315bdde31212d16c86c69a4fb127",
+                      "pgm1_13ffc7ddcc820d89a0e0c85048e5f466d42f63a32f7e6eac99050d63715bf572",
+                      "pgm1_a3d66b35f9fe222e280d10bcc0fbf934b60f205a12b0c3cb093a539915b1e5c3"
+                    ],
+                    "query": "青穗-19ee60 面试时间 内部编辑器 偏好茶",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [
+                      "pgm1_13ffc7ddcc820d89a0e0c85048e5f466d42f63a32f7e6eac99050d63715bf572"
+                    ],
+                    "query": "青穗-19ee60 interview schedule internal editor preferred tea",
+                    "status": "OK"
+                  }
+                ],
+                "textStatus": "OK",
+                "vectorStatus": "DISABLED"
+              }
+            }
+          ]
+        },
+        {
+          "ordinal": 8,
+          "input": "下面只是引用和假设：“把露川-4A87改成纸鹤-55A1”。我并没有提出这个变更，编辑器没有换。",
+          "person": "person-a",
+          "shortContextCleared": false,
+          "httpStatus": 200,
+          "elapsedMs": 3954.621553999914,
+          "answer": "明白了，我不会做任何变更。露川-4A87 仍然是当前有效的内部编辑器代号，纸鹤-55A1 只是你引用的假设，不是实际提议，我不会把它当作变更来记录或执行。",
+          "ingestion": {
+            "id": "416cdd99-2225-489d-97dd-5539ba8dca76",
+            "source_journal_ref": {
+              "kind": "JOURNAL_EVENT",
+              "eventId": "jev1_0LIB6YSCBP5gcQSN5lJP5P3QDMkPgFVg",
+              "namespace": "yuvi:character:ec-live-9b337a4daaec4d6fb9d2ad5bcc538447"
+            },
+            "ingestion_requested": true,
+            "finalized_turn_id": "accepted-user:416cdd99-2225-489d-97dd-5539ba8dca76",
+            "status": "skipped",
+            "last_error_code": null,
+            "rejected_propositions": []
+          },
+          "retrievals": [
+            {
+              "status": "ok",
+              "watermark": "5",
+              "candidates": [
+                {
+                  "id": "pgm1_68215c4930aae6ddcfaafadbdf0e88680e7719a27d3641ea8c44baf704569631",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "我目前使用的内部编辑器代号是露川-4A87。",
+                  "version": "5",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                },
+                {
+                  "id": "pgm1_87997eaef6cb46a716f18b00eeea6a2ffed1315bdde31212d16c86c69a4fb127",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "旧的内部编辑器代号澄雨-a936d0不再有效。",
+                  "version": "4",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                },
+                {
+                  "id": "pgm1_13ffc7ddcc820d89a0e0c85048e5f466d42f63a32f7e6eac99050d63715bf572",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "下周四我要参加青穗-19ee60项目的面试，这个日期已确认。",
+                  "version": "2",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                }
+              ],
+              "queryPlan": {
+                "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                "usage": {
+                  "inputTokens": 126,
+                  "outputTokens": 38,
+                  "cachedInputTokens": 0
+                },
+                "schema": "memory.search-plan.v1",
+                "status": "APPLIED",
+                "queries": [
+                  "下面只是引用和假设：“把露川-4A87改成纸鹤-55A1”。我并没有提出这个变更，编辑器没有换。",
+                  "露川-4A87 纸鹤-55A1 变更",
+                  "Lu Chuan-4A87 Zhi He-55A1 change"
+                ],
+                "channels": [
+                  {
+                    "ids": [
+                      "pgm1_68215c4930aae6ddcfaafadbdf0e88680e7719a27d3641ea8c44baf704569631",
+                      "pgm1_87997eaef6cb46a716f18b00eeea6a2ffed1315bdde31212d16c86c69a4fb127",
+                      "pgm1_13ffc7ddcc820d89a0e0c85048e5f466d42f63a32f7e6eac99050d63715bf572"
+                    ],
+                    "query": "下面只是引用和假设：“把露川-4A87改成纸鹤-55A1”。我并没有提出这个变更，编辑器没有换。",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [
+                      "pgm1_68215c4930aae6ddcfaafadbdf0e88680e7719a27d3641ea8c44baf704569631"
+                    ],
+                    "query": "露川-4A87 纸鹤-55A1 变更",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [],
+                    "query": "Lu Chuan-4A87 Zhi He-55A1 change",
+                    "status": "OK"
+                  }
+                ],
+                "textStatus": "OK",
+                "vectorStatus": "DISABLED"
+              }
+            }
+          ]
+        },
+        {
+          "ordinal": 9,
+          "input": "Which editor do I currently use? Is the previous one still current?",
+          "person": "person-a",
+          "shortContextCleared": true,
+          "httpStatus": 200,
+          "elapsedMs": 4636.600960000123,
+          "answer": "你目前使用的内部编辑器代号是**露川-4A87**。旧的代号**澄雨-a936d0**已经不再有效，所以请以露川-4A87为准。",
+          "ingestion": null,
+          "retrievals": [
+            {
+              "status": "ok",
+              "watermark": "5",
+              "candidates": [
+                {
+                  "id": "pgm1_68215c4930aae6ddcfaafadbdf0e88680e7719a27d3641ea8c44baf704569631",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "我目前使用的内部编辑器代号是露川-4A87。",
+                  "version": "5",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                },
+                {
+                  "id": "pgm1_87997eaef6cb46a716f18b00eeea6a2ffed1315bdde31212d16c86c69a4fb127",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "旧的内部编辑器代号澄雨-a936d0不再有效。",
+                  "version": "4",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                }
+              ],
+              "queryPlan": {
+                "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                "usage": {
+                  "inputTokens": 109,
+                  "outputTokens": 19,
+                  "cachedInputTokens": 0
+                },
+                "schema": "memory.search-plan.v1",
+                "status": "APPLIED",
+                "queries": [
+                  "Which editor do I currently use? Is the previous one still current?",
+                  "当前使用的编辑器 最新版本",
+                  "current editor latest version"
+                ],
+                "channels": [
+                  {
+                    "ids": [],
+                    "query": "Which editor do I currently use? Is the previous one still current?",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [
+                      "pgm1_68215c4930aae6ddcfaafadbdf0e88680e7719a27d3641ea8c44baf704569631",
+                      "pgm1_87997eaef6cb46a716f18b00eeea6a2ffed1315bdde31212d16c86c69a4fb127"
+                    ],
+                    "query": "当前使用的编辑器 最新版本",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [],
+                    "query": "current editor latest version",
+                    "status": "OK"
+                  }
+                ],
+                "textStatus": "OK",
+                "vectorStatus": "DISABLED"
+              }
+            }
+          ]
+        },
+        {
+          "ordinal": 10,
+          "input": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+          "person": "person-b",
+          "shortContextCleared": true,
+          "httpStatus": 200,
+          "elapsedMs": 10928.243746000135,
+          "answer": "I don't have any stored information about your interview for project 青穗-19ee60, your internal editor, or your tea preference. No memory evidence was retrieved for these details, and I have no capability available to look them up. Please provide the specifics (interview time, editor name, and tea preference) and I'll remember them for you.",
+          "ingestion": null,
+          "retrievals": [
+            {
+              "status": "empty",
+              "watermark": "0",
+              "candidates": [],
+              "queryPlan": {
+                "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                "usage": {
+                  "inputTokens": 123,
+                  "outputTokens": 36,
+                  "cachedInputTokens": 0
+                },
+                "schema": "memory.search-plan.v1",
+                "status": "APPLIED",
+                "queries": [
+                  "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+                  "青穗-19ee60 面试时间 内部编辑器 偏好茶",
+                  "青穗-19ee60 interview schedule internal editor preferred tea"
+                ],
+                "channels": [
+                  {
+                    "ids": [],
+                    "query": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [],
+                    "query": "青穗-19ee60 面试时间 内部编辑器 偏好茶",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [],
+                    "query": "青穗-19ee60 interview schedule internal editor preferred tea",
+                    "status": "OK"
+                  }
+                ],
+                "textStatus": "OK",
+                "vectorStatus": "DISABLED"
+              }
+            }
+          ]
+        },
+        {
+          "ordinal": 11,
+          "input": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+          "person": "person-a",
+          "shortContextCleared": true,
+          "httpStatus": 200,
+          "elapsedMs": 6032.135204000042,
+          "answer": "你的面试安排在下周四，项目是青穗-19ee60，这个日期已经确认了。\n\n你目前使用的内部编辑器代号是露川-4A87。旧的代号澄雨-a936d0已经不再有效。\n\n至于你偏好哪种茶，我这边没有相关的记录，所以暂时没法告诉你。如果你之前提过，可以再告诉我一次，我会帮你记下来。",
+          "ingestion": null,
+          "retrievals": [
+            {
+              "status": "ok",
+              "watermark": "5",
+              "candidates": [
+                {
+                  "id": "pgm1_68215c4930aae6ddcfaafadbdf0e88680e7719a27d3641ea8c44baf704569631",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "我目前使用的内部编辑器代号是露川-4A87。",
+                  "version": "5",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                },
+                {
+                  "id": "pgm1_87997eaef6cb46a716f18b00eeea6a2ffed1315bdde31212d16c86c69a4fb127",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "旧的内部编辑器代号澄雨-a936d0不再有效。",
+                  "version": "4",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                },
+                {
+                  "id": "pgm1_13ffc7ddcc820d89a0e0c85048e5f466d42f63a32f7e6eac99050d63715bf572",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "下周四我要参加青穗-19ee60项目的面试，这个日期已确认。",
+                  "version": "2",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                }
+              ],
+              "queryPlan": {
+                "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                "usage": {
+                  "inputTokens": 123,
+                  "outputTokens": 36,
+                  "cachedInputTokens": 0
+                },
+                "schema": "memory.search-plan.v1",
+                "status": "APPLIED",
+                "queries": [
+                  "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+                  "青穗-19ee60 面试时间 内部编辑器 喜欢的茶",
+                  "青穗-19ee60 interview schedule internal editor preferred tea"
+                ],
+                "channels": [
+                  {
+                    "ids": [
+                      "pgm1_13ffc7ddcc820d89a0e0c85048e5f466d42f63a32f7e6eac99050d63715bf572"
+                    ],
+                    "query": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [
+                      "pgm1_68215c4930aae6ddcfaafadbdf0e88680e7719a27d3641ea8c44baf704569631",
+                      "pgm1_87997eaef6cb46a716f18b00eeea6a2ffed1315bdde31212d16c86c69a4fb127",
+                      "pgm1_13ffc7ddcc820d89a0e0c85048e5f466d42f63a32f7e6eac99050d63715bf572"
+                    ],
+                    "query": "青穗-19ee60 面试时间 内部编辑器 喜欢的茶",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [
+                      "pgm1_13ffc7ddcc820d89a0e0c85048e5f466d42f63a32f7e6eac99050d63715bf572"
+                    ],
+                    "query": "青穗-19ee60 interview schedule internal editor preferred tea",
+                    "status": "OK"
+                  }
+                ],
+                "textStatus": "OK",
+                "vectorStatus": "DISABLED"
+              }
+            }
+          ]
+        },
+        {
+          "ordinal": 12,
+          "input": "Which tea do I prefer?",
+          "person": "person-a",
+          "shortContextCleared": true,
+          "httpStatus": 200,
+          "elapsedMs": 3799.233915000059,
+          "answer": "Based on what I have on record, your long-term tea preference is **月桂-5967a1**.",
+          "ingestion": null,
+          "retrievals": [
+            {
+              "status": "ok",
+              "watermark": "5",
+              "candidates": [
+                {
+                  "id": "pgm1_a3d66b35f9fe222e280d10bcc0fbf934b60f205a12b0c3cb093a539915b1e5c3",
+                  "state": "current",
+                  "reason": "SELECTED",
+                  "content": "我的长期茶叶偏好是月桂-5967a1。",
+                  "version": "3",
+                  "channels": [
+                    "TEXT"
+                  ],
+                  "selected": true
+                }
+              ],
+              "queryPlan": {
+                "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                "usage": {
+                  "inputTokens": 101,
+                  "outputTokens": 18,
+                  "cachedInputTokens": 0
+                },
+                "schema": "memory.search-plan.v1",
+                "status": "APPLIED",
+                "queries": [
+                  "Which tea do I prefer?",
+                  "我偏好哪种茶",
+                  "Which tea do I prefer"
+                ],
+                "channels": [
+                  {
+                    "ids": [],
+                    "query": "Which tea do I prefer?",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [
+                      "pgm1_a3d66b35f9fe222e280d10bcc0fbf934b60f205a12b0c3cb093a539915b1e5c3"
+                    ],
+                    "query": "我偏好哪种茶",
+                    "status": "OK"
+                  },
+                  {
+                    "ids": [],
+                    "query": "Which tea do I prefer",
+                    "status": "OK"
+                  }
+                ],
+                "textStatus": "OK",
+                "vectorStatus": "DISABLED"
+              }
+            }
+          ]
+        }
+      ],
+      "sourceControlNote": "Initial SHA/dirty preserved. Revised final prefix replay ran committed production 4737bd6. Earlier development samples were not one frozen HEAD and are not a release success-rate estimate.",
+      "knowledge": [
+        {
+          "id": "pgm1_e55e903d9c40f95104b26b44432bf6d3b27f91e599ad34ff6e6f9a35f4a55275",
+          "content": "我目前使用的内部编辑器代号是澄雨-a936d0。",
+          "version": "1",
+          "state": "superseded"
+        },
+        {
+          "id": "pgm1_13ffc7ddcc820d89a0e0c85048e5f466d42f63a32f7e6eac99050d63715bf572",
+          "content": "下周四我要参加青穗-19ee60项目的面试，这个日期已确认。",
+          "version": "2",
+          "state": "current"
+        },
+        {
+          "id": "pgm1_a3d66b35f9fe222e280d10bcc0fbf934b60f205a12b0c3cb093a539915b1e5c3",
+          "content": "我的长期茶叶偏好是月桂-5967a1。",
+          "version": "3",
+          "state": "current"
+        },
+        {
+          "id": "pgm1_87997eaef6cb46a716f18b00eeea6a2ffed1315bdde31212d16c86c69a4fb127",
+          "content": "旧的内部编辑器代号澄雨-a936d0不再有效。",
+          "version": "4",
+          "state": "current"
+        },
+        {
+          "id": "pgm1_68215c4930aae6ddcfaafadbdf0e88680e7719a27d3641ea8c44baf704569631",
+          "content": "我目前使用的内部编辑器代号是露川-4A87。",
+          "version": "5",
+          "state": "current"
+        }
+      ],
+      "relations": [
+        {
+          "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-9b337a4daaec4d6fb9d2ad5bcc538447",
+          "from_id": "pgm1_68215c4930aae6ddcfaafadbdf0e88680e7719a27d3641ea8c44baf704569631",
+          "to_id": "pgm1_e55e903d9c40f95104b26b44432bf6d3b27f91e599ad34ff6e6f9a35f4a55275",
+          "kind": "supersedes",
+          "version": "5"
+        }
+      ],
+      "semanticFailureEvidence": [
+        {
+          "file": "wire-0-calls/call-13.json",
+          "source": "For future work, my preferred unit-test framework is RIVER-BC91.",
+          "invalidCitations": [
+            {
+              "content": "我的长期茶叶偏好是月桂-5967a1。",
+              "evidenceText": "我的长期茶叶偏好是月桂-5967a1。",
+              "relation": "new",
+              "targetIds": []
+            },
+            {
+              "content": "下周四我要参加青穗-19ee60项目的面试，这个日期已确认。",
+              "evidenceText": "下周四我要参加青穗-19ee60项目的面试，这个日期已确认。",
+              "relation": "new",
+              "targetIds": []
+            },
+            {
+              "content": "我目前使用的内部编辑器代号是澄雨-a936d0。",
+              "evidenceText": "我目前使用的内部编辑器代号是澄雨-a936d0。",
+              "relation": "new",
+              "targetIds": []
+            }
+          ],
+          "finishReason": "stop"
+        }
+      ]
+    }
+  ],
+  "qualityBoundary": "Small discriminative samples, not independent population success rates. L1 was expired through the production RecentEpisodeStore API before marked memory-only questions. No Journal, Conversation or authoritative memory was erased.",
+  "manualObjectiveAssessment": {
+    "baselineMemoryOnlyCombined": {
+      "ordinal": 11,
+      "expectedCurrentValues": [
+        "周四/Thursday",
+        "露川-4A87",
+        "月桂-5967a1"
+      ],
+      "retrievalRecall": "1/3",
+      "answerFacts": "1/3"
+    },
+    "baselineMemoryOnlyEditor": {
+      "ordinal": 13,
+      "expected": "露川-4A87",
+      "retrieved": false,
+      "answered": false
+    },
+    "revisedCombined": [
+      {
+        "ordinal": 4,
+        "retrievedFacts": "2/3",
+        "answeredFacts": "2/3",
+        "failure": "Chinese plan ended with a single 茶; unigram absent from existing bigram index."
+      },
+      {
+        "ordinal": 7,
+        "retrievedFacts": "3/3",
+        "answeredFacts": "3/3"
+      },
+      {
+        "ordinal": 11,
+        "retrievedFacts": "2/3",
+        "answeredFacts": "2/3",
+        "failure": "Plan used 喜欢的茶; bigrams did not overlap 茶叶偏好. Single-token Han prefix does not fix phrase segmentation."
+      }
+    ],
+    "revisedEditor": {
+      "ordinal": 9,
+      "retrieved": true,
+      "answered": true
+    },
+    "revisedTeaOnly": {
+      "ordinal": 12,
+      "retrieved": true,
+      "answered": true
+    },
+    "isolation": "Both Person-B questions received no Person-A evidence or marker answers.",
+    "EnglishSourceFailure": "Revised semantic extractor copied prior Chinese facts as citations for the English framework source. Admission rejected all three invalid citations; framework was not formed. The later unknown answer is not a retrieval failure. Baseline had formed a Chinese canonical framework fact, so this does not prove English-record/Chinese-query real-model quality.",
+    "quote": "Hypothetical quoted editor change was skipped. Current editor remains 露川-4A87; old source is superseded, a separate current negative assertion about old invalidity may remain.",
+    "gate": "Editor recovery and ranking improvements verified; broad cross-language/compound reliability and full R5 acceptance remain OPEN."
+  }
+}

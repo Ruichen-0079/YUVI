@@ -4,6 +4,35 @@ import { randomUUID } from "node:crypto";
 import { canonicalScope, MemoryAuthorityError, type AuthorityQuery } from "./types.js";
 import type { MemoryRetrievalInput, MemoryRetrievalOutcome } from "../provider.js";
 
+export const RetrievalQueryPlanSchema = z
+  .object({
+    schema: z.literal("memory.search-plan.v1"),
+    status: z.enum(["DISABLED", "APPLIED", "UNAVAILABLE"]),
+    queries: z.array(z.string().max(4000)).max(3),
+    model: z.string().max(512).nullable(),
+    usage: z
+      .object({
+        inputTokens: z.number().nonnegative().optional(),
+        outputTokens: z.number().nonnegative().optional(),
+        cachedInputTokens: z.number().nonnegative().optional()
+      })
+      .strip()
+      .nullable(),
+    channels: z
+      .array(
+        z
+          .object({
+            query: z.string().max(4000),
+            status: z.enum(["OK", "UNAVAILABLE"]),
+            ids: z.array(z.string().max(1024)).max(32)
+          })
+          .strip()
+      )
+      .max(6),
+    textStatus: z.enum(["OK", "PARTIAL_OR_UNAVAILABLE"]),
+    vectorStatus: z.enum(["DISABLED", "OK", "UNAVAILABLE", "PENDING"])
+  })
+  .strip();
 export type RetrievalCandidate = {
   id: string;
   version: string;
@@ -49,7 +78,12 @@ export class MemoryRetrievalEvidence {
   async record(
     input: MemoryRetrievalInput,
     outcome: MemoryRetrievalOutcome,
-    detail: { watermark: string; candidates: RetrievalCandidate[]; modelTag?: string | undefined }
+    detail: {
+      watermark: string;
+      candidates: RetrievalCandidate[];
+      modelTag?: string | undefined;
+      queryPlan?: unknown;
+    }
   ) {
     if (!input.scope || !input.access)
       throw new MemoryAuthorityError("MEMORY_EVIDENCE_AUTHORITY_REQUIRED");
@@ -60,8 +94,8 @@ export class MemoryRetrievalEvidence {
     );
     const id = `mre_${randomUUID()}`;
     await this.db.query(
-      `insert into memory_retrieval_runs(scope,retrieval_id,trace_id,session_id,source_ref,reader,query,status,error_code,limited,watermark,model_tag,candidates,candidate_count,candidate_evidence_limited)
-      values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
+      `insert into memory_retrieval_runs(scope,retrieval_id,trace_id,session_id,source_ref,reader,query,status,error_code,limited,watermark,model_tag,candidates,candidate_count,candidate_evidence_limited,query_plan)
+      values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`,
       [
         input.scope,
         id,
@@ -77,7 +111,8 @@ export class MemoryRetrievalEvidence {
         detail.modelTag ?? null,
         JSON.stringify(disclosed(z.array(candidateSchema).max(64), candidates.slice(0, 64))),
         candidates.length,
-        candidates.length > 64
+        candidates.length > 64,
+        detail.queryPlan ? disclosed(RetrievalQueryPlanSchema, detail.queryPlan) : null
       ]
     );
     return id;
@@ -211,6 +246,7 @@ export class MemoryRetrievalEvidence {
         ).slice(0, 20),
         consumersLimited: Array.isArray(e["consumers"]) && e["consumers"].length > 20
       })),
+      queryPlan: row["query_plan"] ? disclosed(RetrievalQueryPlanSchema, row["query_plan"]) : null,
       contextsLimited: exposures.length > 100
     };
   }

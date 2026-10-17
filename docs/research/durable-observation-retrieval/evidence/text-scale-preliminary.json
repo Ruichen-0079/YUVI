@@ -1,0 +1,438 @@
+{
+  "schema": "memory.text-quality-scale.v1",
+  "sha": "066072d44e3ca035cde46c1e297198b6502498ae",
+  "dirty": true,
+  "started": "2026-10-17T03:50:48.129Z",
+  "kind": "actual-postgresql-synthetic-corpus-production-reader",
+  "cache": "hot after warmup, OS cache not evicted",
+  "logicalCPUs": 24,
+  "ramBytes": 50144698368,
+  "cases": [
+    {
+      "query": "synthetic object_51",
+      "expected": "vs_51",
+      "baseline": [
+        "vs_51",
+        "vs_371051",
+        "vs_371087",
+        "vs_371086",
+        "vs_371085",
+        "vs_371084",
+        "vs_371083",
+        "vs_371082"
+      ],
+      "revised": [
+        "vs_51",
+        "vs_999551",
+        "vs_999051",
+        "vs_998551",
+        "vs_998051",
+        "vs_997551",
+        "vs_997051",
+        "vs_996551"
+      ],
+      "baselineRecallAt8": true,
+      "revisedRecallAt8": true,
+      "states": [
+        "current",
+        "current",
+        "current",
+        "current",
+        "current",
+        "current",
+        "current",
+        "current"
+      ]
+    },
+    {
+      "query": "synthetic object_530001",
+      "expected": "vs_530001",
+      "baseline": [
+        "vs_371614",
+        "vs_371613",
+        "vs_371612",
+        "vs_371611",
+        "vs_371609",
+        "vs_371608",
+        "vs_371607",
+        "vs_371606"
+      ],
+      "revised": [
+        "vs_530001",
+        "vs_1000000",
+        "vs_999999",
+        "vs_999998",
+        "vs_999997",
+        "vs_999996",
+        "vs_999995",
+        "vs_999994"
+      ],
+      "baselineRecallAt8": false,
+      "revisedRecallAt8": true,
+      "states": [
+        "current",
+        "current",
+        "current",
+        "current",
+        "current",
+        "current",
+        "current",
+        "current"
+      ]
+    },
+    {
+      "query": "synthetic object_930001",
+      "expected": "vs_930001",
+      "baseline": [
+        "vs_372138",
+        "vs_372137",
+        "vs_372136",
+        "vs_372135",
+        "vs_372134",
+        "vs_372133",
+        "vs_372132",
+        "vs_372131"
+      ],
+      "revised": [
+        "vs_930001",
+        "vs_1000000",
+        "vs_999999",
+        "vs_999998",
+        "vs_999997",
+        "vs_999996",
+        "vs_999995",
+        "vs_999994"
+      ],
+      "baselineRecallAt8": false,
+      "revisedRecallAt8": true,
+      "states": [
+        "current",
+        "current",
+        "current",
+        "current",
+        "current",
+        "current",
+        "current",
+        "current"
+      ]
+    }
+  ],
+  "overview": {
+    "schema": "memory.overview.v1",
+    "status": "OK",
+    "version": "1000050",
+    "projectionVersion": "1000050",
+    "records": "1000050",
+    "current": "900001",
+    "legacy": "50",
+    "unattributed": "0",
+    "integrity": "NOT_VERIFIED",
+    "compatibility": "LEGACY_UNVERIFIED_PRESENT"
+  },
+  "selective": {
+    "n": 20,
+    "p50": 1.0253099999999904,
+    "p95": 1.5014360000000124,
+    "p99": 1.5014360000000124
+  },
+  "mixed": {
+    "n": 20,
+    "p50": 130.37724400000002,
+    "p95": 133.45828299999994,
+    "p99": 133.45828299999994
+  },
+  "broad": {
+    "n": 20,
+    "p50": 117.10872799999925,
+    "p95": 120.07895600000029,
+    "p99": 120.07895600000029
+  },
+  "baselineMixed": {
+    "n": 20,
+    "p50": 1.3300420000005033,
+    "p95": 1.5641689999993105,
+    "p99": 1.5641689999993105
+  },
+  "plan": {
+    "QUERY PLAN": [
+      {
+        "Plan": {
+          "Node Type": "Limit",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 76608.78,
+          "Total Cost": 76608.8,
+          "Plan Rows": 8,
+          "Plan Width": 44,
+          "Actual Startup Time": 134.933,
+          "Actual Total Time": 136.039,
+          "Actual Rows": 8,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 5613,
+          "Shared Read Blocks": 44670,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Limit",
+              "Parent Relationship": "InitPlan",
+              "Subplan Name": "CTE ranked",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 76607.41,
+              "Total Cost": 76608.46,
+              "Plan Rows": 9,
+              "Plan Width": 88,
+              "Actual Startup Time": 134.914,
+              "Actual Total Time": 136.022,
+              "Actual Rows": 9,
+              "Actual Loops": 1,
+              "Shared Hit Blocks": 5613,
+              "Shared Read Blocks": 44670,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0,
+              "Plans": [
+                {
+                  "Node Type": "Seq Scan",
+                  "Parent Relationship": "InitPlan",
+                  "Subplan Name": "InitPlan 1 (returns $0)",
+                  "Parallel Aware": false,
+                  "Async Capable": false,
+                  "Relation Name": "memory_authority_scopes",
+                  "Alias": "memory_authority_scopes",
+                  "Startup Cost": 0,
+                  "Total Cost": 1.01,
+                  "Plan Rows": 1,
+                  "Plan Width": 8,
+                  "Actual Startup Time": 0.002,
+                  "Actual Total Time": 0.003,
+                  "Actual Rows": 1,
+                  "Actual Loops": 1,
+                  "Filter": "(scope = 'yuvi:v1:user:r5p2-vector-scale:character:r5p2-vector-scale'::text)",
+                  "Rows Removed by Filter": 1,
+                  "Shared Hit Blocks": 1,
+                  "Shared Read Blocks": 0,
+                  "Shared Dirtied Blocks": 0,
+                  "Shared Written Blocks": 0,
+                  "Local Hit Blocks": 0,
+                  "Local Read Blocks": 0,
+                  "Local Dirtied Blocks": 0,
+                  "Local Written Blocks": 0,
+                  "Temp Read Blocks": 0,
+                  "Temp Written Blocks": 0
+                },
+                {
+                  "Node Type": "Gather Merge",
+                  "Parent Relationship": "Outer",
+                  "Parallel Aware": false,
+                  "Async Capable": false,
+                  "Startup Cost": 76606.39,
+                  "Total Cost": 164174.81,
+                  "Plan Rows": 750534,
+                  "Plan Width": 88,
+                  "Actual Startup Time": 134.913,
+                  "Actual Total Time": 136.017,
+                  "Actual Rows": 9,
+                  "Actual Loops": 1,
+                  "Workers Planned": 2,
+                  "Params Evaluated": [
+                    "$0"
+                  ],
+                  "Workers Launched": 2,
+                  "Shared Hit Blocks": 5613,
+                  "Shared Read Blocks": 44670,
+                  "Shared Dirtied Blocks": 0,
+                  "Shared Written Blocks": 0,
+                  "Local Hit Blocks": 0,
+                  "Local Read Blocks": 0,
+                  "Local Dirtied Blocks": 0,
+                  "Local Written Blocks": 0,
+                  "Temp Read Blocks": 0,
+                  "Temp Written Blocks": 0,
+                  "Plans": [
+                    {
+                      "Node Type": "Sort",
+                      "Parent Relationship": "Outer",
+                      "Parallel Aware": false,
+                      "Async Capable": false,
+                      "Startup Cost": 75606.37,
+                      "Total Cost": 76544.54,
+                      "Plan Rows": 375267,
+                      "Plan Width": 88,
+                      "Actual Startup Time": 133.236,
+                      "Actual Total Time": 133.237,
+                      "Actual Rows": 9,
+                      "Actual Loops": 3,
+                      "Sort Key": [
+                        "(ts_rank(memory_authority_projection_rows.search, '''synthetic'' | ''object'' <-> ''530001'''::tsquery)) DESC",
+                        "memory_authority_projection_rows.version DESC",
+                        "memory_authority_projection_rows.id"
+                      ],
+                      "Sort Method": "top-N heapsort",
+                      "Sort Space Used": 27,
+                      "Sort Space Type": "Memory",
+                      "Shared Hit Blocks": 5612,
+                      "Shared Read Blocks": 44670,
+                      "Shared Dirtied Blocks": 0,
+                      "Shared Written Blocks": 0,
+                      "Local Hit Blocks": 0,
+                      "Local Read Blocks": 0,
+                      "Local Dirtied Blocks": 0,
+                      "Local Written Blocks": 0,
+                      "Temp Read Blocks": 0,
+                      "Temp Written Blocks": 0,
+                      "Workers": [
+                        {
+                          "Worker Number": 0,
+                          "Sort Method": "top-N heapsort",
+                          "Sort Space Used": 27,
+                          "Sort Space Type": "Memory"
+                        },
+                        {
+                          "Worker Number": 1,
+                          "Sort Method": "top-N heapsort",
+                          "Sort Space Used": 27,
+                          "Sort Space Type": "Memory"
+                        }
+                      ],
+                      "Plans": [
+                        {
+                          "Node Type": "Seq Scan",
+                          "Parent Relationship": "Outer",
+                          "Parallel Aware": true,
+                          "Async Capable": false,
+                          "Relation Name": "memory_authority_projection_rows",
+                          "Alias": "memory_authority_projection_rows",
+                          "Startup Cost": 0,
+                          "Total Cost": 67782.19,
+                          "Plan Rows": 375267,
+                          "Plan Width": 88,
+                          "Actual Startup Time": 0.015,
+                          "Actual Total Time": 94.038,
+                          "Actual Rows": 300000,
+                          "Actual Loops": 3,
+                          "Filter": "((state = ANY ('{current,conflicted}'::text[])) AND (search @@ '''synthetic'' | ''object'' <-> ''530001'''::tsquery) AND (scope = 'yuvi:v1:user:r5p2-vector-scale:character:r5p2-vector-scale'::text) AND (generation = $0))",
+                          "Rows Removed by Filter": 366700,
+                          "Shared Hit Blocks": 5506,
+                          "Shared Read Blocks": 44670,
+                          "Shared Dirtied Blocks": 0,
+                          "Shared Written Blocks": 0,
+                          "Local Hit Blocks": 0,
+                          "Local Read Blocks": 0,
+                          "Local Dirtied Blocks": 0,
+                          "Local Written Blocks": 0,
+                          "Temp Read Blocks": 0,
+                          "Temp Written Blocks": 0,
+                          "Workers": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "Node Type": "Sort",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 0.32,
+              "Total Cost": 0.35,
+              "Plan Rows": 9,
+              "Plan Width": 44,
+              "Actual Startup Time": 134.933,
+              "Actual Total Time": 134.934,
+              "Actual Rows": 8,
+              "Actual Loops": 1,
+              "Sort Key": [
+                "ranked.relevance DESC",
+                "ranked.version DESC",
+                "ranked.id"
+              ],
+              "Sort Method": "quicksort",
+              "Sort Space Used": 25,
+              "Sort Space Type": "Memory",
+              "Shared Hit Blocks": 2008,
+              "Shared Read Blocks": 15761,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0,
+              "Plans": [
+                {
+                  "Node Type": "CTE Scan",
+                  "Parent Relationship": "Outer",
+                  "Parallel Aware": false,
+                  "Async Capable": false,
+                  "CTE Name": "ranked",
+                  "Alias": "ranked",
+                  "Startup Cost": 0,
+                  "Total Cost": 0.18,
+                  "Plan Rows": 9,
+                  "Plan Width": 44,
+                  "Actual Startup Time": 134.918,
+                  "Actual Total Time": 134.927,
+                  "Actual Rows": 9,
+                  "Actual Loops": 1,
+                  "Shared Hit Blocks": 2008,
+                  "Shared Read Blocks": 15761,
+                  "Shared Dirtied Blocks": 0,
+                  "Shared Written Blocks": 0,
+                  "Local Hit Blocks": 0,
+                  "Local Read Blocks": 0,
+                  "Local Dirtied Blocks": 0,
+                  "Local Written Blocks": 0,
+                  "Temp Read Blocks": 0,
+                  "Temp Written Blocks": 0
+                }
+              ]
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 1,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.09,
+        "Triggers": [],
+        "Execution Time": 136.06
+      }
+    ]
+  },
+  "sizes": [
+    {
+      "relname": "memory_authority_records",
+      "bytes": "1372913664"
+    },
+    {
+      "relname": "memory_authority_projection_rows",
+      "bytes": "1758748672"
+    }
+  ],
+  "boundary": "Global rank removes the correctness cliff. Very broad lexical queries can still examine all matching current records; this is not a sublinear top-K index or complete R5 scalability acceptance.",
+  "measurementCaveat": "Preliminary baseline returned candidate IDs only; excluded from final latency comparison. See text-scale.json for the exact original row-loading query and captured production revised SQL."
+}

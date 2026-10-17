@@ -1,0 +1,26 @@
+{
+  "queryExpansion": false,
+  "turns": [
+    {
+      "text": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+      "writeMemory": false,
+      "clearShortContext": true
+    },
+    {
+      "text": "我偏好的单元测试框架是什么？",
+      "writeMemory": false,
+      "clearShortContext": true
+    },
+    {
+      "text": "Which editor do I currently use? Is the previous one still current?",
+      "writeMemory": false,
+      "clearShortContext": true
+    },
+    {
+      "text": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+      "writeMemory": false,
+      "person": "person-b",
+      "clearShortContext": true
+    }
+  ]
+}

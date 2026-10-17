@@ -18,6 +18,7 @@ export type ServerConfig = {
   runtimeMode: "development" | "test" | "production";
   eventBus: "in-memory" | "nats";
   memoryExtractor: "rule-based" | "llm";
+  memoryQueryExpansion: boolean;
   directContext: {
     enabled: boolean;
     maxTurns?: number;
@@ -80,6 +81,7 @@ export function loadServerConfig(
     runtimeMode: parseRuntimeMode(env["RUNTIME_MODE"] ?? env["NODE_ENV"]),
     eventBus: parseEventBus(env["EVENT_BUS"] ?? env["EVENT_BUS_DRIVER"]),
     memoryExtractor: parseMemoryExtractorDriver(env["MEMORY_EXTRACTOR"]),
+    memoryQueryExpansion: parseBoolean(env["MEMORY_QUERY_EXPANSION_ENABLED"], false),
     directContext: {
       enabled: parseBoolean(env["DIRECT_CONTEXT_ENABLED"], true),
       ...(env["DIRECT_CONTEXT_MAX_TURNS"]?.trim() && env["DIRECT_CONTEXT_MAX_TURNS"] !== "auto"

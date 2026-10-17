@@ -15,7 +15,8 @@ export async function assertMemoryAuthorityDatabase(
       m.name.startsWith("037_") ||
       m.name.startsWith("038_") ||
       m.name.startsWith("039_") ||
-      m.name.startsWith("040_")
+      m.name.startsWith("040_") ||
+      m.name.startsWith("041_")
   );
   const receipts = (
     await db.query("select name,digest from yuvi_schema_migrations where name=any($1::text[])", [
@@ -23,7 +24,7 @@ export async function assertMemoryAuthorityDatabase(
     ])
   ).rows;
   if (
-    required.length !== 8 ||
+    required.length !== 9 ||
     required.some(
       (m) =>
         receipts.find((r) => r["name"] === m.name)?.["digest"] !==

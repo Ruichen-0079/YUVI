@@ -39,7 +39,7 @@ globalThis.fetch = async (url, init) => {
   const originalBody = body;
   if (String(url).endsWith("/chat/completions") && body) {
     if (++modelCalls > 60) throw new Error("R5 model call budget exhausted");
-    body = { ...body, temperature: 0, max_tokens: 2048 };
+    body = { ...body, temperature: 0, max_tokens: Math.min(2048, Number(body.max_tokens ?? 2048)) };
     init = { ...init, body: JSON.stringify(body) };
   }
   const start = performance.now();

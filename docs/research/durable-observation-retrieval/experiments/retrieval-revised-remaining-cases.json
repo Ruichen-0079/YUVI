@@ -1,0 +1,39 @@
+{
+  "queryExpansion": true,
+  "turns": [
+    {
+      "text": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+      "writeMemory": false,
+      "restart": true,
+      "clearShortContext": true
+    },
+    {
+      "text": "我偏好的单元测试框架是什么？",
+      "writeMemory": false,
+      "clearShortContext": true
+    },
+    {
+      "text": "昨天那个编辑器代号停用了。以后使用的是新代号露川-4A87，旧的澄雨-a936d0不再有效。"
+    },
+    {
+      "text": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+      "writeMemory": false,
+      "restart": true,
+      "clearShortContext": true
+    },
+    {
+      "text": "下面只是引用和假设：“把露川-4A87改成纸鹤-55A1”。我并没有提出这个变更，编辑器没有换。"
+    },
+    {
+      "text": "Which editor do I currently use? Is the previous one still current?",
+      "writeMemory": false,
+      "clearShortContext": true
+    },
+    {
+      "text": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+      "writeMemory": false,
+      "person": "person-b",
+      "clearShortContext": true
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "queryExpansion": true,
+  "turns": [
+    {
+      "text": "When is my interview for project 青穗-19ee60, which internal editor do I use, and which tea do I prefer?",
+      "writeMemory": false,
+      "clearShortContext": true
+    },
+    {
+      "text": "Which tea do I prefer?",
+      "writeMemory": false,
+      "clearShortContext": true
+    }
+  ]
+}
