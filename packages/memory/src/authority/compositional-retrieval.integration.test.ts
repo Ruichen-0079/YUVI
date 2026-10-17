@@ -132,6 +132,15 @@ describe.skipIf(!url)(
         access,
         text: Array.from({ length: 40 }, (_, i) => `unmatchedword${i}`).join(" ") + " 露川-4A87"
       });
+      it("does not invent an indexing backlog for a scope with no committed history", async () => {
+        const r = await new PostgresMemoryProvider(authority).retrieveRelevant({
+          scope: scope.replace("composition-persona", "empty-persona"),
+          access,
+          text: "tea"
+        });
+        expect(r.status).toBe("empty");
+        expect(r.limited).toBe(false);
+      });
       expect(r.status).toBe("partial");
       const audit = await p.retrievalEvidence.detail(scope, r.retrievalId!);
       expect(audit?.queryPlan?.channels[0]?.queryTermsLimited).toBe(true);
