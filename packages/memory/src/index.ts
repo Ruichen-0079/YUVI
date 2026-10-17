@@ -495,3 +495,5 @@ export {
   MemoryLegacyWorkflow,
   type MemoryLegacyWorkflowView
 } from "./authority/legacy-workflow.js";
+
+export { expandMemorySearch, type MemorySearchPlan } from "./authority/query-expansion.js";

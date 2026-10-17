@@ -124,19 +124,27 @@ export class MemoryKnowledgeReader {
     // Bound the query, not the corpus. All candidates are resolved against the current projection.
     const terms = searchTerms(text).slice(0, 32);
     if (!terms.length) return { records: [], watermark: health.version, candidateLimited: false };
-    const query = terms.map((t) => `'${t.replaceAll("'", "''")}'`).join(" | ");
+    // Existing Chinese documents are indexed as bigrams. A one-Han search
+    // term must match a leading bigram (e.g. a topic noun), rather than require
+    // an impossible unigram lexeme. No fact- or intent-specific vocabulary.
+    const query = terms
+      .map((t) => `'${t.replaceAll("'", "''")}'${/^\p{Script=Han}$/u.test(t) ? ":*" : ""}`)
+      .join(" | ");
     const rows = await this.db.query(
-      `with candidates as materialized (
-      select scope,id,state,version,search from ${activeProjection} c where scope=$1 and state in ('current','conflicted')
-        and search @@ to_tsquery('simple',$2) limit 513
-      ) select r.*,c.state,(select count(*) from candidates) as candidate_count from candidates c join memory_authority_records r using(scope,id)
-      order by ts_rank(c.search,to_tsquery('simple',$2)) desc,c.version desc limit $3`,
+      `with ranked as materialized (
+      select scope,id,state,version,ts_rank(search,to_tsquery('simple',$2)) as relevance
+      from ${activeProjection} c where scope=$1 and state in ('current','conflicted')
+        and search @@ to_tsquery('simple',$2)
+      order by relevance desc,version desc,id limit $3::int+1
+      ) select r.*,c.state,(select count(*) from ranked)>$3::int as candidate_limited
+      from ranked c join memory_authority_records r using(scope,id)
+      order by c.relevance desc,c.version desc,c.id limit $3`,
       [scope, query, boundLimit(limit)]
     );
     return {
       records: rows.rows.map(mapRecord),
       watermark: health.version,
-      candidateLimited: Number(rows.rows[0]?.["candidate_count"] ?? 0) >= 513
+      candidateLimited: rows.rows[0]?.["candidate_limited"] === true
     };
   }
   /** Resolve a bounded candidate set against ONE current generation/version snapshot.

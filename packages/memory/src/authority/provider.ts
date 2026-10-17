@@ -1,3 +1,4 @@
+import type { MemorySearchPlan } from "./query-expansion.js";
 import type { MemoryDecisionReassessment } from "./reassessment.js";
 import { MemoryRetrievalEvidence, type RetrievalCandidate } from "./retrieval-evidence.js";
 import type { MemoryVectorIndexer } from "./vector.js";
@@ -18,7 +19,8 @@ export class PostgresMemoryProvider implements MemoryProvider {
   readonly retrievalEvidence: MemoryRetrievalEvidence;
   constructor(
     readonly authority: PostgresMemoryAuthority,
-    readonly vectors?: MemoryVectorIndexer
+    readonly vectors?: MemoryVectorIndexer,
+    readonly expandQuery?: (input: MemoryRetrievalInput) => Promise<MemorySearchPlan>
   ) {
     this.knowledge = new MemoryKnowledgeReader(authority.pool);
     this.retrievalEvidence = new MemoryRetrievalEvidence(authority.pool);
@@ -51,7 +53,70 @@ export class PostgresMemoryProvider implements MemoryProvider {
         errorCode: "MEMORY_CANCELLED"
       };
     try {
-      let result = await this.knowledge.search(input.scope, input.text, 32);
+      let textError = false;
+      let planError = false;
+      let plan: MemorySearchPlan | undefined;
+      // An explicit configured option; no new model call is hidden in the default path.
+      if (this.expandQuery)
+        try {
+          plan = await this.expandQuery(input);
+        } catch (error) {
+          if (error instanceof MemoryAuthorityError && error.code.includes("AUTHORITY"))
+            throw error;
+          planError = true;
+        }
+      const queries = [...new Set([input.text.slice(0, 4000), ...(plan?.queries ?? [])])];
+      const channels: Array<{ query: string; status: "OK" | "UNAVAILABLE"; ids: string[] }> = [];
+      const loadText = async () => {
+        const results = await Promise.allSettled(
+          queries.map((q) => this.knowledge.search(input.scope!, q, queries.length === 1 ? 32 : 16))
+        );
+        const scores = new Map<string, number>();
+        const records = new Map<
+          string,
+          Awaited<ReturnType<MemoryKnowledgeReader["search"]>>["records"][number]
+        >();
+        let limited = false,
+          watermark = "0";
+        for (const [ordinal, channel] of results.entries()) {
+          channels.push({
+            query: queries[ordinal]!,
+            status: channel.status === "rejected" ? "UNAVAILABLE" : "OK",
+            ids:
+              channel.status === "rejected"
+                ? []
+                : channel.value.records
+                    .filter((r) => matchesReader(r.event, input.access!))
+                    .map((r) => r.id)
+          });
+          if (channel.status === "rejected") {
+            textError = true;
+            continue;
+          }
+          watermark = channel.value.watermark;
+          limited ||= channel.value.candidateLimited;
+          channel.value.records.forEach((record, index) => {
+            records.set(record.id, record);
+            scores.set(record.id, (scores.get(record.id) ?? 0) + 1 / (60 + index));
+          });
+        }
+        return {
+          records: [...records.values()]
+            .sort(
+              (a, b) =>
+                (scores.get(b.id) ?? 0) - (scores.get(a.id) ?? 0) ||
+                (BigInt(a.version) > BigInt(b.version)
+                  ? -1
+                  : BigInt(a.version) < BigInt(b.version)
+                    ? 1
+                    : a.id.localeCompare(b.id))
+            )
+            .slice(0, 32),
+          watermark,
+          candidateLimited: limited || records.size > 32
+        };
+      };
+      let result = await loadText();
       const observedTextIds = new Set(result.records.map((r) => r.id));
       const compatibility = await this.knowledge.overview(input.scope);
       const compatibilityPending =
@@ -74,7 +139,7 @@ export class PostgresMemoryProvider implements MemoryProvider {
       ]);
       // At most one bounded text refresh; do not repeat a remote embedding call.
       if (resolved.watermark !== result.watermark) {
-        result = await this.knowledge.search(input.scope, input.text, 32);
+        result = await loadText();
         resolved = await this.knowledge.resolveCandidates(input.scope, [
           ...new Set([...observedTextIds, ...result.records.map((r) => r.id), ...indexedIds])
         ]);
@@ -124,34 +189,48 @@ export class PostgresMemoryProvider implements MemoryProvider {
         .map((r) => r.event)
         .filter((event) => matchesReader(event, input.access!));
       const outcome: MemoryRetrievalOutcome = {
-        status: vectorError
-          ? events.length
-            ? "partial"
-            : "unavailable"
-          : result.candidateLimited || vectorPending || vectorLimited || compatibilityPending
-            ? "partial"
-            : events.length
-              ? "ok"
-              : "empty",
+        status:
+          vectorError || textError
+            ? events.length
+              ? "partial"
+              : "unavailable"
+            : planError ||
+                result.candidateLimited ||
+                vectorPending ||
+                vectorLimited ||
+                compatibilityPending
+              ? "partial"
+              : events.length
+                ? "ok"
+                : "empty",
         source: "postgres",
         events,
         limited:
           result.candidateLimited ||
+          planError ||
+          textError ||
           vectorError ||
           vectorPending ||
           vectorLimited ||
           compatibilityPending,
-        limitReason: vectorError
-          ? "MEMORY_VECTOR_UNAVAILABLE"
-          : vectorPending
-            ? "MEMORY_VECTOR_INDEX_PENDING"
-            : vectorLimited
-              ? "MEMORY_VECTOR_CANDIDATE_BOUND"
-              : result.candidateLimited
-                ? "MEMORY_TEXT_CANDIDATE_BOUND"
-                : compatibilityPending
-                  ? "MEMORY_LEGACY_OR_UNATTRIBUTED_REQUIRES_REVIEW"
-                  : null,
+        limitReason:
+          textError && vectorError
+            ? "MEMORY_RETRIEVAL_CHANNELS_UNAVAILABLE"
+            : textError
+              ? "MEMORY_TEXT_UNAVAILABLE"
+              : planError
+                ? "MEMORY_QUERY_PLAN_UNAVAILABLE"
+                : vectorError
+                  ? "MEMORY_VECTOR_UNAVAILABLE"
+                  : vectorPending
+                    ? "MEMORY_VECTOR_INDEX_PENDING"
+                    : vectorLimited
+                      ? "MEMORY_VECTOR_CANDIDATE_BOUND"
+                      : result.candidateLimited
+                        ? "MEMORY_TEXT_CANDIDATE_BOUND"
+                        : compatibilityPending
+                          ? "MEMORY_LEGACY_OR_UNATTRIBUTED_REQUIRES_REVIEW"
+                          : null,
         selectedCount: events.length,
         watermark: result.watermark
       };
@@ -180,7 +259,23 @@ export class PostgresMemoryProvider implements MemoryProvider {
       outcome.retrievalId = await this.retrievalEvidence.record(input, outcome, {
         watermark: result.watermark,
         candidates,
-        modelTag: this.vectors?.modelTag
+        modelTag: this.vectors?.modelTag,
+        queryPlan: {
+          schema: "memory.search-plan.v1",
+          status: this.expandQuery ? (planError ? "UNAVAILABLE" : "APPLIED") : "DISABLED",
+          queries,
+          model: plan?.model ?? null,
+          usage: plan?.usage ?? null,
+          channels,
+          textStatus: textError ? "PARTIAL_OR_UNAVAILABLE" : "OK",
+          vectorStatus: this.vectors
+            ? vectorError
+              ? "UNAVAILABLE"
+              : vectorPending
+                ? "PENDING"
+                : "OK"
+            : "DISABLED"
+        }
       });
       return outcome;
     } catch (error) {
