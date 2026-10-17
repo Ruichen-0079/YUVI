@@ -1,0 +1,59 @@
+{
+  "schema": "observation.atomic-verification.v1",
+  "kind": "actual-postgresql-production-dispatcher-host-fixture",
+  "cases": [
+    {
+      "stage": "before-start",
+      "adapterCallsBeforeRecovery": 0,
+      "adapterCallsDuringRecovery": 1,
+      "certainty": "APPLIED",
+      "reportsAfterCrash": 0
+    },
+    {
+      "stage": "after-adapter",
+      "adapterCallsBeforeRecovery": 1,
+      "adapterCallsDuringRecovery": 0,
+      "certainty": "UNKNOWN",
+      "reportsAfterCrash": 0
+    },
+    {
+      "stage": "in-projection",
+      "adapterCallsBeforeRecovery": 1,
+      "adapterCallsDuringRecovery": 0,
+      "certainty": "UNKNOWN",
+      "reportsAfterCrash": 0
+    },
+    {
+      "stage": "after-commit",
+      "adapterCallsBeforeRecovery": 1,
+      "adapterCallsDuringRecovery": 0,
+      "certainty": "APPLIED",
+      "reportsAfterCrash": 1
+    },
+    {
+      "stage": "lost-commit-response-and-erasure-replay",
+      "certainty": "APPLIED",
+      "retention": "STORED",
+      "adapterCalls": 1
+    },
+    {
+      "stage": "deferred-reference-check",
+      "certainty": "APPLIED",
+      "retention": "FAILED",
+      "reports": 0
+    },
+    {
+      "stage": "report-sql-failure",
+      "certainty": "APPLIED",
+      "retention": "FAILED",
+      "adapterCalls": 1,
+      "reports": 0
+    },
+    {
+      "stage": "terminated-postgresql-connection",
+      "certainty": "UNKNOWN",
+      "adapterCalls": 1,
+      "reports": 0
+    }
+  ]
+}

@@ -1,0 +1,195 @@
+{
+  "schema": "evidence-continuity-model-run.v1",
+  "sha": "70fd46f30ca47911dd31302a56f8a36863413d0d",
+  "dirty": true,
+  "models": {
+    "OPENAI_COMPATIBLE_CHAT_MODEL": "deepseek-ai/DeepSeek-V4-Flash-0731",
+    "OPENAI_COMPATIBLE_REASONING_MODEL": "deepseek-ai/DeepSeek-V4-Flash-0731"
+  },
+  "visionModel": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+  "provider": "https://api.deepinfra.com/v1/openai",
+  "personaVersion": "evidence-synthetic-v1",
+  "temperature": 0,
+  "maxTokens": 2048,
+  "usage": {
+    "calls": 26,
+    "input": 51256,
+    "output": 1839,
+    "cached": 8192,
+    "estimatedCostUSD": 0.0036027299999999997,
+    "unknownCostCalls": 0
+  },
+  "status": "COMPLETED",
+  "evidenceKind": "real-provider-normal-server-character-isolated-postgresql",
+  "observedAt": "2026-10-16",
+  "initialHarnessFailure": "DELETE request erroneously sent JSON Content-Type without body; fixed and resumed same database without repeating successful samples.",
+  "turns": [
+    {
+      "ordinal": 0,
+      "input": "Describe this synthetic card. Report what you can actually see, including text and scene details.",
+      "person": "person-a",
+      "httpStatus": 200,
+      "elapsedMs": 15993.174373999864,
+      "answer": "I can describe the synthetic research card based on the visual evidence provided. Here's what's on it:\n\n**Header (top left):**\n- Title: \"SYNTHETIC RESEARCH CARD\" in bold uppercase\n- \"Project: LARCH-7D83\"\n- \"Date: 2032-06-14\"\n\n**Right side:**\n- A solid blue equilateral triangle\n\n**Middle section:**\n- A red-bordered box containing \"VERIFIED 42\" in red uppercase text\n- Below that: \"Formula: E = 3x + 7\"\n\n**Bottom section:**\n- Three green bars of varying heights, each labeled:\n  - \"A: 12\" — a square (shortest)\n  - \"B: 7\" — shorter than the first\n  - \"C: 19\" — the tallest\n\n**Footer (bottom left):**\n- \"Footer code: MAPLE-519C\"\n\nThe card has a white background with black text overall. That's the full content as reported.",
+      "ingestionStatus": "skipped"
+    },
+    {
+      "ordinal": 1,
+      "input": "What date and stamp did you observe on the card?",
+      "person": "person-a",
+      "httpStatus": 200,
+      "elapsedMs": 3478.5913470004743,
+      "answer": "Based on the retained observation report, the card shows:\n\n- **Date:** 2032-06-14\n- **Stamp:** A red-bordered box containing the text **\"VERIFIED 42\"** in red, uppercase letters.\n\nI should note this comes from an untrusted provider report, not a fresh visual check in this turn — so treat it as evidence to verify rather than confirmed fact.",
+      "ingestionStatus": null
+    },
+    {
+      "ordinal": 2,
+      "input": "Which colored shape appeared on that card?",
+      "person": "person-a",
+      "httpStatus": 200,
+      "elapsedMs": 2958.7538659998245,
+      "answer": "Based on the retained observation report, the card showed a **solid blue equilateral triangle**, positioned to the right of the project and date information.",
+      "ingestionStatus": null
+    },
+    {
+      "ordinal": 3,
+      "input": "What was the largest chart value and its label?",
+      "person": "person-a",
+      "httpStatus": 200,
+      "elapsedMs": 9292.147894999289,
+      "answer": "Based on the retained observation report, the largest chart value was **C: 19** — the tallest of the three green bars, labeled \"C: 19\".",
+      "ingestionStatus": null
+    },
+    {
+      "ordinal": 4,
+      "input": "What is the footer code and formula on the earlier card? If the retained report is insufficient, inspect the retained original.",
+      "person": "person-a",
+      "httpStatus": 200,
+      "elapsedMs": 4162.775237999085,
+      "answer": "Based on the retained observation report, the card shows:\n\n- **Footer code:** MAPLE-519C\n- **Formula:** E = 3x + 7\n\nBoth are visible in the retained report, so no further inspection is needed.",
+      "ingestionStatus": null
+    },
+    {
+      "ordinal": 5,
+      "input": "Please describe this new synthetic document, including text, stamp, shape and date.",
+      "person": "person-a",
+      "httpStatus": 200,
+      "elapsedMs": 32688.764278000235,
+      "answer": "I can describe what the visual evidence reports, but I want to be honest about the limits of that evidence.\n\nAccording to the observation report, the image shows a **synthetic long OCR document** with:\n\n- **Title:** \"SYNTHETIC LONG OCR DOCUMENT\" in bold uppercase at the top center.\n- **Body:** 68 rows, each labeled \"Row 01\" through \"Row 68,\" all repeating the same sentence: *\"We compare durable reports and independent execution receipts.\"*\n- **Stamp:** \"Scene stamp: APPROVED 73\"\n- **Code:** \"Final code: WILLOW-8E27\"\n- **Date:** 2033-09-22\n- **Shape:** A large solid orange circle in the bottom right corner, with no text or markings.\n\nA couple of caveats: this is a provider-generated report, not something I verified directly, and the scene summary was truncated in the middle. Also, the date on the document (2033-09-22) is in the future relative to today's date (2026-10-16), which is consistent with it being a synthetic test artifact rather than a real record.\n\nIs there anything specific about this document you'd like me to look into or compare against?",
+      "ingestionStatus": "skipped"
+    },
+    {
+      "ordinal": 6,
+      "input": "What final code and date appear in the long document?",
+      "person": "person-a",
+      "httpStatus": 200,
+      "elapsedMs": 3274.037698000029,
+      "answer": "Based on the retained observation report for the long document, the final code is **WILLOW-8E27** and the date is **2033-09-22**.\n\nTo be transparent: that report is untrusted provider evidence, not something I verified directly in this turn. If you want, I can re-check the image to confirm.",
+      "ingestionStatus": null
+    },
+    {
+      "ordinal": 7,
+      "input": "What stamp and colored shape were on the long document?",
+      "person": "person-a",
+      "httpStatus": 200,
+      "elapsedMs": 3168.425109999589,
+      "answer": "Based on the retained observation report for the long document, the stamp read **\"APPROVED 73\"** (labeled as \"Scene stamp: APPROVED 73\"), and the colored shape was a **large, solid orange circle** located in the bottom right corner.\n\nNote: this comes from the earlier provider report, not a fresh visual check in this turn.",
+      "ingestionStatus": null
+    },
+    {
+      "ordinal": 8,
+      "input": "What was on the document? Do not guess without an authorized observation.",
+      "person": "person-b",
+      "httpStatus": 200,
+      "elapsedMs": 6625.449309000032,
+      "answer": "I don't have any authorized observation of a document in my current memory or context, so I can't tell you what was on it — and I won't guess. If you can share what document you're referring to, or point me to the specific record, I'll do my best to help from there.",
+      "ingestionStatus": null
+    },
+    {
+      "ordinal": 9,
+      "input": "Read the footer code on the previous card again. Tell me if its source is unavailable.",
+      "person": "person-a",
+      "httpStatus": 200,
+      "elapsedMs": 4826.574176000577,
+      "answer": "I can't re-read the footer code from the previous card — the retained observation reports for it are marked as **deleted/unavailable**, so I have no access to that image's contents anymore. I won't invent what it said.\n\nSo to answer directly: yes, its source is unavailable to me right now. If you still have the card or can share the footer text again, I can take a look.",
+      "ingestionStatus": null
+    }
+  ],
+  "providerReports": [
+    {
+      "file": "wire-0-calls/call-0.json",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "stream": false,
+      "httpStatus": 200,
+      "inputDigest": "4442275cad01b1b9ca1118659173efeb850071596b5884e9d7a3dde89eaa862e",
+      "inputBytes": 34911,
+      "firstByteMs": 10000.028375,
+      "latencyMs": 10000.232139,
+      "inputTokens": 818,
+      "outputTokens": 241,
+      "cachedTokens": 0,
+      "estimatedCostUSD": 0.0002673,
+      "hasRetainedReport": false,
+      "hasCardFooter": false,
+      "hasLongFinalCode": false,
+      "hasShapeEvidence": false,
+      "actualProviderReport": "This is a synthetic research card with a white background and black text. The title at the top left reads \"SYNTHETIC RESEARCH CARD\" in bold, uppercase letters. Below the title, there are two lines of information: \"Project: LARCH-7D83\" and \"Date: 2032-06-14\".\n\nTo the right of the project and date information, there is a solid blue equilateral triangle.\n\nBelow the project and date, a red-bordered box contains the text \"VERIFIED 42\" in red, uppercase letters.\n\nFurther down, the text \"Formula: E = 3x + 7\" is displayed.\n\nAt the bottom of the card, there are three green bars of varying heights, each with a label underneath:\n- The first bar, labeled \"A: 12\", is a square.\n- The second bar, labeled \"B: 7\", is shorter than the first.\n- The third bar, labeled \"C: 19\", is the tallest of the three.\n\nAt the very bottom left, the text \"Footer code: MAPLE-519C\" is visible.",
+      "finishReason": "stop"
+    },
+    {
+      "file": "wire-1-calls/call-2.json",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "stream": false,
+      "httpStatus": 200,
+      "inputDigest": "67dce5dbd720eaef2bf303b3c53e41aba9867c759eb35b0dda0abb9c8b0dcb94",
+      "inputBytes": 442365,
+      "firstByteMs": 25900.987485,
+      "latencyMs": 25901.40074,
+      "inputTokens": 2725,
+      "outputTokens": 345,
+      "cachedTokens": 0,
+      "estimatedCostUSD": 0.0006157500000000001,
+      "hasRetainedReport": false,
+      "hasCardFooter": false,
+      "hasLongFinalCode": false,
+      "hasShapeEvidence": false,
+      "actualProviderReport": "The image displays a synthetic long OCR document with a structured layout, primarily consisting of text, a stamp, a shape, and a date. The document is titled \"SYNTHETIC LONG OCR DOCUMENT\" in bold, uppercase letters at the top center.\n\nThe main body of the document contains a list of 68 rows, each labeled with a row number (e.g., \"Row 01\", \"Row 02\", etc.) followed by the text \"We compare durable reports and independent execution receipts.\" This text is repeated identically across all 68 rows, indicating a repetitive or templated content structure.\n\nAt the bottom of the document, there are three distinct pieces of information:\n- \"Scene stamp: APPROVED 73\" – This is a textual label indicating a stamp or approval status.\n- \"Final code: WILLOW-8E27\" – This appears to be a unique identifier or code.\n- \"Date: 2033-09-22\" – This is a date formatted as YYYY-MM-DD.\n\nOn the bottom right corner of the document, there is a large, solid orange circle. This shape is distinct and does not contain any text or additional markings.\n\nThe overall document is presented on a white background with black text, and the layout is clean and organized. There are no visible errors, diagrams, charts, or formulas. The content is entirely textual, with the exception of the orange circle. The text is clear and legible, and there are no unreadable details. The document appears to be a synthetic example, likely used for testing or demonstration purposes, given the repetitive nature of the content and the specific labels provided.",
+      "finishReason": "stop"
+    }
+  ],
+  "finalObservationState": [
+    {
+      "id": "ob1_e96e9751b442de7272961053316b00f96b1a5be02fa54b99a387ac67de4552fc",
+      "kind": "VISION",
+      "commitDigest": "6d5204edc665414f78e4c199009e6889291fc49aa9efe439308001b4966bfa8e",
+      "erased": true,
+      "hasPayload": false
+    },
+    {
+      "id": "ob1_76600b1cb3ff302c1f732207d4f9392155a13442646425678d285b179a4d4b36",
+      "kind": "VISION",
+      "commitDigest": "d62a8a77d05fb426725902f4389eb592a9a83873760a861650085e2150ee41b2",
+      "erased": true,
+      "hasPayload": false
+    }
+  ],
+  "reportCommitStates": [
+    {
+      "state": "STORED",
+      "digest": "6d5204edc665414f78e4c199009e6889291fc49aa9efe439308001b4966bfa8e",
+      "reason": null,
+      "version": "observation-retention.v1",
+      "reportId": "ob1_e96e9751b442de7272961053316b00f96b1a5be02fa54b99a387ac67de4552fc",
+      "expiresAt": "2026-10-16T12:42:02.861Z"
+    },
+    {
+      "state": "STORED",
+      "digest": "d62a8a77d05fb426725902f4389eb592a9a83873760a861650085e2150ee41b2",
+      "reason": null,
+      "version": "observation-retention.v1",
+      "reportId": "ob1_76600b1cb3ff302c1f732207d4f9392155a13442646425678d285b179a4d4b36",
+      "expiresAt": "2026-10-16T12:42:55.919Z"
+    }
+  ],
+  "qualityLimitation": "Only two synthetic images. Long OCR was summarized by the Provider, not a real >4000-character output overflow. Initial Chat response wrongly called A the shortest bar, despite correct relative heights in Vision report. No claimed universal visual accuracy or real-model reobservation of previously unextracted detail."
+}
