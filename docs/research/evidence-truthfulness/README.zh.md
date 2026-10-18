@@ -28,7 +28,7 @@ Character 区分“已持久化”与“足够支持答案”，明确来源第�
 | 已知答案条件归属准确率 | baseline10/13，新10/10；新组另外3次拒答，不能隐藏分母变化 |
 | 未知项校准完成 | 新9/11；另一次虚构自身茶偏好、一次把冲突说成“以前没有提过” |
 
-新的误拒包括 Nora 饮料、Lea/user 混合门禁卡，以及旧编辑器反驳。正确引文不等于语义蕴含；模型可以过于保守。茶杯干扰中仍出现 Alice 虚构茉莉茶偏好，两条茶问题未明确“我的”，歧义被保留为失败；没有事后改 Ground Truth。编号抄写在本样本中未新增错误，不代表 #331 的5967→91反例已普遍解决。引用 ID/引文真实性有确定性反例回归；本轮自然回答没有大量主动引用 ID，不能宣称引用准确率100%。
+原冻结标签的三个拒绝/不匹配包括 Nora 饮料、Lea/user 混合门禁卡，以及旧编辑器反驳。最后一项的 Ground Truth 存在严格性争议：仅“当前使用云岫”未明确排除同时使用松柏；保守不足不一定是语义错误。保留原标签与3/13数字，不事后改成全对；若只按明确支持判定，仍有Nora/门禁卡两次误拒（2/12）。正确引文不等于语义蕴含；模型可以过于保守。茶杯干扰中仍出现没有证据来源的Alice茉莉茶偏好；两条茶问题未明确“我的”，其用户意图是数据集设定，不能用这项估计所有明确归属问题的幻觉率。歧义与原评分同时保留，没有事后改Ground Truth。明确归属的航空座位、Nora/user饮料和引用负责人三个旧无依据回答在新组均未重现。编号抄写在本样本中未新增错误，不代表 #331 的5967→91反例已普遍解决。引用 ID/引文真实性有确定性反例回归；本轮自然回答没有大量主动引用 ID，不能宣称引用准确率100%。
 
 [正式 Server 实验](evidence/runtime.json)另用自然提及形成三条 current Memory；每个 QA 前正式失效 L1、重启隔离 Server、新会话。规划开启时，编辑器“苔桥-4836”和茶“木槿-9275”进入真实 Body，咖啡杯订单作为干扰被排除，回答两项并明确咖啡烘焙未知。Person B 无私人候选/编号披露。客户端发消息用 Host grant，operator 仅做隔离注册；不等于 Desktop/WebUI/QQ 已接管。
 
@@ -38,7 +38,7 @@ Character 区分“已持久化”与“足够支持答案”，明确来源第�
 
 ## 成本、性能与边界
 
-[逐调用 CSV](evidence/model-calls.csv)、[usage](evidence/usage.json)保留模型、输入摘要、usage/cache、延迟及 Provider 估算。本批共200次 Chat/Reasoning，已知估算约 $0.00804，另计实际 embedding；非账单，不将冻结 baseline 重用计为新调用。模型为 DeepInfra `deepseek-ai/DeepSeek-V4-Flash-0731`、temperature0；Runtime embedding为实际 Qwen/Qwen3-Embedding-0.6B 512D。没有新的 Vision 调用。支持判断最多1536输出token/12秒，不做无限修复；它的网络/模型延迟远大于数据库检索，具体分布见 usage。
+[逐调用 CSV](evidence/model-calls.csv)、[usage](evidence/usage.json)保留模型、输入摘要、usage/cache、延迟及 Provider 估算。本批共200次 Chat/Reasoning，已知估算约 $0.00804，另计实际 embedding；非账单，不将冻结 baseline 重用计为新调用。24次embedding没有费用回执，不能当免费；实际usage另列。模型为 DeepInfra `deepseek-ai/DeepSeek-V4-Flash-0731`、temperature0；Runtime embedding为实际 Qwen/Qwen3-Embedding-0.6B 512D。没有新的 Vision 调用。支持判断最多1536输出token/12秒，不做无限修复；它的网络/模型延迟远大于数据库检索，具体分布见 usage。
 
 [索引和恢复实测](index-reliability.zh.md)没有关闭高频旧事实、长命题尾部和容量门槛。[十份PR集成与发布前计划](integration.zh.md)验证了迁移和隔离备份恢复，也证明旧 runner 不能原地回退。**这批可以交付纵向机制和已观测收益，不能宣布 Evidence Truthfulness、长期索引或 R5 接管整体验收完成。**
 

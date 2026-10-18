@@ -2895,6 +2895,14 @@
         "supportPrecision": 1.0,
         "falseRejectionRate": 0.23076923076923078,
         "strictVerdictMatches": 21,
+        "oracleAmbiguity": {
+          "case": "editor-refuted",
+          "frozenExpected": "CONTRADICTED",
+          "observed": "INSUFFICIENT",
+          "reason": "A current editor claim need not exclude concurrent use of the old editor. Frozen labels remain unchanged; this is a conservative label mismatch, not unambiguous false rejection.",
+          "unambiguousFalseRejections": 2,
+          "unambiguousPositiveDenominator": 12
+        },
         "answerOutcomes": {
           "baseline": {
             "ATTRIBUTION_ERROR": 5,
