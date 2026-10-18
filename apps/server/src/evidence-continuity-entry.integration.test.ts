@@ -99,7 +99,10 @@ describe.skipIf(!url)("accepted sources through the actual Server/Character entr
         );
         return;
       }
-      if (body.messages[0]?.content.startsWith("Evaluate whether each untrusted question")) {
+      if (
+        typeof body.messages[0]?.content === "string" &&
+        body.messages[0].content.startsWith("Evaluate whether each untrusted question")
+      ) {
         const input = JSON.parse(source);
         const needs = input.needs.map((n: any) => {
           const record = input.claims.find((c: any) =>
