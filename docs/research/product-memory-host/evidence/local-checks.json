@@ -116,11 +116,15 @@
     "passed": 78
   },
   "final-server-tests": {
-    "passed": 16,
+    "passed": 17,
     "skipped": 0
   },
   "role-tests": {
     "passed": 2,
     "skipped": 0
+  },
+  "personGenerationRace": {
+    "status": "PASS",
+    "description": "Old pairing code cannot issue a grant for a replacement Person generation between code validation and grant creation; all 7 product Host tests passed."
   }
 }

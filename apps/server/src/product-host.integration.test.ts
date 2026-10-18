@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import Fastify from "fastify";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { createPostgresPool } from "@companion/database";
 import { PostgresJournalRepository } from "@companion/journal";
 import {
@@ -223,6 +223,29 @@ describe.skipIf(!url)("Product Host real PostgreSQL lifecycle and own-principal 
     revision = "generation-2";
     await expect(product.pair(browser(), changed.code)).rejects.toThrow();
     revision = "generation-1";
+  });
+  it("cannot turn an old pairing code into a grant for a replacement Person generation", async () => {
+    const issued = await product.createPairing("x", origin);
+    const original = host.issue.bind(host);
+    const issue = vi.spyOn(host, "issue").mockImplementation((person, lifetime, tx, expected) => {
+      revision = "replaced-after-pairing-row-validation";
+      return original(person, lifetime, tx, expected);
+    });
+    try {
+      await expect(product.pair(browser(), issued.code)).rejects.toThrow(
+        "HOST_PERSON_GENERATION_CHANGED"
+      );
+      expect(
+        (
+          await pool.query("select count(*) from memory_host_grants where person_revision=$1", [
+            revision
+          ])
+        ).rows[0]!["count"]
+      ).toBe("0");
+    } finally {
+      issue.mockRestore();
+      revision = "generation-1";
+    }
   });
   it("sets HttpOnly/SameSite and Secure for HTTPS, rejects CSRF and bearer conversion", async () => {
     const issued = await product.createPairing("x", "https://localhost:31911");

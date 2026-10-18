@@ -1,6 +1,6 @@
 # Product Host → R5：本机浏览器纵向闭环与桌面切换边界
 
-2026-10-18。生产实现 `39ad543`；回归与产品验收 `c54a1d6`。直接继承 #333 的 `d268a2c5db024a253f5835a91b8617d7deb05593`，不改写 #333，也不重复目标 A。
+2026-10-18。生产实现 `39ad543`；回归与产品验收 `c54a1d6`；后续补充配对签发期间 Person generation 改变的竞态回归。直接继承 #333 的 `d268a2c5db024a253f5835a91b8617d7deb05593`，不改写 #333，也不重复目标 A。
 
 **可用范围：可信本机 Desktop Supervisor → 正常 production Runtime/Character → 本机 HTTP 浏览器 WebUI/Main → 正式 R5。打包 Tauri WebView 的非 HTTP Origin 尚未接通安全 Cookie 身份，完整原生桌面切换仍开放。** Rust/打包测试通过不等于原生桌面产品交互通过。
 
@@ -15,7 +15,7 @@
 ## 完成的边界与修复
 
 - Supervisor 配对入口必须持有 control token；拒绝 Origin/Referer/Sec-Fetch-Site 浏览器调用，必须确认为 owned、healthy Runtime。Runtime 再验证派生 controller secret、本机 IP 和无浏览器来源。原生调用只接受 bundled WebUI 或配置的本机 dev Origin；其他窗口/外来文档拒绝。controller/operator 凭据不返回网页。
-- Person 来自可信控制者选择的已存在、具有 authority generation 的 Person；Persona 和 Journal namespace 来自实际 Host。配对码随机 256 bit，DB 只存 SHA-256，绑定 Person generation / Persona / instance / namespace / exact Origin，五分钟有效，行锁内单次消费。浏览器不能签发、更改 scope 绑定或靠 sessionId 获得 Person。
+- Person 来自可信控制者选择的已存在、具有 authority generation 的 Person；Persona 和 Journal namespace 来自实际 Host。配对码随机 256 bit，DB 只存 SHA-256，绑定 Person generation / Persona / instance / namespace / exact Origin，五分钟有效，行锁内单次消费；grant 签发再次核对配对码的原始 Person generation，拒绝中途身份替换竞态。浏览器不能签发、更改 scope 绑定或靠 sessionId 获得 Person。
 - 浏览器只得到 HttpOnly Cookie；SameSite=Strict；HTTPS 时 Secure。本机 HTTP 是本轮明确支持的部署。每次 HTTP/SSE/WS 身份验证都检查 exact Origin（GET 可验证 Referer）、grant 有效期、撤销、Person generation。产品 Cookie 不可转换成普通 Host Bearer；双凭据拒绝。产品 Host 不可用时残留 Cookie 不能静默退为匿名。
 - grant 一天；续期上限固定为配对后 30 天。过期但仍处于续期窗口的 Cookie 可明确续期；续期轮换随机 token 并用 Set-Cookie 更新，旧 token 立即失效。撤销、Person generation 改变或绝对续期到期后不能靠续期恢复。资料文字修改与身份 generation 撤销沿用已有不同语义。
 - 重新配对撤销当前 Origin 中旧客户端 grant。Person/Persona 对应独立本地聊天 session 选择；服务端 session 所有权仍是最终边界。切换时清空页面数据并中止旧 Main 生成，过期异步响应不能恢复先前 Person 的 Memory。
@@ -38,11 +38,13 @@
 | 无数据库可选门禁的完整 `pnpm test`                                                       | 通过；不把依赖缺失 skip 算验收                  |
 | 所有 6 个 PostgreSQL URL 显式指向独立 31518 后的完整 `pnpm test`                         | Vitest 4135 passed / 52 skipped；Node 63 passed |
 | 其中 Memory / Server / Web / Supervisor                                                  | 650 / 744 / 818 / 231 passed                    |
-| ProductHost + 既有 Host + security 最后定向回归                                          | 16 passed                                       |
+| ProductHost + 既有 Host + security 最后定向回归                                          | 17 passed                                       |
 | application role 真数据库检查                                                            | 2 passed                                        |
 | `cargo test --lib`                                                                       | 107 passed；编译本轮 Tauri command              |
 | `pnpm desktop:package:test`                                                              | 78 passed                                       |
 | 真实 Chromium + 正式 Supervisor/Runtime/Character/Worker/Authority/打包静态 WebUI server | 10 组验收通过                                   |
+
+配对签发 generation 竞态修复后重新执行 `pnpm check`、`pnpm build` 及 17 项 Host/security 真数据库定向回归；上表全仓计数保留该次全仓实际输出，不将后来增加的用例补算进去。
 
 52 skips 属于 Providers 1、Memory 3、Server 48 的额外服务/故障场景前提；没有把它们写成通过。正常 Server 启动、独立 Character composition、R5 不变量、已有 sibling correction 与恢复套件均实际启用。CI 的结果以 Draft PR 的当前 Checks 为准，未用本地通过替代远端 CI。
 

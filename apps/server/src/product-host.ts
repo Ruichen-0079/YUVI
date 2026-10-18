@@ -109,7 +109,12 @@ export class ProductHost {
           "update memory_host_grants set revoked_at=coalesce(revoked_at,clock_timestamp()) where token_hash=$1",
           [digest(oldToken)]
         );
-      const grant = await this.host.issue(String(row["person_id"]), 86400, tx);
+      const grant = await this.host.issue(
+        String(row["person_id"]),
+        86400,
+        tx,
+        String(row["person_revision"])
+      );
       await tx.query(
         `insert into memory_product_hosts(grant_id,web_origin,renew_until) values($1,$2,now()+interval '30 days')`,
         [grant.grantId, origin]

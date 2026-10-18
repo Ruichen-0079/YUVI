@@ -54,10 +54,13 @@ export class ConversationHostIdentity {
   async issue(
     personId: string,
     lifetimeSeconds = 86400,
-    db: Pick<AuthorityPool, "query"> = this.db
+    db: Pick<AuthorityPool, "query"> = this.db,
+    expectedPersonRevision?: string
   ) {
     const revision = this.personRevision(personId);
     if (!revision) throw new ConversationHostIdentityError("HOST_PERSON_NOT_VERSIONED");
+    if (expectedPersonRevision !== undefined && revision !== expectedPersonRevision)
+      throw new ConversationHostIdentityError("HOST_PERSON_GENERATION_CHANGED");
     if (!Number.isInteger(lifetimeSeconds) || lifetimeSeconds < 60 || lifetimeSeconds > 2592000)
       throw new ConversationHostIdentityError("HOST_GRANT_LIFETIME_INVALID", 400);
     const grantId = `mhg_${randomUUID()}`;
