@@ -1,0 +1,956 @@
+{
+  "schema": "memory.sibling-correction-diagnosis.v1",
+  "sources": "Prior synthetic #331 cohorts, read-only diagnosis. No real Alice data.",
+  "tables": [
+    {
+      "group": "runtime-baseline",
+      "table": "finalized_ingestion_turns",
+      "rows": [
+        {
+          "finalized_turn_id": "accepted-user:7ae3d5f1-f505-41b1-8066-e34370158658",
+          "assistant_message_id": null,
+          "source_user_event_id": "7ae3d5f1-f505-41b1-8066-e34370158658",
+          "conversation_id": "008fda6b-d7dd-4480-b94f-b3a2979f2610",
+          "trace_id": "7ae3d5f1-f505-41b1-8066-e34370158658",
+          "persona_id": "character-instance:ec-live-d6d6ae96ebbf42bea8bb713c3d5b1fa9",
+          "subject_user_id": "person-a",
+          "memory_scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-d6d6ae96ebbf42bea8bb713c3d5b1fa9",
+          "finalized_at": "2026-10-17T10:33:36.930Z",
+          "ingestion_requested": true,
+          "ingestion_skip_reason": null,
+          "failure_stage": null,
+          "status": "partial",
+          "policy_version": "memory.semantic.v1/finalized-authority-v1",
+          "source_digest": "1f574b427555e5d637fad6828d25764016bd17fb3aae4a36237ca44229885106",
+          "eligible_event_count": 2,
+          "pending_event_count": 0,
+          "processing_event_count": 0,
+          "complete_event_count": 1,
+          "unchanged_event_count": 0,
+          "failed_event_count": 1,
+          "ambiguous_event_count": 0,
+          "skipped_event_count": 0,
+          "attempt_count": 9,
+          "last_attempt_at": "2026-10-17T10:33:44.529Z",
+          "next_attempt_at": null,
+          "completed_at": null,
+          "last_error_code": "MEMORY_WRITE_RETRY_EXHAUSTED",
+          "last_error_message": null,
+          "lease_owner": null,
+          "lease_expires_at": null,
+          "version": 49,
+          "created_at": "2026-10-17T10:33:36.937Z",
+          "updated_at": "2026-10-17T10:33:44.758Z",
+          "rejected_propositions": []
+        }
+      ]
+    },
+    {
+      "group": "runtime-baseline",
+      "table": "finalized_ingestion_events",
+      "rows": [
+        {
+          "event_id": "accepted-user:7ae3d5f1-f505-41b1-8066-e34370158658:event:2046ccbff15e61794fbf76a9ec3eca504e52e54de7832aeee31025381ef79297",
+          "finalized_turn_id": "accepted-user:7ae3d5f1-f505-41b1-8066-e34370158658",
+          "event_key": "event:2046ccbff15e61794fbf76a9ec3eca504e52e54de7832aeee31025381ef79297",
+          "backend_idempotency_key": "yuvi:finalized-turn:accepted-user:7ae3d5f1-f505-41b1-8066-e34370158658:event:2046ccbff15e61794fbf76a9ec3eca504e52e54de7832aeee31025381ef79297",
+          "event_payload": {
+            "kind": "correction",
+            "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-d6d6ae96ebbf42bea8bb713c3d5b1fa9",
+            "content": "我使用的编辑器代号是露川-4A87。",
+            "lineage": {
+              "state": "GROUNDED",
+              "origin": "USER_ASSERTION",
+              "parents": [
+                {
+                  "ref": {
+                    "kind": "JOURNAL_EVENT",
+                    "eventId": "jev1_fGDGlSLkqV0z-o5X_prZiYVFQZfPT_y9",
+                    "namespace": "yuvi:character:ec-live-d6d6ae96ebbf42bea8bb713c3d5b1fa9"
+                  },
+                  "selector": {
+                    "range": {
+                      "end": 35,
+                      "unit": "UNICODE_CODE_POINT",
+                      "start": 0
+                    },
+                    "payload": {
+                      "version": "v1",
+                      "namespace": "yuvi:conversation-input",
+                      "payloadId": "text_1lB0f-tZdKb22wKYn0ds9Q4CUSHlUaXu"
+                    },
+                    "version": "source-selector.v1",
+                    "modality": "TEXT"
+                  }
+                }
+              ],
+              "version": "memory-lineage.v1",
+              "authority": {
+                "binding": {
+                  "kind": "PERSON_BINDING",
+                  "state": "RESOLVED",
+                  "personId": "person-a",
+                  "bindingVersion": "mhg_960e6f49-003e-4fa8-9dd6-885279bcd907"
+                },
+                "audience": {
+                  "kind": "PRIVATE",
+                  "channelRef": "host-private:person-a:character-instance:ec-live-d6d6ae96ebbf42bea8bb713c3d5b1fa9"
+                },
+                "principal": {
+                  "kind": "PRINCIPAL",
+                  "state": "RESOLVED",
+                  "actorId": "http_124509fd-d89f-4b8a-b460-c359885b5637",
+                  "namespace": "yuvi:character:ec-live-d6d6ae96ebbf42bea8bb713c3d5b1fa9"
+                }
+              },
+              "derivation": {
+                "kind": "FINALIZED_INGESTION",
+                "producer": "@companion/memory",
+                "policyVersion": "memory.semantic.v1/finalized-authority-v1",
+                "producerVersion": "0.1.0"
+              },
+              "sourceTime": {
+                "commitSeq": 7,
+                "recordedAt": "2026-10-17T10:33:36.930Z",
+                "occurrenceTime": {
+                  "state": "UNKNOWN"
+                }
+              },
+              "consumerKey": "mlf1_w8vfd6jOtz1TYz7CD7tobPYgPk0ZBzWUkOA5uMiKIEM",
+              "sourceAvailability": {
+                "state": "RETAINED_SELECTABLE"
+              }
+            },
+            "metadata": {
+              "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+              "semanticPolicy": "memory.semantic.v1",
+              "semanticRevision": "dialogue-proposition-equivalence.v2",
+              "evidenceSelection": {
+                "end": 23,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              }
+            },
+            "assertion": {
+              "source": "user",
+              "verification": "unverified"
+            },
+            "observedAt": "2026-10-17T10:33:36.930Z",
+            "supersedes": [
+              "pgm1_fdb3114f8f98f4184c487bf851017f77760ee8f063f77a151174ed744e9cdee6"
+            ],
+            "payloadDigest": "2046ccbff15e61794fbf76a9ec3eca504e52e54de7832aeee31025381ef79297",
+            "sourceTurnIds": [
+              "7ae3d5f1-f505-41b1-8066-e34370158658"
+            ],
+            "conversationId": "008fda6b-d7dd-4480-b94f-b3a2979f2610",
+            "idempotencyKey": "yuvi:finalized-turn:accepted-user:7ae3d5f1-f505-41b1-8066-e34370158658:event:2046ccbff15e61794fbf76a9ec3eca504e52e54de7832aeee31025381ef79297"
+          },
+          "status": "complete",
+          "result_kind": "written",
+          "attempt_count": 1,
+          "last_attempt_at": "2026-10-17T10:33:38.763Z",
+          "dispatch_started_at": null,
+          "next_attempt_at": null,
+          "backend_memory_id": "pgm1_1b0ec4cde134830540e0b4863aa357491c15280d254c41459059a3b6f6837295",
+          "backend_operation": "written",
+          "error_code": null,
+          "error_message": null,
+          "lease_owner": null,
+          "lease_expires_at": null,
+          "version": 4,
+          "created_at": "2026-10-17T10:33:38.734Z",
+          "updated_at": "2026-10-17T10:33:38.763Z"
+        },
+        {
+          "event_id": "accepted-user:7ae3d5f1-f505-41b1-8066-e34370158658:event:c274578a2424133f1be6500e0c9545cf19e345671dd8b315cf73ce5f1dd31480",
+          "finalized_turn_id": "accepted-user:7ae3d5f1-f505-41b1-8066-e34370158658",
+          "event_key": "event:c274578a2424133f1be6500e0c9545cf19e345671dd8b315cf73ce5f1dd31480",
+          "backend_idempotency_key": "yuvi:finalized-turn:accepted-user:7ae3d5f1-f505-41b1-8066-e34370158658:event:c274578a2424133f1be6500e0c9545cf19e345671dd8b315cf73ce5f1dd31480",
+          "event_payload": {
+            "kind": "correction",
+            "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-d6d6ae96ebbf42bea8bb713c3d5b1fa9",
+            "content": "栀子-613已经无效。",
+            "lineage": {
+              "state": "GROUNDED",
+              "origin": "USER_ASSERTION",
+              "parents": [
+                {
+                  "ref": {
+                    "kind": "JOURNAL_EVENT",
+                    "eventId": "jev1_fGDGlSLkqV0z-o5X_prZiYVFQZfPT_y9",
+                    "namespace": "yuvi:character:ec-live-d6d6ae96ebbf42bea8bb713c3d5b1fa9"
+                  },
+                  "selector": {
+                    "range": {
+                      "end": 35,
+                      "unit": "UNICODE_CODE_POINT",
+                      "start": 0
+                    },
+                    "payload": {
+                      "version": "v1",
+                      "namespace": "yuvi:conversation-input",
+                      "payloadId": "text_1lB0f-tZdKb22wKYn0ds9Q4CUSHlUaXu"
+                    },
+                    "version": "source-selector.v1",
+                    "modality": "TEXT"
+                  }
+                }
+              ],
+              "version": "memory-lineage.v1",
+              "authority": {
+                "binding": {
+                  "kind": "PERSON_BINDING",
+                  "state": "RESOLVED",
+                  "personId": "person-a",
+                  "bindingVersion": "mhg_960e6f49-003e-4fa8-9dd6-885279bcd907"
+                },
+                "audience": {
+                  "kind": "PRIVATE",
+                  "channelRef": "host-private:person-a:character-instance:ec-live-d6d6ae96ebbf42bea8bb713c3d5b1fa9"
+                },
+                "principal": {
+                  "kind": "PRINCIPAL",
+                  "state": "RESOLVED",
+                  "actorId": "http_124509fd-d89f-4b8a-b460-c359885b5637",
+                  "namespace": "yuvi:character:ec-live-d6d6ae96ebbf42bea8bb713c3d5b1fa9"
+                }
+              },
+              "derivation": {
+                "kind": "FINALIZED_INGESTION",
+                "producer": "@companion/memory",
+                "policyVersion": "memory.semantic.v1/finalized-authority-v1",
+                "producerVersion": "0.1.0"
+              },
+              "sourceTime": {
+                "commitSeq": 7,
+                "recordedAt": "2026-10-17T10:33:36.930Z",
+                "occurrenceTime": {
+                  "state": "UNKNOWN"
+                }
+              },
+              "consumerKey": "mlf1_lQgvGTJJe2YN454QWQnwrQ20vIyUWvyM8XOB08-CAfM",
+              "sourceAvailability": {
+                "state": "RETAINED_SELECTABLE"
+              }
+            },
+            "metadata": {
+              "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+              "semanticPolicy": "memory.semantic.v1",
+              "semanticRevision": "dialogue-proposition-equivalence.v2",
+              "evidenceSelection": {
+                "end": 34,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 24
+              }
+            },
+            "assertion": {
+              "source": "user",
+              "verification": "unverified"
+            },
+            "observedAt": "2026-10-17T10:33:36.930Z",
+            "supersedes": [
+              "pgm1_fdb3114f8f98f4184c487bf851017f77760ee8f063f77a151174ed744e9cdee6"
+            ],
+            "payloadDigest": "c274578a2424133f1be6500e0c9545cf19e345671dd8b315cf73ce5f1dd31480",
+            "sourceTurnIds": [
+              "7ae3d5f1-f505-41b1-8066-e34370158658"
+            ],
+            "conversationId": "008fda6b-d7dd-4480-b94f-b3a2979f2610",
+            "idempotencyKey": "yuvi:finalized-turn:accepted-user:7ae3d5f1-f505-41b1-8066-e34370158658:event:c274578a2424133f1be6500e0c9545cf19e345671dd8b315cf73ce5f1dd31480"
+          },
+          "status": "terminal_failed",
+          "result_kind": "rejected",
+          "attempt_count": 8,
+          "last_attempt_at": "2026-10-17T10:33:44.758Z",
+          "dispatch_started_at": null,
+          "next_attempt_at": null,
+          "backend_memory_id": null,
+          "backend_operation": null,
+          "error_code": "MEMORY_WRITE_RETRY_EXHAUSTED",
+          "error_message": null,
+          "lease_owner": null,
+          "lease_expires_at": null,
+          "version": 43,
+          "created_at": "2026-10-17T10:33:38.734Z",
+          "updated_at": "2026-10-17T10:33:44.758Z"
+        }
+      ]
+    },
+    {
+      "group": "runtime-baseline",
+      "table": "memory_semantic_jobs",
+      "rows": [
+        {
+          "job_id": "accepted-user:7ae3d5f1-f505-41b1-8066-e34370158658",
+          "status": "complete",
+          "result": {
+            "events": [
+              {
+                "kind": "correction",
+                "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-d6d6ae96ebbf42bea8bb713c3d5b1fa9",
+                "content": "我使用的编辑器代号是露川-4A87。",
+                "metadata": {
+                  "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                  "semanticPolicy": "memory.semantic.v1",
+                  "semanticRevision": "dialogue-proposition-equivalence.v2",
+                  "evidenceSelection": {
+                    "end": 23,
+                    "unit": "UNICODE_CODE_POINT",
+                    "start": 0
+                  }
+                },
+                "supersedes": [
+                  "pgm1_fdb3114f8f98f4184c487bf851017f77760ee8f063f77a151174ed744e9cdee6"
+                ],
+                "sourceTurnIds": [
+                  "7ae3d5f1-f505-41b1-8066-e34370158658"
+                ],
+                "conversationId": "008fda6b-d7dd-4480-b94f-b3a2979f2610"
+              },
+              {
+                "kind": "correction",
+                "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-d6d6ae96ebbf42bea8bb713c3d5b1fa9",
+                "content": "栀子-613已经无效。",
+                "metadata": {
+                  "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                  "semanticPolicy": "memory.semantic.v1",
+                  "semanticRevision": "dialogue-proposition-equivalence.v2",
+                  "evidenceSelection": {
+                    "end": 34,
+                    "unit": "UNICODE_CODE_POINT",
+                    "start": 24
+                  }
+                },
+                "supersedes": [
+                  "pgm1_fdb3114f8f98f4184c487bf851017f77760ee8f063f77a151174ed744e9cdee6"
+                ],
+                "sourceTurnIds": [
+                  "7ae3d5f1-f505-41b1-8066-e34370158658"
+                ],
+                "conversationId": "008fda6b-d7dd-4480-b94f-b3a2979f2610"
+              }
+            ],
+            "turnKind": "normal"
+          },
+          "error_code": null,
+          "attempts": 1,
+          "provider_model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "token_usage": {
+            "inputTokens": 1402,
+            "totalTokens": 1562,
+            "outputTokens": 160,
+            "cachedInputTokens": 256
+          },
+          "input_context": []
+        },
+        {
+          "job_id": "yuvi:finalized-turn:accepted-user:7ae3d5f1-f505-41b1-8066-e34370158658:event:c274578a2424133f1be6500e0c9545cf19e345671dd8b315cf73ce5f1dd31480:reassessment:1",
+          "status": "complete",
+          "result": {
+            "events": [
+              {
+                "kind": "fact",
+                "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-d6d6ae96ebbf42bea8bb713c3d5b1fa9",
+                "content": "栀子-613已经无效。",
+                "metadata": {
+                  "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                  "semanticPolicy": "memory.semantic.v1",
+                  "semanticRevision": "dialogue-proposition-equivalence.v2",
+                  "evidenceSelection": {
+                    "end": 35,
+                    "unit": "UNICODE_CODE_POINT",
+                    "start": 24
+                  },
+                  "originalReassessedProposition": "栀子-613已经无效。"
+                },
+                "sourceTurnIds": [],
+                "conversationId": null
+              }
+            ],
+            "turnKind": "normal"
+          },
+          "error_code": null,
+          "attempts": 1,
+          "provider_model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "token_usage": {
+            "inputTokens": 1515,
+            "totalTokens": 1550,
+            "outputTokens": 35,
+            "cachedInputTokens": 256
+          },
+          "input_context": []
+        },
+        {
+          "job_id": "yuvi:finalized-turn:accepted-user:7ae3d5f1-f505-41b1-8066-e34370158658:event:c274578a2424133f1be6500e0c9545cf19e345671dd8b315cf73ce5f1dd31480:reassessment:2",
+          "status": "complete",
+          "result": {
+            "events": [
+              {
+                "kind": "fact",
+                "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-d6d6ae96ebbf42bea8bb713c3d5b1fa9",
+                "content": "栀子-613已经无效。",
+                "metadata": {
+                  "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                  "semanticPolicy": "memory.semantic.v1",
+                  "semanticRevision": "dialogue-proposition-equivalence.v2",
+                  "evidenceSelection": {
+                    "end": 35,
+                    "unit": "UNICODE_CODE_POINT",
+                    "start": 24
+                  },
+                  "originalReassessedProposition": "栀子-613已经无效。"
+                },
+                "sourceTurnIds": [],
+                "conversationId": null
+              }
+            ],
+            "turnKind": "normal"
+          },
+          "error_code": null,
+          "attempts": 1,
+          "provider_model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "token_usage": {
+            "inputTokens": 1515,
+            "totalTokens": 1550,
+            "outputTokens": 35,
+            "cachedInputTokens": 1280
+          },
+          "input_context": []
+        },
+        {
+          "job_id": "yuvi:finalized-turn:accepted-user:7ae3d5f1-f505-41b1-8066-e34370158658:event:c274578a2424133f1be6500e0c9545cf19e345671dd8b315cf73ce5f1dd31480:reassessment:3",
+          "status": "complete",
+          "result": {
+            "events": [
+              {
+                "kind": "fact",
+                "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-d6d6ae96ebbf42bea8bb713c3d5b1fa9",
+                "content": "栀子-613已经无效。",
+                "metadata": {
+                  "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                  "semanticPolicy": "memory.semantic.v1",
+                  "semanticRevision": "dialogue-proposition-equivalence.v2",
+                  "evidenceSelection": {
+                    "end": 35,
+                    "unit": "UNICODE_CODE_POINT",
+                    "start": 24
+                  },
+                  "originalReassessedProposition": "栀子-613已经无效。"
+                },
+                "sourceTurnIds": [],
+                "conversationId": null
+              }
+            ],
+            "turnKind": "normal"
+          },
+          "error_code": null,
+          "attempts": 1,
+          "provider_model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "token_usage": {
+            "inputTokens": 1515,
+            "totalTokens": 1550,
+            "outputTokens": 35,
+            "cachedInputTokens": 1280
+          },
+          "input_context": []
+        }
+      ]
+    },
+    {
+      "group": "runtime-baseline",
+      "table": "memory_decision_reassessments",
+      "rows": [
+        {
+          "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-d6d6ae96ebbf42bea8bb713c3d5b1fa9",
+          "logical_key": "yuvi:finalized-turn:accepted-user:7ae3d5f1-f505-41b1-8066-e34370158658:event:c274578a2424133f1be6500e0c9545cf19e345671dd8b315cf73ce5f1dd31480",
+          "original_digest": "c274578a2424133f1be6500e0c9545cf19e345671dd8b315cf73ce5f1dd31480",
+          "generation": 3,
+          "status": "terminal_failed",
+          "lease_owner": null,
+          "lease_until": null,
+          "resolved_key": null,
+          "resolved_digest": null,
+          "resolved_event_id": null,
+          "error_code": "MEMORY_REASSESSMENT_UNRESOLVED",
+          "updated_at": "2026-10-17T10:33:43.026Z"
+        }
+      ]
+    },
+    {
+      "group": "runtime-revised",
+      "table": "finalized_ingestion_turns",
+      "rows": [
+        {
+          "finalized_turn_id": "accepted-user:4627eb11-8458-4c8b-a59b-24a8bf63bda4",
+          "assistant_message_id": null,
+          "source_user_event_id": "4627eb11-8458-4c8b-a59b-24a8bf63bda4",
+          "conversation_id": "6007520f-7a9b-4c64-a878-3f1fa1ca462d",
+          "trace_id": "4627eb11-8458-4c8b-a59b-24a8bf63bda4",
+          "persona_id": "character-instance:ec-live-daff808655cc46d2bc84daf94088fff6",
+          "subject_user_id": "person-a",
+          "memory_scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-daff808655cc46d2bc84daf94088fff6",
+          "finalized_at": "2026-10-17T10:40:43.159Z",
+          "ingestion_requested": true,
+          "ingestion_skip_reason": null,
+          "failure_stage": null,
+          "status": "partial",
+          "policy_version": "memory.semantic.v1/finalized-authority-v1",
+          "source_digest": "e749f7f3965d5c02b0362bf074f2ff1af6bebf8369b4400285ce2fb2ae91b975",
+          "eligible_event_count": 2,
+          "pending_event_count": 0,
+          "processing_event_count": 0,
+          "complete_event_count": 1,
+          "unchanged_event_count": 0,
+          "failed_event_count": 1,
+          "ambiguous_event_count": 0,
+          "skipped_event_count": 0,
+          "attempt_count": 9,
+          "last_attempt_at": "2026-10-17T10:40:50.353Z",
+          "next_attempt_at": null,
+          "completed_at": null,
+          "last_error_code": "MEMORY_WRITE_RETRY_EXHAUSTED",
+          "last_error_message": null,
+          "lease_owner": null,
+          "lease_expires_at": null,
+          "version": 49,
+          "created_at": "2026-10-17T10:40:43.166Z",
+          "updated_at": "2026-10-17T10:40:50.790Z",
+          "rejected_propositions": []
+        }
+      ]
+    },
+    {
+      "group": "runtime-revised",
+      "table": "finalized_ingestion_events",
+      "rows": [
+        {
+          "event_id": "accepted-user:4627eb11-8458-4c8b-a59b-24a8bf63bda4:event:99128b8d2a4a9d4a7642bdae4296ba25ae88793fdd205cbd4290680f217c72c7",
+          "finalized_turn_id": "accepted-user:4627eb11-8458-4c8b-a59b-24a8bf63bda4",
+          "event_key": "event:99128b8d2a4a9d4a7642bdae4296ba25ae88793fdd205cbd4290680f217c72c7",
+          "backend_idempotency_key": "yuvi:finalized-turn:accepted-user:4627eb11-8458-4c8b-a59b-24a8bf63bda4:event:99128b8d2a4a9d4a7642bdae4296ba25ae88793fdd205cbd4290680f217c72c7",
+          "event_payload": {
+            "kind": "correction",
+            "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-daff808655cc46d2bc84daf94088fff6",
+            "content": "栀子-613已经无效。",
+            "lineage": {
+              "state": "GROUNDED",
+              "origin": "USER_ASSERTION",
+              "parents": [
+                {
+                  "ref": {
+                    "kind": "JOURNAL_EVENT",
+                    "eventId": "jev1_ef3zoFa-k6wBW7QLjP8mprMKLMjnDLs2",
+                    "namespace": "yuvi:character:ec-live-daff808655cc46d2bc84daf94088fff6"
+                  },
+                  "selector": {
+                    "range": {
+                      "end": 35,
+                      "unit": "UNICODE_CODE_POINT",
+                      "start": 0
+                    },
+                    "payload": {
+                      "version": "v1",
+                      "namespace": "yuvi:conversation-input",
+                      "payloadId": "text_5U1SMVYd7EmY2wnxwwa-bGyDpHPznd5z"
+                    },
+                    "version": "source-selector.v1",
+                    "modality": "TEXT"
+                  }
+                }
+              ],
+              "version": "memory-lineage.v1",
+              "authority": {
+                "binding": {
+                  "kind": "PERSON_BINDING",
+                  "state": "RESOLVED",
+                  "personId": "person-a",
+                  "bindingVersion": "mhg_058b3fdd-dd1e-4e88-8631-ef3374cfb7e4"
+                },
+                "audience": {
+                  "kind": "PRIVATE",
+                  "channelRef": "host-private:person-a:character-instance:ec-live-daff808655cc46d2bc84daf94088fff6"
+                },
+                "principal": {
+                  "kind": "PRINCIPAL",
+                  "state": "RESOLVED",
+                  "actorId": "http_1289ef62-12b6-427a-a57d-51ad1ac51cd0",
+                  "namespace": "yuvi:character:ec-live-daff808655cc46d2bc84daf94088fff6"
+                }
+              },
+              "derivation": {
+                "kind": "FINALIZED_INGESTION",
+                "producer": "@companion/memory",
+                "policyVersion": "memory.semantic.v1/finalized-authority-v1",
+                "producerVersion": "0.1.0"
+              },
+              "sourceTime": {
+                "commitSeq": 7,
+                "recordedAt": "2026-10-17T10:40:43.159Z",
+                "occurrenceTime": {
+                  "state": "UNKNOWN"
+                }
+              },
+              "consumerKey": "mlf1_3a4yr6ogGZkwd4P1NATFsJiP6kB5AdbQ6-UJ9MYJnUM",
+              "sourceAvailability": {
+                "state": "RETAINED_SELECTABLE"
+              }
+            },
+            "metadata": {
+              "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+              "semanticPolicy": "memory.semantic.v1",
+              "semanticRevision": "dialogue-proposition-equivalence.v2",
+              "evidenceSelection": {
+                "end": 34,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 24
+              }
+            },
+            "assertion": {
+              "source": "user",
+              "verification": "unverified"
+            },
+            "observedAt": "2026-10-17T10:40:43.159Z",
+            "supersedes": [
+              "pgm1_78b2ec9936ff529bd0a7f7790dccbb6e7621812c4ed2e1e8c2f69a791953c9bc"
+            ],
+            "payloadDigest": "99128b8d2a4a9d4a7642bdae4296ba25ae88793fdd205cbd4290680f217c72c7",
+            "sourceTurnIds": [
+              "4627eb11-8458-4c8b-a59b-24a8bf63bda4"
+            ],
+            "conversationId": "6007520f-7a9b-4c64-a878-3f1fa1ca462d",
+            "idempotencyKey": "yuvi:finalized-turn:accepted-user:4627eb11-8458-4c8b-a59b-24a8bf63bda4:event:99128b8d2a4a9d4a7642bdae4296ba25ae88793fdd205cbd4290680f217c72c7"
+          },
+          "status": "complete",
+          "result_kind": "written",
+          "attempt_count": 1,
+          "last_attempt_at": "2026-10-17T10:40:44.966Z",
+          "dispatch_started_at": null,
+          "next_attempt_at": null,
+          "backend_memory_id": "pgm1_96dccc4c5648c853d9934f9e85429bbd675107f2f45ce7604659bee496f02b9d",
+          "backend_operation": "written",
+          "error_code": null,
+          "error_message": null,
+          "lease_owner": null,
+          "lease_expires_at": null,
+          "version": 4,
+          "created_at": "2026-10-17T10:40:44.943Z",
+          "updated_at": "2026-10-17T10:40:44.966Z"
+        },
+        {
+          "event_id": "accepted-user:4627eb11-8458-4c8b-a59b-24a8bf63bda4:event:9eecd073039340fc8f69cfc644cdfbc730cb693bc697e8590335dd86d3d853d6",
+          "finalized_turn_id": "accepted-user:4627eb11-8458-4c8b-a59b-24a8bf63bda4",
+          "event_key": "event:9eecd073039340fc8f69cfc644cdfbc730cb693bc697e8590335dd86d3d853d6",
+          "backend_idempotency_key": "yuvi:finalized-turn:accepted-user:4627eb11-8458-4c8b-a59b-24a8bf63bda4:event:9eecd073039340fc8f69cfc644cdfbc730cb693bc697e8590335dd86d3d853d6",
+          "event_payload": {
+            "kind": "correction",
+            "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-daff808655cc46d2bc84daf94088fff6",
+            "content": "我使用的编辑器代号是露川-4A87。",
+            "lineage": {
+              "state": "GROUNDED",
+              "origin": "USER_ASSERTION",
+              "parents": [
+                {
+                  "ref": {
+                    "kind": "JOURNAL_EVENT",
+                    "eventId": "jev1_ef3zoFa-k6wBW7QLjP8mprMKLMjnDLs2",
+                    "namespace": "yuvi:character:ec-live-daff808655cc46d2bc84daf94088fff6"
+                  },
+                  "selector": {
+                    "range": {
+                      "end": 35,
+                      "unit": "UNICODE_CODE_POINT",
+                      "start": 0
+                    },
+                    "payload": {
+                      "version": "v1",
+                      "namespace": "yuvi:conversation-input",
+                      "payloadId": "text_5U1SMVYd7EmY2wnxwwa-bGyDpHPznd5z"
+                    },
+                    "version": "source-selector.v1",
+                    "modality": "TEXT"
+                  }
+                }
+              ],
+              "version": "memory-lineage.v1",
+              "authority": {
+                "binding": {
+                  "kind": "PERSON_BINDING",
+                  "state": "RESOLVED",
+                  "personId": "person-a",
+                  "bindingVersion": "mhg_058b3fdd-dd1e-4e88-8631-ef3374cfb7e4"
+                },
+                "audience": {
+                  "kind": "PRIVATE",
+                  "channelRef": "host-private:person-a:character-instance:ec-live-daff808655cc46d2bc84daf94088fff6"
+                },
+                "principal": {
+                  "kind": "PRINCIPAL",
+                  "state": "RESOLVED",
+                  "actorId": "http_1289ef62-12b6-427a-a57d-51ad1ac51cd0",
+                  "namespace": "yuvi:character:ec-live-daff808655cc46d2bc84daf94088fff6"
+                }
+              },
+              "derivation": {
+                "kind": "FINALIZED_INGESTION",
+                "producer": "@companion/memory",
+                "policyVersion": "memory.semantic.v1/finalized-authority-v1",
+                "producerVersion": "0.1.0"
+              },
+              "sourceTime": {
+                "commitSeq": 7,
+                "recordedAt": "2026-10-17T10:40:43.159Z",
+                "occurrenceTime": {
+                  "state": "UNKNOWN"
+                }
+              },
+              "consumerKey": "mlf1_SmnmYh5NU1PPDoh4RsfS7ty9cmhen0Ft1cnKzQOA5DQ",
+              "sourceAvailability": {
+                "state": "RETAINED_SELECTABLE"
+              }
+            },
+            "metadata": {
+              "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+              "semanticPolicy": "memory.semantic.v1",
+              "semanticRevision": "dialogue-proposition-equivalence.v2",
+              "evidenceSelection": {
+                "end": 23,
+                "unit": "UNICODE_CODE_POINT",
+                "start": 0
+              }
+            },
+            "assertion": {
+              "source": "user",
+              "verification": "unverified"
+            },
+            "observedAt": "2026-10-17T10:40:43.159Z",
+            "supersedes": [
+              "pgm1_78b2ec9936ff529bd0a7f7790dccbb6e7621812c4ed2e1e8c2f69a791953c9bc"
+            ],
+            "payloadDigest": "9eecd073039340fc8f69cfc644cdfbc730cb693bc697e8590335dd86d3d853d6",
+            "sourceTurnIds": [
+              "4627eb11-8458-4c8b-a59b-24a8bf63bda4"
+            ],
+            "conversationId": "6007520f-7a9b-4c64-a878-3f1fa1ca462d",
+            "idempotencyKey": "yuvi:finalized-turn:accepted-user:4627eb11-8458-4c8b-a59b-24a8bf63bda4:event:9eecd073039340fc8f69cfc644cdfbc730cb693bc697e8590335dd86d3d853d6"
+          },
+          "status": "terminal_failed",
+          "result_kind": "rejected",
+          "attempt_count": 8,
+          "last_attempt_at": "2026-10-17T10:40:50.790Z",
+          "dispatch_started_at": null,
+          "next_attempt_at": null,
+          "backend_memory_id": null,
+          "backend_operation": null,
+          "error_code": "MEMORY_WRITE_RETRY_EXHAUSTED",
+          "error_message": null,
+          "lease_owner": null,
+          "lease_expires_at": null,
+          "version": 43,
+          "created_at": "2026-10-17T10:40:44.943Z",
+          "updated_at": "2026-10-17T10:40:50.790Z"
+        }
+      ]
+    },
+    {
+      "group": "runtime-revised",
+      "table": "memory_semantic_jobs",
+      "rows": [
+        {
+          "job_id": "yuvi:finalized-turn:accepted-user:4627eb11-8458-4c8b-a59b-24a8bf63bda4:event:9eecd073039340fc8f69cfc644cdfbc730cb693bc697e8590335dd86d3d853d6:reassessment:2",
+          "status": "complete",
+          "result": {
+            "events": [
+              {
+                "kind": "fact",
+                "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-daff808655cc46d2bc84daf94088fff6",
+                "content": "我使用的编辑器代号是露川-4A87。",
+                "metadata": {
+                  "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                  "semanticPolicy": "memory.semantic.v1",
+                  "semanticRevision": "dialogue-proposition-equivalence.v2",
+                  "evidenceSelection": {
+                    "end": 35,
+                    "unit": "UNICODE_CODE_POINT",
+                    "start": 0
+                  },
+                  "originalReassessedProposition": "我使用的编辑器代号是露川-4A87。"
+                },
+                "sourceTurnIds": [],
+                "conversationId": null
+              }
+            ],
+            "turnKind": "normal"
+          },
+          "error_code": null,
+          "attempts": 1,
+          "provider_model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "token_usage": {
+            "inputTokens": 1523,
+            "totalTokens": 1579,
+            "outputTokens": 56,
+            "cachedInputTokens": 1280
+          },
+          "input_context": []
+        },
+        {
+          "job_id": "yuvi:finalized-turn:accepted-user:4627eb11-8458-4c8b-a59b-24a8bf63bda4:event:9eecd073039340fc8f69cfc644cdfbc730cb693bc697e8590335dd86d3d853d6:reassessment:1",
+          "status": "complete",
+          "result": {
+            "events": [
+              {
+                "kind": "fact",
+                "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-daff808655cc46d2bc84daf94088fff6",
+                "content": "我使用的编辑器代号是露川-4A87。",
+                "metadata": {
+                  "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                  "semanticPolicy": "memory.semantic.v1",
+                  "semanticRevision": "dialogue-proposition-equivalence.v2",
+                  "evidenceSelection": {
+                    "end": 35,
+                    "unit": "UNICODE_CODE_POINT",
+                    "start": 0
+                  },
+                  "originalReassessedProposition": "我使用的编辑器代号是露川-4A87。"
+                },
+                "sourceTurnIds": [],
+                "conversationId": null
+              }
+            ],
+            "turnKind": "normal"
+          },
+          "error_code": null,
+          "attempts": 1,
+          "provider_model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "token_usage": {
+            "inputTokens": 1523,
+            "totalTokens": 1579,
+            "outputTokens": 56,
+            "cachedInputTokens": 256
+          },
+          "input_context": []
+        },
+        {
+          "job_id": "accepted-user:4627eb11-8458-4c8b-a59b-24a8bf63bda4",
+          "status": "complete",
+          "result": {
+            "events": [
+              {
+                "kind": "correction",
+                "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-daff808655cc46d2bc84daf94088fff6",
+                "content": "我使用的编辑器代号是露川-4A87。",
+                "metadata": {
+                  "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                  "semanticPolicy": "memory.semantic.v1",
+                  "semanticRevision": "dialogue-proposition-equivalence.v2",
+                  "evidenceSelection": {
+                    "end": 23,
+                    "unit": "UNICODE_CODE_POINT",
+                    "start": 0
+                  }
+                },
+                "supersedes": [
+                  "pgm1_78b2ec9936ff529bd0a7f7790dccbb6e7621812c4ed2e1e8c2f69a791953c9bc"
+                ],
+                "sourceTurnIds": [
+                  "4627eb11-8458-4c8b-a59b-24a8bf63bda4"
+                ],
+                "conversationId": "6007520f-7a9b-4c64-a878-3f1fa1ca462d"
+              },
+              {
+                "kind": "correction",
+                "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-daff808655cc46d2bc84daf94088fff6",
+                "content": "栀子-613已经无效。",
+                "metadata": {
+                  "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                  "semanticPolicy": "memory.semantic.v1",
+                  "semanticRevision": "dialogue-proposition-equivalence.v2",
+                  "evidenceSelection": {
+                    "end": 34,
+                    "unit": "UNICODE_CODE_POINT",
+                    "start": 24
+                  }
+                },
+                "supersedes": [
+                  "pgm1_78b2ec9936ff529bd0a7f7790dccbb6e7621812c4ed2e1e8c2f69a791953c9bc"
+                ],
+                "sourceTurnIds": [
+                  "4627eb11-8458-4c8b-a59b-24a8bf63bda4"
+                ],
+                "conversationId": "6007520f-7a9b-4c64-a878-3f1fa1ca462d"
+              }
+            ],
+            "turnKind": "normal"
+          },
+          "error_code": null,
+          "attempts": 1,
+          "provider_model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "token_usage": {
+            "inputTokens": 1415,
+            "totalTokens": 1587,
+            "outputTokens": 172,
+            "cachedInputTokens": 256
+          },
+          "input_context": []
+        },
+        {
+          "job_id": "yuvi:finalized-turn:accepted-user:4627eb11-8458-4c8b-a59b-24a8bf63bda4:event:9eecd073039340fc8f69cfc644cdfbc730cb693bc697e8590335dd86d3d853d6:reassessment:3",
+          "status": "complete",
+          "result": {
+            "events": [
+              {
+                "kind": "fact",
+                "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-daff808655cc46d2bc84daf94088fff6",
+                "content": "我使用的编辑器代号是露川-4A87。",
+                "metadata": {
+                  "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+                  "semanticPolicy": "memory.semantic.v1",
+                  "semanticRevision": "dialogue-proposition-equivalence.v2",
+                  "evidenceSelection": {
+                    "end": 35,
+                    "unit": "UNICODE_CODE_POINT",
+                    "start": 0
+                  },
+                  "originalReassessedProposition": "我使用的编辑器代号是露川-4A87。"
+                },
+                "sourceTurnIds": [],
+                "conversationId": null
+              }
+            ],
+            "turnKind": "normal"
+          },
+          "error_code": null,
+          "attempts": 1,
+          "provider_model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "token_usage": {
+            "inputTokens": 1523,
+            "totalTokens": 1579,
+            "outputTokens": 56,
+            "cachedInputTokens": 1280
+          },
+          "input_context": []
+        }
+      ]
+    },
+    {
+      "group": "runtime-revised",
+      "table": "memory_decision_reassessments",
+      "rows": [
+        {
+          "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-daff808655cc46d2bc84daf94088fff6",
+          "logical_key": "yuvi:finalized-turn:accepted-user:4627eb11-8458-4c8b-a59b-24a8bf63bda4:event:9eecd073039340fc8f69cfc644cdfbc730cb693bc697e8590335dd86d3d853d6",
+          "original_digest": "9eecd073039340fc8f69cfc644cdfbc730cb693bc697e8590335dd86d3d853d6",
+          "generation": 3,
+          "status": "terminal_failed",
+          "lease_owner": null,
+          "lease_until": null,
+          "resolved_key": null,
+          "resolved_digest": null,
+          "resolved_event_id": null,
+          "error_code": "MEMORY_REASSESSMENT_UNRESOLVED",
+          "updated_at": "2026-10-17T10:40:48.846Z"
+        }
+      ]
+    }
+  ]
+}

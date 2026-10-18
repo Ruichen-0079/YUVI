@@ -1,0 +1,222 @@
+{
+  "schema": "memory.manual-answer-annotations.v1",
+  "method": "Manual review of every saved synthetic answer, not an LLM judge. A truthful related fact without resolving the requested unknown is kept as QUALIFIED_RELATED_EVIDENCE, not full correctness. Absence overclaim is scored separately from hallucinated values. First-person attribution errors count against correctness. All nonfinal gates count as no final answer, not calibrated completion. The first two tea questions omit explicit user ownership; their ambiguity and personality invention remain failures, not silently relabeled. New four baseline replies share the revised Character but old memory context; original 20 baseline replies are frozen #331 Character outputs.",
+  "rows": [
+    {
+      "id": "tea-known",
+      "baseline": "ATTRIBUTION_ERROR",
+      "revised": "SUPPORTED_ANSWER",
+      "answerDigests": {
+        "baseline": "dffa38bd4d5c1bcb4de28e00f945b22838cb87c816866c5d8c842e645197be54",
+        "revised": "a475c7d176d92acc63e544b5b19fde44e6e984eaf4ead9297b701edcd09562ca"
+      }
+    },
+    {
+      "id": "tea-cup",
+      "baseline": "UNSUPPORTED_ANSWER",
+      "revised": "UNSUPPORTED_ANSWER",
+      "answerDigests": {
+        "baseline": "7aa45615464b97f24d368af6b45e9f77bdf3b3610471cbbd77544ac57af7b493",
+        "revised": "b5fa0fd9072e81e735660f38c047563338ca110f4f5ca06731889999ca775a30"
+      }
+    },
+    {
+      "id": "editor",
+      "baseline": "SUPPORTED_ANSWER",
+      "revised": "SUPPORTED_ANSWER",
+      "answerDigests": {
+        "baseline": "94754ea93b5b16305bf2b455bc25f7924430a02b29d4ab4442040fcb833c70ee",
+        "revised": "be48587c43fc87c52ed64c337700e3b503b0a45829c71e2ace4565438061c71e"
+      }
+    },
+    {
+      "id": "editor-old-only",
+      "baseline": "NO_FINAL_ANSWER",
+      "revised": "CALIBRATED_ABSTENTION",
+      "answerDigests": {
+        "baseline": "2dc416494e9e89af646af5f494c857521d749f2c52f209a853a42e412208924b",
+        "revised": "c68c0b9bc5c555a85feef9d8f0a6d2d334fb4214de32aa47817e4708284c89c9"
+      }
+    },
+    {
+      "id": "editor-refuted",
+      "baseline": "SUPPORTED_ANSWER",
+      "revised": "FALSE_ABSTENTION",
+      "answerDigests": {
+        "baseline": "a49dad2eafb1fe0163350ce6ab493f200045805dcc1813e84c55fb86012d20ab",
+        "revised": "8f99b81154fd5fc70340f245b2e4b3d1e4821dc270fa57c0d420b710d1adf657"
+      }
+    },
+    {
+      "id": "owner-member",
+      "baseline": "QUALIFIED_RELATED_EVIDENCE",
+      "revised": "CALIBRATED_ABSTENTION",
+      "answerDigests": {
+        "baseline": "e70ebd01836ee3f5cb670b71f4724b8d0b2132d16ebfa3907a27bd9170d451ec",
+        "revised": "de4397a96184d335c8d674452bf8c12c4266fece70b88789c79fff3aadac4bbe"
+      }
+    },
+    {
+      "id": "owner-known",
+      "baseline": "SUPPORTED_ANSWER",
+      "revised": "SUPPORTED_ANSWER",
+      "answerDigests": {
+        "baseline": "566c2ad97a309f913704086c9c4992c7cb809de07ff593a834eee255f793ba83",
+        "revised": "566c2ad97a309f913704086c9c4992c7cb809de07ff593a834eee255f793ba83"
+      }
+    },
+    {
+      "id": "interview-prep",
+      "baseline": "ATTRIBUTION_ERROR",
+      "revised": "CALIBRATED_ABSTENTION",
+      "answerDigests": {
+        "baseline": "718c102b8eb2e3406462fff4168f2c6cd90dd161f99025e477bd25f6d7fae198",
+        "revised": "eb78d64b4c6b9fbd3e0aa986b58341b675696bbc62caaad33ff4920202d8ad01"
+      }
+    },
+    {
+      "id": "interview-date",
+      "baseline": "SUPPORTED_ANSWER",
+      "revised": "SUPPORTED_ANSWER",
+      "answerDigests": {
+        "baseline": "6635c8495f50fe0907bffa71ebd22f5a3f4816cb0895b5591f7afe0de74c3974",
+        "revised": "3b90ca9d3075c67c0fa47c1760c4bebe698d17bb426bfbf6ac6a11b5a10d412c"
+      }
+    },
+    {
+      "id": "missing-seat",
+      "baseline": "UNSUPPORTED_ANSWER",
+      "revised": "CALIBRATED_ABSTENTION",
+      "answerDigests": {
+        "baseline": "6f5f8ab5225b3dfc484b87a1312d2464aebd99df2ac6f5a0889cff144f53365d",
+        "revised": "3cbe1fbb24da1c041309e156112ebf20b6a52ceff29f1e21f600ff7ef95d2ada"
+      }
+    },
+    {
+      "id": "cross-language",
+      "baseline": "ATTRIBUTION_ERROR",
+      "revised": "SUPPORTED_ANSWER",
+      "answerDigests": {
+        "baseline": "3310663197bb6712e0e9f24b4d442dc5bf583e6016b28a9bad27b65c584e1275",
+        "revised": "bb91f066195a81eaa6318caab75299de6a2413abad5bec064121fc5145b4ecb4"
+      }
+    },
+    {
+      "id": "unresolved",
+      "baseline": "NO_FINAL_ANSWER",
+      "revised": "ABSENCE_OVERCLAIM",
+      "answerDigests": {
+        "baseline": "2dc416494e9e89af646af5f494c857521d749f2c52f209a853a42e412208924b",
+        "revised": "f122360a0fd00e43466f1611b63430224a8c5ce3ecfe2c9a468ef45dede84a5b"
+      }
+    },
+    {
+      "id": "third-person",
+      "baseline": "ATTRIBUTION_ERROR",
+      "revised": "FALSE_ABSTENTION",
+      "answerDigests": {
+        "baseline": "9a83ea6dcac08eb4504a2b75c310c00c8b930c25ca86f5371dad8dba5c6f1d64",
+        "revised": "664ea76600c8e356b099859118433d296c7b32ac885e0439447b460dd47c61a9"
+      }
+    },
+    {
+      "id": "wrong-owner",
+      "baseline": "UNSUPPORTED_ANSWER",
+      "revised": "CALIBRATED_ABSTENTION",
+      "answerDigests": {
+        "baseline": "9d410ef16322b6744a4ccbfc090fcc256d870ecc05edc77921e497bbf959c198",
+        "revised": "af8f44228ab6ac721a0cfc7523296150cf573a2766fc1943e66ac7e0924bad0d"
+      }
+    },
+    {
+      "id": "uncertain",
+      "baseline": "ATTRIBUTION_ERROR",
+      "revised": "CALIBRATED_ABSTENTION",
+      "answerDigests": {
+        "baseline": "a1a327d9237ef0c61423e5f373dde7535b00bd3202744ff80772c47051b00a87",
+        "revised": "cd43310cc24115428b480f182b5a2eb5ddb2328386ac15ca1cb50f5e24dedbea"
+      }
+    },
+    {
+      "id": "quoted-role",
+      "baseline": "UNSUPPORTED_ANSWER",
+      "revised": "CALIBRATED_ABSTENTION",
+      "answerDigests": {
+        "baseline": "bcb6a2cf553f8500c7f98d7c3fe5061ec4f290f62891051c323eed7639ad4c59",
+        "revised": "9108f0f035b130fc19bf8404101e7add95d50fb3b0a7d474bc2cb262e092febd"
+      }
+    },
+    {
+      "id": "holdout-coating",
+      "baseline": "SUPPORTED_ANSWER",
+      "revised": "SUPPORTED_ANSWER",
+      "answerDigests": {
+        "baseline": "2590e7114e0c4d1b88b8375329760ab31892ca37c0e1196819c453e5d3acbdcb",
+        "revised": "d1c7093a0ab41515f47ff7b033afc9bad7c311e384c5a329f8c77f37708bbf3c"
+      }
+    },
+    {
+      "id": "holdout-temperature",
+      "baseline": "CALIBRATED_ABSTENTION",
+      "revised": "CALIBRATED_ABSTENTION",
+      "answerDigests": {
+        "baseline": "98f3f98f37ad3e7dc5a202685d81143f923bd77f2fecfd6e325fe95f47f26ae6",
+        "revised": "3e79fcad1a3b5e69285db047b92a27a14b69c9662bd121ce3afb3c33b765d847"
+      }
+    },
+    {
+      "id": "holdout-brightness",
+      "baseline": "SUPPORTED_ANSWER",
+      "revised": "SUPPORTED_ANSWER",
+      "answerDigests": {
+        "baseline": "d445d3a08684d0ee831afbb725fd6b69724b73539a50d94b912baab633851777",
+        "revised": "cd5232e92aac17ee92f8e0b8e0bfd59829c163e104667a73597fc1cfa47209eb"
+      }
+    },
+    {
+      "id": "holdout-ownership",
+      "baseline": "SUPPORTED_ANSWER",
+      "revised": "SUPPORTED_ANSWER",
+      "answerDigests": {
+        "baseline": "a8b4d5f4d5afc07771d87a31f62b3127654858d2b081eb6053206fa34587637b",
+        "revised": "20fe2a92ba0b009377cd516e127758255ec9b7389f175af658c0669842a05e12"
+      }
+    },
+    {
+      "id": "unseen-scan",
+      "baseline": "SUPPORTED_ANSWER",
+      "revised": "SUPPORTED_ANSWER",
+      "answerDigests": {
+        "baseline": "d593dc22b7a60b730f20a1750ff4b1533faf36a66c4e5090cf46cb0f65576d84",
+        "revised": "3bf9211293386f7b9d35216e29c077183ca11985d11e3291908849e83d54e985"
+      }
+    },
+    {
+      "id": "unseen-plan",
+      "baseline": "SUPPORTED_ANSWER",
+      "revised": "SUPPORTED_ANSWER",
+      "answerDigests": {
+        "baseline": "33650b84bff5e83d95858039369aa1462bc8d789276b17aa749bc1930e2d1a6d",
+        "revised": "5bfc8ed574f075fd39c5fc45187ee2f474f4b391b67d9adaf0ba105ab66379f0"
+      }
+    },
+    {
+      "id": "unseen-card",
+      "baseline": "SUPPORTED_ANSWER",
+      "revised": "FALSE_ABSTENTION",
+      "answerDigests": {
+        "baseline": "ebc1677e16ccb3e080fac9fa99b56e01f6f12e200447d875e3905170734a24fd",
+        "revised": "ba2ab9202ad413b885f8bec18298206c0c7b10f466c437958d63eafd2cd5d65e"
+      }
+    },
+    {
+      "id": "unseen-capacity",
+      "baseline": "CALIBRATED_ABSTENTION",
+      "revised": "CALIBRATED_ABSTENTION",
+      "answerDigests": {
+        "baseline": "0a82482e4850ea44c11411d418f832192bafdc0bbd9a6f4e5a3e5697b4e396be",
+        "revised": "919e988f41acafeec277f6c4110c7e28706dc6b48014af738a3650255342f254"
+      }
+    }
+  ]
+}

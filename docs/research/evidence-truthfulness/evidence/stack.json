@@ -1,0 +1,788 @@
+{
+  "schema": "yuvi.stack-snapshot.v1",
+  "prs": [
+    {
+      "baseRefName": "main",
+      "headRefName": "fix/backend-boundary-recovery-20261010",
+      "headRefOid": "e92e30bbd4c9242c74860bf48d1eed8bde40e58e",
+      "isDraft": false,
+      "number": 322,
+      "state": "OPEN",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T03:02:25Z",
+          "conclusion": "FAILURE",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38018858823/job/114115170339",
+          "name": "validate",
+          "startedAt": "2026-10-10T02:57:46Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T03:01:00Z",
+          "conclusion": "FAILURE",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38018789107/job/114114949379",
+          "name": "validate",
+          "startedAt": "2026-10-10T02:56:32Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T02:59:09Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38018858784/job/114115170363",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-10T02:57:46Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T02:58:18Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38018789113/job/114114949901",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-10T02:56:32Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T03:04:29Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38018858768/job/114115170057",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-10T02:57:47Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T03:03:26Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38018789109/job/114114949370",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-10T02:56:32Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        }
+      ],
+      "title": "fix: recover high-risk backend boundaries with regression evidence"
+    },
+    {
+      "baseRefName": "fix/backend-boundary-recovery-20261010",
+      "headRefName": "fix/runtime-model-value-20261010",
+      "headRefOid": "c3f7f06cb5a728d05bc78137af3d7178a774c8f6",
+      "isDraft": false,
+      "number": 323,
+      "state": "OPEN",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T05:58:30Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38028991037/job/114145771669",
+          "name": "validate",
+          "startedAt": "2026-10-10T05:52:40Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T05:55:27Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38028963156/job/114145692292",
+          "name": "validate",
+          "startedAt": "2026-10-10T05:52:09Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T05:54:59Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38028991149/job/114145772135",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-10T05:52:40Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T05:54:06Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38028963158/job/114145692445",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-10T05:52:10Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T05:59:30Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38028991008/job/114145771462",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-10T05:52:40Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T05:59:26Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38028963151/job/114145692297",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-10T05:52:10Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        }
+      ],
+      "title": "fix: recover measured runtime model losses and durable smoke baseline"
+    },
+    {
+      "baseRefName": "fix/runtime-model-value-20261010",
+      "headRefName": "fix/memory-correction-character-cognition-r4",
+      "headRefOid": "8c6eb38178804f28d3d552cfcdf77eb692a2c9ae",
+      "isDraft": false,
+      "number": 324,
+      "state": "OPEN",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T07:08:48Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38033123857/job/114157993885",
+          "name": "validate",
+          "startedAt": "2026-10-10T07:04:05Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T07:08:20Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38033099532/job/114157922199",
+          "name": "validate",
+          "startedAt": "2026-10-10T07:03:39Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T07:06:18Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38033123941/job/114157994035",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-10T07:04:04Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T07:05:46Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38033099490/job/114157922218",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-10T07:03:39Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T07:10:47Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38033123882/job/114157994054",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-10T07:04:05Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-10T07:10:47Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38033099522/job/114157922311",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-10T07:03:39Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        }
+      ],
+      "title": "fix(memory): grounded corrections and current evidence retrieval (R4 P0)"
+    },
+    {
+      "baseRefName": "fix/memory-correction-character-cognition-r4",
+      "headRefName": "feat/runtime-memory-r5-authority",
+      "headRefOid": "11e88bdcc0423d7446f265aa7617cf375cf931e6",
+      "isDraft": true,
+      "number": 325,
+      "state": "OPEN",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-11T03:48:34Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38109346533/job/114381466860",
+          "name": "validate",
+          "startedAt": "2026-10-11T03:44:20Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-11T03:49:17Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38109344260/job/114381459669",
+          "name": "validate",
+          "startedAt": "2026-10-11T03:44:18Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-11T03:46:09Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38109346522/job/114381466938",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-11T03:44:21Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-11T03:46:34Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38109344324/job/114381460127",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-11T03:44:18Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-11T03:51:11Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38109346530/job/114381466715",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-11T03:44:21Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-11T03:51:29Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38109344342/job/114381460353",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-11T03:44:18Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        }
+      ],
+      "title": "feat(memory): R5 PostgreSQL authority and durable semantic ingestion — phase 1"
+    },
+    {
+      "baseRefName": "feat/runtime-memory-r5-authority",
+      "headRefName": "feat/runtime-memory-r5-phase2",
+      "headRefOid": "8632dd9107fc07d04f3cc8825c848c48394bd6ae",
+      "isDraft": true,
+      "number": 326,
+      "state": "OPEN",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-11T16:16:40Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38154417097/job/114514317687",
+          "name": "validate",
+          "startedAt": "2026-10-11T16:11:31Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-11T16:16:47Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38154412965/job/114514304245",
+          "name": "validate",
+          "startedAt": "2026-10-11T16:11:28Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-11T16:13:46Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38154417125/job/114514351472",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-11T16:11:41Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-11T16:14:00Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38154412958/job/114514358174",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-11T16:11:43Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-11T16:17:58Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38154417176/job/114514318874",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-11T16:11:31Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-11T16:19:05Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38154412999/job/114514304250",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-11T16:11:28Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        }
+      ],
+      "title": "Memory R5 Phase 2: trusted Runtime, integrity and online projection lifecycle"
+    },
+    {
+      "baseRefName": "feat/runtime-memory-r5-phase2",
+      "headRefName": "feat/production-reality-cognitive-continuity",
+      "headRefOid": "ce5e078f8b646da5ee55c0ddf1fc7d53fa41fb6d",
+      "isDraft": true,
+      "number": 327,
+      "state": "OPEN",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-14T16:09:44Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38594892762/job/115958945324",
+          "name": "validate",
+          "startedAt": "2026-10-14T16:04:17Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-14T16:09:32Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38594882535/job/115958914650",
+          "name": "validate",
+          "startedAt": "2026-10-14T16:04:13Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-14T16:06:37Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38594892417/job/115958956957",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-14T16:04:18Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-14T16:06:31Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38594882475/job/115958919390",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-14T16:04:14Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-14T16:11:27Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38594892781/job/115958946706",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-14T16:04:17Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-14T16:09:03Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38594881952/job/115958911948",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-14T16:04:13Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        }
+      ],
+      "title": "feat(runtime): unify production Character and preserve cognitive continuity"
+    },
+    {
+      "baseRefName": "feat/production-reality-cognitive-continuity",
+      "headRefName": "feat/evidence-continuity-authority-separation",
+      "headRefOid": "a7b5e9bbcf810a425c398e7482bb768fbe8ae9e6",
+      "isDraft": true,
+      "number": 328,
+      "state": "OPEN",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-16T11:46:03Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38895296264/job/116954209759",
+          "name": "validate",
+          "startedAt": "2026-10-16T11:40:13Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-16T11:46:03Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38895291222/job/116954193807",
+          "name": "validate",
+          "startedAt": "2026-10-16T11:40:10Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-16T11:42:31Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38895296343/job/116954210540",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-16T11:40:13Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-16T11:42:08Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38895291180/job/116954193961",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-16T11:40:11Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-16T11:47:25Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38895296294/job/116954209963",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-16T11:40:13Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-16T11:47:15Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/38895291356/job/116954194018",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-16T11:40:11Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        }
+      ],
+      "title": "feat(runtime): preserve accepted evidence and separate live authority from knowledge snapshots"
+    },
+    {
+      "baseRefName": "feat/evidence-continuity-authority-separation",
+      "headRefName": "feat/durable-observation-retrieval",
+      "headRefOid": "ccbf1994faa39e9e5ba270e2f7aa405996702a5f",
+      "isDraft": true,
+      "number": 329,
+      "state": "OPEN",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-17T04:37:55Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39003000193/job/117309662616",
+          "name": "validate",
+          "startedAt": "2026-10-17T04:33:19Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-17T04:39:09Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39002997031/job/117309653410",
+          "name": "validate",
+          "startedAt": "2026-10-17T04:33:16Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-17T04:35:43Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39003000158/job/117309662884",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-17T04:33:19Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-17T04:34:49Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39002997028/job/117309653510",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-17T04:33:16Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-17T04:41:05Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39003000161/job/117309662895",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-17T04:33:20Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-17T04:40:36Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39002997089/job/117309653475",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-17T04:33:17Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        }
+      ],
+      "title": "fix: commit retained observations with A9 execution evidence"
+    },
+    {
+      "baseRefName": "feat/durable-observation-retrieval",
+      "headRefName": "fix/memory-retrieval-quality",
+      "headRefOid": "28361e04b0b46059cc3ae5d18e83f38eb6c5c703",
+      "isDraft": true,
+      "number": 330,
+      "state": "OPEN",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-17T09:10:10Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39019700192/job/117358888164",
+          "name": "validate",
+          "startedAt": "2026-10-17T09:03:55Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-17T09:09:46Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39019696816/job/117358878047",
+          "name": "validate",
+          "startedAt": "2026-10-17T09:03:51Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-17T09:05:34Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39019700161/job/117358888216",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-17T09:03:54Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-17T09:06:21Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39019696785/job/117358877896",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-17T09:03:51Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-17T09:09:34Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39019700166/job/117358888104",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-17T09:03:54Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-17T09:11:07Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39019696798/job/117358878076",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-17T09:03:51Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        }
+      ],
+      "title": "fix(memory): ranked candidates and opt-in multilingual retrieval plans"
+    },
+    {
+      "baseRefName": "fix/memory-retrieval-quality",
+      "headRefName": "feat/compositional-memory-retrieval",
+      "headRefOid": "91d01002a4a9405111c56a1ab7adaa1421c00595",
+      "isDraft": true,
+      "number": 331,
+      "state": "OPEN",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-18T06:13:10Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39102890121/job/117602609283",
+          "name": "validate",
+          "startedAt": "2026-10-18T06:06:57Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-18T06:13:16Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39102886899/job/117602600318",
+          "name": "validate",
+          "startedAt": "2026-10-18T06:06:55Z",
+          "status": "COMPLETED",
+          "workflowName": "Check"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-18T06:09:09Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39102890152/job/117602609436",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-18T06:06:57Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-18T06:08:51Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39102886835/job/117602600267",
+          "name": "linux-persistence",
+          "startedAt": "2026-10-18T06:06:54Z",
+          "status": "COMPLETED",
+          "workflowName": "Linux Persistence"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-18T06:14:36Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39102890123/job/117602609760",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-18T06:06:57Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-18T06:13:48Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/Ruichen-0079/YUVI/actions/runs/39102886957/job/117602600496",
+          "name": "durable-conformance",
+          "startedAt": "2026-10-18T06:06:54Z",
+          "status": "COMPLETED",
+          "workflowName": "v0.1.3 Durable Conformance"
+        }
+      ],
+      "title": "Draft: compositional memory retrieval with bounded lexical indexing and evidence grounding"
+    }
+  ],
+  "ancestry": [
+    {
+      "pr": 322,
+      "parent": "0d894cc70d42ebba0df132924f5ea181c062b431",
+      "head": "e92e30bbd4c9242c74860bf48d1eed8bde40e58e",
+      "parentIsAncestor": true,
+      "missingBaseCommits": "0"
+    },
+    {
+      "pr": 323,
+      "parent": "e92e30bbd4c9242c74860bf48d1eed8bde40e58e",
+      "head": "c3f7f06cb5a728d05bc78137af3d7178a774c8f6",
+      "parentIsAncestor": true,
+      "missingBaseCommits": "0"
+    },
+    {
+      "pr": 324,
+      "parent": "c3f7f06cb5a728d05bc78137af3d7178a774c8f6",
+      "head": "8c6eb38178804f28d3d552cfcdf77eb692a2c9ae",
+      "parentIsAncestor": true,
+      "missingBaseCommits": "0"
+    },
+    {
+      "pr": 325,
+      "parent": "8c6eb38178804f28d3d552cfcdf77eb692a2c9ae",
+      "head": "11e88bdcc0423d7446f265aa7617cf375cf931e6",
+      "parentIsAncestor": true,
+      "missingBaseCommits": "0"
+    },
+    {
+      "pr": 326,
+      "parent": "11e88bdcc0423d7446f265aa7617cf375cf931e6",
+      "head": "8632dd9107fc07d04f3cc8825c848c48394bd6ae",
+      "parentIsAncestor": true,
+      "missingBaseCommits": "0"
+    },
+    {
+      "pr": 327,
+      "parent": "8632dd9107fc07d04f3cc8825c848c48394bd6ae",
+      "head": "ce5e078f8b646da5ee55c0ddf1fc7d53fa41fb6d",
+      "parentIsAncestor": true,
+      "missingBaseCommits": "0"
+    },
+    {
+      "pr": 328,
+      "parent": "ce5e078f8b646da5ee55c0ddf1fc7d53fa41fb6d",
+      "head": "a7b5e9bbcf810a425c398e7482bb768fbe8ae9e6",
+      "parentIsAncestor": true,
+      "missingBaseCommits": "0"
+    },
+    {
+      "pr": 329,
+      "parent": "a7b5e9bbcf810a425c398e7482bb768fbe8ae9e6",
+      "head": "ccbf1994faa39e9e5ba270e2f7aa405996702a5f",
+      "parentIsAncestor": true,
+      "missingBaseCommits": "0"
+    },
+    {
+      "pr": 330,
+      "parent": "ccbf1994faa39e9e5ba270e2f7aa405996702a5f",
+      "head": "28361e04b0b46059cc3ae5d18e83f38eb6c5c703",
+      "parentIsAncestor": true,
+      "missingBaseCommits": "0"
+    },
+    {
+      "pr": 331,
+      "parent": "28361e04b0b46059cc3ae5d18e83f38eb6c5c703",
+      "head": "91d01002a4a9405111c56a1ab7adaa1421c00595",
+      "parentIsAncestor": true,
+      "missingBaseCommits": "0"
+    }
+  ],
+  "note": "Historical SHA-specific CI snapshots, not release approval; latest feature HEAD must pass its own CI."
+}
