@@ -709,6 +709,24 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
       expect(supportAudit.evidenceSupport.needs.every((n: any) => n.verdict === "SUPPORTED")).toBe(
         true
       );
+      const supportRef = (
+        await pool.query(
+          "select scope,retrieval_id from memory_retrieval_runs where query=$1 order by created_at desc limit 1",
+          ["面试时间和EC_FACT_restart分别是什么？"]
+        )
+      ).rows[0];
+      const supportUrl =
+        base +
+        "/memory/v1/retrieval?" +
+        new URLSearchParams({ scope: supportRef.scope, id: supportRef.retrieval_id });
+      const supportRead = await fetch(supportUrl, {
+        headers: { authorization: "Bearer synthetic-operator" }
+      });
+      expect(supportRead.status).toBe(200);
+      expect(((await supportRead.json()) as any).queryPlan.evidenceSupport.status).toBe("ASSESSED");
+      expect(
+        (await fetch(supportUrl, { headers: { authorization: "Bearer " + grant.token } })).status
+      ).toBe(401);
       await stop();
       await start(true);
       const sourceRuns = (

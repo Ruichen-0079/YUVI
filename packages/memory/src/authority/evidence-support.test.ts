@@ -95,7 +95,12 @@ describe("evidence support provenance, not semantic quality", () => {
       ]
     };
     const r = await assessEvidenceSupport(
-      { generateReasoning: async () => ({ reasoning: JSON.stringify(result) }) },
+      {
+        generateReasoning: async (call) => {
+          expect(JSON.parse(call.messages[1]!.content)).not.toHaveProperty("needs");
+          return { reasoning: JSON.stringify(result) };
+        }
+      },
       q
     );
     expect(r.decomposed).toBe(true);
