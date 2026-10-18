@@ -107,7 +107,10 @@ export async function assessEvidenceSupport(
           role: "user",
           content: JSON.stringify({
             question: input.request.text.slice(0, 4000),
-            needs: input.needs,
+            // q0 is only our fallback identity, not a semantic assertion that
+            // the entire question has exactly one need. Do not anchor the model
+            // to that dummy decomposition while asking it to split the question.
+            ...(canDecompose ? {} : { needs: input.needs }),
             claims: input.events.map((e) => ({
               id: e.id,
               state: e.metadata["knowledgeState"] ?? "unknown",
