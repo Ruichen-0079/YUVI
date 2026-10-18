@@ -59,27 +59,6 @@ pub fn get_service_status(state: State<'_, SupervisorState>) -> Result<Value, St
   http_json("GET", &format!("{base}/v1/status"), None, Some(&token))
 }
 
-#[tauri::command]
-pub fn create_product_host_pairing(window: tauri::WebviewWindow, state: State<'_, SupervisorState>, person_id: String, origin: String) -> Result<Value, String> {
-  // Only the bundled settings window may initiate a Person selection ceremony.
-  let document = window.url().map_err(|_| "Product WebUI URL unavailable.".to_string())?;
-  if !product_pairing_document_allowed(window.label(), &document, window.app_handle().config().build.dev_url.as_ref()) {
-    return Err("Product pairing requires the bundled native WebUI window.".to_string());
-  }
-  let (base, token) = require_endpoint(&state)?;
-  let body = serde_json::to_string(&serde_json::json!({ "personId": person_id, "origin": origin })).map_err(|e| e.to_string())?;
-  http_json("POST", &format!("{base}/v1/product-host/pairings"), Some(&body), Some(&token))
-}
-
-fn product_pairing_document_allowed(label: &str, document: &url::Url, dev: Option<&url::Url>) -> bool {
-  if label != "webui" || !document.username().is_empty() || document.password().is_some() { return false; }
-  let host = document.host_str().unwrap_or("");
-  if (document.scheme() == "tauri" && host == "localhost") ||
-    (matches!(document.scheme(), "http" | "https") && host == "tauri.localhost") { return true; }
-  matches!(host, "127.0.0.1" | "localhost" | "[::1]") &&
-    matches!(document.scheme(), "http" | "https") && dev.is_some_and(|expected| document.origin() == expected.origin())
-}
-
 /// Resolve the Runtime origin through the Supervisor instance already bound to
 /// this desktop process. Attach-only release shells must never infer a Runtime
 /// from a well-known port when that binding is unavailable or stale.
@@ -155,12 +134,23 @@ pub fn refresh_services(state: State<'_, SupervisorState>) -> Result<Value, Stri
   http_json("POST", &format!("{base}/v1/refresh"), None, Some(&token))
 }
 
+fn native_service_action_allowed(service: &str, action: &str) -> bool {
+  matches!(service, "runtime" | "postgres" | "mem0" | "ollama" | "tts_wrapper" | "tts_upstream" | "local_stt") && matches!(action, "start" | "stop" | "restart")
+}
+
 #[tauri::command]
-pub fn service_action(
+pub async fn service_action(
+  window: tauri::WebviewWindow,
   state: State<'_, SupervisorState>,
   action: String,
   service_id: String,
 ) -> Result<Value, String> {
+  if !native_service_action_allowed(&service_id, &action) { return Err("Unknown service control action".into()); }
+  crate::native_product::confirm_control(&window, &format!("允许对本机服务 {service_id} 执行 {action}？"))?;
+  service_action_owned(state, action, service_id)
+}
+
+pub(crate) fn service_action_owned(state: State<'_, SupervisorState>, action: String, service_id: String) -> Result<Value, String> {
   let (base, token) = require_endpoint(&state)?;
   let path = match action.as_str() {
     "restart" | "stop" | "start" => format!("{base}/v1/services/{service_id}/{action}"),
@@ -507,16 +497,14 @@ mod tests {
   use std::time::{Duration, Instant};
 
   #[test]
-  fn product_pairing_rejects_foreign_documents_and_non_settings_windows() {
-    let dev = url::Url::parse("http://127.0.0.1:5173").unwrap();
-    for local in ["tauri://localhost/index.html", "http://tauri.localhost/index.html", "http://127.0.0.1:5173/#/webui"] {
-      assert!(super::product_pairing_document_allowed("webui", &url::Url::parse(local).unwrap(), Some(&dev)));
+  fn native_service_control_rejects_path_and_action_injection() {
+    for id in ["runtime", "postgres", "mem0", "ollama", "tts_wrapper", "tts_upstream", "local_stt"] {
+      assert!(super::native_service_action_allowed(id,"restart"));
     }
-    for foreign in ["https://evil.example", "http://127.0.0.1:5174", "http://localhost:5173", "http://user@tauri.localhost"] {
-      assert!(!super::product_pairing_document_allowed("webui", &url::Url::parse(foreign).unwrap(), Some(&dev)));
+    for id in ["../config", "runtime/../../config", "runtime?x=1", "tts-wrapper"] {
+      assert!(!super::native_service_action_allowed(id,"start"));
     }
-    assert!(!super::product_pairing_document_allowed("main", &dev, Some(&dev)));
-    assert!(!super::product_pairing_document_allowed("webui", &dev, None));
+    assert!(!super::native_service_action_allowed("runtime","configure"));
   }
 
   #[test]
@@ -1347,6 +1335,15 @@ fn status_emit_fingerprint(snapshot: &Value) -> String {
     other => other,
   };
   format!("{instance}|{shutting}|{stripped}")
+}
+
+pub(crate) fn native_product(app: &AppHandle, action: &str, body: &Value) -> Result<Value, String> {
+  let state = app.state::<SupervisorState>();
+  let (base, token, instance) = require_endpoint_identity(&state)?;
+  let snapshot = http_json("GET", &format!("{base}/v1/status"), None, Some(&token))?;
+  runtime_binding_from_snapshot(&snapshot, &instance, true)?;
+  let body = serde_json::to_string(body).map_err(|_| "Native request encoding failed".to_string())?;
+  http_json("POST", &format!("{base}/v1/native-product/{action}"), Some(&body), Some(&token))
 }
 
 fn require_endpoint(state: &State<'_, SupervisorState>) -> Result<(String, String), String> {

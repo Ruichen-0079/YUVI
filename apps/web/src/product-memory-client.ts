@@ -1,3 +1,5 @@
+import { isTauriRuntime } from "./tauri-window.js";
+import { nativeProductFetch } from "./native-product-client.js";
 import { MemoryKnowledgeClient } from "@companion/memory/knowledge-client";
 import { resolveApiBaseUrl } from "./desktop-runtime.js";
 export type ProductHostState = {
@@ -18,7 +20,7 @@ export class ProductMemoryError extends Error {
   }
 }
 export async function productRequest<T>(path: string, body?: unknown): Promise<T> {
-  const response = await fetch(resolveApiBaseUrl() + path, {
+  const response = await (isTauriRuntime() ? nativeProductFetch : (p: string, init: RequestInit) => fetch(resolveApiBaseUrl() + p, init))(path, {
     credentials: "include",
     cache: "no-store",
     ...(body === undefined

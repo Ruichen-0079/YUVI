@@ -1,3 +1,4 @@
+import { convertFileSrc } from "@tauri-apps/api/core";
 /**
  * Desktop (Tauri) runtime helpers shared by API client and surface routing.
  * Packaged builds have no Vite /api proxy — talk to local Runtime directly.
@@ -61,7 +62,7 @@ export function isTauriRuntime(): boolean {
 export function resolveApiBaseUrl(
   env: Record<string, string | undefined> = import.meta.env as Record<string, string | undefined>
 ): string {
-  if (isTauriRuntime() && desktopRuntimeBindingMode === "attach") {
+  if (isTauriRuntime()) {
     if (!desktopRuntimeHttpOverride) {
       throw new DesktopRuntimeBindingUnavailableError();
     }
@@ -90,15 +91,9 @@ export function resolveRuntimeAssetUrl(pathOrUrl: string): string {
   if (!isTauriRuntime()) {
     return pathOrUrl;
   }
-  const base = resolveApiBaseUrl();
-  // /api/live2d/... → the Runtime origin bound to this desktop instance.
-  if (pathOrUrl.startsWith("/api/")) {
-    return `${base}${pathOrUrl.slice(4)}`;
-  }
-  if (pathOrUrl.startsWith("/")) {
-    return `${base}${pathOrUrl}`;
-  }
-  return `${base}/${pathOrUrl}`;
+  const path = pathOrUrl.startsWith("/api/") ? pathOrUrl.slice(4) : pathOrUrl;
+  if (path.startsWith("/live2d/") || path === "/live2d-core/live2dcubismcore.min.js") return convertFileSrc(path, "yuvi-asset");
+  return `${resolveApiBaseUrl()}${path}`;
 }
 
 export type DesktopSurface = "dashboard" | "main" | "companion" | "webui" | "subtitle";

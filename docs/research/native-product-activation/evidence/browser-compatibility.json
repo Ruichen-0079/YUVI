@@ -1,0 +1,143 @@
+{
+  "status": "PASS",
+  "schema": "product-host-acceptance.v1",
+  "mode": "real Chromium + normal production services + deterministic network model fixture",
+  "checks": [
+    {
+      "check": "Supervisor owns normal production Runtime/Character with restricted PostgreSQL role",
+      "status": "PASS"
+    },
+    {
+      "check": "Browser pairs via authenticated Supervisor, HttpOnly cookie; no operator in JavaScript",
+      "status": "PASS"
+    },
+    {
+      "check": "Normal Main SSE → Character → Journal → Memory Worker → R5 → actual Memory UI",
+      "status": "PASS"
+    },
+    {
+      "check": "Natural correction displays current + superseded history and traceable source in browser",
+      "status": "PASS"
+    },
+    {
+      "check": "Browser process/profile restart + Supervisor Runtime restart preserve identity, current fact, legal recall and retrieval audit",
+      "status": "PASS"
+    },
+    {
+      "check": "Scope/subject overrides and management access are refused for product cookie",
+      "status": "PASS"
+    },
+    {
+      "check": "Server enforces memory disable even when chat requests readMemory/writeMemory=true",
+      "status": "PASS"
+    },
+    {
+      "check": "Browser renew updates HttpOnly cookie and invalidates previous token",
+      "status": "PASS"
+    },
+    {
+      "check": "Person switch clears Memory UI and rejects prior Person history/session reuse",
+      "status": "PASS"
+    },
+    {
+      "check": "Revocation clears browser cookie; captured old client cannot issue private reads/writes",
+      "status": "PASS"
+    }
+  ],
+  "operatorRequests": 0,
+  "legacyRequests": 0,
+  "authorityRecords": "2",
+  "modelCalls": [
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "hasMemory": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "hasMemory": true
+    }
+  ],
+  "nativePackagedDesktop": "NOT_TESTED"
+}

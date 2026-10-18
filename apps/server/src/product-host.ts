@@ -1,4 +1,6 @@
-import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { readProductSettings } from "./services/product-store.js";
+import type { ProductPersonCommandPort } from "./product-person-command-effects.js";
 import type { AuthorityPool, AuthorityQuery } from "@companion/memory";
 import {
   ConversationHostIdentity,
@@ -25,9 +27,14 @@ function webOrigin(value: unknown): string {
     throw denied();
   return value;
 }
+export function nativeOrigin(origin: string): string {
+  if (["tauri://localhost", "http://tauri.localhost", "https://tauri.localhost"].includes(origin))
+    return origin;
+  return webOrigin(origin);
+}
 function requestOrigin(r: Request) {
   const value = r.headers["origin"];
-  if (typeof value === "string") return webOrigin(value);
+  if (typeof value === "string") return nativeOrigin(value);
   const referer = r.headers["referer"];
   if (typeof referer === "string") {
     try {
@@ -41,6 +48,77 @@ function requestOrigin(r: Request) {
 /** Local-controller ceremony and browser credential lifecycle. No operator credential
  * or conversational bearer is exposed to JavaScript. Remote WebUI is not enrolled. */
 export class ProductHost {
+  private readonly bootId = randomBytes(32).toString("hex");
+  nativePeople?: { commands: ProductPersonCommandPort; env: Record<string, string | undefined> };
+  proof(challenge: string) {
+    const binding = JSON.stringify([
+      this.hostNamespace,
+      this.host.owner.instanceId,
+      this.host.owner.personaId
+    ]);
+    const message = JSON.stringify([challenge, binding, this.bootId]);
+    return {
+      binding,
+      bootId: this.bootId,
+      signature: createHmac("sha256", this.controller).update(message).digest("hex")
+    };
+  }
+  async native(
+    action: "people" | "create" | "session",
+    body: {
+      ownerId: string;
+      displayName?: string | undefined;
+      commandHandle?: string | undefined;
+      personId?: string | undefined;
+      origin?: string | undefined;
+    }
+  ) {
+    const source = this.nativePeople;
+    if (!source) throw denied(); // A shared/external Person source cannot be claimed by this installation.
+    const owned = () => {
+      const settings = readProductSettings(source.env);
+      return (
+        settings?.people.filter(
+          (person) =>
+            settings.nativeOwnerByPersonId?.[person.id] === body.ownerId &&
+            person.personaId === this.host.owner.personaId
+        ) ?? []
+      );
+    };
+    if (action === "people")
+      return { people: owned().map(({ id, displayName }) => ({ id, displayName })) };
+    if (action === "create") {
+      if (!body.displayName || !body.commandHandle) throw denied();
+      const command = {
+        commandHandle: body.commandHandle,
+        operation: "CREATE" as const,
+        displayName: body.displayName,
+        personaId: this.host.owner.personaId,
+        notes: "",
+        requestedPrimary: false,
+        expectedPersonRevision: null,
+        expectedPrimaryRevision: null,
+        nativeOwnerId: body.ownerId
+      };
+      const result =
+        (await source.commands.resolveExisting(command, () => true)) ??
+        (await source.commands.execute(command, () => true));
+      if (result.status !== "APPLIED") return { status: result.status, reason: result.reason };
+      const person = owned().find((person) => person.id === result.personId);
+      if (!person) throw denied();
+      return { status: "APPLIED", person: { id: person.id, displayName: person.displayName } };
+    }
+    if (!body.personId || !owned().some((person) => person.id === body.personId) || !body.origin)
+      throw denied();
+    const origin = nativeOrigin(body.origin);
+    const pairing = await this.createPairing(body.personId, origin, true);
+    const paired = await this.pair({ headers: { origin } }, pairing.code);
+    return {
+      cookie: paired.cookie.split(";")[0],
+      personId: paired.grant.personId,
+      personaId: paired.grant.personaId
+    };
+  }
   constructor(
     readonly db: AuthorityPool,
     readonly host: ConversationHostIdentity,
@@ -61,8 +139,8 @@ export class ProductHost {
       timingSafeEqual(Buffer.from(provided), Buffer.from(expected))
     );
   }
-  async createPairing(personId: string, origin: string) {
-    origin = webOrigin(origin);
+  async createPairing(personId: string, origin: string, native = false) {
+    origin = native ? nativeOrigin(origin) : webOrigin(origin);
     if (!this.host.personVersion(personId)) throw denied();
     const code = "yup_" + randomBytes(32).toString("base64url");
     await this.db.query(

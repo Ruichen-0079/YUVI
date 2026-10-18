@@ -51,11 +51,14 @@ const personCommandRequestSchema = z
     personaId: z.string().trim().min(1).max(100),
     notes: z.string().max(4000),
     requestedPrimary: z.boolean(),
+    nativeOwnerId: z.string().regex(/^yno_[A-Za-z0-9_-]{43}$/u).optional(),
     expectedPersonRevision: z.string().nullable(),
     expectedPrimaryRevision: z.string().nullable()
   })
   .strict()
   .superRefine((value, context) => {
+    if (value.nativeOwnerId && (value.operation !== "CREATE" || value.requestedPrimary || value.expectedPersonRevision !== null || value.expectedPrimaryRevision !== null))
+      context.addIssue({ code: z.ZodIssueCode.custom, message: "Native enrollment can only create an independent Person." });
     if (value.operation === "CREATE" && value.personId !== undefined)
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -327,6 +330,7 @@ export function createAcousticReplacementWorkflowPlan(input: {
   });
 }
 type ProductPersonProtectedCommand = Readonly<{
+  nativeOwnerId?: string | undefined;
   version: "product-person-command-payload.v1";
   family: "PRODUCT_PERSON";
   commandHandle: string;
@@ -351,6 +355,7 @@ const productPersonProtectedCommandSchema = z
     personaId: z.string().trim().min(1).max(100),
     notes: z.string().max(4000),
     requestedPrimary: z.boolean(),
+    nativeOwnerId: z.string().regex(/^yno_[A-Za-z0-9_-]{43}$/u).optional(),
     expectedPersonRevision: z.string().nullable(),
     expectedPrimaryRevision: z.string().nullable(),
     semanticDigest: z.string().regex(/^[a-f0-9]{64}$/)
@@ -513,7 +518,8 @@ export class HostProductPersonCommandEffects implements ProductPersonCommandPort
     private readonly dispatchStore: EffectDispatchStore | null,
     private readonly dispatcher: EffectDispatcher | null,
     private readonly installationNamespace: string,
-    private readonly allowedFamilies?: readonly string[]
+    private readonly allowedFamilies?: readonly string[],
+    private readonly personEnv?: Record<string, string | undefined>
   ) {
     if (dispatcher) {
       dispatcher.registerAdapter({
@@ -1037,7 +1043,7 @@ export class HostProductPersonCommandEffects implements ProductPersonCommandPort
     this.dispatchCurrentness.delete(intent.intentId);
     if (evidence.certainty === "APPLIED" && evidence.layer.startsWith("NATIVE_OWNER_")) {
       if (descriptor.family === "PRODUCT_PERSON") {
-        const current = readProductSettings();
+        const current = readProductSettings(this.personEnv);
         const receipt = current?.productCommandReceipts?.find(
           (item) => item.commandHandle === descriptor.commandHandle
         );
@@ -1129,10 +1135,10 @@ export class HostProductPersonCommandEffects implements ProductPersonCommandPort
       attemptId: attempt.attemptId,
       fence: attempt.fence,
       payloadDigest: payload.payloadDigest
-    });
+    }, this.personEnv);
     if (fenced !== "READY") throw new Error("Native Product command fence is unavailable.");
     signal.throwIfAborted();
-    const applied = await applyProductPersonCommand(payload);
+    const applied = await applyProductPersonCommand(payload, this.personEnv);
     if (applied.status === "APPLIED")
       return {
         evidence: nativeEvidence("APPLIED", "NATIVE_OWNER_COMMIT", "OWNER_COMMITTED", productOwnerCommit(applied.receipt)),
@@ -1178,7 +1184,7 @@ export class HostProductPersonCommandEffects implements ProductPersonCommandPort
         throw new Error(
           "Redacted native command cannot be reconciled without its exact owner instruction."
         );
-      const settings = await withProductSettingsOwner(() => readProductSettings());
+      const settings = await withProductSettingsOwner(() => readProductSettings(this.personEnv));
       const receipt = settings?.productCommandReceipts?.find(
         (item) => item.commandHandle === descriptor.commandHandle
       );
@@ -1200,7 +1206,7 @@ export class HostProductPersonCommandEffects implements ProductPersonCommandPort
       payload,
       attemptId: attempt.attemptId,
       fence: attempt.fence
-    });
+    }, this.personEnv);
     if (result.status === "ALREADY_APPLIED")
       return nativeEvidence("APPLIED", "NATIVE_OWNER_RECONCILIATION", "OWNER_RECONCILED_APPLIED", productOwnerCommit(result.receipt));
     if (
@@ -1396,6 +1402,7 @@ export class HostProductPersonCommandEffects implements ProductPersonCommandPort
 function semanticCommand(input: PersonCommandInput) {
   return {
     operation: input.operation,
+    ...(input.nativeOwnerId ? { nativeOwnerId: input.nativeOwnerId, nativePersonaId: input.personaId } : {}),
     ...(input.operation === "UPDATE" ? { personId: input.personId } : {}),
     displayName: input.displayName,
     notes: input.notes,
@@ -1468,6 +1475,7 @@ function protectedCommandFor(
     return Object.freeze({
       version: "product-person-command-payload.v1",
       family: "PRODUCT_PERSON",
+      ...(input.nativeOwnerId ? { nativeOwnerId: input.nativeOwnerId } : {}),
       commandHandle: input.commandHandle,
       operation: input.operation,
       personId: targetReference,
@@ -1594,6 +1602,7 @@ function payloadForOwner(
     throw new EffectIntentError("INTEGRITY_FAILURE", "Native intent lacks a CONTROL receipt.");
   return {
     commandHandle: payload.commandHandle,
+    ...(payload.nativeOwnerId ? { nativeOwnerId: payload.nativeOwnerId } : {}),
     operation: payload.operation,
     personId: payload.personId,
     displayName: payload.displayName,

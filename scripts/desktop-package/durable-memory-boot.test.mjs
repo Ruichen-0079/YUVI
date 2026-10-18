@@ -30,12 +30,21 @@ test("packaged Supervisor waits for Tauri product bootstrap before services star
   assert.match(supervisor, /} else \{\n    void supervisor\.bootstrap\(\)/);
 });
 
-test("Tauri staged boot orders PostgreSQL then Mem0 then Runtime without handling database URLs", () => {
+test("Tauri staged boot orders PostgreSQL then Mem0 then Runtime without constructing database URLs", () => {
   const pg = rustBoot.indexOf('start_service(app, "postgres")');
   const mem0 = rustBoot.indexOf('start_service(app, "mem0")');
   const runtimeStart = rustBoot.indexOf('start_service(app, "runtime")');
   assert.ok(pg >= 0 && mem0 > pg && runtimeStart > mem0);
   assert.match(rustBoot, /ensure_private_postgres_password/);
   assert.match(rustBoot, /YUVI_POSTGRES_MODE/);
-  assert.doesNotMatch(rustBoot, /["']DATABASE_URL["']/);
+  // R5 must inspect whether the user already configured an external database
+  // before choosing managed PostgreSQL. Boot still must not manufacture or
+  // overwrite its URL; Rust unit tests cover both database-selection branches.
+  const productionBoot = rustBoot.split("#[cfg(test)]")[0];
+  assert.match(productionBoot, /\.get\("DATABASE_URL"\)/);
+  assert.doesNotMatch(
+    productionBoot,
+    /\.insert\s*\(\s*["']DATABASE_URL["']|set_env_flag\s*\([^;]*["']DATABASE_URL["']/
+  );
+  assert.doesNotMatch(productionBoot, /postgres(?:ql)?:\/\//);
 });

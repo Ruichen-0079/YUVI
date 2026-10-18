@@ -1,0 +1,13 @@
+{
+  "head": "953a2dc440faea5ac00666a91f26435a583a02cc",
+  "Check": "FAIL",
+  "Durable Conformance": "FAIL",
+  "Linux Persistence": "PASS",
+  "checkRun": "https://github.com/Ruichen-0079/YUVI/actions/runs/39157360776",
+  "durableRun": "https://github.com/Ruichen-0079/YUVI/actions/runs/39157360802",
+  "persistenceRun": "https://github.com/Ruichen-0079/YUVI/actions/runs/39157360774",
+  "localFinalDeliveryRun": "FAIL: same single Node assertion; Vitest suites passed",
+  "cause": "An old source contract forbade any DATABASE_URL literal in staged boot. R5 now must inspect whether an explicit URL exists before choosing owned PostgreSQL.",
+  "fix": "Allow the existing read-only presence check; retain guards against inserting/replacing or constructing database URLs. Existing Rust unit tests cover explicit and absent database configurations. No production code or authorization was relaxed.",
+  "nativeAcceptance": "Unchanged: actual packaged native run passed 18 checks. This CI failure is retained separately rather than rewriting those results."
+}

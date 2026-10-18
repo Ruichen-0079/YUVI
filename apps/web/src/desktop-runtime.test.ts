@@ -5,9 +5,9 @@ const { getCurrentWindow } = vi.hoisted(() => ({
 }));
 
 vi.mock("@tauri-apps/api/window", () => ({ getCurrentWindow }));
+vi.mock("@tauri-apps/api/core", () => ({ convertFileSrc: (path: string, protocol: string) => `${protocol}://localhost${path}` }));
 
 import {
-  DEFAULT_RUNTIME_HTTP,
   DesktopRuntimeBindingUnavailableError,
   setDesktopRuntimeBinding,
   setDesktopRuntimeHttpOverride,
@@ -28,9 +28,9 @@ describe("desktop-runtime API base", () => {
     expect(resolveApiBaseUrl({})).toBe("/api");
   });
 
-  it("uses loopback Runtime inside Tauri when env unset", () => {
+  it("requires an explicit bound Runtime inside Tauri", () => {
     vi.stubGlobal("window", { __TAURI_INTERNALS__: {} });
-    expect(resolveApiBaseUrl({})).toBe(DEFAULT_RUNTIME_HTTP);
+    expect(() => resolveApiBaseUrl({})).toThrow(DesktopRuntimeBindingUnavailableError);
   });
 
   it("uses the attached Supervisor Runtime URL inside Tauri", () => {
@@ -38,7 +38,7 @@ describe("desktop-runtime API base", () => {
     setDesktopRuntimeBinding("attach", "http://127.0.0.1:16121/");
     expect(resolveApiBaseUrl({})).toBe("http://127.0.0.1:16121");
     expect(resolveRuntimeAssetUrl("/api/live2d/Lumi/Lumi.model3.json")).toBe(
-      "http://127.0.0.1:16121/live2d/Lumi/Lumi.model3.json"
+      "yuvi-asset://localhost/live2d/Lumi/Lumi.model3.json"
     );
   });
 
@@ -49,9 +49,7 @@ describe("desktop-runtime API base", () => {
     expect(() =>
       resolveApiBaseUrl({ VITE_API_BASE_URL: "http://127.0.0.1:6121" })
     ).toThrow(DesktopRuntimeBindingUnavailableError);
-    expect(() =>
-      resolveRuntimeAssetUrl("/api/live2d/Lumi/Lumi.model3.json")
-    ).toThrow(DesktopRuntimeBindingUnavailableError);
+    // Public assets use their own verified native binding, never a raw fallback URL.
   });
 
   it("rejects non-loopback desktop Runtime URLs", () => {
@@ -67,20 +65,21 @@ describe("desktop-runtime API base", () => {
     expect(() => resolveApiBaseUrl({})).toThrow(DesktopRuntimeBindingUnavailableError);
   });
 
-  it("prefers explicit VITE_API_BASE_URL", () => {
+  it("ignores browser override inside a bound native window", () => {
     vi.stubGlobal("window", { __TAURI_INTERNALS__: {} });
+    setDesktopRuntimeBinding("owned", "http://127.0.0.1:16121");
     expect(resolveApiBaseUrl({ VITE_API_BASE_URL: "http://127.0.0.1:6999/" })).toBe(
-      "http://127.0.0.1:6999"
+      "http://127.0.0.1:16121"
     );
   });
 
   it("rewrites /api live2d paths for Tauri", () => {
     vi.stubGlobal("window", { __TAURI_INTERNALS__: {} });
     expect(resolveRuntimeAssetUrl("/api/live2d/Lumi/Lumi.model3.json")).toBe(
-      "http://127.0.0.1:6121/live2d/Lumi/Lumi.model3.json"
+      "yuvi-asset://localhost/live2d/Lumi/Lumi.model3.json"
     );
     expect(resolveRuntimeAssetUrl("/api/live2d-core/live2dcubismcore.min.js")).toBe(
-      "http://127.0.0.1:6121/live2d-core/live2dcubismcore.min.js"
+      "yuvi-asset://localhost/live2d-core/live2dcubismcore.min.js"
     );
   });
 

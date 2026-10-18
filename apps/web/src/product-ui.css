@@ -2130,3 +2130,11 @@ html[data-yuvi-surface="main"] #root {
   background: #f4f3fc;
   font-size: 0.8rem;
 }
+
+.native-activation { max-width: 680px; margin: 8vh auto; padding: 28px; font-size: 16px; line-height: 1.7; }
+.native-activation h1 { font-size: 26px; margin: 0 0 16px; }
+.native-activation input { color: var(--yuvi-ink); background: var(--yuvi-bg-elevated); border: 1px solid var(--yuvi-line); border-radius: 8px; padding: 8px 12px; font: inherit; }
+.native-activation button, .native-identity-bar button { border: 1px solid var(--yuvi-line); border-radius: 8px; background: var(--yuvi-bg-elevated); padding: 7px 12px; color: var(--yuvi-accent-ink); font: inherit; cursor: pointer; }
+.native-activation button:disabled { cursor: wait; opacity: .55; }
+.native-identity-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 16px; font-size: 14px; border-bottom: 1px solid var(--yuvi-line); }
+.native-product > .yuvi-webui { padding: 24px; font-size: 16px; line-height: 1.6; }

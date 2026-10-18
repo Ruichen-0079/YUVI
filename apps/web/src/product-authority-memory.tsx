@@ -1,4 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import type { PropsWithChildren } from "react";
+import { nativeActivation } from "./native-product-client.js";
+import { NativeMemoryPermission } from "./native-product-permissions.js";
+import { useEffect, useRef, useState, useContext } from "react";
 import { isTauriRuntime } from "./tauri-window.js";
 import { useAsyncData } from "./hooks/useAsyncData.js";
 import {
@@ -14,16 +17,25 @@ type Detail = Awaited<ReturnType<typeof knowledgeClient.detail>>;
 type Relations = Awaited<ReturnType<typeof knowledgeClient.relations>>;
 type Retrieval = Awaited<ReturnType<typeof knowledgeClient.retrieval>>;
 
+function HostControls({ children }: PropsWithChildren): JSX.Element {
+  return isTauriRuntime() ? (
+    <details>
+      <summary>记忆授权</summary>
+      {children}
+    </details>
+  ) : (
+    <>{children}</>
+  );
+}
+
 export function ProductAuthorityMemory(): JSX.Element {
+  const nativeMemoryPermission = useContext(NativeMemoryPermission);
   const generation = useRef(0);
   const [host, setHost] = useState<ProductHostState | null>(null);
   const [code, setCode] = useState("");
-  const [personId, setPersonId] = useState("");
   const browserOrigin = /^https?:\/\/(127\.0\.0\.1|localhost|\[::1\])(?::\d+)?$/u.test(
     window.location.origin
   );
-  const [origin, setOrigin] = useState(() => (browserOrigin ? window.location.origin : ""));
-  const [generatedCode, setGeneratedCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [historical, setHistorical] = useState(false);
@@ -32,7 +44,8 @@ export function ProductAuthorityMemory(): JSX.Element {
   const [relations, setRelations] = useState<Relations | null>(null);
   const [retrieval, setRetrieval] = useState<Retrieval | null>(null);
   const scope = host ? productMemoryScope(host) : null;
-  const allowed = host?.status === "ACTIVE" && host.memoryEnabled;
+  const allowed =
+    host?.status === "ACTIVE" && host.memoryEnabled && nativeMemoryPermission !== false;
   const records = useAsyncData(
     async () =>
       allowed && scope
@@ -104,6 +117,9 @@ export function ProductAuthorityMemory(): JSX.Element {
     };
   }, []);
   useEffect(() => {
+    if (isTauriRuntime()) void status();
+  }, [nativeMemoryPermission]);
+  useEffect(() => {
     setCursor(undefined);
     setDetail(null);
     setRelations(null);
@@ -144,73 +160,46 @@ export function ProductAuthorityMemory(): JSX.Element {
     <section className="yuvi-card yuvi-authority-memory" aria-label="Authority Memory">
       <h2>长期记忆与身份</h2>
       <p>
-        当前认识来自 R5
-        Authority。修改认识请在正常聊天中说明纠正；此页面只读，不直接改写或删除历史。
+        {isTauriRuntime()
+          ? "这里是我目前记住的内容。需要更正时，在聊天中告诉我即可。"
+          : "当前认识来自 R5 Authority。修改认识请在正常聊天中说明纠正；此页面只读，不直接改写或删除历史。"}
       </p>
       {error && <p role="alert">{error}</p>}
-      <div className="yuvi-product-actions">
-        <label>
-          一次性配对码{" "}
-          <input
-            aria-label="一次性配对码"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            autoComplete="off"
-            type="password"
-          />
-        </label>
-        <button disabled={busy || !code.trim() || !browserOrigin} onClick={() => void act(bind)}>
-          绑定身份
-        </button>
+      {!isTauriRuntime() && (
+        <>
+          <div className="yuvi-product-actions">
+            <label>
+              一次性配对码{" "}
+              <input
+                aria-label="一次性配对码"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                autoComplete="off"
+                type="password"
+              />
+            </label>
+            <button
+              disabled={busy || !code.trim() || !browserOrigin}
+              onClick={() => void act(bind)}
+            >
+              绑定身份
+            </button>
+          </div>
+          <p>配对码由本机 Desktop Supervisor 生成，五分钟内有效且只能使用一次。</p>
+        </>
+      )}
+      {!isTauriRuntime() && (
         <button disabled={busy} onClick={() => void act(status)}>
           刷新身份
         </button>
-      </div>
-      <p>
-        配对码由本机 Desktop Supervisor
-        生成，五分钟内有效且只能使用一次。普通网页无法签发；当前仅支持本机浏览器 WebUI。
-      </p>
-      {!browserOrigin && (
-        <p role="status">
-          此打包 WebView 的 Origin 尚不支持浏览器 Cookie 配对。请为明确的本机 HTTP WebUI
-          生成配对码，在该浏览器窗口绑定和聊天；此窗口不会伪装已授权。
-        </p>
-      )}
-      {isTauriRuntime() && (
-        <div className="yuvi-product-actions">
-          <label>
-            Person ID <input value={personId} onChange={(e) => setPersonId(e.target.value)} />
-          </label>
-          <label>
-            浏览器 WebUI 地址 <input value={origin} onChange={(e) => setOrigin(e.target.value)} />
-          </label>
-          <button
-            disabled={busy || !personId || !origin}
-            onClick={() =>
-              void act(async () => {
-                const { invoke } = await import("@tauri-apps/api/core");
-                const pairing = await invoke<{ code: string }>("create_product_host_pairing", {
-                  personId,
-                  origin
-                });
-                setGeneratedCode(pairing.code);
-                if (origin === window.location.origin) setCode(pairing.code);
-              })
-            }
-          >
-            为本机 WebUI 生成配对码
-          </button>
-        </div>
-      )}
-      {generatedCode && (
-        <p>
-          一次性配对码（五分钟）：<code>{generatedCode}</code>。仅在指定 WebUI 地址手动使用。
-        </p>
       )}
       {host && (
-        <>
+        <HostControls>
           <p role="status">
-            身份：{host.personId} · Persona：{host.personaId} · {host.status} · 到期：
+            {isTauriRuntime()
+              ? "本机产品授权"
+              : `身份：${host.personId} · Persona：${host.personaId}`}{" "}
+            · {host.status} · 到期：
             {host.expiresAt}
           </p>
           <div className="yuvi-product-actions">
@@ -246,6 +235,10 @@ export function ProductAuthorityMemory(): JSX.Element {
               disabled={busy}
               onClick={() =>
                 void act(async () => {
+                  if (isTauriRuntime()) {
+                    await nativeActivation("logout");
+                    return;
+                  }
                   await productRequest("/host/v1/product/revoke", {});
                   generation.current++;
                   setHost(null);
@@ -259,12 +252,14 @@ export function ProductAuthorityMemory(): JSX.Element {
             >
               撤销此客户端授权
             </button>
-            <a href="/#/main" target="yuvi-main">
-              打开正常聊天
-            </a>
+            {!isTauriRuntime() && (
+              <a href="/#/main" target="yuvi-main">
+                打开正常聊天
+              </a>
+            )}
           </div>
           {!host.memoryEnabled && <p role="status">长期记忆权限已关闭；聊天不因此变成持久学习。</p>}
-        </>
+        </HostControls>
       )}
       {allowed && scope && (
         <>

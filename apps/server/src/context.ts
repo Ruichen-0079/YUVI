@@ -405,8 +405,12 @@ export async function createAppContext(
     effectDispatchStore,
     readTextEffects.dispatcher,
     journalNamespace,
-    composition ? ["P8_CORRECTION"] : undefined
+    composition ? (composition.people ? ["P8_CORRECTION"] : ["PRODUCT_PERSON", "P8_CORRECTION"]) : undefined,
+    bootEnv
   );
+  if (productHost && !composition?.people) {
+    productHost.nativePeople = { commands: productPersonCommands, env: bootEnv };
+  }
   const runtimeControlReceiptAdmission = new HostRuntimeControlReceiptAdmission(journalRepository);
   const proactiveConsentReceiptAdmission = new HostProactiveConsentReceiptAdmission(
     journalRepository

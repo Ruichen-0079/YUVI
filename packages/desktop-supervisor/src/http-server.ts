@@ -129,6 +129,24 @@ async function handle(
       }
       return sendJson(res, 200, snap);
     }
+    if (method === "POST" && url.pathname.startsWith("/v1/native-product/")) {
+      if (
+        req.headers.origin !== undefined ||
+        req.headers.referer !== undefined ||
+        req.headers["sec-fetch-site"] !== undefined
+      )
+        return sendJson(res, 403, { error: "native_controller_required" });
+      const action = url.pathname.slice("/v1/native-product/".length);
+      if (!["binding", "people", "create", "session"].includes(action))
+        return sendJson(res, 404, { error: "unknown_native_action" });
+      const body = await readJsonBody(req);
+      res.setHeader("Cache-Control", "no-store");
+      return sendJson(
+        res,
+        200,
+        await supervisor.nativeProduct(action as "binding" | "people" | "create" | "session", body)
+      );
+    }
     if (method === "POST" && url.pathname === "/v1/product-host/pairings") {
       // The native controller never sends browser Origin/Referer. Loopback alone is not authority.
       if (

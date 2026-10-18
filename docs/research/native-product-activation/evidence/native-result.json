@@ -1,0 +1,181 @@
+{
+  "status": "PASS",
+  "appBinary": "/home/ruichen/.cache/yuvi-native-deb-unpacked/usr/bin/yuvi-desktop",
+  "appSha256": "c85ddfca011c885706c8d17d857c3d2563a681a2b937c67db5698cb5047e1204",
+  "mode": "actual bundled Tauri WebKitGTK + production Supervisor/Runtime/Character/Journal/Worker + deterministic network model fixture",
+  "checks": [
+    {
+      "check": "Supervisor owns normal production Runtime/Character with restricted PostgreSQL role",
+      "status": "PASS"
+    },
+    {
+      "check": "Actual bundled Tauri WebKitGTK first run; OS ownership confirmation; no adoption of existing People",
+      "status": "PASS"
+    },
+    {
+      "check": "Legacy configuration upgrades to R5 only after real native ownership and activation consent; existing People remain unclaimed",
+      "status": "PASS"
+    },
+    {
+      "check": "Real A9 Person creation committed, control receipt lost, native application restarted, frozen command recovered without duplicate creation",
+      "status": "PASS"
+    },
+    {
+      "check": "Native Person created through A9 and selected; product Host credential stays outside JavaScript",
+      "status": "PASS"
+    },
+    {
+      "check": "Native UI chat/SSE → actual Character/Journal/Worker → restricted PostgreSQL R5 → same-window Memory UI",
+      "status": "PASS"
+    },
+    {
+      "check": "Natural correction; same native window displays current + superseded history and provenance",
+      "status": "PASS"
+    },
+    {
+      "check": "Unauthorized webpage/control, unlisted native operations, modified Scope and read/write=false boundaries",
+      "status": "PASS"
+    },
+    {
+      "check": "Native navigation refuses a foreign Origin; packaged CSP is present",
+      "status": "PASS"
+    },
+    {
+      "check": "Packaged CSP rejects inline injection while allowing the exact public Core resource transport; no private asset credential",
+      "status": "PASS"
+    },
+    {
+      "check": "Native fixed-route WebSocket chats with server-enforced Memory disable; operator packets denied; explicit cancellation",
+      "status": "PASS"
+    },
+    {
+      "check": "Expiry triggers native-only controlled renewal; old credential cannot restore permissions",
+      "status": "PASS"
+    },
+    {
+      "check": "Same-port healthy impostor is rejected before receiving any native credential; only the owned Runtime recovers",
+      "status": "PASS"
+    },
+    {
+      "check": "Runtime and real native application restart; private identity and R5 recall recover",
+      "status": "PASS"
+    },
+    {
+      "check": "Native Person switch revokes previous credential, denies old Scope and removes old UI data",
+      "status": "PASS"
+    },
+    {
+      "check": "Interrupted logout persists a fail-closed tombstone across Runtime restart; old WebSocket and SSE cannot restore authority",
+      "status": "PASS"
+    },
+    {
+      "check": "Native logout/revocation rejects old private chat and Memory; local page cannot silently regain a Host",
+      "status": "PASS"
+    },
+    {
+      "check": "Explicit reentry restores only the confirmed owned Person with a new limited grant; the revoked client stays invalid",
+      "status": "PASS"
+    }
+  ],
+  "authority": [
+    {
+      "scope": "yuvi:v1:user:f6cb387f-efe1-4a57-8465-25a65e167ac5:character:character-instance%3Aproduct-ui-320ff95b-cd2b-4184-b4ee-b774a7b1760f",
+      "count": 2
+    }
+  ],
+  "modelCalls": [
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "hasMemory": false
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-reasoning",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": false,
+      "hasMemory": true
+    },
+    {
+      "model": "fixture-chat",
+      "stream": true,
+      "hasMemory": true
+    }
+  ],
+  "realModel": "NOT_RUN",
+  "platform": "Linux x86_64 / WebKitGTK software rendering",
+  "fixtureCostUsd": 0
+}

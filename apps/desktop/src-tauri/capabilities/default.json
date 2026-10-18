@@ -2,10 +2,31 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Default capability for YUVI desktop surfaces (Main, Companion, WebUI, Subtitle).",
-  "windows": ["main", "companion", "webui", "subtitle"],
+  "windows": [
+    "main",
+    "companion",
+    "webui",
+    "subtitle"
+  ],
   "permissions": [
     "core:default",
     "core:window:allow-start-dragging",
-    "core:window:allow-start-resize-dragging"
+    "core:window:allow-start-resize-dragging",
+    "allow-show-companion",
+    "allow-hide-companion",
+    "allow-toggle-companion",
+    "allow-reopen-companion",
+    "allow-get-companion-presentation-state",
+    "allow-set-companion-locked",
+    "allow-show-webui",
+    "allow-show-subtitle",
+    "allow-hide-subtitle",
+    "allow-get-subtitle-presentation-state",
+    "allow-set-subtitle-locked",
+    "allow-get-service-status",
+    "allow-get-desktop-runtime-binding",
+    "allow-retry-desktop-runtime-binding",
+    "allow-get-user-settings",
+    "allow-get-user-secret-status"
   ]
 }

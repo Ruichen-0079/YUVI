@@ -4,6 +4,7 @@ import { act, createElement, StrictMode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 const mockState = vi.hoisted(() => ({
+  native: false,
   buses: [] as MockCompanionBus[],
   sockets: [] as FakeWebSocket[],
   subscribeProactiveLive: vi.fn(async () => undefined)
@@ -88,7 +89,7 @@ vi.mock("./api/client.js", () => ({
 vi.mock("./tauri-window.js", () => ({
   controlCompanionWindow: vi.fn(),
   controlWebUIWindow: vi.fn(),
-  isTauriRuntime: () => true
+  isTauriRuntime: () => mockState.native
 }));
 
 vi.mock("./service-supervisor-client.js", () => ({
@@ -142,6 +143,7 @@ vi.mock("./surface-ui.js", async () => {
 import { installFakeDom } from "./test-dom.js";
 
 afterEach(() => {
+  mockState.native = false;
   mockState.buses.length = 0;
   mockState.sockets.length = 0;
   mockState.subscribeProactiveLive.mockReset();
@@ -174,7 +176,7 @@ function validRequest() {
   };
 }
 
-describe("MainPage embodied Presentation product-path forward", () => {
+describe("MainPage operator event forwarding and native product boundary", () => {
   it.each([false, true])("forwards on the live socket only (StrictMode=%s)", async (strict) => {
     mockState.subscribeProactiveLive.mockResolvedValue(undefined);
     const dom = installFakeDom();
@@ -222,4 +224,21 @@ describe("MainPage embodied Presentation product-path forward", () => {
       dom.restore();
     }
   });
+  it.each([false,true])("native Product Host never subscribes to the operator event feed (StrictMode=%s)", async strict => {
+    mockState.native = true;
+    mockState.subscribeProactiveLive.mockResolvedValue(undefined);
+    const dom = installFakeDom();
+    let root!: Root;
+    try {
+      await act(async () => {
+        root = createRoot(dom.container as unknown as Element);
+        const element = createElement((await import("./main-page.js")).MainPage);
+        root.render(strict ? createElement(StrictMode,null,element) : element);
+        await Promise.resolve(); await Promise.resolve();
+      });
+      expect(mockState.sockets).toHaveLength(0);
+      expect(mockState.buses.at(-1)?.posted.some(message => (message as {kind:string}).kind === "embodied-presentation-request")).toBe(false);
+    } finally { await act(async () => root?.unmount()); dom.restore(); }
+  });
+
 });

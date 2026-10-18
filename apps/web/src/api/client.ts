@@ -1,3 +1,5 @@
+import { isTauriRuntime } from "../tauri-window.js";
+import { nativeProductFetch } from "../native-product-client.js";
 import type { SpeechSegmentSeal, MediaPermission, MediaDeviceReport } from "@companion/protocol";
 import type { ChatMessage } from "../chat-state.js";
 import { resolveApiBaseUrl } from "../desktop-runtime.js";
@@ -1740,7 +1742,7 @@ async function streamTextResponse(
   if (options.signal) {
     requestInit.signal = options.signal;
   }
-  const response = await fetch(`${apiBaseUrl()}${path}`, requestInit);
+  const response = await (isTauriRuntime() ? nativeProductFetch(path, requestInit) : fetch(`${apiBaseUrl()}${path}`, requestInit));
 
   if (!response.ok) {
     throw new ApiError(await safeHttpStreamError(response), response.status);
@@ -2016,7 +2018,7 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     return await withActionDeadline(
       (async () => {
-        const response = await fetch(`${apiBaseUrl()}${path}`, {
+        const response = await (isTauriRuntime() ? nativeProductFetch : (p: string, init: RequestInit) => fetch(`${apiBaseUrl()}${p}`, init))(path, {
           ...init,
           credentials: "include",
           headers,
