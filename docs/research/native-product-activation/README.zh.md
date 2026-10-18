@@ -86,6 +86,8 @@ CSP 从 `null` 收紧：限制脚本、连接、frame、object、base 和 form�
 
 具体计数、命令和 CI 更新写入 [validation.json](evidence/validation.json)。`pnpm check`、`pnpm build`、完整数据库回归 `pnpm test`、Rust 测试、打包测试与独立浏览器/原生产品测试分别记录；skip 不算通过。
 
+首轮 CI 在 `953a2dc` 暴露旧打包断言：启动代码不得出现任何 `DATABASE_URL` 字样。新增 R5 分支需要只读检查已有显式数据库配置，因此最终本地全量回归也复现这一失败。修复仅更新该断言：允许读取，继续拒绝生成/覆盖 URL；数据库选择的行为仍由 Rust 分支测试覆盖。失败记录及运行链接保留于 [ci-first-attempt.json](evidence/ci-first-attempt.json)，没有更改生产权限或重写原生验收结果。
+
 复跑必须使用显式隔离数据库、绝对输出目录、独立工具目录及实际解包二进制路径：
 
 ```sh
