@@ -1,3 +1,4 @@
+import { ProductHost } from "./product-host.js";
 import {
   expandMemorySearch,
   assessEvidenceSupport,
@@ -206,6 +207,7 @@ export type AppContext = {
   finalizedIngestionRepository: FinalizedIngestionRepository;
   conversationalReceiptAdmission: ConversationalReceiptAdmission;
   conversationHost?: ConversationHostIdentity | undefined;
+  productHost?: ProductHost | undefined;
   observations?: HostObservationContinuity | undefined;
   memoryIntegrity?: MemoryIntegrityAudit | undefined;
   speechReceiptAdmission: SpeechReceiptAdmission;
@@ -378,6 +380,16 @@ export async function createAppContext(
           }
         )
       : undefined;
+  const productHost =
+    conversationHost &&
+    databasePool &&
+    /^ydc_[a-f0-9]{64}$/u.test(bootEnv["YUVI_DESKTOP_HOST_SECRET"] ?? "")
+      ? new ProductHost(
+          databasePool as AuthorityPool,
+          conversationHost,
+          bootEnv["YUVI_DESKTOP_HOST_SECRET"]!
+        )
+      : undefined;
   const conversationalReceiptAdmission = new HostConversationalReceiptAdmission(
     journalRepository,
     undefined,
@@ -415,7 +427,10 @@ export async function createAppContext(
       ? characterPersonaId(composition.binding)
       : (parseRuntimeConfig(bootEnv).memory.personaId ?? characterPersonaId(PRIMARY_CHARACTER));
     return Boolean(
-      await conversationHost.readAuthority(ref, buildMemoryScope(binding.personId, personaId))
+      await conversationHost.allowsConversationSource(
+        ref,
+        buildMemoryScope(binding.personId, personaId)
+      )
     );
   };
   outwardEffects.verifySourceAuthority = verifySourceAuthority;
@@ -514,7 +529,14 @@ export async function createAppContext(
         await tx.query("select pg_advisory_xact_lock(hashtextextended($1,0))", [
           journalRepository.namespace + ":accepted-user:" + input.runtimeEventId
         ]);
-        if (identity && !(await conversationHost?.lockCurrentGrant(identity, tx)))
+        if (
+          identity &&
+          !(await conversationHost?.lockCurrentGrant(
+            identity,
+            tx,
+            input.memoryWriteRequested === true
+          ))
+        )
           throw new JournalStoreError(
             "INVALID_PROPOSAL",
             "Host credential revoked before source acceptance."
@@ -1278,6 +1300,7 @@ export async function createAppContext(
     finalizedIngestionRepository: finalizedIngestionRepository!,
     conversationalReceiptAdmission,
     conversationHost,
+    productHost,
     memoryIntegrity:
       memory.getAuthorityInfrastructure() && journalRepository
         ? new MemoryIntegrityAudit(

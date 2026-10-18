@@ -1,0 +1,78 @@
+{
+  "failures": [
+    {
+      "run": "run-J6zmnI",
+      "error": "Error: Timed out: normal runtime entrypoint",
+      "passedChecks": []
+    },
+    {
+      "run": "run-t7JtLz",
+      "error": "Error: browserType.launch: Executable doesn't exist at /home/ruichen/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     pnpm exec playwright install                           ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+      "passedChecks": [
+        "Supervisor owns normal production Runtime/Character with restricted PostgreSQL role"
+      ]
+    },
+    {
+      "run": "run-ECZol8",
+      "error": "Error: Timed out: normal chat complete",
+      "passedChecks": [
+        "Supervisor owns normal production Runtime/Character with restricted PostgreSQL role",
+        "Browser pairs via authenticated Supervisor, HttpOnly cookie; no operator in JavaScript"
+      ]
+    },
+    {
+      "run": "run-NX7zN2",
+      "error": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n  - waiting for getByRole('status').filter({ hasText: 'synthetic-person-x' }) to be visible\n",
+      "passedChecks": [
+        "Supervisor owns normal production Runtime/Character with restricted PostgreSQL role",
+        "Browser pairs via authenticated Supervisor, HttpOnly cookie; no operator in JavaScript",
+        "Normal Main SSE → Character → Journal → Memory Worker → R5 → actual Memory UI",
+        "Natural correction displays current + superseded history and traceable source in browser"
+      ]
+    },
+    {
+      "run": "run-xZN0AK",
+      "error": "AssertionError [ERR_ASSERTION]: {\"error\":\"provider_unavailable\",\"code\":\"PROVIDER_UNAVAILABLE\",\"provider\":\"openai-compatible\",\"capability\":\"chat\",\"message\":\"Provider observation is unavailable or ambiguous.\",\"attemptedProviders\":[{\"provider\":\"openai-compatible\",\"status\":\"unavailable\",\"errorCode\":\"PROVIDER_UNAVAILABLE\",\"error\":\"Provider observation is unavailable or ambiguous.\",\"latencyMs\":35,\"enabled\":true,\"priority\":1}],\"setup\":\"Configure Chat in Product configuration (Provider → Model → Capability Route) and use Save & apply, or set PROVIDER_ALLOW_MOCKS=true for explicit offline/mock development.\",\"traceId\":\"5e7daa41-315a-4e93-bab0-dd2675805d1e\"}\n\n503 !== 200\n",
+      "passedChecks": [
+        "Supervisor owns normal production Runtime/Character with restricted PostgreSQL role",
+        "Browser pairs via authenticated Supervisor, HttpOnly cookie; no operator in JavaScript",
+        "Normal Main SSE → Character → Journal → Memory Worker → R5 → actual Memory UI",
+        "Natural correction displays current + superseded history and traceable source in browser",
+        "Browser refresh + Supervisor Runtime restart preserve identity, current fact, legal recall and retrieval audit",
+        "Scope/subject overrides and management access are refused for product cookie"
+      ]
+    },
+    {
+      "run": "run-CXIXWZ",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n503 !== 401\n",
+      "passedChecks": [
+        "Supervisor owns normal production Runtime/Character with restricted PostgreSQL role",
+        "Browser pairs via authenticated Supervisor, HttpOnly cookie; no operator in JavaScript",
+        "Normal Main SSE → Character → Journal → Memory Worker → R5 → actual Memory UI",
+        "Natural correction displays current + superseded history and traceable source in browser",
+        "Browser refresh + Supervisor Runtime restart preserve identity, current fact, legal recall and retrieval audit",
+        "Scope/subject overrides and management access are refused for product cookie",
+        "Server enforces memory disable even when chat requests readMemory/writeMemory=true",
+        "Browser renew updates HttpOnly cookie and invalidates previous token",
+        "Person switch clears Memory UI and rejects prior Person history/session reuse"
+      ]
+    },
+    {
+      "run": "run-sgLRnF",
+      "error": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n  - waiting for getByText('授权已撤销，记忆读取与写入已阻止。', { exact: true }) to be visible\n",
+      "passedChecks": [
+        "Supervisor owns normal production Runtime/Character with restricted PostgreSQL role",
+        "Browser pairs via authenticated Supervisor, HttpOnly cookie; no operator in JavaScript",
+        "Normal Main SSE → Character → Journal → Memory Worker → R5 → actual Memory UI",
+        "Natural correction displays current + superseded history and traceable source in browser",
+        "Browser process/profile restart + Supervisor Runtime restart preserve identity, current fact, legal recall and retrieval audit",
+        "Scope/subject overrides and management access are refused for product cookie",
+        "Server enforces memory disable even when chat requests readMemory/writeMemory=true",
+        "Browser renew updates HttpOnly cookie and invalidates previous token",
+        "Person switch clears Memory UI and rejects prior Person history/session reuse"
+      ]
+    }
+  ],
+  "successfulRun": "run-Q7V38T",
+  "note": "Test harness/startup failures retained; no retry is counted as a semantic-model quality pass."
+}

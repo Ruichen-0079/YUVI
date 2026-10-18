@@ -2,7 +2,11 @@ import { z } from "zod";
 import { ContextBlockSchema, ContextExposureSchema } from "@companion/protocol";
 import { randomUUID } from "node:crypto";
 import { canonicalScope, MemoryAuthorityError, type AuthorityQuery } from "./types.js";
-import type { MemoryRetrievalInput, MemoryRetrievalOutcome } from "../provider.js";
+import type {
+  MemoryRetrievalInput,
+  MemoryRetrievalOutcome,
+  MemoryReadAuthority
+} from "../provider.js";
 import { EvidenceSupportSchema } from "./evidence-support.js";
 const coverageSchema = z
   .array(
@@ -163,6 +167,7 @@ export class MemoryRetrievalEvidence {
     traceId?: string | undefined;
     limit?: number | undefined;
     cursor?: string | undefined;
+    access?: MemoryReadAuthority | undefined;
   }) {
     canonicalScope(input.scope);
     const limit = input.limit ?? 20;
@@ -188,8 +193,15 @@ export class MemoryRetrievalEvidence {
     const rows = (
       await this.db.query(
         `select retrieval_id,trace_id,session_id,status,error_code,limited,watermark,model_tag,created_at from memory_retrieval_runs
-      where scope=$1 and ($2::text is null or trace_id=$2) and ($3::timestamptz is null or (created_at,retrieval_id)<($3::timestamptz,$4::text)) order by created_at desc,retrieval_id desc limit $5`,
-        [input.scope, input.traceId ?? null, cursor?.at ?? null, cursor?.id ?? null, limit + 1]
+      where scope=$1 and ($2::text is null or trace_id=$2) and ($3::timestamptz is null or (created_at,retrieval_id)<($3::timestamptz,$4::text)) and ($6::jsonb is null or reader=$6::jsonb) order by created_at desc,retrieval_id desc limit $5`,
+        [
+          input.scope,
+          input.traceId ?? null,
+          cursor?.at ?? null,
+          cursor?.id ?? null,
+          limit + 1,
+          input.access ?? null
+        ]
       )
     ).rows;
     const items = rows.slice(0, limit).map((r) => ({
@@ -220,12 +232,12 @@ export class MemoryRetrievalEvidence {
           : null
     };
   }
-  async detail(scope: string, id: string) {
+  async detail(scope: string, id: string, access?: MemoryReadAuthority) {
     canonicalScope(scope);
     const row = (
       await this.db.query(
-        "select * from memory_retrieval_runs where scope=$1 and retrieval_id=$2",
-        [scope, id]
+        "select * from memory_retrieval_runs where scope=$1 and retrieval_id=$2 and ($3::jsonb is null or reader=$3::jsonb)",
+        [scope, id, access ?? null]
       )
     ).rows[0];
     if (!row) return null;

@@ -1,3 +1,4 @@
+import { ProductAuthorityMemory } from "./product-authority-memory.js";
 import { productDestinations as destinations, type ProductView } from "./product-navigation.js";
 import { LocaleSelector } from "./locale-selector.js";
 import { t } from "./locale.js";
@@ -171,7 +172,19 @@ export function ProductWebUI(): JSX.Element {
             </>
           )}
           {view === "memory" &&
-            (tauri ? <UserSettingsPanel sections={["memory"]} /> : <ProductMemorySettings />)}
+            (health.error || !health.data?.memory ? (
+              <p role="status">Memory 服务状态不可用；请刷新 Runtime 状态后重试。</p>
+            ) : health.data.memory.backend === "postgres-authority" ? (
+              <ProductAuthorityMemory />
+            ) : health.data.memory.backend === "legacy" ? (
+              tauri ? (
+                <UserSettingsPanel sections={["memory"]} />
+              ) : (
+                <ProductMemorySettings />
+              )
+            ) : (
+              <p role="status">Memory 服务类型未识别。</p>
+            ))}
           {view === "appearance" && (
             <>
               <CompanionAppearanceSettings />

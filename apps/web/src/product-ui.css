@@ -1562,7 +1562,6 @@ html[data-yuvi-surface="webui"] .yuvi-product-webui .settings-card {
   justify-self: start;
 }
 
-
 /* Main Chat: conversation is the product; operational configuration lives in WebUI. */
 html[data-yuvi-surface="main"] {
   --yuvi-main-bg: var(--yuvi-bg);
@@ -1594,8 +1593,16 @@ html[data-yuvi-surface="main"] #root {
   width: 100%;
   height: 100vh;
   background:
-    radial-gradient(880px 360px at 88% -10%, color-mix(in srgb, var(--yuvi-pink) 26%, transparent), transparent 58%),
-    linear-gradient(180deg, color-mix(in srgb, var(--yuvi-main-bg) 95%, white) 0%, var(--yuvi-main-bg) 28%),
+    radial-gradient(
+      880px 360px at 88% -10%,
+      color-mix(in srgb, var(--yuvi-pink) 26%, transparent),
+      transparent 58%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--yuvi-main-bg) 95%, white) 0%,
+      var(--yuvi-main-bg) 28%
+    ),
     var(--yuvi-main-bg);
   color: var(--yuvi-main-ink);
 }
@@ -1709,7 +1716,6 @@ html[data-yuvi-surface="main"] #root {
   background: color-mix(in srgb, var(--yuvi-main-line) 55%, transparent);
 }
 
-
 .yuvi-main-message .assistant-markdown {
   color: inherit;
   font-size: 0.95rem;
@@ -1770,8 +1776,12 @@ html[data-yuvi-surface="main"] #root {
   position: relative;
   flex: 0 0 auto;
   padding: 22px 16px 18px;
-  background:
-    linear-gradient(180deg, transparent 0%, var(--yuvi-main-bg) 28%, var(--yuvi-main-bg) 100%);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    var(--yuvi-main-bg) 28%,
+    var(--yuvi-main-bg) 100%
+  );
 }
 
 .yuvi-main-composer-wrap {
@@ -1853,7 +1863,6 @@ html[data-yuvi-surface="main"] #root {
 .yuvi-main-file-input {
   display: none;
 }
-
 
 .yuvi-main-composer {
   display: grid;
@@ -2041,4 +2050,83 @@ html[data-yuvi-surface="main"] #root {
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
   }
+}
+
+/* Own-person Authority surface; keep enrollment and actual persistence state legible. */
+.yuvi-authority-memory {
+  display: grid;
+  gap: 1rem;
+}
+.yuvi-authority-memory h2 {
+  font-size: 1.15rem;
+  font-weight: 650;
+}
+.yuvi-authority-memory h3 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.yuvi-authority-memory p {
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.yuvi-authority-memory label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.yuvi-authority-memory input {
+  border: 1px solid var(--yuvi-border, #c8c6de);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  background: white;
+  min-width: 15rem;
+}
+.yuvi-authority-memory button,
+.yuvi-authority-memory .yuvi-product-actions a {
+  border: 1px solid var(--yuvi-border, #c8c6de);
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.7rem;
+  background: #f4f3fc;
+  line-height: 1.5;
+}
+.yuvi-authority-memory button:hover:not(:disabled) {
+  background: #eae8fa;
+}
+.yuvi-authority-memory button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.yuvi-authority-memory button:focus-visible,
+.yuvi-authority-memory input:focus-visible,
+.yuvi-authority-memory summary:focus-visible {
+  outline: 2px solid #8982d8;
+  outline-offset: 3px;
+}
+.yuvi-authority-memory ul {
+  display: grid;
+  gap: 0.6rem;
+}
+.yuvi-authority-memory li {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+.yuvi-authority-memory article {
+  border-top: 1px solid var(--yuvi-border, #dedceb);
+  padding-top: 1rem;
+  display: grid;
+  gap: 0.65rem;
+}
+.yuvi-authority-memory summary {
+  cursor: pointer;
+}
+.yuvi-authority-memory pre {
+  max-height: 22rem;
+  overflow: auto;
+  padding: 1rem;
+  border-radius: 0.65rem;
+  background: #f4f3fc;
+  font-size: 0.8rem;
 }

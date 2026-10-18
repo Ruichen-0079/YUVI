@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { parseMemoryBackend } from "@companion/config/environment";
 import path from "node:path";
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, createHmac, randomUUID } from "node:crypto";
 import type { ChildProcess } from "node:child_process";
 import { buildChildProcessEnv, deriveConfigFromEnv } from "./config.js";
 import { buildPostgresStartCommand, pingPostgres } from "./postgres-cluster.js";
@@ -380,11 +380,58 @@ export class DesktopSupervisor {
   ): NodeJS.ProcessEnv {
     // baseEnv first, then live config.env (includes dynamic overrides or restored base),
     // then per-command env. Do not read live process.env so shell pollution cannot leak.
-    return buildChildProcessEnv(
+    const env = buildChildProcessEnv(
       { ...this.baseEnv, ...configEnv },
       commandEnv,
       serviceId === "mem0" && this.config.layout.mode === "packaged" ? ["DATABASE_URL"] : []
     );
+    delete env["YUVI_DESKTOP_HOST_SECRET"];
+    if (serviceId === "runtime") env["YUVI_DESKTOP_HOST_SECRET"] = this.productHostSecret();
+    return env;
+  }
+  private productHostSecret(): string {
+    return (
+      "ydc_" +
+      createHmac("sha256", this.config.controlToken).update("yuvi.product-host.v1").digest("hex")
+    );
+  }
+  /** Called only from the authenticated native control plane. This is a one-use,
+   * Person/origin-bound ceremony, not an operator or conversation credential. */
+  async createProductHostPairing(personId: string, origin: string) {
+    if (this.shuttingDown) throw Error("PRODUCT_SUPERVISOR_SHUTTING_DOWN");
+    await this.refreshService("runtime");
+    const service = this.services.get("runtime");
+    if (!service || service.ownership !== "owned" || service.status !== "healthy")
+      throw Error("PRODUCT_OWNED_RUNTIME_REQUIRED");
+    const runtime = new URL(this.config.runtimeUrl);
+    if (!["127.0.0.1", "localhost", "[::1]"].includes(runtime.hostname))
+      throw Error("PRODUCT_RUNTIME_NOT_LOCAL");
+    const response = await fetch(new URL("/host/v1/product/pairings", runtime), {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: "Bearer " + this.productHostSecret()
+      },
+      body: JSON.stringify({ personId, origin }),
+      signal: AbortSignal.timeout(5000),
+      redirect: "error"
+    });
+    if (!response.ok) throw Error("PRODUCT_HOST_PAIRING_UNAVAILABLE");
+    const result = (await response.json()) as {
+      schema?: unknown;
+      code?: unknown;
+      origin?: unknown;
+      expiresInSeconds?: unknown;
+    };
+    if (
+      result.schema !== "host.product-pairing.v1" ||
+      typeof result.code !== "string" ||
+      !/^yup_[A-Za-z0-9_-]{43}$/u.test(result.code) ||
+      result.origin !== origin ||
+      result.expiresInSeconds !== 300
+    )
+      throw Error("PRODUCT_HOST_PAIRING_PROTOCOL_INVALID");
+    return { schema: "host.product-pairing.v1", code: result.code, origin, expiresInSeconds: 300 };
   }
 
   /** Test/helper: env that would be used for the next spawn of a service. */

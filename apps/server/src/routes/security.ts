@@ -44,13 +44,11 @@ export function requireAuthenticatedLocalOperator(
   reply: FastifyReply
 ): boolean {
   if (!isLocalRequest(request)) {
-    reply
-      .code(403)
-      .send({
-        schema: "memory.error.v1",
-        status: "FAILED",
-        error: "MEMORY_OPERATOR_ORIGIN_FORBIDDEN"
-      });
+    reply.code(403).send({
+      schema: "memory.error.v1",
+      status: "FAILED",
+      error: "MEMORY_OPERATOR_ORIGIN_FORBIDDEN"
+    });
     return false;
   }
   const token = request.headers.authorization?.match(/^Bearer\s+(.+)$/u)?.[1],
@@ -109,7 +107,12 @@ function hasDashboardDevTokenAccess(
   request: FastifyRequest,
   alternativeToken?: string
 ): boolean {
-  if (config.runtimeMode !== "development" || !config.dashboardDevToken) return true;
+  if (config.requireOperatorCredential && !config.dashboardDevToken) return false;
+  if (
+    !config.requireOperatorCredential &&
+    (config.runtimeMode !== "development" || !config.dashboardDevToken)
+  )
+    return true;
   const provided = request.headers["x-yuvi-dev-token"];
   const legacyToken = Array.isArray(provided) ? provided[0] : provided;
   const authorization = request.headers.authorization;

@@ -99,8 +99,7 @@ async function handle(
   try {
     const url = new URL(req.url ?? "/", "http://127.0.0.1");
     const method = req.method ?? "GET";
-    const isWrite =
-      method !== "GET" && method !== "HEAD" && method !== "OPTIONS";
+    const isWrite = method !== "GET" && method !== "HEAD" && method !== "OPTIONS";
 
     // Public liveness only (no token, no secrets).
     if (method === "GET" && url.pathname === "/health") {
@@ -130,6 +129,29 @@ async function handle(
       }
       return sendJson(res, 200, snap);
     }
+    if (method === "POST" && url.pathname === "/v1/product-host/pairings") {
+      // The native controller never sends browser Origin/Referer. Loopback alone is not authority.
+      if (
+        req.headers.origin !== undefined ||
+        req.headers.referer !== undefined ||
+        req.headers["sec-fetch-site"] !== undefined
+      )
+        return sendJson(res, 403, { error: "native_controller_required" });
+      const body = (await readJsonBody(req)) as { personId?: unknown; origin?: unknown };
+      if (
+        typeof body.personId !== "string" ||
+        body.personId.length > 512 ||
+        typeof body.origin !== "string" ||
+        body.origin.length > 256
+      )
+        return sendJson(res, 400, { error: "invalid_pairing" });
+      res.setHeader("Cache-Control", "no-store");
+      return sendJson(
+        res,
+        200,
+        await supervisor.createProductHostPairing(body.personId, body.origin)
+      );
+    }
     if (method === "POST" && url.pathname === "/v1/refresh") {
       const snap = await supervisor.refreshAll();
       return sendJson(res, 200, snap);
@@ -138,7 +160,7 @@ async function handle(
       return sendJson(res, 200, await supervisor.acquireVoiceLease());
     }
     if (method === "POST" && url.pathname === "/v1/voice/release") {
-      const body = await readJsonBody(req) as { leaseId?: unknown };
+      const body = (await readJsonBody(req)) as { leaseId?: unknown };
       if (typeof body.leaseId !== "string") return sendJson(res, 400, { error: "invalid_lease" });
       await supervisor.releaseVoiceLease(body.leaseId);
       return sendJson(res, 200, { ok: true });

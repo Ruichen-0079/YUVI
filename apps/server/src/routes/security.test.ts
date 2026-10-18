@@ -50,3 +50,37 @@ describe("local dashboard dispatch authorization", () => {
     ).toBe(false);
   });
 });
+
+describe("product Host is never a local operator", () => {
+  it.each(["development", "test", "production"] as const)(
+    "requires the operator Bearer in %s",
+    (runtimeMode) => {
+      const config = {
+        runtimeMode,
+        requireOperatorCredential: true,
+        dashboardDevToken: "operator-only"
+      } as ServerConfig;
+      expect(
+        hasLocalDashboardAccess(
+          config,
+          request("127.0.0.1", { cookie: "yuvi_product_host=yuh_product" })
+        )
+      ).toBe(false);
+      expect(
+        hasLocalDashboardAccess(
+          config,
+          request("127.0.0.1", { authorization: "Bearer yuh_product" })
+        )
+      ).toBe(false);
+      expect(
+        hasLocalDashboardAccess(
+          config,
+          request("127.0.0.1", { authorization: "Bearer operator-only" })
+        )
+      ).toBe(true);
+      expect(
+        hasLocalDashboardAccess({ ...config, dashboardDevToken: undefined }, request("127.0.0.1"))
+      ).toBe(false);
+    }
+  );
+});

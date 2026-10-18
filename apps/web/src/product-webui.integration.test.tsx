@@ -6,16 +6,19 @@ import { installFakeDom, readText, type FakeNode } from "./test-dom.js";
 const state = vi.hoisted(() => ({
   update: vi.fn(),
   reload: vi.fn(),
+  health: null as any,
   settings: {} as any
 }));
 vi.mock("./api/client.js", () => ({
-  request: async () => { throw new Error("No connection"); },
+  request: async () => {
+    throw new Error("No connection");
+  },
   productSample: vi.fn(),
   apiClient: {
     getRuntimeSettings: async () => state.settings,
     getProviderStatus: async () => ({ providers: {}, routes: {} }),
     getEvents: async () => [],
-    getHealth: async () => null,
+    getHealth: async () => state.health,
     updateRuntimeSettings: state.update,
     reloadRuntimeSettings: state.reload
   }
@@ -23,7 +26,9 @@ vi.mock("./api/client.js", () => ({
 vi.mock("./App.js", () => ({ App: () => <div>Developer dashboard</div> }));
 vi.mock("./tauri-window.js", () => ({ isTauriRuntime: () => true }));
 vi.mock("./locale-selector.js", () => ({ LocaleSelector: () => <div>Locale controls</div> }));
-vi.mock("./product-live2d-models.js", () => ({ ProductLive2DModels: () => <div>Live2D controls</div> }));
+vi.mock("./product-live2d-models.js", () => ({
+  ProductLive2DModels: () => <div>Live2D controls</div>
+}));
 vi.mock("./companion-appearance-settings.js", () => ({
   CompanionAppearanceSettings: () => <div>Companion window controls</div>
 }));
@@ -34,12 +39,18 @@ vi.mock("./product-first-run-setup.js", () => ({
   ProductFirstRunSetup: ({ onNavigate }: { onNavigate(view: "advanced" | "appearance"): void }) => (
     <div>
       <span>First-run setup controls</span>
-      <button type="button" onClick={() => onNavigate("advanced")}>Configure Chat</button>
-      <button type="button" onClick={() => onNavigate("appearance")}>Choose Companion model</button>
+      <button type="button" onClick={() => onNavigate("advanced")}>
+        Configure Chat
+      </button>
+      <button type="button" onClick={() => onNavigate("appearance")}>
+        Choose Companion model
+      </button>
     </div>
   )
 }));
-vi.mock("./product-memory-settings.js", () => ({ ProductMemorySettings: () => <div>Memory connection</div> }));
+vi.mock("./product-memory-settings.js", () => ({
+  ProductMemorySettings: () => <div>Memory connection</div>
+}));
 vi.mock("./product-configuration.js", () => ({
   ProductConfigurationPanel: ({ sections }: { sections?: readonly string[] }) => (
     <div>Configuration sections: {(sections ?? ["all"]).join(",")}</div>
@@ -69,6 +80,7 @@ afterEach(async () => {
   await act(async () => root?.unmount());
   dom?.restore();
   vi.clearAllMocks();
+  state.health = null;
 });
 async function mount(element: JSX.Element) {
   dom = installFakeDom();
@@ -79,6 +91,15 @@ async function mount(element: JSX.Element) {
   return dom.container;
 }
 describe("Product WebUI integration", () => {
+  it("does not fall back to Legacy Memory when Runtime health is unavailable", async () => {
+    state.health = null;
+    const { ProductWebUI } = await import("./product-webui.js");
+    const node = await mount(<ProductWebUI />);
+    await act(async () => click(button(node, "Memory")));
+    expect(readText(node)).toContain("Memory 服务状态不可用");
+    expect(readText(node)).not.toContain("Desktop settings");
+    expect(readText(node)).not.toContain("Memory connection");
+  });
   it("separates daily-use concerns while keeping advanced and Developer reachable", async () => {
     const { ProductWebUI } = await import("./product-webui.js");
     const node = await mount(<ProductWebUI />);
@@ -96,7 +117,7 @@ describe("Product WebUI integration", () => {
     await act(async () => click(button(node, "People & voices")));
     expect(readText(node)).toContain("Configuration sections: people,voices");
     await act(async () => click(button(node, "Memory")));
-    expect(readText(node)).toContain("Desktop settings");
+    expect(readText(node)).toContain("Memory 服务状态不可用");
     await act(async () => click(button(node, "Conversation")));
     expect(readText(node)).toContain("Configuration sections: proactive");
     await act(async () => click(button(node, "Subtitle")));

@@ -3,12 +3,18 @@
   "compilerOptions": {
     "composite": true,
     "jsx": "react-jsx",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "rootDir": ".",
     "outDir": "dist-types",
-    "types": ["vite/client"]
+    "types": [
+      "vite/client"
+    ]
   },
   "include": [
     "src/**/*.ts",
@@ -23,6 +29,9 @@
     },
     {
       "path": "../../packages/desktop-supervisor"
+    },
+    {
+      "path": "../../packages/memory"
     }
   ]
 }

@@ -76,6 +76,7 @@ export type ProviderRouteHealth = ProviderHealth & {
 };
 
 export type HealthResponse = {
+  memory?: { backend: "postgres-authority" | "legacy"; productHost: boolean };
   ok: boolean;
   service: string;
   runtimeMode?: string;
@@ -1732,6 +1733,7 @@ async function streamTextResponse(
 
   const requestInit: RequestInit = {
     method: "POST",
+    credentials: "include",
     headers,
     body: JSON.stringify(input)
   };
@@ -1808,7 +1810,7 @@ async function streamProactiveLive(
   if (dashboardDevToken && shouldAttachDashboardDevToken("/v1/proactive-turns/live", "GET")) {
     headers.set("authorization", `Bearer ${dashboardDevToken}`);
   }
-  const requestInit: RequestInit = { method: "GET", headers };
+  const requestInit: RequestInit = { method: "GET", credentials: "include", headers };
   if (options.signal) requestInit.signal = options.signal;
   const response = await fetch(
     `${apiBaseUrl()}/v1/proactive-turns/live?sessionId=${encodeURIComponent(sessionId)}`,
@@ -1855,6 +1857,7 @@ async function streamProactiveTextResponse(
 
   const requestInit: RequestInit = {
     method: "POST",
+    credentials: "include",
     headers,
     body: JSON.stringify(input)
   };
@@ -2015,6 +2018,7 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
       (async () => {
         const response = await fetch(`${apiBaseUrl()}${path}`, {
           ...init,
+          credentials: "include",
           headers,
           signal: controller.signal
         });

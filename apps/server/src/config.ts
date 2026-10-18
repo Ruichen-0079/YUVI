@@ -56,6 +56,8 @@ export type ServerConfig = {
     restartMarkerPath?: string | undefined;
   };
   dashboardDevToken?: string | undefined;
+  /** Product browsers never inherit the local operator surface, in any runtime mode. */
+  requireOperatorCredential?: boolean;
   live2dModelsRoot?: string | undefined;
   live2dAssetRoot?: string | undefined;
   live2dCorePath?: string | undefined;
@@ -65,6 +67,9 @@ export function loadServerConfig(
   env: Record<string, string | undefined> = process.env
 ): ServerConfig {
   return {
+    requireOperatorCredential:
+      parseRuntimeConfig(env).memory.backend === "postgres" &&
+      /^ydc_[a-f0-9]{64}$/u.test(env["YUVI_DESKTOP_HOST_SECRET"] ?? ""),
     cognitionInteraction: {
       maxReasoningRounds: cognitionLimit(
         env["COGNITION_MAX_REASONING_ROUNDS"],

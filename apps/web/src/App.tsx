@@ -1,3 +1,4 @@
+import { ProductAuthorityMemory } from "./product-authority-memory.js";
 import { resolveApiBaseUrl } from "./desktop-runtime.js";
 import { t } from "./locale.js";
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
@@ -97,7 +98,13 @@ export function App(): JSX.Element {
   const [activePage, setActivePage] = useState<PageId>("overview");
   const health = useAsyncData((signal) => apiClient.getHealth(signal), []);
   const providerStatus = useAsyncData((signal) => apiClient.getProviderStatus(signal), []);
-  const memories = useAsyncData((signal) => apiClient.listRecentMemories(20, signal), []);
+  const memories = useAsyncData(
+    (signal) =>
+      health.data?.memory?.backend === "legacy"
+        ? apiClient.listRecentMemories(20, signal)
+        : Promise.resolve({ memories: [] as MemoryRecord[] }),
+    [health.data?.memory?.backend]
+  );
   const eventState = useAsyncData((signal) => apiClient.listRecentEvents(50, signal), []);
   const [localEvents, setLocalEvents] = useState<RuntimeEvent[]>([]);
   const [liveEvents, setLiveEvents] = useState<RuntimeEvent[]>([]);
@@ -149,7 +156,9 @@ export function App(): JSX.Element {
             </button>
           ))}
         </nav>
-        <div className="border-t border-ink-200 p-3 text-xs text-ink-500">{t("Debug UI only. Live2D is intentionally not implemented here.")}</div>
+        <div className="border-t border-ink-200 p-3 text-xs text-ink-500">
+          {t("Debug UI only. Live2D is intentionally not implemented here.")}
+        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -169,7 +178,16 @@ export function App(): JSX.Element {
             />
           )}
           {activePage === "chat" && <ChatPage />}
-          {activePage === "memory" && <MemoryPage state={memories} health={health.data} />}
+          {activePage === "memory" &&
+            (health.error || !health.data?.memory ? (
+              <p role="status">Memory 服务状态不可用；请刷新后重试。</p>
+            ) : health.data.memory.backend === "postgres-authority" ? (
+              <ProductAuthorityMemory />
+            ) : health.data.memory.backend === "legacy" ? (
+              <MemoryPage state={memories} health={health.data} />
+            ) : (
+              <p role="status">Memory 服务类型未识别。</p>
+            ))}
           {activePage === "providers" && <ProvidersPage state={providerStatus} />}
           {activePage === "events" && (
             <EventsPage
@@ -208,11 +226,15 @@ export function TopStatusBar(props: {
       <div className="flex items-center gap-3">
         <StatusDot status={status} />
         <div>
-          <div className="text-sm font-semibold">{t("Runtime status:")}{" "}{status}</div>
+          <div className="text-sm font-semibold">
+            {t("Runtime status:")} {status}
+          </div>
           <div className="text-xs text-ink-500">{t("Server target {0}", resolveApiBaseUrl())}</div>
         </div>
       </div>
-      <button className="button-secondary" onClick={() => void props.onRefresh()}>{t("Refresh")}</button>
+      <button className="button-secondary" onClick={() => void props.onRefresh()}>
+        {t("Refresh")}
+      </button>
     </header>
   );
 }
@@ -226,7 +248,11 @@ function OverviewPage(props: {
   return (
     <PageShell title={t("Overview")} subtitle="Operational snapshot for local runtime debugging.">
       {props.health.loading && (
-        <Notice tone="info" title={t("Loading")} message={t("Fetching runtime health from the backend.")} />
+        <Notice
+          tone="info"
+          title={t("Loading")}
+          message={t("Fetching runtime health from the backend.")}
+        />
       )}
       {props.health.error && (
         <Notice tone="error" title={t("Backend error")} message={props.health.error} />
@@ -246,9 +272,10 @@ function OverviewPage(props: {
         <StatusCard
           title={t("Providers")}
           status={t("chat {0}", props.health.data?.providers.chat.readiness ?? "unknown")}
-          detail={t("Cached chat observation: {0}", providerObservationLabel(
-            props.health.data?.providers.chat.observed
-          ))}
+          detail={t(
+            "Cached chat observation: {0}",
+            providerObservationLabel(props.health.data?.providers.chat.observed)
+          )}
         />
       </div>
       <div className="grid grid-cols-[1.1fr_0.9fr] gap-4">
@@ -379,7 +406,9 @@ function ProvidersPage(props: {
       <Notice
         tone="info"
         title={t("Diagnostics meanings")}
-        message={t("Local readiness only reports whether YUVI can construct a configured route; it never proves remote reachability. Cached observation is recorded only after an explicit live verification. Legacy available and generic health status are not remote-reachability evidence.")}
+        message={t(
+          "Local readiness only reports whether YUVI can construct a configured route; it never proves remote reachability. Cached observation is recorded only after an explicit live verification. Legacy available and generic health status are not remote-reachability evidence."
+        )}
       />
       {props.state.data?.routes && <ProviderPriorityPanel routes={props.state.data.routes} />}
       <Panel
@@ -410,7 +439,11 @@ function ProvidersPage(props: {
           </div>
         }
       >
-        <p className="mb-3 text-sm leading-6 text-ink-600">{t("Chat, reasoning, and embedding verification explicitly call the selected provider and may be billable. Results show only safe metadata; API keys and Authorization headers are never displayed.")}</p>
+        <p className="mb-3 text-sm leading-6 text-ink-600">
+          {t(
+            "Chat, reasoning, and embedding verification explicitly call the selected provider and may be billable. Results show only safe metadata; API keys and Authorization headers are never displayed."
+          )}
+        </p>
         {verificationError && (
           <Notice tone="error" title={t("Verification failed")} message={verificationError} />
         )}
@@ -438,9 +471,17 @@ function ProvidersPage(props: {
           </div>
         }
       >
-        <p className="mb-3 text-sm leading-6 text-ink-600">{t("Chain inspection only evaluates local route configuration and readiness. It makes no provider call: ready routes and skipped attempts are not live provider successes.")}</p>
+        <p className="mb-3 text-sm leading-6 text-ink-600">
+          {t(
+            "Chain inspection only evaluates local route configuration and readiness. It makes no provider call: ready routes and skipped attempts are not live provider successes."
+          )}
+        </p>
         {chainInspectionError && (
-          <Notice tone="error" title={t("Chain inspection failed")} message={chainInspectionError} />
+          <Notice
+            tone="error"
+            title={t("Chain inspection failed")}
+            message={chainInspectionError}
+          />
         )}
         {chainInspection && <ProviderChainInspectionResult result={chainInspection} />}
       </Panel>
@@ -541,12 +582,16 @@ function ProviderPriorityPanel(props: {
                   <span>
                     <span className="font-medium text-ink-800">{route.provider}</span>
                     <span className="ml-2 text-ink-500">{route.model ?? "no model"}</span>
-                    <div className="mt-1 text-ink-500">{t("Local readiness:")}{" "}{t(providerReadinessLabel(route.readiness))}
+                    <div className="mt-1 text-ink-500">
+                      {t("Local readiness:")} {t(providerReadinessLabel(route.readiness))}
                     </div>
-                    <div className="mt-1 text-ink-500">{t("Cached observation:")}{" "}{t(providerObservationLabel(route.observed))}
+                    <div className="mt-1 text-ink-500">
+                      {t("Cached observation:")} {t(providerObservationLabel(route.observed))}
                     </div>
                     {route.missingFields?.length ? (
-                      <div className="text-rose-700">{t("Missing:")}{" "}{route.missingFields.join(", ")}</div>
+                      <div className="text-rose-700">
+                        {t("Missing:")} {route.missingFields.join(", ")}
+                      </div>
                     ) : null}
                   </span>
                   <span className="flex items-center gap-1">
@@ -558,7 +603,11 @@ function ProviderPriorityPanel(props: {
           </div>
         ))}
       </div>
-      <p className="mt-3 text-xs leading-5 text-ink-500">{t("Priority is configured through Product configuration (Provider → Model → Capability Route). Legacy provider chains remain a compatibility fallback only. Route readiness is local only; observation is cached only after live verification. Save & apply reloads supported runtime config; Deep Restart restarts the supervised local runtime and reloads env files.")}</p>
+      <p className="mt-3 text-xs leading-5 text-ink-500">
+        {t(
+          "Priority is configured through Product configuration (Provider → Model → Capability Route). Legacy provider chains remain a compatibility fallback only. Route readiness is local only; observation is cached only after live verification. Save & apply reloads supported runtime config; Deep Restart restarts the supervised local runtime and reloads env files."
+        )}
+      </p>
     </Panel>
   );
 }
@@ -586,7 +635,8 @@ function ProviderChainInspectionResult(props: {
       <ul className="space-y-1 text-xs text-ink-600">
         {result.attemptedProviders.map((attempt) => (
           <li key={`${attempt.provider}-${attempt.priority ?? "default"}`}>
-            <span className="font-medium">{attempt.provider}</span>: {t(providerAttemptLabel(attempt))}
+            <span className="font-medium">{attempt.provider}</span>:{" "}
+            {t(providerAttemptLabel(attempt))}
           </li>
         ))}
       </ul>
@@ -647,14 +697,23 @@ function PromptPreviewPage(): JSX.Element {
           <StatusCard
             title={t("Read / Write")}
             status={`${String(promptPreview.readMemory ?? preview.data?.readMemory ?? false)} / ${String(promptPreview.writeMemory ?? preview.data?.writeMemory ?? false)}`}
-            detail={t("Legacy aggregate: {0} · repo: {1}", String(promptPreview.legacyUseMemory ?? preview.data?.legacyUseMemory ?? "not sent"), promptPreview.memoryRepository ?? preview.data?.memoryRepository ?? "unknown")}
+            detail={t(
+              "Legacy aggregate: {0} · repo: {1}",
+              String(promptPreview.legacyUseMemory ?? preview.data?.legacyUseMemory ?? "not sent"),
+              promptPreview.memoryRepository ?? preview.data?.memoryRepository ?? "unknown"
+            )}
           />
           <StatusCard
             title={t("Retrieved")}
             status={String(
               promptPreview.retrievedMemoryCount ?? preview.data?.retrievedMemoryCount ?? 0
             )}
-            detail={t("raw: {0} · mode: {1} · scope: {2}", promptPreview.retrievedMemoryCountRaw ?? preview.data?.retrievedMemoryCountRaw ?? 0, promptPreview.retrievalMode ?? preview.data?.retrievalMode ?? "unknown", promptPreview.retrievalScope ?? preview.data?.retrievalScope ?? "unknown")}
+            detail={t(
+              "raw: {0} · mode: {1} · scope: {2}",
+              promptPreview.retrievedMemoryCountRaw ?? preview.data?.retrievedMemoryCountRaw ?? 0,
+              promptPreview.retrievalMode ?? preview.data?.retrievalMode ?? "unknown",
+              promptPreview.retrievalScope ?? preview.data?.retrievalScope ?? "unknown"
+            )}
           />
           <StatusCard
             title={t("Vector")}
@@ -665,7 +724,24 @@ function PromptPreviewPage(): JSX.Element {
                   ? t("enabled")
                   : t("off")
             }
-            detail={t("provider: {0} · model: {1} · dims: {2} · semantic: {3} · query: {4} · vector/keyword/hybrid: {5}/{6}/{7}{8}", promptPreview.embeddingProvider ?? preview.data?.embeddingProvider ?? "n/a", promptPreview.embeddingModel ?? preview.data?.embeddingModel ?? "n/a", promptPreview.embeddingDimensions ?? preview.data?.embeddingDimensions ?? "n/a", String(promptPreview.semanticEmbedding ?? preview.data?.semanticEmbedding ?? false), String(promptPreview.queryEmbeddingGenerated ?? preview.data?.queryEmbeddingGenerated ?? false), promptPreview.vectorResultCount ?? preview.data?.vectorResultCount ?? 0, promptPreview.keywordResultCount ?? preview.data?.keywordResultCount ?? 0, promptPreview.hybridResultCount ?? preview.data?.hybridResultCount ?? 0, (promptPreview.retrievalFallbackReason ?? preview.data?.retrievalFallbackReason) ? ` · fallback: ${promptPreview.retrievalFallbackReason ?? preview.data?.retrievalFallbackReason}` : "")}
+            detail={t(
+              "provider: {0} · model: {1} · dims: {2} · semantic: {3} · query: {4} · vector/keyword/hybrid: {5}/{6}/{7}{8}",
+              promptPreview.embeddingProvider ?? preview.data?.embeddingProvider ?? "n/a",
+              promptPreview.embeddingModel ?? preview.data?.embeddingModel ?? "n/a",
+              promptPreview.embeddingDimensions ?? preview.data?.embeddingDimensions ?? "n/a",
+              String(promptPreview.semanticEmbedding ?? preview.data?.semanticEmbedding ?? false),
+              String(
+                promptPreview.queryEmbeddingGenerated ??
+                  preview.data?.queryEmbeddingGenerated ??
+                  false
+              ),
+              promptPreview.vectorResultCount ?? preview.data?.vectorResultCount ?? 0,
+              promptPreview.keywordResultCount ?? preview.data?.keywordResultCount ?? 0,
+              promptPreview.hybridResultCount ?? preview.data?.hybridResultCount ?? 0,
+              (promptPreview.retrievalFallbackReason ?? preview.data?.retrievalFallbackReason)
+                ? ` · fallback: ${promptPreview.retrievalFallbackReason ?? preview.data?.retrievalFallbackReason}`
+                : ""
+            )}
           />
           <StatusCard
             title={t("Extractor")}
@@ -674,7 +750,29 @@ function PromptPreviewPage(): JSX.Element {
               preview.data?.memoryExtractorActive ??
               "unknown"
             }
-            detail={t("mode: {0} · provider: {1} · candidates: {2} · stored: {3} · rejected: {4} · fallback: {5}{6}{7}{8}", promptPreview.memoryExtractorMode ?? preview.data?.memoryExtractorMode ?? "unknown", promptPreview.memoryExtractorProvider ?? preview.data?.memoryExtractorProvider ?? "n/a", promptPreview.memoryExtractionCandidateCount ?? preview.data?.memoryExtractionCandidateCount ?? 0, promptPreview.storedMemoryCount ?? preview.data?.storedMemoryCount ?? 0, promptPreview.rejectedMemoryCount ?? preview.data?.rejectedMemoryCount ?? 0, String(promptPreview.fallbackUsed ?? preview.data?.fallbackUsed ?? false), (promptPreview.llmExtractionError ?? preview.data?.llmExtractionError) ? ` · ${promptPreview.llmExtractionError ?? preview.data?.llmExtractionError}` : "", (promptPreview.validationIssues ?? preview.data?.validationIssues)?.length ? ` · validation: ${(promptPreview.validationIssues ?? preview.data?.validationIssues)?.join("; ")}` : "", (promptPreview.memoryExtractionSkippedReason ?? preview.data?.memoryExtractionSkippedReason) ? ` · ${promptPreview.memoryExtractionSkippedReason ?? preview.data?.memoryExtractionSkippedReason}` : "")}
+            detail={t(
+              "mode: {0} · provider: {1} · candidates: {2} · stored: {3} · rejected: {4} · fallback: {5}{6}{7}{8}",
+              promptPreview.memoryExtractorMode ?? preview.data?.memoryExtractorMode ?? "unknown",
+              promptPreview.memoryExtractorProvider ??
+                preview.data?.memoryExtractorProvider ??
+                "n/a",
+              promptPreview.memoryExtractionCandidateCount ??
+                preview.data?.memoryExtractionCandidateCount ??
+                0,
+              promptPreview.storedMemoryCount ?? preview.data?.storedMemoryCount ?? 0,
+              promptPreview.rejectedMemoryCount ?? preview.data?.rejectedMemoryCount ?? 0,
+              String(promptPreview.fallbackUsed ?? preview.data?.fallbackUsed ?? false),
+              (promptPreview.llmExtractionError ?? preview.data?.llmExtractionError)
+                ? ` · ${promptPreview.llmExtractionError ?? preview.data?.llmExtractionError}`
+                : "",
+              (promptPreview.validationIssues ?? preview.data?.validationIssues)?.length
+                ? ` · validation: ${(promptPreview.validationIssues ?? preview.data?.validationIssues)?.join("; ")}`
+                : "",
+              (promptPreview.memoryExtractionSkippedReason ??
+                preview.data?.memoryExtractionSkippedReason)
+                ? ` · ${promptPreview.memoryExtractionSkippedReason ?? preview.data?.memoryExtractionSkippedReason}`
+                : ""
+            )}
           />
           <StatusCard
             title={t("Tokens")}
@@ -693,9 +791,17 @@ function PromptPreviewPage(): JSX.Element {
                 ? t("enabled")
                 : t("disabled")
             }
-            detail={t("turns: {0} · chars: {1} · truncated: {2} · source: {3}", promptPreview.directContextTurnCount ?? preview.data?.directContextTurnCount ?? 0, promptPreview.directContextCharCount ?? preview.data?.directContextCharCount ?? 0, String(
-              promptPreview.directContextTruncated ?? preview.data?.directContextTruncated ?? false
-            ), promptPreview.directContextSource ?? preview.data?.directContextSource ?? "unknown")}
+            detail={t(
+              "turns: {0} · chars: {1} · truncated: {2} · source: {3}",
+              promptPreview.directContextTurnCount ?? preview.data?.directContextTurnCount ?? 0,
+              promptPreview.directContextCharCount ?? preview.data?.directContextCharCount ?? 0,
+              String(
+                promptPreview.directContextTruncated ??
+                  preview.data?.directContextTruncated ??
+                  false
+              ),
+              promptPreview.directContextSource ?? preview.data?.directContextSource ?? "unknown"
+            )}
           />
         </div>
       )}
@@ -703,15 +809,19 @@ function PromptPreviewPage(): JSX.Element {
         <Notice
           tone="info"
           title={t("Retrieval policy")}
-          message={t("included: {0} · include archived/superseded/expired: {1}/{2}/{3} · excluded status/time/scope: {4}/{5}/{6} · currentTime: {7}", formatIncludedScopes(
-            promptPreview.includedScopes ?? preview.data?.includedScopes ?? []
-          ), String(
-            promptPreview.includeArchived ?? preview.data?.includeArchived ?? false
-          ), String(
-            promptPreview.includeSuperseded ?? preview.data?.includeSuperseded ?? false
-          ), String(
-            promptPreview.includeExpired ?? preview.data?.includeExpired ?? false
-          ), promptPreview.excludedByStatus ?? preview.data?.excludedByStatus ?? 0, promptPreview.excludedByTime ?? preview.data?.excludedByTime ?? 0, promptPreview.excludedByScope ?? preview.data?.excludedByScope ?? 0, promptPreview.currentTime ?? preview.data?.currentTime ?? "unknown")}
+          message={t(
+            "included: {0} · include archived/superseded/expired: {1}/{2}/{3} · excluded status/time/scope: {4}/{5}/{6} · currentTime: {7}",
+            formatIncludedScopes(
+              promptPreview.includedScopes ?? preview.data?.includedScopes ?? []
+            ),
+            String(promptPreview.includeArchived ?? preview.data?.includeArchived ?? false),
+            String(promptPreview.includeSuperseded ?? preview.data?.includeSuperseded ?? false),
+            String(promptPreview.includeExpired ?? preview.data?.includeExpired ?? false),
+            promptPreview.excludedByStatus ?? preview.data?.excludedByStatus ?? 0,
+            promptPreview.excludedByTime ?? preview.data?.excludedByTime ?? 0,
+            promptPreview.excludedByScope ?? preview.data?.excludedByScope ?? 0,
+            promptPreview.currentTime ?? preview.data?.currentTime ?? "unknown"
+          )}
         />
       )}
       {(promptPreview?.llmExtractionRawPreview ?? preview.data?.llmExtractionRawPreview) && (
@@ -788,7 +898,9 @@ function PromptPreviewPage(): JSX.Element {
                           .join(" · ")}
                       </span>
                       {memory.semanticEmbedding === false ? (
-                        <span className="block text-[10px] text-amber-700">{t("non-semantic")}</span>
+                        <span className="block text-[10px] text-amber-700">
+                          {t("non-semantic")}
+                        </span>
                       ) : null}
                     </td>
                     <td className="px-2 py-2">{memory.importance.toFixed(2)}</td>
@@ -928,11 +1040,20 @@ function VoicePage(props: { providerStatus: ProvidersStatusResponse | null }): J
   }
 
   return (
-    <PageShell title={t("Voice")} subtitle="Developer controls for STT, voice message, and TTS routes.">
+    <PageShell
+      title={t("Voice")}
+      subtitle="Developer controls for STT, voice message, and TTS routes."
+    >
       {error && <Notice tone="error" title={t("Voice request failed")} message={error} />}
       <div className="grid grid-cols-2 gap-4">
-        <ProviderChainBlock title={t("STT chain")} routes={props.providerStatus?.routes?.stt ?? []} />
-        <ProviderChainBlock title={t("TTS chain")} routes={props.providerStatus?.routes?.tts ?? []} />
+        <ProviderChainBlock
+          title={t("STT chain")}
+          routes={props.providerStatus?.routes?.stt ?? []}
+        />
+        <ProviderChainBlock
+          title={t("TTS chain")}
+          routes={props.providerStatus?.routes?.tts ?? []}
+        />
       </div>
       <div className="grid grid-cols-[1fr_0.9fr] gap-4">
         <Panel title={t("Speech Input")}>
@@ -1004,13 +1125,17 @@ function VoicePage(props: { providerStatus: ProvidersStatusResponse | null }): J
                 type="checkbox"
                 checked={readMemory}
                 onChange={(event) => setReadMemory(event.target.checked)}
-              />{t("Read memory")}</label>
+              />
+              {t("Read memory")}
+            </label>
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={writeMemory}
                 onChange={(event) => setWriteMemory(event.target.checked)}
-              />{t("Write memory")}</label>
+              />
+              {t("Write memory")}
+            </label>
           </div>
           <div className="mt-4 flex gap-2">
             <button
@@ -1226,12 +1351,17 @@ function ProviderChainBlock(props: { title: string; routes: ProviderRouteHealth[
                 <span className="font-medium text-ink-800">{route.provider}</span>
                 <span className="ml-2 text-ink-500">{route.model ?? "no model"}</span>
                 {route.missingFields?.length ? (
-                  <div className="text-rose-700">{t("Missing:")}{" "}{route.missingFields.join(", ")}</div>
+                  <div className="text-rose-700">
+                    {t("Missing:")} {route.missingFields.join(", ")}
+                  </div>
                 ) : null}
               </span>
               <span className="text-right text-ink-500">
-                <div>{t("Local readiness:")}{" "}{t(providerReadinessLabel(route.readiness))}</div>
-                <div className="mt-1">{t("Cached observation:")}{" "}{t(providerObservationLabel(route.observed))}
+                <div>
+                  {t("Local readiness:")} {t(providerReadinessLabel(route.readiness))}
+                </div>
+                <div className="mt-1">
+                  {t("Cached observation:")} {t(providerObservationLabel(route.observed))}
                 </div>
                 <div className="mt-1">{route.mock ? "mock" : "real"}</div>
               </span>
