@@ -443,7 +443,17 @@ try {
   const short = await write("Write amplification probe WAMP_137", {}, measured);
   await write("Write amplification current WAMP_932", { supersedes: [short.id] }, measured);
   await write(long + " AMP_LONG_31", {}, measured);
+  const logicalFanout = (
+    await pool.query(
+      "select r.event->>'content' as content,c.state,(select count(*)::int from memory_lexical_postings p where p.scope=c.scope and p.id=c.id and p.generation=s.projection_generation) postings from memory_authority_records r join memory_authority_current c using(scope,id) join memory_authority_scopes s using(scope) where r.event->>'content' like 'Write amplification%' or r.event->>'content' like '%AMP_LONG_31' order by r.version"
+    )
+  ).rows.map((x) => ({
+    ...x,
+    content:
+      x.content.length > 200 ? "[synthetic Han prefix truncated for report] AMP_LONG_31" : x.content
+  }));
   report.writeAmplificationAfterBackup = {
+    logicalCurrentFanout: logicalFanout,
     backendLocalCountersBeforeCommit: amplification,
     note: "Raw backend-local counters observed before COMMIT may include unflushed prior transactions (observed history_inserted 1,2,3). They are NOT three independent per-transaction measurements or WAL amplification. Additional confirmed writes AFTER the verified backup checkpoint; earlier snapshot signatures remain asOf that checkpoint."
   };
