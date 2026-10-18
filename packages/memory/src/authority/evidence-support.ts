@@ -105,7 +105,7 @@ export async function assessEvidenceSupport(
             claims: input.events.map((e) => ({
               id: e.id,
               state: e.metadata["knowledgeState"] ?? "unknown",
-              sourceSpeaker: e.assertion?.source ?? "unknown",
+              sourceSpeaker: evidenceSpeaker(e),
               sourcePersonId: sourcePerson(e),
               subject: e.claim?.subject ?? null,
               truncated: e.content.length > 1600,
@@ -126,15 +126,14 @@ export async function assessEvidenceSupport(
   const raw = JSON.parse(
     (result.answer?.trim() || result.reasoning.trim()).replace(/^```(?:json)?\s*|\s*```$/gu, "")
   );
-  const parsed = outputSchema.parse(raw),
-    byId = new Map(input.events.map((e) => [e.id, e]));
+  const parsed = outputSchema.parse(raw);
   if (
     parsed.needs.length !== input.needs.length ||
     new Set(parsed.needs.map((n) => n.id)).size !== input.needs.length ||
     parsed.needs.some((n) => !input.needs.some((x) => x.id === n.id))
   )
     throw new MemoryAuthorityError("MEMORY_SUPPORT_NEEDS_MISMATCH");
-  return EvidenceSupportSchema.parse({
+  return validateEvidenceSupport(input, {
     schema: "memory.evidence-support.v1",
     status: "ASSESSED",
     model: result.model ?? null,
@@ -142,8 +141,35 @@ export async function assessEvidenceSupport(
     elapsedMs: performance.now() - started,
     needs: input.needs.map((need) => {
       const n = parsed.needs.find((n) => n.id === need.id)!;
-      if (n.verdict === "INSUFFICIENT")
-        return { ...need, verdict: n.verdict, citations: [], reason: "NO_SUFFICIENT_EVIDENCE" };
+      return {
+        ...need,
+        ...n,
+        reason: n.verdict === "INSUFFICIENT" ? "NO_SUFFICIENT_EVIDENCE" : "EXPLICIT_EVIDENCE"
+      };
+    })
+  });
+}
+
+/** Validate at the semantic-provider boundary as well as direct model use. */
+export function validateEvidenceSupport(input: SupportInput, value: unknown): EvidenceSupport {
+  const r = EvidenceSupportSchema.parse(value);
+  if (
+    r.needs.length !== input.needs.length ||
+    new Set(r.needs.map((n) => n.id)).size !== input.needs.length ||
+    r.needs.some((n) => !input.needs.some((x) => x.id === n.id && x.quote === n.quote))
+  )
+    throw new MemoryAuthorityError("MEMORY_SUPPORT_NEEDS_MISMATCH");
+  if (r.status === "UNAVAILABLE")
+    return {
+      ...unavailableEvidenceSupport(input.needs, r.elapsedMs),
+      model: r.model,
+      usage: r.usage
+    };
+  const byId = new Map(input.events.map((e) => [e.id, e]));
+  return {
+    ...r,
+    needs: r.needs.map((n) => {
+      if (!["SUPPORTED", "CONTRADICTED"].includes(n.verdict)) return { ...n, citations: [] };
       const valid =
         n.citations.length > 0 &&
         n.citations.every((c) => {
@@ -152,14 +178,19 @@ export async function assessEvidenceSupport(
             e &&
             e.metadata["knowledgeState"] === "current" &&
             e.content.length <= 1600 &&
-            e.content.slice(0, 1600).includes(c.quote)
+            e.content.includes(c.quote)
           );
         });
       return valid
-        ? { ...need, ...n, reason: "EXPLICIT_EVIDENCE" }
-        : { ...need, verdict: "INSUFFICIENT", citations: [], reason: "INVALID_CITATION" };
+        ? n
+        : {
+            ...n,
+            verdict: "INSUFFICIENT" as const,
+            citations: [],
+            reason: "INVALID_CITATION" as const
+          };
     })
-  });
+  };
 }
 
 export function unavailableEvidenceSupport(
@@ -194,4 +225,13 @@ export function sourcePerson(event: MemoryEvent): string | null {
   return l && "authority" in l && l.authority.binding.state === "RESOLVED"
     ? l.authority.binding.personId
     : null;
+}
+
+export function evidenceSpeaker(event: MemoryEvent): string {
+  if (event.assertion?.source && event.assertion.source !== "unknown")
+    return event.assertion.source;
+  // Host-grounded origin, not a guess from pronouns or the current reader.
+  return event.lineage?.state === "GROUNDED" && event.lineage.origin === "USER_ASSERTION"
+    ? "user"
+    : "unknown";
 }

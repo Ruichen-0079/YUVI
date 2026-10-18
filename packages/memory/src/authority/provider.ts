@@ -2,6 +2,7 @@ import { validateSearchNeeds, type MemorySearchPlan } from "./query-expansion.js
 import { coverageSelection } from "./coverage.js";
 import {
   unavailableEvidenceSupport,
+  validateEvidenceSupport,
   type SupportInput,
   type EvidenceSupport
 } from "./evidence-support.js";
@@ -369,7 +370,10 @@ export class PostgresMemoryProvider implements MemoryProvider {
           outcome.evidenceSupport =
             queryInputLimited || outcome.status === "unavailable" || outcome.status === "error"
               ? unavailableEvidenceSupport(supportNeeds)
-              : await this.assessSupport({ request: input, needs: supportNeeds, events });
+              : validateEvidenceSupport(
+                  { request: input, needs: supportNeeds, events },
+                  await this.assessSupport({ request: input, needs: supportNeeds, events })
+                );
         } catch (error) {
           if (error instanceof MemoryAuthorityError && error.code.includes("AUTHORITY"))
             throw error;

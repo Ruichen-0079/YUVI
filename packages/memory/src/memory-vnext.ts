@@ -1,5 +1,5 @@
 import { captureEpisodeSources, preserveEpisodeEvidence } from "./episode-source-evidence.js";
-import { evidenceAnchors, sourcePerson } from "./authority/evidence-support.js";
+import { evidenceAnchors, sourcePerson, evidenceSpeaker } from "./authority/evidence-support.js";
 import type { MemoryGroundingResolver } from "./lineage.js";
 import type { ConversationMessage } from "./conversation-repository.js";
 import { activateAssociativeMemories, type AssociativeRecallResult } from "./associative-recall.js";
@@ -370,7 +370,11 @@ export function plannedMemoryEvidence(outcome: MemoryRetrievalOutcome): string {
   const assigned = new Set<string>();
   const quote = (event: MemoryEvent) => ({
     reference: event.id,
-    source: event.assertion?.source ?? "unknown",
+    source: evidenceSpeaker(event),
+    firstPersonOfSource:
+      evidenceSpeaker(event) === "user"
+        ? "the user (you), never Alice (I)"
+        : "the original speaker, not automatically Alice",
     sourcePerson: sourcePerson(event),
     subject: event.claim?.subject ?? null,
     state: ["current", "conflicted"].includes(String(event.metadata["knowledgeState"]))
