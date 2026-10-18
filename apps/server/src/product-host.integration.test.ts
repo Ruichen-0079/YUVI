@@ -247,6 +247,27 @@ describe.skipIf(!url)("Product Host real PostgreSQL lifecycle and own-principal 
       revision = "generation-1";
     }
   });
+  it("does not report a Person switch when the previous client rotated during the ceremony", async () => {
+    const x = await pair();
+    const code = await product.createPairing("y", origin);
+    const original = product.cookie.bind(product);
+    let rotated = "";
+    const cookie = vi.spyOn(product, "cookie").mockImplementationOnce(async (request) => {
+      const admitted = await original(request);
+      rotated = (await product.state(request, "renew")).cookie!.split(";")[0]!;
+      return admitted;
+    });
+    try {
+      await expect(product.pair(browser(x.cookie), code.code)).rejects.toThrow(
+        "PRODUCT_HOST_UNAUTHORIZED"
+      );
+      expect((await host.authenticate(browser(rotated)))!.personId).toBe("x");
+      await product.pair(browser(rotated), code.code);
+      await expect(host.authenticate(browser(rotated))).rejects.toThrow();
+    } finally {
+      cookie.mockRestore();
+    }
+  });
   it("sets HttpOnly/SameSite and Secure for HTTPS, rejects CSRF and bearer conversion", async () => {
     const issued = await product.createPairing("x", "https://localhost:31911");
     const secured = await product.pair(browser(undefined, issued.origin), issued.code);

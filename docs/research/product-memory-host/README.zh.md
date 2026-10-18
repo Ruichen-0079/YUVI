@@ -18,7 +18,7 @@
 - Person 来自可信控制者选择的已存在、具有 authority generation 的 Person；Persona 和 Journal namespace 来自实际 Host。配对码随机 256 bit，DB 只存 SHA-256，绑定 Person generation / Persona / instance / namespace / exact Origin，五分钟有效，行锁内单次消费；grant 签发再次核对配对码的原始 Person generation，拒绝中途身份替换竞态。浏览器不能签发、更改 scope 绑定或靠 sessionId 获得 Person。
 - 浏览器只得到 HttpOnly Cookie；SameSite=Strict；HTTPS 时 Secure。本机 HTTP 是本轮明确支持的部署。每次 HTTP/SSE/WS 身份验证都检查 exact Origin（GET 可验证 Referer）、grant 有效期、撤销、Person generation。产品 Cookie 不可转换成普通 Host Bearer；双凭据拒绝。产品 Host 不可用时残留 Cookie 不能静默退为匿名。
 - grant 一天；续期上限固定为配对后 30 天。过期但仍处于续期窗口的 Cookie 可明确续期；续期轮换随机 token 并用 Set-Cookie 更新，旧 token 立即失效。撤销、Person generation 改变或绝对续期到期后不能靠续期恢复。资料文字修改与身份 generation 撤销沿用已有不同语义。
-- 重新配对撤销当前 Origin 中旧客户端 grant。Person/Persona 对应独立本地聊天 session 选择；服务端 session 所有权仍是最终边界。切换时清空页面数据并中止旧 Main 生成，过期异步响应不能恢复先前 Person 的 Memory。
+- 重新配对先锁住并再次核对旧 token，再按稳定 grant ID 撤销旧客户端；并发续期导致 token 改变时拒绝本次切换，配对码保持未消费以便重试。失效或属于其他 Runtime 的 Cookie 不会静默忽略，需先明确清理浏览器站点凭据。Person/Persona 对应独立本地聊天 session 选择；服务端 session 所有权仍是最终边界。切换时清空页面数据并中止旧 Main 生成，过期异步响应不能恢复先前 Person 的 Memory。
 - `memory_enabled=false` 在服务器强制 HTTP/SSE/WS 的 read/write=false；接受来源与真正 R5 提交继续检查 grant/Memory 权限。普通聊天来源校验独立于长期 Memory 开关；关闭记忆仍可聊天，撤销则同时拒绝私人来源和 Memory。浏览器不能用 DTO 中 true 覆盖服务器限制。
 - `/memory/v1` 的 scope 必须恰好等于认证 Person/Persona；current/timeline/detail/relations 在 LIMIT 前按自己的 grounded private principal 过滤。relation 两端均需可披露。retrieval page/detail 按 exact reader 过滤；processing 的 semantic job 与 index record 分别查归属；ingestion 查真正 accepted conversation source 的 Journal 所有权。overview、migration 和其他 operator 接口不给产品 Cookie。
 - 产品 Host 模式下，原来仅靠 localhost 的管理权限改为所有 runtime mode 都需独立 operator credential；Cookie 不等于管理权限。未启用产品 R5 的既有管理兼容行为保留。
@@ -38,13 +38,13 @@
 | 无数据库可选门禁的完整 `pnpm test`                                                       | 通过；不把依赖缺失 skip 算验收                  |
 | 所有 6 个 PostgreSQL URL 显式指向独立 31518 后的完整 `pnpm test`                         | Vitest 4135 passed / 52 skipped；Node 63 passed |
 | 其中 Memory / Server / Web / Supervisor                                                  | 650 / 744 / 818 / 231 passed                    |
-| ProductHost + 既有 Host + security 最后定向回归                                          | 17 passed                                       |
+| ProductHost + 既有 Host + security 最后定向回归                                          | 18 passed                                       |
 | application role 真数据库检查                                                            | 2 passed                                        |
 | `cargo test --lib`                                                                       | 107 passed；编译本轮 Tauri command              |
 | `pnpm desktop:package:test`                                                              | 78 passed                                       |
 | 真实 Chromium + 正式 Supervisor/Runtime/Character/Worker/Authority/打包静态 WebUI server | 10 组验收通过                                   |
 
-配对签发 generation 竞态修复后重新执行 `pnpm check`、`pnpm build` 及 17 项 Host/security 真数据库定向回归；上表全仓计数保留该次全仓实际输出，不将后来增加的用例补算进去。
+配对签发 generation 竞态修复后重新执行 `pnpm check`、`pnpm build` 及 18 项 Host/security 真数据库定向回归；上表全仓计数保留该次全仓实际输出，不将后来增加的用例补算进去。
 
 52 skips 属于 Providers 1、Memory 3、Server 48 的额外服务/故障场景前提；没有把它们写成通过。正常 Server 启动、独立 Character composition、R5 不变量、已有 sibling correction 与恢复套件均实际启用。CI 的结果以 Draft PR 的当前 Checks 为准，未用本地通过替代远端 CI。
 

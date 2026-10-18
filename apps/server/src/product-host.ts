@@ -85,10 +85,7 @@ export class ProductHost {
   }
   async pair(r: Request, code: string) {
     const origin = requestOrigin(r);
-    const oldToken = await this.cookie(r).catch((error: unknown) => {
-      if (error instanceof ConversationHostIdentityError) return undefined;
-      throw error;
-    });
+    const oldToken = await this.cookie(r);
     return this.transaction(async (tx) => {
       const row = (
         await tx.query(
@@ -104,11 +101,20 @@ export class ProductHost {
       ).rows[0];
       if (!row || row["person_revision"] !== this.host.personVersion(String(row["person_id"])))
         throw denied();
-      if (oldToken)
+      if (oldToken) {
+        // A concurrent renewal must not leave an old client authorized after a Person switch.
+        // Lock and recheck the exact presented token; a rotated token requires a fresh request.
+        const previous = (
+          await tx.query("select grant_id from memory_host_grants where token_hash=$1 for update", [
+            digest(oldToken)
+          ])
+        ).rows[0];
+        if (!previous) throw denied();
         await tx.query(
-          "update memory_host_grants set revoked_at=coalesce(revoked_at,clock_timestamp()) where token_hash=$1",
-          [digest(oldToken)]
+          "update memory_host_grants set revoked_at=coalesce(revoked_at,clock_timestamp()) where grant_id=$1",
+          [previous["grant_id"]]
         );
+      }
       const grant = await this.host.issue(
         String(row["person_id"]),
         86400,

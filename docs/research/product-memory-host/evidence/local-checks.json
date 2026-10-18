@@ -116,7 +116,7 @@
     "passed": 78
   },
   "final-server-tests": {
-    "passed": 17,
+    "passed": 18,
     "skipped": 0
   },
   "role-tests": {
@@ -125,6 +125,10 @@
   },
   "personGenerationRace": {
     "status": "PASS",
-    "description": "Old pairing code cannot issue a grant for a replacement Person generation between code validation and grant creation; all 7 product Host tests passed."
+    "description": "Old pairing code cannot issue a grant for a replacement Person generation between code validation and grant creation; all 8 product Host tests passed."
+  },
+  "personSwitchRenewalRace": {
+    "status": "PASS",
+    "description": "Re-pairing locks and rechecks the previous token; concurrent renewal cannot silently leave an authorized old client after a reported Person switch. The code remains usable for a fresh request."
   }
 }
