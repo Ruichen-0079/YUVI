@@ -498,6 +498,11 @@ export {
 
 export { expandMemorySearch, type MemorySearchPlan } from "./authority/query-expansion.js";
 export {
+  assessEvidenceSupport,
+  type EvidenceSupport,
+  type SupportInput
+} from "./authority/evidence-support.js";
+export {
   advanceLexicalIndex,
   rebuildLexicalIndex,
   verifyLexicalIndex

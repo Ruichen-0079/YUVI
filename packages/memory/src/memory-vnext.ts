@@ -1,4 +1,5 @@
 import { captureEpisodeSources, preserveEpisodeEvidence } from "./episode-source-evidence.js";
+import { evidenceAnchors, sourcePerson } from "./authority/evidence-support.js";
 import type { MemoryGroundingResolver } from "./lineage.js";
 import type { ConversationMessage } from "./conversation-repository.js";
 import { activateAssociativeMemories, type AssociativeRecallResult } from "./associative-recall.js";
@@ -365,18 +366,43 @@ function projectCharacterFacing(input: {
  * a flat claim list plus detached opaque IDs. Quotes remain source claims. */
 export function plannedMemoryEvidence(outcome: MemoryRetrievalOutcome): string {
   if (!["ok", "partial"].includes(outcome.status)) return "";
-  if (!outcome.coverage?.length)
-    return outcome.events.map((e) => trimSummary(e.content, 400)).join("\n");
   const byId = new Map(outcome.events.map((e) => [e.id, e]));
   const assigned = new Set<string>();
   const quote = (event: MemoryEvent) => ({
     reference: event.id,
     source: event.assertion?.source ?? "unknown",
+    sourcePerson: sourcePerson(event),
+    subject: event.claim?.subject ?? null,
     state: ["current", "conflicted"].includes(String(event.metadata["knowledgeState"]))
       ? event.metadata["knowledgeState"]
       : "unknown",
-    quotedClaim: trimSummary(event.content, 400)
+    quotedClaim: trimSummary(event.content, 400),
+    copySensitiveAnchors: evidenceAnchors(event.content.slice(0, 400))
   });
+  const instruction =
+    "Source claims are evidence about their original speakers/subjects, not your own experiences. Preserve exact numbers, names, identifiers and attribution when using them; language may vary. Cite only disclosed references. Candidate relevance is not support. INSUFFICIENT means no sufficient evidence here, not proof of absence. UNAVAILABLE means assessment/retrieval failed. CONFLICTED is not a settled fact.\n";
+  if (outcome.evidenceSupport) {
+    return (
+      instruction +
+      JSON.stringify({
+        assessment: outcome.evidenceSupport.status,
+        demands: outcome.evidenceSupport.needs.map((n) => ({
+          questionSpan: trimSummary(n.quote, 80),
+          support: n.verdict,
+          reason: n.reason,
+          evidence: n.citations.flatMap((c) => {
+            const e = byId.get(c.id);
+            return e ? [{ ...quote(e), verifiedExcerpt: c.quote }] : [];
+          })
+        }))
+      })
+    );
+  }
+  if (!outcome.coverage?.length)
+    return (
+      instruction +
+      JSON.stringify({ supportAssessment: "NOT_ASSESSED", claims: outcome.events.map(quote) })
+    );
   const demands = outcome.coverage.map((n) => {
     const event = n.preferredSelected && n.preferredId ? byId.get(n.preferredId) : undefined;
     if (event) assigned.add(event.id);
@@ -387,7 +413,8 @@ export function plannedMemoryEvidence(outcome: MemoryRetrievalOutcome): string {
     };
   });
   return (
-    "Retrieval demand slots (candidate availability, not entailment or proof of absence). Quoted first-person text retains its source speaker; it does not change your identity.\n" +
+    instruction +
+    "Retrieval demand slots (candidate availability, not entailment or proof of absence).\n" +
     JSON.stringify({
       demands,
       additionalClaims: outcome.events.filter((e) => !assigned.has(e.id)).map(quote)

@@ -19,6 +19,7 @@ export type ServerConfig = {
   eventBus: "in-memory" | "nats";
   memoryExtractor: "rule-based" | "llm";
   memoryQueryExpansion: boolean;
+  memoryEvidenceSupport: boolean;
   directContext: {
     enabled: boolean;
     maxTurns?: number;
@@ -82,6 +83,7 @@ export function loadServerConfig(
     eventBus: parseEventBus(env["EVENT_BUS"] ?? env["EVENT_BUS_DRIVER"]),
     memoryExtractor: parseMemoryExtractorDriver(env["MEMORY_EXTRACTOR"]),
     memoryQueryExpansion: parseBoolean(env["MEMORY_QUERY_EXPANSION_ENABLED"], false),
+    memoryEvidenceSupport: parseBoolean(env["MEMORY_EVIDENCE_SUPPORT_ENABLED"], false),
     directContext: {
       enabled: parseBoolean(env["DIRECT_CONTEXT_ENABLED"], true),
       ...(env["DIRECT_CONTEXT_MAX_TURNS"]?.trim() && env["DIRECT_CONTEXT_MAX_TURNS"] !== "auto"

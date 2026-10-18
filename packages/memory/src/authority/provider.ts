@@ -1,5 +1,10 @@
 import { validateSearchNeeds, type MemorySearchPlan } from "./query-expansion.js";
 import { coverageSelection } from "./coverage.js";
+import {
+  unavailableEvidenceSupport,
+  type SupportInput,
+  type EvidenceSupport
+} from "./evidence-support.js";
 import type { MemoryDecisionReassessment } from "./reassessment.js";
 import { MemoryRetrievalEvidence, type RetrievalCandidate } from "./retrieval-evidence.js";
 import type { MemoryVectorIndexer } from "./vector.js";
@@ -21,7 +26,8 @@ export class PostgresMemoryProvider implements MemoryProvider {
   constructor(
     readonly authority: PostgresMemoryAuthority,
     readonly vectors?: MemoryVectorIndexer,
-    readonly expandQuery?: (input: MemoryRetrievalInput) => Promise<MemorySearchPlan>
+    readonly expandQuery?: (input: MemoryRetrievalInput) => Promise<MemorySearchPlan>,
+    readonly assessSupport?: (input: SupportInput) => Promise<EvidenceSupport>
   ) {
     this.knowledge = new MemoryKnowledgeReader(authority.pool);
     this.retrievalEvidence = new MemoryRetrievalEvidence(authority.pool);
@@ -353,7 +359,46 @@ export class PostgresMemoryProvider implements MemoryProvider {
         selectedCount: events.length,
         watermark: result.watermark
       };
-      const chosen = new Set(events.map((e) => e.id));
+      const candidateChosen = new Set(events.map((e) => e.id));
+      if (this.assessSupport) {
+        const supportNeeds = needs.length
+          ? needs.map(({ id, quote }) => ({ id, quote }))
+          : [{ id: "q0", quote: input.text.slice(0, 4000) }];
+        const started = performance.now();
+        try {
+          outcome.evidenceSupport =
+            queryInputLimited || outcome.status === "unavailable" || outcome.status === "error"
+              ? unavailableEvidenceSupport(supportNeeds)
+              : await this.assessSupport({ request: input, needs: supportNeeds, events });
+        } catch (error) {
+          if (error instanceof MemoryAuthorityError && error.code.includes("AUTHORITY"))
+            throw error;
+          outcome.evidenceSupport = unavailableEvidenceSupport(
+            supportNeeds,
+            performance.now() - started
+          );
+        }
+        const supported = new Set(
+          outcome.evidenceSupport.needs
+            .filter((n) => ["SUPPORTED", "CONTRADICTED"].includes(n.verdict))
+            .flatMap((n) => n.citations.map((c) => c.id))
+        );
+        outcome.events = events.filter((e) => supported.has(e.id));
+        outcome.selectedCount = outcome.events.length;
+        if (
+          outcome.evidenceSupport.needs.some(
+            (n) => !["SUPPORTED", "CONTRADICTED"].includes(n.verdict)
+          )
+        ) {
+          outcome.status = "partial";
+          outcome.limited = true;
+          outcome.limitReason ??=
+            outcome.evidenceSupport.status === "UNAVAILABLE"
+              ? "MEMORY_EVIDENCE_SUPPORT_UNAVAILABLE"
+              : "MEMORY_EVIDENCE_INSUFFICIENT";
+        }
+      }
+      const chosen = new Set(outcome.events.map((e) => e.id));
       const textIds = new Set([...observedTextIds, ...result.records.map((r) => r.id)]);
       const vectorIds = new Set(indexedIds);
       const all = resolved.records;
@@ -373,7 +418,9 @@ export class PostgresMemoryProvider implements MemoryProvider {
             ? "SELECTED"
             : !["current", "conflicted"].includes(r.state)
               ? "NO_LONGER_CURRENT"
-              : "RESULT_BOUND"
+              : candidateChosen.has(r.id)
+                ? "EVIDENCE_NOT_ESTABLISHED"
+                : "RESULT_BOUND"
         }));
       outcome.retrievalId = await this.retrievalEvidence.record(input, outcome, {
         watermark: result.watermark,
@@ -392,6 +439,7 @@ export class PostgresMemoryProvider implements MemoryProvider {
             ids: c.ids.filter((id) => eligible.has(id))
           })),
           ...(needs.length ? { coverage } : {}),
+          ...(outcome.evidenceSupport ? { evidenceSupport: outcome.evidenceSupport } : {}),
           textStatus: textError ? "PARTIAL_OR_UNAVAILABLE" : "OK",
           vectorStatus: this.vectors
             ? vectorError
