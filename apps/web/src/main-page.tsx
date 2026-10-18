@@ -1,3 +1,5 @@
+import { useContext } from "react";
+import { NativeMemoryPermission } from "./native-product-permissions.js";
 import type { SpeechSegmentSeal } from "@companion/protocol";
 import { useConversationSession, useConversationHistory } from "./use-conversation-history.js";
 import { t } from "./locale.js";
@@ -100,8 +102,11 @@ function createSurfaceId(prefix: string): string {
 
 export function MainPage(): JSX.Element {
   const [sessionId, setSessionId] = useConversationSession("default");
-  const [readMemory, setReadMemory] = useState(true);
-  const [writeMemory, setWriteMemory] = useState(true);
+  const hostMemoryAllowed = useContext(NativeMemoryPermission);
+  const [readMemoryPreference, setReadMemory] = useState(true);
+  const [writeMemoryPreference, setWriteMemory] = useState(true);
+  const readMemory = readMemoryPreference && hostMemoryAllowed !== false;
+  const writeMemory = writeMemoryPreference && hostMemoryAllowed !== false;
   const [memoryPreferenceState, setMemoryPreferenceState] = useState<
     "loading" | "ready" | "unavailable"
   >(() => (isTauriRuntime() ? "loading" : "ready"));

@@ -108,7 +108,7 @@ fn env_flag(payload: &SupervisorConfigPush, key: &str) -> bool {
 
 fn start_service(app: &AppHandle, service_id: &str) -> Result<(), String> {
   let state = app.state::<SupervisorState>();
-  supervisor::service_action(state, "start".into(), service_id.into()).map(|_| ())
+  supervisor::service_action_owned(state, "start".into(), service_id.into()).map(|_| ())
 }
 
 fn service_state(snapshot: &Value, service_id: &str) -> Option<(String, String)> {

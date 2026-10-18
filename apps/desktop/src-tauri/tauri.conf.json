@@ -12,12 +12,26 @@
   "app": {
     "windows": [],
     "security": {
-      "csp": null
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self' 'wasm-unsafe-eval' yuvi-asset://localhost/live2d-core/live2dcubismcore.min.js http://yuvi-asset.localhost/live2d-core/live2dcubismcore.min.js https://yuvi-asset.localhost/live2d-core/live2dcubismcore.min.js",
+        "connect-src": "'self' ipc: http://ipc.localhost https://ipc.localhost yuvi-asset: http://yuvi-asset.localhost https://yuvi-asset.localhost",
+        "img-src": "'self' data: blob: asset: http://asset.localhost yuvi-asset: http://yuvi-asset.localhost https://yuvi-asset.localhost",
+        "style-src": "'self' 'unsafe-inline'",
+        "font-src": "'self' data:",
+        "media-src": "'self' blob: yuvi-asset: http://yuvi-asset.localhost https://yuvi-asset.localhost",
+        "object-src": "'none'",
+        "frame-src": "'none'",
+        "base-uri": "'none'",
+        "form-action": "'none'"
+      }
     }
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "targets": [
+      "nsis"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

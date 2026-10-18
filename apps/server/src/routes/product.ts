@@ -59,6 +59,7 @@ export async function registerProductRoutes(
   function snapshot() {
     const saved = desired();
     const {
+      nativeOwnerByPersonId: _nativeOwners,
       productCommandReceipts: _receipts,
       productCommandFences: _fences,
       ...visibleSaved

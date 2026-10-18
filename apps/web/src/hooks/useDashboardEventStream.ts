@@ -1,3 +1,4 @@
+import { isTauriRuntime } from "../tauri-window.js";
 import { useEffect, useRef, useState } from "react";
 import { apiClient, type DashboardWebSocketMessage, type RuntimeEvent } from "../api/client.js";
 
@@ -40,6 +41,8 @@ export function useDashboardEventStream({
   }, [onEvent]);
 
   useEffect(() => {
+    // Product Host has conversational capabilities, never the operator event feed.
+    if (isTauriRuntime()) { setStatus("paused"); return; }
     let closedByEffect = false;
     let socket: WebSocket | null = null;
 
@@ -47,7 +50,8 @@ export function useDashboardEventStream({
       setStatus((current) =>
         current === "disconnected" || current === "error" ? "reconnecting" : "connecting"
       );
-      socket = apiClient.createDashboardWebSocket();
+      try { socket = apiClient.createDashboardWebSocket(); }
+      catch { setStatus("error"); return; }
 
       socket.addEventListener("open", () => {
         if (closedByEffect) return;

@@ -15,6 +15,8 @@ export type ProductSettings = {
   /** Missing entries on old files mean LEGACY_UNLINEAGED, not a reconstructed revision. */
   personRevisionById?: Record<string, string>;
   personAuthorityRevisionById?: Record<string, string>;
+  /** Explicit native enrollment only; an existing Person is never implicitly adopted. */
+  nativeOwnerByPersonId?: Record<string, string>;
   primaryPersonRevision?: string | null;
   productCommandReceipts?: ProductPersonCommandReceipt[];
   productCommandFences?: Record<string, ProductPersonCommandFence>;
@@ -72,6 +74,13 @@ export function readProductSettings(env = process.env): ProductSettings | null {
         ([id, revision]) => !id || typeof revision !== "string" || !revision.trim()
       )
     )) throw new Error("Invalid Person authority revision envelope.");
+    if (value.nativeOwnerByPersonId !== undefined && (
+      !value.nativeOwnerByPersonId || typeof value.nativeOwnerByPersonId !== "object" ||
+      Array.isArray(value.nativeOwnerByPersonId) || Object.entries(value.nativeOwnerByPersonId).some(
+        ([id, owner]) => !value.people.some(person => person.id === id) ||
+          typeof owner !== "string" || !/^yno_[A-Za-z0-9_-]{43}$/u.test(owner)
+      )
+    )) throw new Error("Invalid native Person ownership envelope.");
     if (value.primaryPersonRevision !== undefined &&
       value.primaryPersonRevision !== null &&
       (typeof value.primaryPersonRevision !== "string" || !value.primaryPersonRevision.trim())
@@ -187,6 +196,7 @@ export function commitProductSettings(saved: ProductSettings, previous: ProductS
 }
 
 export type ProductPersonCommandPayload = Readonly<{
+  nativeOwnerId?: string;
   commandHandle: string;
   operation: "CREATE" | "UPDATE";
   personId: string;
@@ -213,9 +223,9 @@ export async function fenceProductPersonCommand(input: {
   attemptId: string;
   fence: string;
   payloadDigest: string;
-}): Promise<"READY" | "CONFLICT"> {
+}, env: Record<string, string | undefined> = process.env): Promise<"READY" | "CONFLICT"> {
   return withProductSettingsOwner(() => {
-    const settings = readProductSettings() ?? defaultProductSettings();
+    const settings = readProductSettings(env) ?? defaultProductSettings();
     const receipts = settings.productCommandReceipts ?? [];
     const receipt = receipts.find((item) => item.commandHandle === input.commandHandle);
     if (receipt) return receipt.payloadDigest === input.payloadDigest &&
@@ -238,17 +248,18 @@ export async function fenceProductPersonCommand(input: {
         })
       }
     };
-    writeProductSettings(next);
+    writeProductSettings(next, env);
     return "READY";
   });
 }
 
 /** Product is the sole Person owner; state and the exact A9 application receipt share one fsynced generation. */
 export async function applyProductPersonCommand(
-  payload: ProductPersonCommandPayload
+  payload: ProductPersonCommandPayload,
+  env: Record<string, string | undefined> = process.env
 ): Promise<ProductPersonCommandApplyResult> {
   return withProductSettingsOwner(() => {
-    const previous = readProductSettings() ?? defaultProductSettings();
+    const previous = readProductSettings(env) ?? defaultProductSettings();
     const existingReceipt = previous.productCommandReceipts?.find(
       (receipt) => receipt.commandHandle === payload.commandHandle
     );
@@ -268,7 +279,7 @@ export async function applyProductPersonCommand(
       return { status: "CONFLICT" as const };
     const priorPersonRevision = previous.personRevisionById?.[payload.personId] ?? null;
     const priorPrimaryRevision = previous.primaryPersonRevision ?? null;
-    if (priorPrimaryRevision !== payload.expectedPrimaryRevision ||
+    if ((!payload.nativeOwnerId && priorPrimaryRevision !== payload.expectedPrimaryRevision) ||
         priorPersonRevision !== payload.expectedPersonRevision)
       return { status: "CONFLICT" as const };
     const existingPerson = previous.people.find((person) => person.id === payload.personId);
@@ -284,6 +295,7 @@ export async function applyProductPersonCommand(
     const candidate: ProductSettings = {
       ...previous,
       people: [...previous.people.filter((entry) => entry.id !== person.id), person],
+      ...(payload.nativeOwnerId ? { nativeOwnerByPersonId: { ...previous.nativeOwnerByPersonId, [person.id]: payload.nativeOwnerId } } : {}),
       primaryPersonId: payload.requestedPrimary
         ? person.id
         : previous.primaryPersonId === person.id
@@ -311,7 +323,7 @@ export async function applyProductPersonCommand(
       ...committed,
       productCommandReceipts: [...(previous.productCommandReceipts ?? []), receipt]
     };
-    writeProductSettings(next);
+    writeProductSettings(next, env);
     return { status: "APPLIED" as const, settings: next, receipt };
   });
 }
@@ -321,17 +333,17 @@ export async function reconcileProductPersonCommand(input: {
   payload: ProductPersonCommandPayload;
   attemptId: string;
   fence: string;
-}): Promise<ProductPersonCommandApplyResult> {
+}, env: Record<string, string | undefined> = process.env): Promise<ProductPersonCommandApplyResult> {
   const fenced = await fenceProductPersonCommand({
     commandHandle: input.payload.commandHandle,
     intentId: input.payload.intentId,
     attemptId: input.attemptId,
     fence: input.fence,
     payloadDigest: input.payload.payloadDigest
-  });
+  }, env);
   if (fenced !== "READY") return { status: "UNKNOWN" };
   return withProductSettingsOwner(() => {
-    const current = readProductSettings() ?? defaultProductSettings();
+    const current = readProductSettings(env) ?? defaultProductSettings();
     const receipt = current.productCommandReceipts?.find(
       (item) => item.commandHandle === input.payload.commandHandle
     );

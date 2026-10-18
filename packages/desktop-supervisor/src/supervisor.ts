@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { parseMemoryBackend } from "@companion/config/environment";
 import path from "node:path";
-import { createHash, createHmac, randomUUID } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual, randomUUID } from "node:crypto";
 import type { ChildProcess } from "node:child_process";
 import { buildChildProcessEnv, deriveConfigFromEnv } from "./config.js";
 import { buildPostgresStartCommand, pingPostgres } from "./postgres-cluster.js";
@@ -394,6 +394,60 @@ export class DesktopSupervisor {
       "ydc_" +
       createHmac("sha256", this.config.controlToken).update("yuvi.product-host.v1").digest("hex")
     );
+  }
+  /** Prove the child possesses this Supervisor's secret before sending any credential.
+   * A healthy lookalike at the old port is not an owned Runtime. */
+  async nativeProduct(action: "binding" | "people" | "create" | "session", body: unknown) {
+    if (this.shuttingDown) throw Error("PRODUCT_SUPERVISOR_SHUTTING_DOWN");
+    await this.refreshService("runtime");
+    const service = this.services.get("runtime");
+    if (!service || service.ownership !== "owned" || service.status !== "healthy")
+      throw Error("PRODUCT_OWNED_RUNTIME_REQUIRED");
+    const runtime = new URL(this.config.runtimeUrl);
+    if (
+      runtime.protocol !== "http:" ||
+      !["127.0.0.1", "localhost", "[::1]"].includes(runtime.hostname) ||
+      runtime.username ||
+      runtime.password
+    )
+      throw Error("PRODUCT_RUNTIME_NOT_LOCAL");
+    const challenge = randomBytes(32).toString("hex");
+    const proofResponse = await fetch(
+      new URL(`/host/v1/native/proof?challenge=${challenge}`, runtime),
+      { signal: AbortSignal.timeout(5000), redirect: "error" }
+    );
+    const proof = (await proofResponse.json()) as {
+      binding?: unknown;
+      bootId?: unknown;
+      signature?: unknown;
+    };
+    if (
+      !proofResponse.ok ||
+      typeof proof.binding !== "string" ||
+      typeof proof.bootId !== "string" ||
+      typeof proof.signature !== "string" ||
+      !/^[a-f0-9]{64}$/u.test(proof.signature)
+    )
+      throw Error("PRODUCT_RUNTIME_PROOF_INVALID");
+    const signature = createHmac("sha256", this.productHostSecret())
+      .update(JSON.stringify([challenge, proof.binding, proof.bootId]))
+      .digest("hex");
+    if (!timingSafeEqual(Buffer.from(signature), Buffer.from(proof.signature)))
+      throw Error("PRODUCT_RUNTIME_PROOF_INVALID");
+    if (action === "binding")
+      return { runtimeUrl: runtime.origin, binding: proof.binding, bootId: proof.bootId };
+    const response = await fetch(new URL(`/host/v1/native/${action}`, runtime), {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: "Bearer " + this.productHostSecret()
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(30000),
+      redirect: "error"
+    });
+    if (!response.ok) throw Error("NATIVE_PRODUCT_UNAVAILABLE");
+    return (await response.json()) as unknown;
   }
   /** Called only from the authenticated native control plane. This is a one-use,
    * Person/origin-bound ceremony, not an operator or conversation credential. */

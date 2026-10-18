@@ -7,6 +7,7 @@ mod durable_memory_boot;
 mod lifecycle;
 mod packaging;
 mod supervisor;
+mod native_product;
 mod tray;
 
 /// Unix process-level owner lifecycle: SIGINT/SIGTERM must reach the graceful
@@ -210,6 +211,9 @@ pub fn run() {
   let signal_read_fd = signal_exit::install();
 
   tauri::Builder::default()
+    .plugin(tauri_plugin_dialog::init())
+    .register_asynchronous_uri_scheme_protocol("yuvi-asset", native_product::asset_protocol)
+    .manage(native_product::NativeProduct::default())
     .manage(supervisor::SupervisorState::default())
     .manage(archive_drop::ArchiveDrop::default())
     .setup(move |app| {
@@ -300,6 +304,12 @@ pub fn run() {
       }
     })
     .invoke_handler(tauri::generate_handler![
+      native_product::native_product_activation,
+      native_product::native_product_request,
+      native_product::native_product_stream,
+      native_product::native_product_cancel,
+      native_product::native_product_socket,
+      native_product::native_product_socket_send,
       archive_drop::read_dropped_archive,
       show_companion,
       hide_companion,
@@ -313,7 +323,6 @@ pub fn run() {
       get_subtitle_presentation_state,
       set_subtitle_locked,
       supervisor::get_service_status,
-      supervisor::create_product_host_pairing,
       supervisor::get_desktop_runtime_binding,
       supervisor::retry_desktop_runtime_binding,
       supervisor::refresh_services,

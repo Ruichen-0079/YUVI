@@ -56,6 +56,7 @@ pub fn public_env_overrides(settings: &UserSettings) -> BTreeMap<String, String>
     env.insert(
         "MEMORY_BACKEND".into(),
         match settings.memory.backend {
+            MemoryBackend::Postgres => "postgres".into(),
             MemoryBackend::Mem0 => "mem0".into(),
             MemoryBackend::Legacy => "legacy".into(),
         },

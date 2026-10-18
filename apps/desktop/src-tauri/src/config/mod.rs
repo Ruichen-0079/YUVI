@@ -1,7 +1,7 @@
 pub mod env_export;
 mod impact;
 mod schema;
-mod secrets;
+pub(crate) mod secrets;
 mod service;
 mod portable;
 mod validate;
@@ -54,11 +54,13 @@ pub fn get_user_settings(state: State<'_, ConfigState>) -> Result<SettingsView, 
 }
 
 #[tauri::command]
-pub fn update_user_settings(
+pub async fn update_user_settings(
+    window: tauri::WebviewWindow,
     app: AppHandle,
     state: State<'_, ConfigState>,
     patch: UserSettingsPatch,
 ) -> Result<UpdateSettingsResult, String> {
+    crate::native_product::confirm_control(&window, "允许修改此本机 YUVI 的设置并按需重启服务？")?;
     let before = state.service.current_settings()?;
     let mut result = state.service.update_settings(patch)?;
     let event =
@@ -82,12 +84,14 @@ pub fn update_user_settings(
 }
 
 #[tauri::command]
-pub fn set_user_secret(
+pub async fn set_user_secret(
+    window: tauri::WebviewWindow,
     app: AppHandle,
     state: State<'_, ConfigState>,
     key: String,
     value: String,
 ) -> Result<SecretMutationResult, String> {
+    crate::native_product::confirm_control(&window, "允许为此本机 YUVI 更新所选服务凭据？")?;
     let secrets = state.service.set_secret(&key, &value)?;
     let restart_services = secret_restart_hint(&key);
     let _ = app.emit(
@@ -108,11 +112,13 @@ pub fn set_user_secret(
 }
 
 #[tauri::command]
-pub fn delete_user_secret(
+pub async fn delete_user_secret(
+    window: tauri::WebviewWindow,
     app: AppHandle,
     state: State<'_, ConfigState>,
     key: String,
 ) -> Result<SecretMutationResult, String> {
+    crate::native_product::confirm_control(&window, "允许删除此本机 YUVI 的所选服务凭据？")?;
     let secrets = state.service.delete_secret(&key)?;
     let restart_services = secret_restart_hint(&key);
     let _ = app.emit(

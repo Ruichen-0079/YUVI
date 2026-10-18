@@ -167,6 +167,7 @@ pub enum ServiceMode {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum MemoryBackend {
+    Postgres,
     Mem0,
     Legacy,
 }

@@ -3,6 +3,39 @@ import { z } from "zod";
 import type { AppContext } from "../context.js";
 import { ConversationHostIdentityError } from "../conversation-host-identity.js";
 export async function registerProductHostRoutes(app: FastifyInstance, context: AppContext) {
+  app.get("/host/v1/native/proof", async (request, reply) => {
+    reply.header("Cache-Control", "no-store");
+    const query = z
+      .object({ challenge: z.string().regex(/^[a-f0-9]{64}$/u) })
+      .strict()
+      .safeParse(request.query);
+    if (!query.success || !context.productHost)
+      return reply.code(400).send({ error: "INVALID_PROOF" });
+    return context.productHost.proof(query.data.challenge);
+  });
+  for (const action of ["people", "create", "session"] as const) {
+    app.post(`/host/v1/native/${action}`, async (request, reply) => {
+      reply.header("Cache-Control", "no-store");
+      if (!context.productHost?.isController(request))
+        return reply.code(401).send({ error: "PRODUCT_CONTROLLER_REQUIRED" });
+      const body = z
+        .object({
+          ownerId: z.string().regex(/^yno_[A-Za-z0-9_-]{43}$/u),
+          displayName: z.string().trim().min(1).max(100).optional(),
+          commandHandle: z.string().min(1).max(256).optional(),
+          personId: z.string().min(1).max(512).optional(),
+          origin: z.string().max(256).optional()
+        })
+        .strict()
+        .safeParse(request.body);
+      if (!body.success) return reply.code(400).send({ error: "INVALID_NATIVE_REQUEST" });
+      try {
+        return await context.productHost.native(action, body.data);
+      } catch {
+        return reply.code(403).send({ error: "NATIVE_AUTHORITY_UNAVAILABLE" });
+      }
+    });
+  }
   app.post("/host/v1/product/pairings", async (request, reply) => {
     reply.header("Cache-Control", "no-store");
     const host = context.productHost;

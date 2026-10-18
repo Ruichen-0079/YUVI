@@ -4,7 +4,7 @@
  */
 
 export type ServiceMode = "managed" | "external";
-export type MemoryBackend = "mem0" | "legacy";
+export type MemoryBackend = "postgres" | "mem0" | "legacy";
 export type MemoryLlmProvider = "none" | "deepseek" | "openai";
 export type SttProvider = "local" | "dashscope";
 

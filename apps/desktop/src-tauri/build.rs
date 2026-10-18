@@ -1,3 +1,35 @@
 fn main() {
-    tauri_build::build()
+  tauri_build::try_build(tauri_build::Attributes::new().app_manifest(
+    tauri_build::AppManifest::new().commands(&[
+      "native_product_activation",
+      "native_product_request",
+      "native_product_stream",
+      "native_product_cancel",
+      "native_product_socket",
+      "native_product_socket_send",
+      "read_dropped_archive",
+      "show_companion",
+      "hide_companion",
+      "toggle_companion",
+      "reopen_companion",
+      "get_companion_presentation_state",
+      "set_companion_locked",
+      "show_webui",
+      "show_subtitle",
+      "hide_subtitle",
+      "get_subtitle_presentation_state",
+      "set_subtitle_locked",
+      "get_service_status",
+      "get_desktop_runtime_binding",
+      "retry_desktop_runtime_binding",
+      "refresh_services",
+      "service_action",
+      "get_user_settings",
+      "update_user_settings",
+      "set_user_secret",
+      "delete_user_secret",
+      "get_user_secret_status",
+    ]),
+  ))
+  .expect("desktop permission manifest");
 }

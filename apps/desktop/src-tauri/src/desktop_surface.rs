@@ -281,6 +281,8 @@ fn build_main_window(app: &AppHandle) -> tauri::Result<tauri::WebviewWindow> {
     SurfaceId::Main.window_label(),
     tauri::WebviewUrl::App(SurfaceId::Main.window_url().into()),
   )
+  .on_new_window(|_, _| tauri::webview::NewWindowResponse::Deny)
+  .on_navigation({ let dev = app.config().build.dev_url.clone(); move |url| crate::native_product::document_allowed(url, dev.as_ref()) })
   .title(SurfaceId::Main.window_title())
   // Let the Live2D HTML dropzone receive files instead of native path events.
   .disable_drag_drop_handler()
@@ -298,6 +300,8 @@ fn build_companion_window(
     SurfaceId::Companion.window_label(),
     tauri::WebviewUrl::App(SurfaceId::Companion.window_url().into()),
   )
+  .on_new_window(|_, _| tauri::webview::NewWindowResponse::Deny)
+  .on_navigation({ let dev = app.config().build.dev_url.clone(); move |url| crate::native_product::document_allowed(url, dev.as_ref()) })
   .title(SurfaceId::Companion.window_title())
   .inner_size(480.0, 720.0)
   .min_inner_size(320.0, 480.0)
@@ -319,6 +323,8 @@ fn build_webui_window(app: &AppHandle) -> tauri::Result<tauri::WebviewWindow> {
     SurfaceId::WebUI.window_label(),
     tauri::WebviewUrl::App(SurfaceId::WebUI.window_url().into()),
   )
+  .on_new_window(|_, _| tauri::webview::NewWindowResponse::Deny)
+  .on_navigation({ let dev = app.config().build.dev_url.clone(); move |url| crate::native_product::document_allowed(url, dev.as_ref()) })
   .title(SurfaceId::WebUI.window_title())
   .inner_size(1280.0, 820.0)
   .min_inner_size(800.0, 600.0)
@@ -362,6 +368,8 @@ fn build_subtitle_window(app: &AppHandle) -> tauri::Result<tauri::WebviewWindow>
     SurfaceId::Subtitle.window_label(),
     tauri::WebviewUrl::App(SurfaceId::Subtitle.window_url().into()),
   )
+  .on_new_window(|_, _| tauri::webview::NewWindowResponse::Deny)
+  .on_navigation({ let dev = app.config().build.dev_url.clone(); move |url| crate::native_product::document_allowed(url, dev.as_ref()) })
   .title(SurfaceId::Subtitle.window_title())
   .inner_size(policy.width, policy.height)
   .min_inner_size(280.0, 100.0)

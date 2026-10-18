@@ -1,0 +1,23 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "product",
+  "description": "Bundled main and settings documents only. No remote document capability.",
+  "windows": [
+    "main",
+    "webui"
+  ],
+  "permissions": [
+    "allow-native-product-activation",
+    "allow-native-product-request",
+    "allow-native-product-stream",
+    "allow-native-product-cancel",
+    "allow-read-dropped-archive",
+    "allow-refresh-services",
+    "allow-service-action",
+    "allow-update-user-settings",
+    "allow-set-user-secret",
+    "allow-delete-user-secret",
+    "allow-native-product-socket",
+    "allow-native-product-socket-send"
+  ]
+}
