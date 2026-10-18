@@ -56,6 +56,10 @@ env.update({'NODE_ENV': 'development', 'PROVIDER_ALLOW_MOCKS': 'false', 'SERVER_
     'MEMORY_MAINTENANCE_ENABLED': 'false', 'MEMORY_VECTOR_INDEX_ENABLED': 'false', 'YUVI_AUTO_MIGRATE': '0',
     'YUVI_OBSERVATION_RETENTION_SECONDS': '1200', 'YUVI_OBSERVATION_RETAIN_IMAGES': 'true' if cases.get('retainSyntheticImages') else 'false',
     'COGNITION_MAX_REASONING_ROUNDS': '1', 'DASHBOARD_DEV_TOKEN': 'synthetic-experiment-operator'})
+if cases.get('realEmbedding'):
+    env.update({'MEMORY_VECTOR_INDEX_ENABLED':'true','DEFAULT_EMBEDDING_PROVIDER':'openai-compatible',
+        'EMBEDDING_PROVIDER_CHAIN':'openai-compatible','EMBEDDING_API_KEY':env['OPENAI_COMPATIBLE_API_KEY'],
+        'EMBEDDING_API_BASEURL':env['OPENAI_COMPATIBLE_API_BASEURL'],'EMBEDDING_MODEL':'Qwen/Qwen3-Embedding-0.6B','EMBEDDING_DIMENSIONS':'512'})
 schema = prior['databaseSchema'] if resume else 'ec_live_' + uuid.uuid4().hex
 env['YUVI_JOURNAL_NAMESPACE'] = schema
 base = 'http://127.0.0.1:31505'
@@ -71,7 +75,7 @@ def node(code, extra=None):
 if not resume: node("import pg from 'pg';const p=new pg.Pool({connectionString:process.env.DATABASE_URL});await p.query('create schema '+process.env.EC_SCHEMA);await p.end();", {'EC_SCHEMA': schema})
 query = urllib.parse.parse_qsl(location.query) + [('options', '-c search_path=' + schema + ',public')]
 env['DATABASE_URL'] = urllib.parse.urlunsplit(location._replace(query=urllib.parse.urlencode(query)))
-if not resume:
+if not resume or cases.get('migrateIsolatedOnResume'):
  with (output / 'migrate.log').open('w') as log:
     subprocess.run(['pnpm', 'db:migrate'], cwd=checkout, env=env, stdout=log, stderr=log, check=True)
 if not resume: node("""import {importLegacyConfiguration,commitProductSettings,writeProductSettings} from './apps/server/src/services/product-store.ts';
@@ -84,6 +88,11 @@ if(process.env.YUVI_EXPERIMENT_VISION_MODEL){
  const provider=s.configuration.providers.find(p=>p.id==='import-openai-compatible');
  s.configuration.models.push({id:'isolated-vision',providerId:provider.id,displayName:'Synthetic experiment Vision',modelId:process.env.YUVI_EXPERIMENT_VISION_MODEL,temperature:0,contextWindow:65536,enabled:true,capabilities:['vision']});
  s.configuration.routes.vision=['isolated-vision'];
+}
+if(process.env.MEMORY_VECTOR_INDEX_ENABLED==='true'){
+ const provider=s.configuration.providers.find(p=>p.id==='import-openai-compatible');
+ s.configuration.models.push({id:'isolated-embedding',providerId:provider.id,displayName:'Synthetic experiment embedding',modelId:process.env.EMBEDDING_MODEL,temperature:0,contextWindow:32768,dimensions:512,enabled:true,capabilities:['embedding']});
+ s.configuration.routes.embedding=['isolated-embedding'];
 }
 writeProductSettings(commitProductSettings(s,null));""", {'EC_PERSONA': persona})
 def sql(query, values=None):
@@ -146,12 +155,19 @@ result = {'schema': 'evidence-continuity-model-run.v1', 'databaseSchema': schema
     'dirty': bool(subprocess.check_output(['git','status','--porcelain'],cwd=checkout,text=True)), 'models': {k:env[k] for k in ['OPENAI_COMPATIBLE_CHAT_MODEL','OPENAI_COMPATIBLE_REASONING_MODEL']}, 'visionModel': env.get('YUVI_EXPERIMENT_VISION_MODEL'),
     'provider': env['OPENAI_COMPATIBLE_API_BASEURL'], 'persona': persona, 'personaVersion': 'evidence-synthetic-v1', 'memoryScope': 'yuvi:v1:user:person-a:character:' + urllib.parse.quote(persona, safe=''),
     'temperature': 0, 'maxTokens': 2048, 'callCap': 60, 'costCapUSD': .10, 'turns': [], 'status': 'RUNNING'}
+result['embeddingModel']=env.get('EMBEDDING_MODEL')
 if resume:
     result = {**prior, 'status':'RUNNING', 'resumedFromStatus':prior['status']}
     result.pop('error',None)
 def save(): (output / 'result.json').write_text(json.dumps(result, ensure_ascii=False, indent=2))
 try:
     start()
+    if cases.get('prepareLexicalIndex'):
+        for _ in range(10):
+            code, index = http('/memory/v1/operations', {'scope':result['memoryScope'],'operation':'LEXICAL_ADVANCE','limit':200}, 'synthetic-experiment-operator')
+            if code != 200: raise RuntimeError('Isolated lexical maintenance failed')
+            if index['status']=='READY': break
+        else: raise RuntimeError('Lexical backfill still pending')
     grants = {}
     for person in ['person-a','person-b']:
         status, granted = http('/host/v1/conversation-grants/issue', {'personId': person}, 'synthetic-experiment-operator')
@@ -189,7 +205,7 @@ try:
             response.close(); connection.close()
         else: status, body = http('/message',payload,token)
         item = {'ordinal':ordinal,'input':case['text'],'sessionId':session,'person':case.get('person','person-a'),'httpStatus':status,
-            'elapsedMs':(time.monotonic()-started)*1000,'response':body,'shortContextCleared':case.get('clearShortContext',False)}
+            'elapsedMs':(time.monotonic()-started)*1000,'response':body,'shortContextCleared':case.get('clearShortContext',False),'implementation':result['executionSegments'][-1]}
         result['turns'].append(item);save()
         if status != 200: raise RuntimeError('Provider/Character failure; retained source remains independently processable')
         if case.get('writeMemory',True):
@@ -201,6 +217,13 @@ try:
             else: raise RuntimeError('Formal ingestion did not finish; pending is not success')
             if item['ingestion']['status'] not in ['complete','skipped']: raise RuntimeError('Formal ingestion was not complete')
         item['knowledgeAfter'] = sql("select r.id,r.event,r.version,c.state from memory_authority_records r join memory_authority_current c using(scope,id) order by r.version")
+        if cases.get('realEmbedding') and case.get('writeMemory',True):
+            for _ in range(90):
+                index=sql("select (select count(*) from memory_authority_current where state in ('current','conflicted'))::int expected,(select count(*) from memory_authority_vectors v join memory_authority_current c using(scope,id) where c.state in ('current','conflicted') and v.authority_version=c.version)::int indexed")
+                if index and index[0]['expected']==index[0]['indexed']: break
+                time.sleep(1)
+            else: raise RuntimeError('Vector indexing not complete; pending is not indexed')
+            item['vectorIndexAfter']=index[0]
         print('turn',ordinal,'http',status,'ingestion',item.get('ingestion',{}).get('status'),flush=True)
     result['authorityState'] = sql("select scope,id,event,version from memory_authority_records order by version")
     result['projection'] = sql("select scope,id,state,version from memory_authority_current order by version")

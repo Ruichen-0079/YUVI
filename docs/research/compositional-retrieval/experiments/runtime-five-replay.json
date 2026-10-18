@@ -1,0 +1,16 @@
+{
+  "queryExpansion": true,
+  "turns": [
+    {
+      "text": "面试日期、茶叶偏好、test framework、backup region，以及星桥-28负责人分别是什么？",
+      "clearShortContext": true,
+      "writeMemory": false
+    },
+    {
+      "text": "面试日期、茶叶偏好、test framework、backup region，以及星桥-28负责人分别是什么？",
+      "clearShortContext": true,
+      "writeMemory": false
+    }
+  ],
+  "realEmbedding": true
+}

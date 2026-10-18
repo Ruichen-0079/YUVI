@@ -1,0 +1,338 @@
+{
+  "schema": "character.grounding-comparison.v1",
+  "kind": "real Chat/production Character replay of one frozen actual Qwen report; not a new Vision/Host execution experiment",
+  "groups": [
+    {
+      "name": "baseline",
+      "sha": "28361e04b0b46059cc3ae5d18e83f38eb6c5c703",
+      "cases": [
+        {
+          "repeat": 0,
+          "question": "Describe the card, including chart values and relative heights.",
+          "answer": "This is a synthetic research card with a white background and black text. The title at the top left reads \"SYNTHETIC RESEARCH CARD\" in bold, uppercase letters. Below the title are two lines of information: \"Project: LARCH-7D83\" and \"Date: 2032-06-14.\"\n\nTo the right of the project and date information, there is a solid blue equilateral triangle.\n\nBelow that, a red-bordered box contains the text \"VERIFIED 42\" in red, uppercase letters.\n\nFurther down, the text \"Formula: E = 3x + 7\" is displayed.\n\nAt the bottom of the card, there are three green bars of varying heights, each with a label underneath:\n- The first bar, labeled \"A: 12,\" is a square.\n- The second bar, labeled \"B: 7,\" is shorter than the first.\n- The third bar, labeled \"C: 19,\" is the tallest of the three.\n\nAt the very bottom left, the text \"Footer code: MAPLE-519C\" is visible.",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 830,
+            "outputTokens": 227,
+            "totalTokens": 1057,
+            "cachedInputTokens": 256
+          },
+          "elapsedMs": 3425.132796,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "GROUNDED"
+        },
+        {
+          "repeat": 0,
+          "question": "Which bar is shortest, and what is its value?",
+          "answer": "Based on the visual evidence, the shortest bar is **B**, with a value of **7**.",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 830,
+            "outputTokens": 21,
+            "totalTokens": 851,
+            "cachedInputTokens": 512
+          },
+          "elapsedMs": 1678.396968,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "GROUNDED"
+        },
+        {
+          "repeat": 0,
+          "question": "How much larger is C than A, and which is larger?",
+          "answer": "Based on the visual evidence, C is larger than A. C is 19 and A is 12, so C is 7 units larger than A.",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 832,
+            "outputTokens": 33,
+            "totalTokens": 865,
+            "cachedInputTokens": 512
+          },
+          "elapsedMs": 1945.179142,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "GROUNDED"
+        },
+        {
+          "repeat": 0,
+          "question": "请按从高到低列出三个柱子的标签和值。",
+          "answer": "好的，根据卡片上的视觉信息，三个柱子的标签和值从高到低排列如下：\n\n1. **C: 19**（最高）\n2. **A: 12**\n3. **B: 7**（最矮）",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 833,
+            "outputTokens": 53,
+            "totalTokens": 886,
+            "cachedInputTokens": 512
+          },
+          "elapsedMs": 1691.3587659999994,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "GROUNDED"
+        },
+        {
+          "repeat": 0,
+          "question": "What is the color of the back of the card?",
+          "answer": "I can only see the front of the card in the visual evidence, so I can't determine the color of the back. The observation describes only the front: white background, black text, a blue triangle, a red \"VERIFIED 42\" box, a formula, three green bars, and a footer code. The back of the card isn't visible in the evidence I have.",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 830,
+            "outputTokens": 79,
+            "totalTokens": 909,
+            "cachedInputTokens": 512
+          },
+          "elapsedMs": 1944.3531329999987,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "CORRECT_ABSTENTION"
+        },
+        {
+          "repeat": 1,
+          "question": "Describe the card, including chart values and relative heights.",
+          "answer": "The card is a synthetic research card with a white background and black text. The title at the top left reads \"SYNTHETIC RESEARCH CARD\" in bold uppercase letters. Below it are two lines: \"Project: LARCH-7D83\" and \"Date: 2032-06-14.\" To the right of that information sits a solid blue equilateral triangle.\n\nA red-bordered box contains the text \"VERIFIED 42\" in red uppercase letters. Below that, the formula \"E = 3x + 7\" is displayed.\n\nAt the bottom are three green bars of varying heights, each labeled:\n- Bar A: 12 — a square (shortest of the three)\n- Bar B: 7 — shorter than A\n- Bar C: 19 — the tallest\n\nAt the very bottom left is the footer code \"MAPLE-519C.\"\n\nSo the relative heights, from shortest to tallest, are B (7), A (12), C (19).",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 830,
+            "outputTokens": 207,
+            "totalTokens": 1037,
+            "cachedInputTokens": 512
+          },
+          "elapsedMs": 4702.498978,
+          "labelValueContradiction": true,
+          "reportEnteredContext": true,
+          "diagnosticStage": "ANSWER_GROUNDING_ERROR"
+        },
+        {
+          "repeat": 1,
+          "question": "Which bar is shortest, and what is its value?",
+          "answer": "Based on the visual evidence, the shortest bar is **B**, with a value of **7**.",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 830,
+            "outputTokens": 21,
+            "totalTokens": 851,
+            "cachedInputTokens": 512
+          },
+          "elapsedMs": 2028.491780000002,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "GROUNDED"
+        },
+        {
+          "repeat": 1,
+          "question": "How much larger is C than A, and which is larger?",
+          "answer": "Based on the card, C is 19 and A is 12. So C is larger, and it is 7 units larger than A.",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 832,
+            "outputTokens": 31,
+            "totalTokens": 863,
+            "cachedInputTokens": 512
+          },
+          "elapsedMs": 2221.4118019999987,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "GROUNDED"
+        },
+        {
+          "repeat": 1,
+          "question": "请按从高到低列出三个柱子的标签和值。",
+          "answer": "三个柱子从高到低排列如下：\n\n1. **C: 19**（最高）\n2. **A: 12**\n3. **B: 7**（最矮）",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 833,
+            "outputTokens": 41,
+            "totalTokens": 874,
+            "cachedInputTokens": 768
+          },
+          "elapsedMs": 4041.7157740000002,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "GROUNDED"
+        },
+        {
+          "repeat": 1,
+          "question": "What is the color of the back of the card?",
+          "answer": "I can only see the front of the card in the visual evidence — a white background with black text, a blue triangle, a red \"VERIFIED 42\" box, green bars, and the footer code. The back of the card isn't visible in the observation, so I can't tell you its color.",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 830,
+            "outputTokens": 65,
+            "totalTokens": 895,
+            "cachedInputTokens": 512
+          },
+          "elapsedMs": 4351.377249000001,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "CORRECT_ABSTENTION"
+        }
+      ]
+    },
+    {
+      "name": "revised",
+      "sha": "93815fa8adc8bfa8cc7177f282577bae9522185e",
+      "cases": [
+        {
+          "repeat": 0,
+          "question": "Describe the card, including chart values and relative heights.",
+          "answer": "The card is a synthetic research card with a white background and black text. The title at the top left reads \"SYNTHETIC RESEARCH CARD\" in bold uppercase letters. Below it are two lines: \"Project: LARCH-7D83\" and \"Date: 2032-06-14.\" To the right of that information sits a solid blue equilateral triangle.\n\nA red-bordered box contains the text \"VERIFIED 42\" in red uppercase letters. Further down, the card displays \"Formula: E = 3x + 7.\"\n\nAt the bottom are three green bars with labels and values:\n- Bar A: 12 — described as a square\n- Bar B: 7 — shorter than A\n- Bar C: 19 — the tallest of the three\n\nSo the relative heights, from shortest to tallest, are B (7), then A (12), then C (19). At the very bottom left, the footer code reads \"MAPLE-519C.\"\n\nI should note this is based on the visual evidence provided, which I'm treating as a report rather than independently verified fact.",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 891,
+            "outputTokens": 232,
+            "totalTokens": 1123,
+            "cachedInputTokens": 256
+          },
+          "elapsedMs": 4462.3093149999995,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "GROUNDED"
+        },
+        {
+          "repeat": 0,
+          "question": "Which bar is shortest, and what is its value?",
+          "answer": "The reported labels and values are:\n\n- A: 12\n- B: 7\n- C: 19\n\nSo the shortest bar is B, with a value of 7.",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 891,
+            "outputTokens": 40,
+            "totalTokens": 931,
+            "cachedInputTokens": 768
+          },
+          "elapsedMs": 1679.6274709999998,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "GROUNDED"
+        },
+        {
+          "repeat": 0,
+          "question": "How much larger is C than A, and which is larger?",
+          "answer": "The reported values are:\n\n- A: 12\n- C: 19\n\nSo C is larger than A, and C is larger by 7 (19 − 12 = 7).",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 893,
+            "outputTokens": 41,
+            "totalTokens": 934,
+            "cachedInputTokens": 768
+          },
+          "elapsedMs": 2403.5429650000005,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "GROUNDED"
+        },
+        {
+          "repeat": 0,
+          "question": "请按从高到低列出三个柱子的标签和值。",
+          "answer": "好的，根据卡片上的视觉信息，三个柱子的标签和值从高到低排列如下：\n\n1. **C: 19**（最高）\n2. **A: 12**（中间）\n3. **B: 7**（最矮）",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 894,
+            "outputTokens": 56,
+            "totalTokens": 950,
+            "cachedInputTokens": 256
+          },
+          "elapsedMs": 5993.529388000001,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "GROUNDED"
+        },
+        {
+          "repeat": 0,
+          "question": "What is the color of the back of the card?",
+          "answer": "I can only see the front of the card in the visual evidence — a white background with black text, a blue triangle, a red \"VERIFIED 42\" box, three green bars, and the footer code. The back of the card is not visible in this observation, so I can't tell you its color.",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 891,
+            "outputTokens": 66,
+            "totalTokens": 957,
+            "cachedInputTokens": 768
+          },
+          "elapsedMs": 2249.869457999999,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "CORRECT_ABSTENTION"
+        },
+        {
+          "repeat": 1,
+          "question": "Describe the card, including chart values and relative heights.",
+          "answer": "The card is a synthetic research card with a white background and black text. The title at the top left reads \"SYNTHETIC RESEARCH CARD\" in bold uppercase letters. Below it are two lines: \"Project: LARCH-7D83\" and \"Date: 2032-06-14.\" To the right of that information is a solid blue equilateral triangle.\n\nA red-bordered box contains the text \"VERIFIED 42\" in red uppercase letters. Further down, the card shows \"Formula: E = 3x + 7.\"\n\nAt the bottom are three green bars with labels and values:\n- Bar A: 12 (a square)\n- Bar B: 7 (shorter than A)\n- Bar C: 19 (the tallest of the three)\n\nSo the relative heights, from shortest to tallest, are B (7), then A (12), then C (19). At the very bottom left, the footer code reads \"MAPLE-519C.\"",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 891,
+            "outputTokens": 206,
+            "totalTokens": 1097,
+            "cachedInputTokens": 768
+          },
+          "elapsedMs": 2591.0127969999994,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "GROUNDED"
+        },
+        {
+          "repeat": 1,
+          "question": "Which bar is shortest, and what is its value?",
+          "answer": "The reported labels and values are:\n\n- A: 12\n- B: 7\n- C: 19\n\nSo the shortest bar is B, with a value of 7.",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 891,
+            "outputTokens": 40,
+            "totalTokens": 931,
+            "cachedInputTokens": 768
+          },
+          "elapsedMs": 1643.684921,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "GROUNDED"
+        },
+        {
+          "repeat": 1,
+          "question": "How much larger is C than A, and which is larger?",
+          "answer": "The reported values are:\n\n- A: 12\n- C: 19\n\nC is larger than A. The difference is 19 − 12 = 7, so C is 7 units larger than A.",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 893,
+            "outputTokens": 46,
+            "totalTokens": 939,
+            "cachedInputTokens": 768
+          },
+          "elapsedMs": 1855.212492999999,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "GROUNDED"
+        },
+        {
+          "repeat": 1,
+          "question": "请按从高到低列出三个柱子的标签和值。",
+          "answer": "好的，根据卡片上的报告，三个柱子的标签和值分别是：\n\n- A: 12\n- B: 7\n- C: 19\n\n按从高到低排列，顺序是：**C: 19**，**A: 12**，**B: 7**。",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 894,
+            "outputTokens": 65,
+            "totalTokens": 959,
+            "cachedInputTokens": 768
+          },
+          "elapsedMs": 1716.899464000002,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "GROUNDED"
+        },
+        {
+          "repeat": 1,
+          "question": "What is the color of the back of the card?",
+          "answer": "I can only see the front of the card in the visual evidence — a white background with black text, a blue triangle, a red-bordered \"VERIFIED 42\" box, the formula, three green bars, and a footer code. The back of the card is not visible in the observation, so I can't tell you its color.",
+          "finishReason": "stop",
+          "usage": {
+            "inputTokens": 891,
+            "outputTokens": 71,
+            "totalTokens": 962,
+            "cachedInputTokens": 768
+          },
+          "elapsedMs": 2898.671897,
+          "labelValueContradiction": false,
+          "reportEnteredContext": true,
+          "diagnosticStage": "CORRECT_ABSTENTION"
+        }
+      ]
+    }
+  ]
+}

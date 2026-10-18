@@ -55,3 +55,4 @@ Host 在调用前后检查当前 Person/Persona/PRIVATE 及 grant，并将调用
 继续阻断：组合所有子问题稳定召回、中文语义分词、英文权威记录的真实反向跨语言质量、更广 Ground Truth/错误召回率、低选择性查询的扩展性、真实 embedding/multi-scope/模型空间和冷缓存长负载。连同 #329 报告中的 R5/产品/隐私开放项，**不允许切换真实 Alice**。
 
 验证记录：本地 `pnpm check`、`pnpm build`、全仓 `pnpm test` 已通过；实际 PostgreSQL Authority/角色/质量/计划回归通过。正常 Server 入口覆盖运行中撤销 query-planning Host grant，后续文本检索与 Character 调用均被阻止；权限验证查询异常同样 fail-closed。#329 过期擦除幂等补充通过本地合并接入，保留独立提交与 PR 依赖。最终 CI 以各 Draft PR 最新 HEAD 为准。
+2026-10-17 后续：[组合检索与证据忠实度](../compositional-retrieval/README.zh.md)。继续保留本报告失败历史；新的需求级选择、索引及同库复测有独立证据，通用语义/R5 门槛未整体关闭。
