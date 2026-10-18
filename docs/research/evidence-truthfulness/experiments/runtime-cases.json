@@ -1,0 +1,27 @@
+{
+  "queryExpansion": true,
+  "evidenceSupport": true,
+  "realEmbedding": true,
+  "turns": [
+    {
+      "text": "我长期使用的编辑器代号是苔桥-4836。"
+    },
+    {
+      "text": "我偏爱的茶是木槿-9275。"
+    },
+    {
+      "text": "我昨天下单了一个咖啡杯，订单代号是溪石-315。"
+    },
+    {
+      "text": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "writeMemory": false,
+      "clearShortContext": true
+    },
+    {
+      "text": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "writeMemory": false,
+      "clearShortContext": true,
+      "person": "person-b"
+    }
+  ]
+}

@@ -80,6 +80,34 @@ describe("evidence support provenance, not semantic quality", () => {
         assessEvidenceSupport({ generateReasoning: async () => result }, input)
       ).rejects.toThrow();
   });
+  it("can assess independent grounded spans without requiring paid retrieval planning", async () => {
+    const request = { text: "茶与未知座位" },
+      q = { ...input, request, needs: [{ id: "q0", quote: request.text }] };
+    const result = {
+      needs: [
+        {
+          id: "q0",
+          quote: "茶",
+          verdict: "SUPPORTED",
+          citations: [{ id: "tea", quote: "月桂-5967" }]
+        },
+        { id: "q1", quote: "未知座位", verdict: "INSUFFICIENT", citations: [] }
+      ]
+    };
+    const r = await assessEvidenceSupport(
+      { generateReasoning: async () => ({ reasoning: JSON.stringify(result) }) },
+      q
+    );
+    expect(r.decomposed).toBe(true);
+    expect(r.needs.map((n) => n.verdict)).toEqual(["SUPPORTED", "INSUFFICIENT"]);
+    result.needs[1]!.quote = "invented question";
+    await expect(
+      assessEvidenceSupport(
+        { generateReasoning: async () => ({ reasoning: JSON.stringify(result) }) },
+        q
+      )
+    ).rejects.toThrow();
+  });
   it("does not spend a call to classify an empty candidate set, or assert database absence", async () => {
     const generateReasoning = vi.fn();
     const r = await assessEvidenceSupport({ generateReasoning }, { ...input, events: [] });

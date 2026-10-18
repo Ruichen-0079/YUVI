@@ -1,0 +1,12 @@
+{
+  "queryExpansion": false,
+  "evidenceSupport": true,
+  "realEmbedding": true,
+  "turns": [
+    {
+      "text": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "writeMemory": false,
+      "clearShortContext": true
+    }
+  ]
+}

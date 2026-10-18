@@ -51,7 +51,7 @@ env.update({'NODE_ENV': 'development', 'PROVIDER_ALLOW_MOCKS': 'false', 'SERVER_
     'OPENAI_COMPATIBLE_CHAT_CONTEXT_WINDOW': '65536', 'LOG_LEVEL': 'warn',
     'YUVI_RUNTIME_ENV_DIR': str(root), 'YUVI_CONFIG_ROOT': str(root), 'YUVI_RUNTIME_DATA_DIR': str(output / 'data'),
     'YUVI_DATA_ROOT': str(output / 'data'), 'YUVI_CACHE_ROOT': str(output / 'cache'), 'YUVI_CHARACTER_CONFIG_PATH': str(character),
-    'MEMORY_BACKEND': 'postgres', 'MEMORY_QUERY_EXPANSION_ENABLED': 'true' if cases.get('queryExpansion') else 'false', 'MEMORY_REPOSITORY': 'postgres', 'CONVERSATION_REPOSITORY': 'postgres', 'MEMORY_EXTRACTOR': 'llm',
+    'MEMORY_EVIDENCE_SUPPORT_ENABLED': 'true' if cases.get('evidenceSupport') else 'false', 'MEMORY_BACKEND': 'postgres', 'MEMORY_QUERY_EXPANSION_ENABLED': 'true' if cases.get('queryExpansion') else 'false', 'MEMORY_REPOSITORY': 'postgres', 'CONVERSATION_REPOSITORY': 'postgres', 'MEMORY_EXTRACTOR': 'llm',
     'MEMORY_INGESTION_COORDINATOR_ENABLED': 'true', 'MEMORY_INGESTION_POLL_INTERVAL_MS': '200', 'MEMORY_INGESTION_CONCURRENCY': '1',
     'MEMORY_MAINTENANCE_ENABLED': 'false', 'MEMORY_VECTOR_INDEX_ENABLED': 'false', 'YUVI_AUTO_MIGRATE': '0',
     'YUVI_OBSERVATION_RETENTION_SECONDS': '1200', 'YUVI_OBSERVATION_RETAIN_IMAGES': 'true' if cases.get('retainSyntheticImages') else 'false',
