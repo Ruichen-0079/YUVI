@@ -1,4 +1,8 @@
-import { randomUUID } from "node:crypto";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { defaultProductSettings, commitProductSettings, writeProductSettings } from "./services/product-store.js";
+import { createHmac, randomUUID } from "node:crypto";
 import Fastify from "fastify";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { createPostgresPool } from "@companion/database";
@@ -88,6 +92,43 @@ describe.skipIf(!url)("Product Host real PostgreSQL lifecycle and own-principal 
     await pool.end();
     await admin.query(`drop schema "${schema}" cascade`);
     await admin.end();
+  });
+  it("proves the actual Runtime without disclosing a controller; nonce and boot identity are signed", async () => {
+    const challenge = "a".repeat(64);
+    const response = await app.inject(`/host/v1/native/proof?challenge=${challenge}`);
+    const proof = response.json();
+    expect(proof.signature).toBe(createHmac("sha256",controller).update(JSON.stringify([challenge,proof.binding,proof.bootId])).digest("hex"));
+    expect(JSON.stringify(proof)).not.toContain(controller);
+    expect((await app.inject("/host/v1/native/proof?challenge=wrong")).statusCode).toBe(400);
+  });
+  it("enrolls native Origins through the controller only, retaining strict browser pairing", async () => {
+    await expect(product.createPairing("x","tauri://localhost")).rejects.toThrow();
+    const code = await product.createPairing("x","tauri://localhost",true);
+    const paired = await product.pair({headers:{origin:"tauri://localhost"}},code.code);
+    const cookie = paired.cookie.split(";")[0]!;
+    expect((await product.state({headers:{origin:"tauri://localhost",cookie}})).personId).toBe("x");
+    await expect(product.state({headers:{origin:"http://127.0.0.1:31911",cookie}})).rejects.toThrow();
+    await expect(product.pair({headers:{origin:"tauri://localhost"}},code.code)).rejects.toThrow();
+  });
+  it("lists explicitly owned People only; creation UNKNOWN never claims a Person or issues a session", async () => {
+    const root = await mkdtemp(join(tmpdir(),"yuvi-native-people-"));
+    const env = {YUVI_RUNTIME_ENV_DIR:root};
+    const ownerId = "yno_"+"a".repeat(43);
+    writeProductSettings(commitProductSettings({...defaultProductSettings(), people:[
+      {id:"x",displayName:"Owned",personaId,notes:""},
+      {id:"y",displayName:"Unowned",personaId,notes:""}
+    ], nativeOwnerByPersonId:{x:ownerId}},null),env);
+    const execute = vi.fn(async()=>({status:"UNKNOWN" as const}));
+    product.nativePeople = {env,commands:{execute,resolveExisting:async()=>null}};
+    try {
+      expect(await product.native("people",{ownerId})).toEqual({people:[{id:"x",displayName:"Owned"}]});
+      expect(await product.native("people",{ownerId:"yno_"+"b".repeat(43)})).toEqual({people:[]});
+      await expect(product.native("session",{ownerId,personId:"y",origin:"tauri://localhost"})).rejects.toThrow();
+      expect(await product.native("create",{ownerId,displayName:"New",commandHandle:"frozen-creation"})).toMatchObject({status:"UNKNOWN"});
+      expect(execute).toHaveBeenCalledWith(expect.objectContaining({nativeOwnerId:ownerId,requestedPrimary:false,personaId}),expect.any(Function));
+      const response = await app.inject({method:"POST",url:"/host/v1/native/people",headers:{origin:"tauri://localhost",authorization:"Bearer "+controller},payload:{ownerId}});
+      expect(response.statusCode).toBe(401);
+    } finally { delete product.nativePeople; await rm(root,{recursive:true,force:true}); }
   });
   const browser = (cookie?: string, at = origin) => ({
     headers: { origin: at, ...(cookie ? { cookie } : {}) }
