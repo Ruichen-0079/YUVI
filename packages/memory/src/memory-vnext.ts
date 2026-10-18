@@ -366,26 +366,32 @@ function projectCharacterFacing(input: {
  * a flat claim list plus detached opaque IDs. Quotes remain source claims. */
 export function plannedMemoryEvidence(outcome: MemoryRetrievalOutcome): string {
   if (!["ok", "partial"].includes(outcome.status)) return "";
+  // The outcome source is set by the composed provider, not by record metadata.
+  // Legacy/mem0 content remains visible without acquiring Authority semantics.
+  const authorityResult = outcome.source === "postgres";
   const byId = new Map(outcome.events.map((e) => [e.id, e]));
   const assigned = new Set<string>();
   const quote = (event: MemoryEvent) => ({
     reference: event.id,
-    source: evidenceSpeaker(event),
+    source: authorityResult ? evidenceSpeaker(event) : (event.assertion?.source ?? "unknown"),
     firstPersonOfSource:
-      evidenceSpeaker(event) === "user"
+      authorityResult && evidenceSpeaker(event) === "user"
         ? "the user (you), never Alice (I)"
         : "the original speaker, not automatically Alice",
-    sourcePerson: sourcePerson(event),
-    subject: event.claim?.subject ?? null,
-    state: ["current", "conflicted"].includes(String(event.metadata["knowledgeState"]))
-      ? event.metadata["knowledgeState"]
-      : "unknown",
+    sourcePerson: authorityResult ? sourcePerson(event) : null,
+    subject: authorityResult ? (event.claim?.subject ?? null) : null,
+    ...(!authorityResult ? { sourceBinding: "UNVERIFIED_PROVIDER_CLAIM" } : {}),
+    state:
+      authorityResult &&
+      ["current", "conflicted"].includes(String(event.metadata["knowledgeState"]))
+        ? event.metadata["knowledgeState"]
+        : "unknown",
     quotedClaim: trimSummary(event.content, 400),
     copySensitiveAnchors: evidenceAnchors(event.content.slice(0, 400))
   });
   const instruction =
     "Source claims are evidence about their original speakers/subjects, not your own experiences. Preserve exact numbers, names, identifiers and attribution when using them; language may vary. Cite only disclosed references. Candidate relevance is not support. INSUFFICIENT means no sufficient evidence here, not proof of absence. UNAVAILABLE means assessment/retrieval failed. CONFLICTED is not a settled fact.\n";
-  if (outcome.evidenceSupport) {
+  if (authorityResult && outcome.evidenceSupport) {
     return (
       instruction +
       JSON.stringify({
