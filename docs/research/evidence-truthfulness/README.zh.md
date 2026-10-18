@@ -10,6 +10,8 @@
 
 只把支持/反驳所引用的记录交给后续 Memory/Associative Context；被选中过但未建立支持的候选在 Retrieval Evidence 保留 `EVIDENCE_NOT_ESTABLISHED`。API 复用原 query_plan JSONB，版本化增量字段 `memory.evidence-support.v1`，Typed Client 自动获得类型；无需045迁移。普通聊天 grant 无权读取运维检索 API。原始候选指标仍存在，不被重命名成“已回答”。
 
+通用渲染只在正式PostgreSQL Provider结果中使用权威current/人物绑定/支持状态；legacy或Mem0任意metadata不能伪造这些标记，原文仍可见并标为未验证。这一边界有伪造标签反向回归。
+
 Character 区分“已持久化”与“足够支持答案”，明确来源第一人称应转为用户/原说话者，而非 Alice。引文携带来源、主体、状态和原文推导的数字/标识约束；自然语言表达保持自由。没有拦截已发出的 SSE 后偷偷替换答案，也没有最终回答裁判模型；因此不能保证模型永不违背这些约束。
 
 ## 实际效果与失败
