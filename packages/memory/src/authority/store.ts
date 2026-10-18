@@ -218,7 +218,8 @@ export class PostgresMemoryAuthority {
         current_count=current_count+$2, unattributed_count=unattributed_count+$3, projection_version=version where scope=$1`,
         [
           input.scope,
-          (["current", "conflicted"].includes(state) ? 1 : 0) - (input.supersedes?.length ?? 0),
+          (["current", "conflicted"].includes(state) ? 1 : 0) -
+            targets.filter((t) => t.kind === "supersedes" && t.wasCurrent).length,
           state === "unattributed" ? 1 : 0
         ]
       );
@@ -236,7 +237,7 @@ export class PostgresMemoryAuthority {
       ...(input.conflicts ?? []).map((id) => ({ id, kind: "conflicts" as const })),
       ...(input.supports ?? []).map((id) => ({ id, kind: "supports" as const }))
     ];
-    if (!targets.length) return targets;
+    if (!targets.length) return [];
     const source = input.lineage;
     if (
       source?.state !== "GROUNDED" ||
@@ -251,10 +252,10 @@ export class PostgresMemoryAuthority {
       join memory_authority_current c using(scope,id) where r.scope=$1 and r.id=any($2::text[])`,
       [input.scope, targets.map((t) => t.id)]
     );
+    const validated: Array<(typeof targets)[number] & { wasCurrent: boolean }> = [];
     for (const target of targets) {
       const row = rows.rows.find((r) => r["id"] === target.id);
-      if (!row || !["current", "conflicted"].includes(String(row["state"])))
-        throw new MemoryAuthorityError("MEMORY_TARGET_STALE_OR_INACCESSIBLE");
+      if (!row) throw new MemoryAuthorityError("MEMORY_TARGET_STALE_OR_INACCESSIBLE");
       const prior = (row["event"] as MemoryEvent).lineage;
       if (
         prior?.state !== "GROUNDED" ||
@@ -276,8 +277,58 @@ export class PostgresMemoryAuthority {
           : new Date(String(row["source_at"])).getTime() < Date.parse(source.sourceTime.recordedAt);
       if (target.kind === "supersedes" && !later)
         throw new MemoryAuthorityError("MEMORY_TARGET_TIME_ORDER");
+      const wasCurrent = ["current", "conflicted"].includes(String(row["state"]));
+      if (!wasCurrent) {
+        // A frozen sibling decision is still about the original A, not a new
+        // decision about B. Only prove this exception under the scope write lock.
+        // Never turn an arbitrary stale correction into an unrelated new fact.
+        if (
+          target.kind !== "supersedes" ||
+          row["state"] !== "superseded" ||
+          !(await this.supersededBySiblings(tx, input, target.id))
+        )
+          throw new MemoryAuthorityError("MEMORY_TARGET_STALE_OR_INACCESSIBLE");
+      }
+      validated.push({ ...target, wasCurrent });
     }
-    return targets;
+    return validated;
+  }
+  private async supersededBySiblings(
+    tx: AuthorityQuery,
+    input: MemoryWriteEventInput,
+    target: string
+  ): Promise<boolean> {
+    // A previously reassessed delivery owns its original resolution protocol.
+    // Do not race or reinterpret historical PARTIAL work after an upgrade.
+    const reassessed = await tx.query(
+      "select 1 from memory_decision_reassessments where scope=$1 and logical_key=$2",
+      [input.scope, input.idempotencyKey]
+    );
+    if (reassessed.rows.length) return false;
+    const siblings = await tx.query(
+      `select r.event,c.state,exists(
+         select 1 from finalized_ingestion_events f join finalized_ingestion_events p
+           on p.finalized_turn_id=f.finalized_turn_id
+         where f.backend_idempotency_key=r.logical_key and f.event_payload->>'payloadDigest'=r.digest
+           and p.backend_idempotency_key=$3 and p.event_payload->>'payloadDigest'=$4
+       ) as same_turn from memory_authority_relations e
+       join memory_authority_records r on r.scope=e.scope and r.id=e.from_id
+       join memory_authority_current c on c.scope=r.scope and c.id=r.id
+       where e.scope=$1 and e.to_id=$2 and e.kind='supersedes' order by e.version limit 13`,
+      [input.scope, target, input.idempotencyKey, input.payloadDigest]
+    );
+    // Semantic policy admits at most twelve propositions per source. Fail
+    // closed on an unbounded/inconsistent cohort; no full-scope graph walk.
+    return (
+      siblings.rows.length > 0 &&
+      siblings.rows.length < 12 &&
+      siblings.rows.every(
+        (r) =>
+          r["same_turn"] === true &&
+          r["state"] === "current" &&
+          sameDecisionSource(input, r["event"] as MemoryEvent)
+      )
+    );
   }
   async reconcile(scope: string, key: string, digest: string) {
     canonicalScope(scope);
@@ -391,6 +442,29 @@ export function authorityId(scope: string, key: string): string {
   return `pgm1_${createHash("sha256")
     .update(canonicalLineageJson([scope, key]))
     .digest("hex")}`;
+}
+/** Quote selectors may differ; the trusted source event, authority, clocks and
+ * semantic policy must not. Re-extraction by another policy is not a sibling. */
+function sameDecisionSource(input: MemoryWriteEventInput, sibling: MemoryEvent): boolean {
+  const a = input.lineage,
+    b = sibling.lineage;
+  return Boolean(
+    a?.state === "GROUNDED" &&
+    b?.state === "GROUNDED" &&
+    "authority" in a &&
+    "authority" in b &&
+    a.origin === "USER_ASSERTION" &&
+    b.origin === a.origin &&
+    a.derivation.kind === "FINALIZED_INGESTION" &&
+    b.derivation.kind === a.derivation.kind &&
+    a.derivation.policyVersion === b.derivation.policyVersion &&
+    a.parents.length === 1 &&
+    b.parents.length === 1 &&
+    a.sourceTime.commitSeq !== undefined &&
+    canonicalLineageJson(a.parents[0]!.ref) === canonicalLineageJson(b.parents[0]!.ref) &&
+    canonicalLineageJson(a.sourceTime) === canonicalLineageJson(b.sourceTime) &&
+    canonicalLineageJson(a.authority) === canonicalLineageJson(b.authority)
+  );
 }
 export function authorityEvent(input: MemoryWriteEventInput, id: string): MemoryEvent {
   const {
