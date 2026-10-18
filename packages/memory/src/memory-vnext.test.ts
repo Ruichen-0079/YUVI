@@ -50,7 +50,7 @@ it("binds demand claims without rewriting values, speakers, conflicts or unavail
       }
     ]
   });
-  const rendered = JSON.parse(text.slice(text.indexOf("\n") + 1));
+  const rendered = JSON.parse(text.slice(text.lastIndexOf("\n") + 1));
   expect(rendered.demands[0].preferredEvidence).toMatchObject({
     quotedClaim: "茶叶偏好是月桂-5967。",
     source: "user",
