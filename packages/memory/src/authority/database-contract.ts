@@ -19,7 +19,8 @@ export async function assertMemoryAuthorityDatabase(
       m.name.startsWith("041_") ||
       m.name.startsWith("042_") ||
       m.name.startsWith("043_") ||
-      m.name.startsWith("044_")
+      m.name.startsWith("044_") ||
+      m.name.startsWith("045_")
   );
   const receipts = (
     await db.query("select name,digest from yuvi_schema_migrations where name=any($1::text[])", [
@@ -27,7 +28,7 @@ export async function assertMemoryAuthorityDatabase(
     ])
   ).rows;
   if (
-    required.length !== 12 ||
+    required.length !== 13 ||
     required.some(
       (m) =>
         receipts.find((r) => r["name"] === m.name)?.["digest"] !==
@@ -43,10 +44,11 @@ export async function assertMemoryAuthorityDatabase(
    (has_table_privilege('retained_observations','DELETE') or has_table_privilege('retained_observations','TRUNCATE') or
     exists(select 1 from unnest(array['namespace','persona_id','person_id','actor_id','source_ref','attempt_id','expires_at','evidence_digest','image_digest','commit_digest']) c
       where has_column_privilege('retained_observations',c,'UPDATE'))) as rewrites_observation_authority,
+   not exists(select 1 from unnest(array['memory_product_pairings','memory_product_hosts']) t cross join unnest(array['SELECT','INSERT','UPDATE']) p where not has_table_privilege(t,p)) as product_host_access,
    (select relkind='v' from pg_class where oid=to_regclass('memory_authority_current')) as active_view
    from pg_roles r where rolname=current_user`)
   ).rows[0];
-  if (!role || role["active_view"] !== true)
+  if (!role || role["active_view"] !== true || role["product_host_access"] !== true)
     throw new MemoryAuthorityError("MEMORY_AUTHORITY_SCHEMA_NOT_READY");
   const restricted =
     !role["superuser"] &&

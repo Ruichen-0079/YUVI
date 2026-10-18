@@ -4,14 +4,33 @@ import type { ChatMessageAction } from "./chat-state.js";
 
 /** Persist only the selected identity, never a transcript. Defaults retain existing sessions. */
 export function useConversationSession(defaultId: string) {
-  const key = `yuvi.conversation-session.${defaultId}`;
+  const [person, setPerson] = useState(() => storedPerson());
+  const key = `yuvi.conversation-session.${defaultId}${person ? "." + person : ""}`;
   const [sessionId, setSessionId] = useState(() => {
     try {
-      return localStorage.getItem(key)?.trim() || defaultId;
+      return localStorage.getItem(key)?.trim() || (person ? crypto.randomUUID() : defaultId);
     } catch {
       return defaultId;
     }
   });
+  useEffect(() => {
+    const changed = () => {
+      const next = storedPerson();
+      setPerson(next);
+      const nextKey = `yuvi.conversation-session.${defaultId}${next ? "." + next : ""}`;
+      try {
+        setSessionId(localStorage.getItem(nextKey)?.trim() || crypto.randomUUID());
+      } catch {
+        setSessionId(crypto.randomUUID());
+      }
+    };
+    window.addEventListener("yuvi-product-host-changed", changed);
+    window.addEventListener("storage", changed);
+    return () => {
+      window.removeEventListener("yuvi-product-host-changed", changed);
+      window.removeEventListener("storage", changed);
+    };
+  }, [defaultId]);
   useEffect(() => {
     try {
       if (sessionId.trim()) localStorage.setItem(key, sessionId);
@@ -62,4 +81,12 @@ export function useConversationHistory(
     };
   }, [sessionId, busy, dispatch]);
   return error;
+}
+
+function storedPerson(): string | null {
+  try {
+    return localStorage.getItem("yuvi.product-host-person");
+  } catch {
+    return null;
+  }
 }

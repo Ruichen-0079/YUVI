@@ -8,6 +8,7 @@ import {
   MemoryLegacyWorkflow,
   PostgresMemoryProvider
 } from "@companion/memory";
+import { buildMemoryScope, MemoryKnowledgeReader } from "@companion/memory";
 
 const query = z
   .object({
@@ -47,7 +48,38 @@ export async function registerMemoryKnowledgeRoutes(
     "migration"
   ] as const) {
     app.get(`/memory/v1/${operation}`, async (request, reply) => {
-      if (!requireAuthenticatedLocalOperator(config, request, reply)) return;
+      let productAccess: import("@companion/memory").MemoryReadAuthority | undefined;
+      let productIdentity:
+        | import("../conversation-host-identity.js").AuthenticatedConversationHost
+        | undefined;
+      if (
+        !request.headers.authorization &&
+        request.headers.cookie?.includes("yuvi_product_host=")
+      ) {
+        try {
+          productIdentity = await context.conversationHost?.authenticate(request);
+          if (!productIdentity || productIdentity.memoryAllowed === false)
+            return reply.code(403).send({
+              schema: "memory.error.v1",
+              status: "UNAVAILABLE",
+              error: "MEMORY_ACCESS_FORBIDDEN"
+            });
+          productAccess = {
+            principal: {
+              namespace: productIdentity.principal.namespace,
+              actorId: productIdentity.principal.actorId
+            },
+            personId: productIdentity.personId
+          };
+          reply.header("Cache-Control", "no-store");
+        } catch {
+          return reply.code(401).send({
+            schema: "memory.error.v1",
+            status: "UNAVAILABLE",
+            error: "MEMORY_ACCESS_UNAUTHORIZED"
+          });
+        }
+      } else if (!requireAuthenticatedLocalOperator(config, request, reply)) return;
       const parsed = query
         .extend({
           id: z.string().min(1).max(4096).optional(),
@@ -59,9 +91,23 @@ export async function registerMemoryKnowledgeRoutes(
           .status(400)
           .send({ schema: "memory.error.v1", status: "FAILED", error: "MEMORY_QUERY_INVALID" });
       const input = parsed.data;
+      if (
+        productIdentity &&
+        input.scope !== buildMemoryScope(productIdentity.personId, productIdentity.personaId)
+      )
+        return reply.code(403).send({
+          schema: "memory.error.v1",
+          status: "UNAVAILABLE",
+          error: "MEMORY_ACCESS_FORBIDDEN"
+        });
       let reader;
       try {
         reader = context.memory.getKnowledgeReader(input.scope);
+        if (reader && productAccess)
+          reader = new MemoryKnowledgeReader(
+            context.memory.getAuthorityInfrastructure()!.authority.pool,
+            productAccess
+          );
       } catch {
         return reply
           .status(403)
@@ -74,6 +120,38 @@ export async function registerMemoryKnowledgeRoutes(
           error: "MEMORY_AUTHORITY_NOT_ENABLED"
         });
       try {
+        if (productAccess && ["overview", "migration"].includes(operation))
+          return reply.code(403).send({
+            schema: "memory.error.v1",
+            status: "UNAVAILABLE",
+            error: "MEMORY_OPERATOR_OPERATION_REQUIRED"
+          });
+        if (productAccess && operation === "processing") {
+          const db = context.memory.getAuthorityInfrastructure()!.authority.pool;
+          const source = (
+            await db.query(
+              "select source_ref from memory_semantic_jobs where scope=$1 and job_id=$2",
+              [input.scope, input.id]
+            )
+          ).rows[0];
+          const ownsJob = Boolean(
+            source &&
+            (await context.conversationHost!.ownsSource(productIdentity!, source["source_ref"]))
+          );
+          const ownsRecord = input.id ? Boolean(await reader.detail(input.scope, input.id)) : false;
+          if (!ownsJob && !ownsRecord)
+            return reply
+              .code(404)
+              .send({ schema: "memory.error.v1", status: "UNKNOWN", error: "MEMORY_NOT_FOUND" });
+          const status = await context.memory
+            .getKnowledgeReader(input.scope)!
+            .processing(input.scope, input.id!);
+          return {
+            ...status,
+            semantic: ownsJob ? status.semantic : null,
+            indexes: ownsRecord ? status.indexes : []
+          };
+        }
         if (operation === "migration") {
           if (!input.id) throw new MemoryAuthorityError("MEMORY_ID_REQUIRED");
           const provider = context.memory.getAuthorityInfrastructure();
@@ -99,12 +177,14 @@ export async function registerMemoryKnowledgeRoutes(
             migrations: await reader.migrations(input.scope)
           };
         if (operation === "retrievals")
-          return await context.memory.getRetrievalEvidence(input.scope)!.page(input);
+          return await context.memory
+            .getRetrievalEvidence(input.scope)!
+            .page({ ...input, ...(productAccess ? { access: productAccess } : {}) });
         if (operation === "retrieval" && input.id)
           return (
             (await context.memory
               .getRetrievalEvidence(input.scope)!
-              .detail(input.scope, input.id)) ??
+              .detail(input.scope, input.id, productAccess)) ??
             reply.code(404).send({
               schema: "memory.error.v1",
               status: "UNKNOWN",
@@ -117,11 +197,31 @@ export async function registerMemoryKnowledgeRoutes(
           return reply
             .status(400)
             .send({ schema: "memory.error.v1", status: "FAILED", error: "MEMORY_ID_REQUIRED" });
-        if (operation === "processing") return await reader.processing(input.scope, input.id);
+        if (operation === "processing")
+          return await context.memory
+            .getKnowledgeReader(input.scope)!
+            .processing(input.scope, input.id);
         if (operation === "ingestion") {
           const turn = await context.finalizedIngestion.getTurn(input.id);
           if (!turn || turn.memoryScope !== input.scope)
             return reply.status(404).send({ schema: "memory.ingestion.v1", status: "UNKNOWN" });
+          if (productIdentity) {
+            const db = context.memory.getAuthorityInfrastructure()!.authority.pool;
+            const source = (
+              await db.query(
+                "select source_journal_ref from conversation_messages where id=$1 and finalized_turn_id=$2",
+                [turn.sourceUserEventId, input.id]
+              )
+            ).rows[0];
+            if (
+              !source ||
+              !(await context.conversationHost!.ownsSource(
+                productIdentity,
+                source["source_journal_ref"]
+              ))
+            )
+              return reply.code(404).send({ schema: "memory.ingestion.v1", status: "UNKNOWN" });
+          }
           // No raw source or frozen payload is returned through the product status endpoint.
           return {
             schema: "memory.ingestion.v1",

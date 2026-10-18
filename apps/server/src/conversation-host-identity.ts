@@ -19,25 +19,50 @@ export type AuthenticatedConversationHost = Readonly<{
   personId: string;
   personaId: string;
   bindingVersion: string;
+  memoryAllowed?: boolean;
 }>;
 type RequestIdentity = { headers: Record<string, string | string[] | undefined> };
 /** Security admission, not semantic processing. Only a Host-issued bearer grants continuity. */
 export class ConversationHostIdentity {
   private readonly authenticated = new WeakSet<object>();
+  productCookie?: ((request: RequestIdentity) => Promise<string | undefined>) | undefined;
   constructor(
     private readonly db: AuthorityPool,
     private readonly journal: JournalRepository,
     readonly owner: { instanceId: string; personaId: string },
     private readonly personRevision: (personId: string) => string | null
   ) {}
-  async issue(personId: string, lifetimeSeconds = 86400) {
+  personVersion(personId: string) {
+    return this.personRevision(personId);
+  }
+  get namespace() {
+    return this.journal.namespace;
+  }
+  async ownsSource(identity: AuthenticatedConversationHost, ref: JournalEventRef) {
+    if (!this.authenticated.has(identity) || ref.namespace !== this.namespace) return false;
+    const source = await this.journal.get(ref);
+    const a = source?.authority;
+    return (
+      a?.principal.state === "RESOLVED" &&
+      a.principal.actorId === identity.principal.actorId &&
+      a.principal.namespace === identity.principal.namespace &&
+      a.binding.state === "RESOLVED" &&
+      a.binding.personId === identity.personId &&
+      a.audience.kind === "PRIVATE"
+    );
+  }
+  async issue(
+    personId: string,
+    lifetimeSeconds = 86400,
+    db: Pick<AuthorityPool, "query"> = this.db
+  ) {
     const revision = this.personRevision(personId);
     if (!revision) throw new ConversationHostIdentityError("HOST_PERSON_NOT_VERSIONED");
     if (!Number.isInteger(lifetimeSeconds) || lifetimeSeconds < 60 || lifetimeSeconds > 2592000)
       throw new ConversationHostIdentityError("HOST_GRANT_LIFETIME_INVALID", 400);
     const grantId = `mhg_${randomUUID()}`;
     const token = `yuh_${randomBytes(32).toString("base64url")}`;
-    await this.db.query(
+    await db.query(
       `insert into memory_host_principals(journal_namespace,instance_id,persona_id,person_id,actor_id) values($1,$2,$3,$4,$5) on conflict do nothing`,
       [
         this.journal.namespace,
@@ -48,13 +73,13 @@ export class ConversationHostIdentity {
       ]
     );
     const principal = (
-      await this.db.query(
+      await db.query(
         `select actor_id from memory_host_principals where journal_namespace=$1 and instance_id=$2 and persona_id=$3 and person_id=$4`,
         [this.journal.namespace, this.owner.instanceId, this.owner.personaId, personId]
       )
     ).rows[0]!;
     const actorId = String(principal["actor_id"]);
-    await this.db.query(
+    await db.query(
       `insert into memory_host_grants(grant_id,token_hash,journal_namespace,instance_id,persona_id,person_id,person_revision,actor_id,expires_at)
       values($1,$2,$3,$4,$5,$6,$7,$8,now()+$9*interval '1 second')`,
       [
@@ -99,7 +124,7 @@ export class ConversationHostIdentity {
       if (!personId) return source.authority.binding.state === "UNRESOLVED";
       if (this.personRevision(personId) !== revision) return false;
       return Boolean(
-        await this.readAuthority(ref, buildMemoryScope(personId, this.owner.personaId))
+        await this.allowsConversationSource(ref, buildMemoryScope(personId, this.owner.personaId))
       );
     };
   }
@@ -110,6 +135,14 @@ export class ConversationHostIdentity {
       subjectUserId?: string | null | undefined;
       personaId?: string | null | undefined;
     }
+  ): Promise<AuthenticatedConversationHost | undefined> {
+    const identity = await this.authenticate(request, input);
+    await this.claimSession(input.sessionId, identity);
+    return identity;
+  }
+  async authenticate(
+    request: RequestIdentity,
+    input: { subjectUserId?: string | null | undefined; personaId?: string | null | undefined } = {}
   ): Promise<AuthenticatedConversationHost | undefined> {
     const origin = request.headers["origin"];
     if (origin !== undefined && (typeof origin !== "string" || !isDesktopAllowedOrigin(origin)))
@@ -135,15 +168,29 @@ export class ConversationHostIdentity {
     // A dashboard credential is not a Person identity. A malformed Host token is never anonymous.
     if (!token && typeof auth === "string" && auth.includes("yuh_"))
       throw new ConversationHostIdentityError("HOST_CREDENTIAL_INVALID", 401);
+    if (
+      !this.productCookie &&
+      typeof request.headers["cookie"] === "string" &&
+      request.headers["cookie"].includes("yuvi_product_host=")
+    )
+      throw new ConversationHostIdentityError("HOST_PRODUCT_UNAVAILABLE", 401);
+    const cookieToken = await this.productCookie?.(request);
+    if (token && cookieToken)
+      throw new ConversationHostIdentityError("HOST_CREDENTIAL_AMBIGUOUS", 401);
+    if (!token) token = cookieToken;
     let identity: AuthenticatedConversationHost | undefined;
     if (token) {
       const row = (
         await this.db.query(
-          `select * from memory_host_grants where token_hash=$1 and journal_namespace=$2 and instance_id=$3 and persona_id=$4 and revoked_at is null and expires_at>clock_timestamp()`,
+          `select g.*,coalesce(p.memory_enabled,true) as memory_allowed,p.grant_id as product_grant_id from memory_host_grants g left join memory_product_hosts p using(grant_id) where token_hash=$1 and journal_namespace=$2 and instance_id=$3 and persona_id=$4 and revoked_at is null and expires_at>clock_timestamp()`,
           [hash(token), this.journal.namespace, this.owner.instanceId, this.owner.personaId]
         )
       ).rows[0];
-      if (!row || row["person_revision"] !== this.personRevision(String(row["person_id"])))
+      if (
+        !row ||
+        (row["product_grant_id"] && token !== cookieToken) ||
+        row["person_revision"] !== this.personRevision(String(row["person_id"]))
+      )
         throw new ConversationHostIdentityError("HOST_CREDENTIAL_INVALID", 401);
       identity = Object.freeze({
         grantId: String(row["grant_id"]),
@@ -155,7 +202,8 @@ export class ConversationHostIdentity {
         },
         personId: String(row["person_id"]),
         personaId: this.owner.personaId,
-        bindingVersion: String(row["grant_id"])
+        bindingVersion: String(row["grant_id"]),
+        memoryAllowed: row["memory_allowed"] === true
       });
       this.authenticated.add(identity);
       if (
@@ -166,7 +214,6 @@ export class ConversationHostIdentity {
     } else if (input.personaId && input.personaId !== this.owner.personaId) {
       throw new ConversationHostIdentityError("HOST_PERSONA_FORBIDDEN");
     }
-    await this.claimSession(input.sessionId, identity);
     return identity;
   }
   private async claimSession(sessionId: string, identity?: AuthenticatedConversationHost) {
@@ -241,7 +288,8 @@ export class ConversationHostIdentity {
   /** Serialize accepted ingress with grant revocation; profile text is not an authority generation. */
   async lockCurrentGrant(
     identity: AuthenticatedConversationHost,
-    tx: Pick<AuthorityPool, "query">
+    tx: Pick<AuthorityPool, "query">,
+    requireMemory = false
   ): Promise<boolean> {
     if (!this.authenticated.has(identity)) return false;
     const row = (
@@ -259,12 +307,34 @@ export class ConversationHostIdentity {
         ]
       )
     ).rows[0];
-    return Boolean(row && row["person_revision"] === this.personRevision(identity.personId));
+    if (!row || row["person_revision"] !== this.personRevision(identity.personId)) return false;
+    const product = (
+      await tx.query(
+        "select memory_enabled from memory_product_hosts where grant_id=$1 for share",
+        [identity.grantId]
+      )
+    ).rows[0];
+    return !requireMemory || !product || product["memory_enabled"] === true;
+  }
+  /** Conversation text remains usable when long-term Memory is disabled. Revocation still fences both. */
+  async allowsConversationSource(
+    ref: JournalEventRef | undefined,
+    scope: string
+  ): Promise<boolean> {
+    return Boolean(await this.resolveSourceAuthority(ref, scope, undefined, false));
   }
   async readAuthority(
     ref: JournalEventRef | undefined,
     scope: string,
     transaction?: Pick<AuthorityPool, "query">
+  ): Promise<MemoryReadAuthority | undefined> {
+    return this.resolveSourceAuthority(ref, scope, transaction, true);
+  }
+  private async resolveSourceAuthority(
+    ref: JournalEventRef | undefined,
+    scope: string,
+    transaction: Pick<AuthorityPool, "query"> | undefined,
+    requireMemory: boolean
   ): Promise<MemoryReadAuthority | undefined> {
     if (!ref || ref.namespace !== this.journal.namespace) return undefined;
     const e = await this.journal.get(ref, transaction);
@@ -282,7 +352,7 @@ export class ConversationHostIdentity {
       return undefined;
     const row = (
       await (transaction ?? this.db).query(
-        `select grant_id,person_revision from memory_host_grants where grant_id=$1 and actor_id=$2 and person_id=$3 and persona_id=$4 and instance_id=$5 and journal_namespace=$6 and revoked_at is null and expires_at>clock_timestamp()${transaction ? " for share" : ""}`,
+        `select grant_id,person_revision from memory_host_grants g where grant_id=$1 and actor_id=$2 and person_id=$3 and persona_id=$4 and instance_id=$5 and journal_namespace=$6 and revoked_at is null and expires_at>clock_timestamp()${transaction ? " for share" : ""}`,
         [
           a.binding.bindingVersion,
           a.principal.actorId,
@@ -293,7 +363,17 @@ export class ConversationHostIdentity {
         ]
       )
     ).rows[0];
-    return row && row["person_revision"] === this.personRevision(a.binding.personId)
+    const product = row
+      ? (
+          await (transaction ?? this.db).query(
+            `select memory_enabled from memory_product_hosts where grant_id=$1${transaction ? " for share" : ""}`,
+            [row["grant_id"]]
+          )
+        ).rows[0]
+      : undefined;
+    return row &&
+      (!requireMemory || !product || product["memory_enabled"] === true) &&
+      row["person_revision"] === this.personRevision(a.binding.personId)
       ? {
           principal: { namespace: a.principal.namespace, actorId: a.principal.actorId },
           personId: a.binding.personId

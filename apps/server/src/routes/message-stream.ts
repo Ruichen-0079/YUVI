@@ -55,6 +55,10 @@ export async function registerMessageStreamRoutes(
       try {
         hostIdentity = await context.conversationHost?.authorize(request, input.data);
         if (hostIdentity) {
+          if (hostIdentity.memoryAllowed === false) {
+            memoryOptions.readMemory = false;
+            memoryOptions.writeMemory = false;
+          }
           if (input.data.speechObservationId)
             throw new ConversationHostIdentityError("HOST_SPEECH_AUTHORITY_UNRESOLVED");
           identity = { subjectUserId: hostIdentity.personId, personaId: hostIdentity.personaId };

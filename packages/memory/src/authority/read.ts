@@ -1,4 +1,4 @@
-import type { MemoryEvent } from "../provider.js";
+import type { MemoryEvent, MemoryReadAuthority } from "../provider.js";
 import { MemoryLineageV1Schema } from "../lineage.js";
 import { lexicalQueryTerms } from "./lexical-index.js";
 import {
@@ -23,8 +23,15 @@ const activeProjection = `(select scope,id,version,state,search from memory_auth
  where scope=$1 and generation=(select projection_generation from memory_authority_scopes where scope=$1))`;
 
 export class MemoryKnowledgeReader {
-  constructor(private readonly db: AuthorityQuery) {}
+  constructor(
+    private readonly db: AuthorityQuery,
+    private readonly access?: MemoryReadAuthority
+  ) {}
   async overview(scope: string): Promise<KnowledgeOverview> {
+    this.requireOperator();
+    return this.projectionHealth(scope);
+  }
+  private async projectionHealth(scope: string): Promise<KnowledgeOverview> {
     canonicalScope(scope);
     const row = (
       await this.db.query("select * from memory_authority_scopes where scope=$1", [scope])
@@ -68,8 +75,15 @@ export class MemoryKnowledgeReader {
     const rows = await this.db.query(
       `select r.*,c.state from ${activeProjection} c join memory_authority_records r using(scope,id)
       where c.scope=$1 and (($2::text is null and c.state in ('current','conflicted')) or c.state=$2) and c.version <= $3::bigint and ($4::bigint is null or c.version < $4::bigint)
-      order by c.version desc limit $5`,
-      [input.scope, input.state ?? null, anchor, cursor?.after ?? null, limit + 1]
+      ${disclosure("r", 6)} order by c.version desc limit $5`,
+      [
+        input.scope,
+        input.state ?? null,
+        anchor,
+        cursor?.after ?? null,
+        limit + 1,
+        accessSnapshot(this.access)
+      ]
     );
     const records = rows.rows.slice(0, limit).map(mapRecord);
     return {
@@ -93,8 +107,8 @@ export class MemoryKnowledgeReader {
     const rows = await this.db.query(
       `select r.*,c.state from memory_authority_records r join ${activeProjection} c using(scope,id)
       where r.scope=$1 and r.version <= $2::bigint and ($3::bigint is null or r.version < $3::bigint)
-      order by r.version desc limit $4`,
-      [input.scope, anchor, cursor?.after ?? null, limit + 1]
+      ${disclosure("r", 5)} order by r.version desc limit $4`,
+      [input.scope, anchor, cursor?.after ?? null, limit + 1, accessSnapshot(this.access)]
     );
     const records = rows.rows.slice(0, limit).map(mapRecord);
     return {
@@ -110,8 +124,8 @@ export class MemoryKnowledgeReader {
     await this.requireProjection(scope);
     const row = (
       await this.db.query(
-        `select r.*,c.state from memory_authority_records r join ${activeProjection} c using(scope,id) where r.scope=$1 and r.id=$2`,
-        [scope, id]
+        `select r.*,c.state from memory_authority_records r join ${activeProjection} c using(scope,id) where r.scope=$1 and r.id=$2 ${disclosure("r", 3)}`,
+        [scope, id, accessSnapshot(this.access)]
       )
     ).rows[0];
     return row ? mapRecord(row) : null;
@@ -128,6 +142,7 @@ export class MemoryKnowledgeReader {
     relevanceById?: Record<string, number>;
     queryTermsLimited?: boolean;
   }> {
+    this.requireOperator();
     const health = await this.requireProjection(scope);
     // Bound the query, not the corpus. All candidates are resolved against the current projection.
     if (health.version === "0" && health.records === "0")
@@ -245,8 +260,11 @@ export class MemoryKnowledgeReader {
     await this.requireProjection(scope);
     const n = boundLimit(limit);
     const rows = await this.db.query(
-      `select from_id,to_id,kind,version from memory_authority_relations where scope=$1 and (from_id=$2 or to_id=$2) order by version desc limit $3`,
-      [scope, id, n + 1]
+      `select e.from_id,e.to_id,e.kind,e.version from memory_authority_relations e
+       join memory_authority_records r on r.scope=e.scope and r.id=e.from_id
+       join memory_authority_records t on t.scope=e.scope and t.id=e.to_id
+       where e.scope=$1 and (e.from_id=$2 or e.to_id=$2) ${disclosure("r", 4)} ${disclosure("t", 4)} order by e.version desc limit $3`,
+      [scope, id, n + 1, accessSnapshot(this.access)]
     );
     return {
       schema: "memory.relations.v1",
@@ -260,6 +278,7 @@ export class MemoryKnowledgeReader {
     };
   }
   async migrations(scope: string): Promise<MemoryMigrationView[]> {
+    this.requireOperator();
     return (
       await this.db.query(
         "select migration_id,source,checkpoint,imported_count,state,error_code,updated_at from memory_authority_migrations where scope=$1 order by updated_at desc,migration_id limit 10",
@@ -276,6 +295,7 @@ export class MemoryKnowledgeReader {
     }));
   }
   async processing(scope: string, id: string): Promise<MemoryProcessingView> {
+    this.requireOperator();
     canonicalScope(scope);
     const row = (
       await this.db.query(
@@ -323,11 +343,28 @@ export class MemoryKnowledgeReader {
     }));
     return { schema: "memory.processing.v1", semantic, indexes };
   }
+  private requireOperator() {
+    if (this.access) throw new MemoryAuthorityError("MEMORY_OPERATOR_OPERATION_REQUIRED");
+  }
   private async requireProjection(scope: string) {
-    const health = await this.overview(scope);
+    const health = await this.projectionHealth(scope);
     if (health.status !== "OK") throw new MemoryAuthorityError("MEMORY_PROJECTION_BEHIND");
     return health;
   }
+}
+function accessSnapshot(access?: MemoryReadAuthority) {
+  return access
+    ? {
+        principal: { state: "RESOLVED", kind: "PRINCIPAL", ...access.principal },
+        binding: { state: "RESOLVED", personId: access.personId },
+        audience: { kind: "PRIVATE" }
+      }
+    : null;
+}
+function disclosure(alias: "r" | "t", parameter: number) {
+  return `and ($${parameter}::jsonb is null or (${alias}.classification='GROUNDED'
+    and ${alias}.event->'lineage'->'authority'->'principal'->>'actorId'=$${parameter}::jsonb->'principal'->>'actorId'
+    and ${alias}.event->'lineage'->'authority' @> $${parameter}::jsonb))`;
 }
 function mapRecord(row: Record<string, unknown>): KnowledgeRecord {
   const event = row["event"] as MemoryEvent;

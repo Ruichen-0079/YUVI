@@ -1,3 +1,4 @@
+import { registerProductHostRoutes } from "./routes/product-host.js";
 import { registerObservationRoutes } from "./routes/observations.js";
 import { registerMemoryOperationRoutes } from "./routes/memory-operations.js";
 import { registerConversationHostRoutes } from "./routes/conversation-host.js";
@@ -246,6 +247,7 @@ export async function buildServer(config: ServerConfig, options: BuildServerOpti
   if (!options.characterComposition) await registerPeopleVoiceRoutes(app, context, config);
   if (!options.characterComposition) await registerSystemRoutes(app, config);
   await registerConversationHostRoutes(app, context, config);
+  await registerProductHostRoutes(app, context);
   await registerObservationRoutes(app, context);
   await registerMessageRoutes(app, context);
   await registerConversationHistoryRoutes(app, context);

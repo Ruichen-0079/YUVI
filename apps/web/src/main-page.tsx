@@ -180,6 +180,20 @@ export function MainPage(): JSX.Element {
     createSpeechPlaybackCorrelation()
   );
   const activeRequestRef = useRef<ActiveRequestOwnership | null>(null);
+  const priorSessionRef = useRef(sessionId);
+  useEffect(() => {
+    if (priorSessionRef.current === sessionId) return;
+    priorSessionRef.current = sessionId;
+    const active = activeRequestRef.current;
+    activeRequestRef.current = null;
+    active?.controller.abort();
+    if (active) busRef.current?.post({ kind: "stop-speech", requestId: active.id });
+    speechSessionRef.current = null;
+    setRequestStatus("idle");
+    setVoicePlaybackStatus("idle");
+    setInput("");
+    setError(null);
+  }, [sessionId]);
   const audioCaptureRef = useRef<ActiveAudioCapture | null>(null);
   const liveSpeechCaptureRef = useRef<LiveSpeechCapture | null>(null);
   const handsFreeBufferRef = useRef<HandsFreeUtteranceBuffer | null>(null);

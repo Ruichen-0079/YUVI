@@ -286,7 +286,7 @@ export async function registerWebSocketRoutes(
               sessionId: parsed.payload.sessionId,
               runtimeEventId: parsed.id,
               traceId: parsed.traceId,
-              memoryWriteRequested: true,
+              memoryWriteRequested: hostIdentity?.memoryAllowed !== false,
               content: parsed.payload.content
             });
             sourceJournalRef = toConversationalJournalRef(receipt.envelope);
@@ -320,16 +320,21 @@ export async function registerWebSocketRoutes(
             );
             return;
           }
-          await context.runtime.handleUserMessage({
-            ...parsed,
-            payload: {
-              ...parsed.payload,
-              sourceJournalRef,
-              ...(hostIdentity
-                ? { subjectUserId: hostIdentity.personId, personaId: hostIdentity.personaId }
-                : {})
-            }
-          });
+          await context.runtime.handleUserMessage(
+            {
+              ...parsed,
+              payload: {
+                ...parsed.payload,
+                sourceJournalRef,
+                ...(hostIdentity
+                  ? { subjectUserId: hostIdentity.personId, personaId: hostIdentity.personaId }
+                  : {})
+              }
+            },
+            hostIdentity?.memoryAllowed === false
+              ? { readMemory: false, writeMemory: false }
+              : undefined
+          );
         } catch (error) {
           if (ownership) activeTraceIds.deleteOwned(ownership.traceId, ownership.owner);
           await sendAccounted(

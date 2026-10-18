@@ -8,6 +8,11 @@
       "types": "./src/index.ts",
       "development": "./src/index.ts",
       "import": "./dist/index.js"
+    },
+    "./knowledge-client": {
+      "types": "./src/authority/client.ts",
+      "development": "./src/authority/client.ts",
+      "import": "./dist/authority/client.js"
     }
   },
   "scripts": {

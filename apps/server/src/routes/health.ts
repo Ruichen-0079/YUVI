@@ -59,6 +59,7 @@ export async function registerHealthRoutes(
       server: { status: "healthy" },
       database,
       memoryIngestion,
+      memory: { backend: context.memory.usesSemanticMemoryPolicy() ? "postgres-authority" : "legacy", productHost: Boolean(context.productHost) },
       providers: {
         chat,
         chatCapability,

@@ -313,6 +313,7 @@ pub fn run() {
       get_subtitle_presentation_state,
       set_subtitle_locked,
       supervisor::get_service_status,
+      supervisor::create_product_host_pairing,
       supervisor::get_desktop_runtime_binding,
       supervisor::retry_desktop_runtime_binding,
       supervisor::refresh_services,
