@@ -33,6 +33,7 @@ export const EvidenceSupportSchema = z
               "EXPLICIT_EVIDENCE",
               "NO_SUFFICIENT_EVIDENCE",
               "CONFLICT_OR_UNCERTAINTY",
+              "EVIDENCE_CONTEXT_BOUND",
               "INVALID_CITATION",
               "ASSESSMENT_UNAVAILABLE"
             ])
@@ -216,7 +217,11 @@ export function validateEvidenceSupport(input: SupportInput, value: unknown): Ev
             ...n,
             verdict: "INSUFFICIENT" as const,
             citations: [],
-            reason: "INVALID_CITATION" as const
+            reason: n.citations.some((c) => (byId.get(c.id)?.content.length ?? 0) > 1600)
+              ? ("EVIDENCE_CONTEXT_BOUND" as const)
+              : n.citations.some((c) => byId.get(c.id)?.metadata["knowledgeState"] === "conflicted")
+                ? ("CONFLICT_OR_UNCERTAINTY" as const)
+                : ("INVALID_CITATION" as const)
           };
     })
   };
