@@ -1,0 +1,126 @@
+{
+  "check": {
+    "completed": true
+  },
+  "build": {
+    "completed": true
+  },
+  "web-build": {
+    "completed": true
+  },
+  "final-tests": {
+    "passed": 4135,
+    "skipped": 52,
+    "nodePassed": 63,
+    "workspaceCounts": [
+      {
+        "package": "packages/database",
+        "passed": 2,
+        "skipped": 0
+      },
+      {
+        "package": "packages/prompt-builder",
+        "passed": 40,
+        "skipped": 0
+      },
+      {
+        "package": "packages/host-environment",
+        "passed": 16,
+        "skipped": 0
+      },
+      {
+        "package": "packages/protocol",
+        "passed": 55,
+        "skipped": 0
+      },
+      {
+        "package": "packages/character-abi",
+        "passed": 83,
+        "skipped": 0
+      },
+      {
+        "package": "packages/config",
+        "passed": 15,
+        "skipped": 0
+      },
+      {
+        "package": "packages/character-harness",
+        "passed": 135,
+        "skipped": 0
+      },
+      {
+        "package": "packages/event-bus",
+        "passed": 5,
+        "skipped": 0
+      },
+      {
+        "package": "packages/journal",
+        "passed": 13,
+        "skipped": 0
+      },
+      {
+        "package": "packages/providers",
+        "passed": 386,
+        "skipped": 1
+      },
+      {
+        "package": "packages/effects",
+        "passed": 129,
+        "skipped": 0
+      },
+      {
+        "package": "packages/desktop-supervisor",
+        "passed": 231,
+        "skipped": 0
+      },
+      {
+        "package": "packages/cognition",
+        "passed": 115,
+        "skipped": 0
+      },
+      {
+        "package": "packages/memory",
+        "passed": 650,
+        "skipped": 3
+      },
+      {
+        "package": "packages/p8",
+        "passed": 203,
+        "skipped": 0
+      },
+      {
+        "package": "apps/web",
+        "passed": 818,
+        "skipped": 0
+      },
+      {
+        "package": "packages/core",
+        "passed": 495,
+        "skipped": 0
+      },
+      {
+        "package": "apps/server",
+        "passed": 744,
+        "skipped": 48
+      }
+    ]
+  },
+  "final-web-tests": {
+    "passed": 818,
+    "skipped": 0
+  },
+  "rust-tests": {
+    "passed": 107
+  },
+  "package-tests": {
+    "passed": 78
+  },
+  "final-server-tests": {
+    "passed": 16,
+    "skipped": 0
+  },
+  "role-tests": {
+    "passed": 2,
+    "skipped": 0
+  }
+}
