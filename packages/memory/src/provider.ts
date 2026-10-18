@@ -178,6 +178,8 @@ export type MemoryRetrievalStatus = "ok" | "empty" | "unavailable" | "error" | "
  * "error" must not be collapsed into "empty" by a Runtime caller.
  */
 export type MemoryRetrievalOutcome = {
+  /** Optional semantic assessment; candidate selection alone does not establish support. */
+  evidenceSupport?: import("./authority/evidence-support.js").EvidenceSupport;
   /** Candidate availability, not entailment or a promise of answer completeness. */
   coverage?: Array<{
     id: string;

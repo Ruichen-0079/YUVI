@@ -1,0 +1,848 @@
+{
+  "schema": "yuvi.stack-integration.v1",
+  "sha": "527533325e0899a695509df19a2f1cd54e72f9c1",
+  "started": "2026-10-18T06:59:53.048Z",
+  "databases": {
+    "name": "yuvi_pr_stack_d39fd8134aed43a08ca87f8c26a6a45e",
+    "restoredName": "yuvi_pr_restored_d39fd8134aed43a08ca87f8c26a6a45e"
+  },
+  "stages": [
+    {
+      "pr": 322,
+      "base": "main",
+      "head": "e92e30bbd4c9242c74860bf48d1eed8bde40e58e",
+      "draft": false,
+      "ancestor": true,
+      "simulatedMergeTree": "d12ea9d9205901681023968fcf52c78a4bfb7b27",
+      "headTree": "d12ea9d9205901681023968fcf52c78a4bfb7b27",
+      "applied": [
+        "001_init_memory.sql",
+        "002_postgres_search_v2.sql",
+        "003_embedding_pgvector_v1.sql",
+        "004_ann_vector_index_v1.sql",
+        "005_identity_retention_v1.sql",
+        "006_conversation_v1.sql",
+        "007_conversation_streaming.sql",
+        "008_finalized_ingestion_ledger_v1.sql",
+        "009_finalized_ingestion_work_discovery_v1.sql",
+        "010_embedding_mrl_512_v1.sql",
+        "011_p8_corrections_v1.sql",
+        "012_memory_vnext_v1.sql",
+        "013_life_event_journal_v1.sql",
+        "014_conversation_journal_ancestry_v1.sql",
+        "015_memory_lineage_v1.sql",
+        "016_episode_dream_source_evidence_v1.sql",
+        "017_profile_snapshots_v1.sql",
+        "018_profile_lifecycle_v1.sql",
+        "019_evidence_admission_v1.sql",
+        "020_effect_intents_v1.sql",
+        "021_effect_attempts_v1.sql",
+        "022_native_control_effects_v1.sql",
+        "023_reply_components_v1.sql",
+        "024_context_use_manifests_v1.sql",
+        "025_character_runtime_owner_v1.sql"
+      ],
+      "elapsedMs": 173.02685300000007
+    },
+    {
+      "pr": 323,
+      "base": "fix/backend-boundary-recovery-20261010",
+      "head": "c3f7f06cb5a728d05bc78137af3d7178a774c8f6",
+      "draft": false,
+      "ancestor": true,
+      "simulatedMergeTree": "3adeb7062377f30b50f2f62e3d08204fb53347ce",
+      "headTree": "3adeb7062377f30b50f2f62e3d08204fb53347ce",
+      "applied": [],
+      "elapsedMs": 52.43118000000004
+    },
+    {
+      "pr": 324,
+      "base": "fix/runtime-model-value-20261010",
+      "head": "8c6eb38178804f28d3d552cfcdf77eb692a2c9ae",
+      "draft": false,
+      "ancestor": true,
+      "simulatedMergeTree": "3068bd1b9f3de6db998b2583c7ee6b56606022ba",
+      "headTree": "3068bd1b9f3de6db998b2583c7ee6b56606022ba",
+      "applied": [],
+      "elapsedMs": 55.437511000000086
+    },
+    {
+      "pr": 325,
+      "base": "fix/memory-correction-character-cognition-r4",
+      "head": "11e88bdcc0423d7446f265aa7617cf375cf931e6",
+      "draft": true,
+      "ancestor": true,
+      "simulatedMergeTree": "2ddccea7ea379136052dbb215d0379f8713ec41f",
+      "headTree": "2ddccea7ea379136052dbb215d0379f8713ec41f",
+      "applied": [
+        "026_memory_authority_v1.sql"
+      ],
+      "elapsedMs": 191.35444099999995
+    },
+    {
+      "pr": 326,
+      "base": "feat/runtime-memory-r5-authority",
+      "head": "8632dd9107fc07d04f3cc8825c848c48394bd6ae",
+      "draft": true,
+      "ancestor": true,
+      "simulatedMergeTree": "0142b42c02a40976a144853202f98e630dee394d",
+      "headTree": "0142b42c02a40976a144853202f98e630dee394d",
+      "applied": [
+        "027_memory_runtime_host.sql",
+        "028_memory_retrieval_evidence.sql",
+        "029_memory_integrity_audit.sql",
+        "030_memory_decision_reassessment.sql",
+        "031_memory_operator_actions.sql",
+        "032_memory_audit_invalidation.sql",
+        "033_memory_online_projection.sql",
+        "034_memory_context_effect_lookup.sql",
+        "035_memory_legacy_workflow.sql",
+        "036_memory_retrieval_completeness.sql"
+      ],
+      "elapsedMs": 264.74975500000005
+    },
+    {
+      "pr": 327,
+      "base": "feat/runtime-memory-r5-phase2",
+      "head": "ce5e078f8b646da5ee55c0ddf1fc7d53fa41fb6d",
+      "draft": true,
+      "ancestor": true,
+      "simulatedMergeTree": "df294cda535b170b157063993861b24af44b1fb1",
+      "headTree": "df294cda535b170b157063993861b24af44b1fb1",
+      "applied": [],
+      "elapsedMs": 70.39463999999998
+    },
+    {
+      "pr": 328,
+      "base": "feat/production-reality-cognitive-continuity",
+      "head": "a7b5e9bbcf810a425c398e7482bb768fbe8ae9e6",
+      "draft": true,
+      "ancestor": true,
+      "simulatedMergeTree": "9f098ee01bb1db344906dbba892865df3508bca7",
+      "headTree": "9f098ee01bb1db344906dbba892865df3508bca7",
+      "applied": [
+        "037_accepted_user_ingestion.sql",
+        "038_observation_retention.sql",
+        "039_observation_erasure_guard.sql"
+      ],
+      "elapsedMs": 151.794394
+    },
+    {
+      "pr": 329,
+      "base": "feat/evidence-continuity-authority-separation",
+      "head": "ccbf1994faa39e9e5ba270e2f7aa405996702a5f",
+      "draft": true,
+      "ancestor": true,
+      "simulatedMergeTree": "7612a3db09cd9d748acc0ae4a564d7611b2e2f9a",
+      "headTree": "7612a3db09cd9d748acc0ae4a564d7611b2e2f9a",
+      "applied": [
+        "040_observation_terminal_commit.sql"
+      ],
+      "elapsedMs": 98.52011700000003
+    },
+    {
+      "pr": 330,
+      "base": "feat/durable-observation-retrieval",
+      "head": "28361e04b0b46059cc3ae5d18e83f38eb6c5c703",
+      "draft": true,
+      "ancestor": true,
+      "simulatedMergeTree": "c047ebd841c28fb0f9c0dc63e3aa0a48713a02bd",
+      "headTree": "c047ebd841c28fb0f9c0dc63e3aa0a48713a02bd",
+      "applied": [
+        "041_memory_retrieval_plan.sql"
+      ],
+      "elapsedMs": 81.23566700000015
+    },
+    {
+      "pr": 331,
+      "base": "fix/memory-retrieval-quality",
+      "head": "91d01002a4a9405111c56a1ab7adaa1421c00595",
+      "draft": true,
+      "ancestor": true,
+      "simulatedMergeTree": "27bc27fe0b2f986243d5b035d02a182b5298b507",
+      "headTree": "27bc27fe0b2f986243d5b035d02a182b5298b507",
+      "applied": [
+        "042_memory_lexical_postings.sql",
+        "043_memory_lexical_seek.sql",
+        "044_memory_projection_point_lookup.sql"
+      ],
+      "elapsedMs": 217.38473299999987
+    }
+  ],
+  "notes": [
+    "Synthetic complete database backup, not an installed Alice backup; no production files, credentials, external effects or private content.",
+    "Main legacy runner SQL order is reproduced without a ledger. New runner is used for subsequent stages. No Git refs are merged."
+  ],
+  "main": {
+    "sha": "0d894cc70d42ebba0df132924f5ea181c062b431",
+    "migrations": [
+      {
+        "name": "001_init_memory.sql",
+        "digest": "475ef01ea39d03248ffd744dc61159e4010c8656fdb44e8cd07e8109e49876b2"
+      },
+      {
+        "name": "002_postgres_search_v2.sql",
+        "digest": "9cdf7eebe6956f9591be4739b8d7b215bb0e1b4a32b5bb73a23bebbc81cdd7ac"
+      },
+      {
+        "name": "003_embedding_pgvector_v1.sql",
+        "digest": "5965578d74dbba13418b3386b9e45bbe9315e6727d0f563a1ce0a7cf83fef9e0"
+      },
+      {
+        "name": "004_ann_vector_index_v1.sql",
+        "digest": "759bb8ef46f119866619449244ca6f81af7b0822fc47daff672eb07d08437eeb"
+      },
+      {
+        "name": "005_identity_retention_v1.sql",
+        "digest": "2db02b9b6e9a9313d0645d8a423caf7f8cfd12439697216d78ba9d8d88809d84"
+      },
+      {
+        "name": "006_conversation_v1.sql",
+        "digest": "ce4951781a9427836bf9555db0490a802015ee0d2cb4f964370e39d6198ac2b6"
+      },
+      {
+        "name": "007_conversation_streaming.sql",
+        "digest": "61aab8ecdc6cae420798d3d1ef58cdc7d4767f37737bec3585e79e45f3fdc8f4"
+      },
+      {
+        "name": "008_finalized_ingestion_ledger_v1.sql",
+        "digest": "f2cb82f2a07dfb2b0290dca0631d27dbcb92546510d3659444a4b2371fef0bcd"
+      },
+      {
+        "name": "009_finalized_ingestion_work_discovery_v1.sql",
+        "digest": "09d01b1ca0f0d1e20f86669760083b4b51004f33cac100d76bd863e23abd7347"
+      },
+      {
+        "name": "010_embedding_mrl_512_v1.sql",
+        "digest": "21ca3b09d1f563ac7abb3992344cf25fc570129a771d866aff03f9cdfc475f6f"
+      },
+      {
+        "name": "011_p8_corrections_v1.sql",
+        "digest": "cac27676e93dc19a57ea0fc182c888ad8f35b66b6e1a0be734993fbb97b1f59f"
+      },
+      {
+        "name": "012_memory_vnext_v1.sql",
+        "digest": "5d4d173949184a9d6375f603d42e031f96288d05ad2399af0fbf25c278ec18ff"
+      },
+      {
+        "name": "013_life_event_journal_v1.sql",
+        "digest": "888038be5c1e3eb0be11ce0fdc4a201a32b26cc3a26af856bcef324055fc168c"
+      },
+      {
+        "name": "014_conversation_journal_ancestry_v1.sql",
+        "digest": "a674cf061748c4aa7839f2ae96f471860c4224ecde1def76bdd075fed75c4618"
+      },
+      {
+        "name": "015_memory_lineage_v1.sql",
+        "digest": "d6aadb6188b4efd047f856d4930dcb28eb9374426fb1a7cd85d29094840f688c"
+      },
+      {
+        "name": "016_episode_dream_source_evidence_v1.sql",
+        "digest": "7b8a2b3f50b847b94cecaa48cdd05ffbabaacb4ea32345d118f58e99e0901168"
+      },
+      {
+        "name": "017_profile_snapshots_v1.sql",
+        "digest": "0473a36bead264566fa5f8b91fd24774a1637238c62cb7513be35b4c7540d677"
+      },
+      {
+        "name": "018_profile_lifecycle_v1.sql",
+        "digest": "12478dac6dfad4b89f7e991baa6449ea2fcaccf42af5a54eddbd9c24d2de2ddd"
+      },
+      {
+        "name": "019_evidence_admission_v1.sql",
+        "digest": "a457956ad256e5b24dfa26c5497bb90bbac1f0e5eccdd945155752882a390217"
+      },
+      {
+        "name": "020_effect_intents_v1.sql",
+        "digest": "a474b59b636a88b9b148ae183a5ff669ffd340d6be2a49548c2571d6f314d9e0"
+      },
+      {
+        "name": "021_effect_attempts_v1.sql",
+        "digest": "87dcde280d3e013b7ff5952d2fb47e16c174b37954b4413380a5a0047d14e809"
+      },
+      {
+        "name": "022_native_control_effects_v1.sql",
+        "digest": "929891aa00f72cf039d86d1979a2b40c6e594300aae0003717d2245c59a425c8"
+      },
+      {
+        "name": "023_reply_components_v1.sql",
+        "digest": "0781d52432e0319c737861fd446b655e4d774aa72c25cfaf7796bdb7c99b52bc"
+      },
+      {
+        "name": "024_context_use_manifests_v1.sql",
+        "digest": "b43307473924d77c8f75f8bc89dbbbafc4a50b38235642f739132b4547ed6d8a"
+      },
+      {
+        "name": "025_character_runtime_owner_v1.sql",
+        "digest": "9261b496b4222a7fd937ee6e9117a2e621fd24eb7c667e2db1faf70c1ed2d935"
+      }
+    ],
+    "ledgerExisted": false
+  },
+  "finalReplay": [],
+  "migrations": [
+    {
+      "name": "001_init_memory.sql",
+      "digest": "475ef01ea39d03248ffd744dc61159e4010c8656fdb44e8cd07e8109e49876b2"
+    },
+    {
+      "name": "002_postgres_search_v2.sql",
+      "digest": "9cdf7eebe6956f9591be4739b8d7b215bb0e1b4a32b5bb73a23bebbc81cdd7ac"
+    },
+    {
+      "name": "003_embedding_pgvector_v1.sql",
+      "digest": "5965578d74dbba13418b3386b9e45bbe9315e6727d0f563a1ce0a7cf83fef9e0"
+    },
+    {
+      "name": "004_ann_vector_index_v1.sql",
+      "digest": "759bb8ef46f119866619449244ca6f81af7b0822fc47daff672eb07d08437eeb"
+    },
+    {
+      "name": "005_identity_retention_v1.sql",
+      "digest": "2db02b9b6e9a9313d0645d8a423caf7f8cfd12439697216d78ba9d8d88809d84"
+    },
+    {
+      "name": "006_conversation_v1.sql",
+      "digest": "ce4951781a9427836bf9555db0490a802015ee0d2cb4f964370e39d6198ac2b6"
+    },
+    {
+      "name": "007_conversation_streaming.sql",
+      "digest": "61aab8ecdc6cae420798d3d1ef58cdc7d4767f37737bec3585e79e45f3fdc8f4"
+    },
+    {
+      "name": "008_finalized_ingestion_ledger_v1.sql",
+      "digest": "f2cb82f2a07dfb2b0290dca0631d27dbcb92546510d3659444a4b2371fef0bcd"
+    },
+    {
+      "name": "009_finalized_ingestion_work_discovery_v1.sql",
+      "digest": "09d01b1ca0f0d1e20f86669760083b4b51004f33cac100d76bd863e23abd7347"
+    },
+    {
+      "name": "010_embedding_mrl_512_v1.sql",
+      "digest": "21ca3b09d1f563ac7abb3992344cf25fc570129a771d866aff03f9cdfc475f6f"
+    },
+    {
+      "name": "011_p8_corrections_v1.sql",
+      "digest": "cac27676e93dc19a57ea0fc182c888ad8f35b66b6e1a0be734993fbb97b1f59f"
+    },
+    {
+      "name": "012_memory_vnext_v1.sql",
+      "digest": "5d4d173949184a9d6375f603d42e031f96288d05ad2399af0fbf25c278ec18ff"
+    },
+    {
+      "name": "013_life_event_journal_v1.sql",
+      "digest": "888038be5c1e3eb0be11ce0fdc4a201a32b26cc3a26af856bcef324055fc168c"
+    },
+    {
+      "name": "014_conversation_journal_ancestry_v1.sql",
+      "digest": "a674cf061748c4aa7839f2ae96f471860c4224ecde1def76bdd075fed75c4618"
+    },
+    {
+      "name": "015_memory_lineage_v1.sql",
+      "digest": "d6aadb6188b4efd047f856d4930dcb28eb9374426fb1a7cd85d29094840f688c"
+    },
+    {
+      "name": "016_episode_dream_source_evidence_v1.sql",
+      "digest": "7b8a2b3f50b847b94cecaa48cdd05ffbabaacb4ea32345d118f58e99e0901168"
+    },
+    {
+      "name": "017_profile_snapshots_v1.sql",
+      "digest": "0473a36bead264566fa5f8b91fd24774a1637238c62cb7513be35b4c7540d677"
+    },
+    {
+      "name": "018_profile_lifecycle_v1.sql",
+      "digest": "12478dac6dfad4b89f7e991baa6449ea2fcaccf42af5a54eddbd9c24d2de2ddd"
+    },
+    {
+      "name": "019_evidence_admission_v1.sql",
+      "digest": "a457956ad256e5b24dfa26c5497bb90bbac1f0e5eccdd945155752882a390217"
+    },
+    {
+      "name": "020_effect_intents_v1.sql",
+      "digest": "a474b59b636a88b9b148ae183a5ff669ffd340d6be2a49548c2571d6f314d9e0"
+    },
+    {
+      "name": "021_effect_attempts_v1.sql",
+      "digest": "87dcde280d3e013b7ff5952d2fb47e16c174b37954b4413380a5a0047d14e809"
+    },
+    {
+      "name": "022_native_control_effects_v1.sql",
+      "digest": "929891aa00f72cf039d86d1979a2b40c6e594300aae0003717d2245c59a425c8"
+    },
+    {
+      "name": "023_reply_components_v1.sql",
+      "digest": "0781d52432e0319c737861fd446b655e4d774aa72c25cfaf7796bdb7c99b52bc"
+    },
+    {
+      "name": "024_context_use_manifests_v1.sql",
+      "digest": "b43307473924d77c8f75f8bc89dbbbafc4a50b38235642f739132b4547ed6d8a"
+    },
+    {
+      "name": "025_character_runtime_owner_v1.sql",
+      "digest": "9261b496b4222a7fd937ee6e9117a2e621fd24eb7c667e2db1faf70c1ed2d935"
+    },
+    {
+      "name": "026_memory_authority_v1.sql",
+      "digest": "535c1386058417a7638a6a6662975cd8aa724fdecd8b365f3f0999e85ed358a9"
+    },
+    {
+      "name": "027_memory_runtime_host.sql",
+      "digest": "6b5e4a37f3523abb4cb7ef886c4ac938d35ba4b27391d2cd61d8d1d7bef3ea74"
+    },
+    {
+      "name": "028_memory_retrieval_evidence.sql",
+      "digest": "fb6fa8f3dee2ca2baa4a5e215efd0ac17728164ebaa64a7001dc3e30dc4464f6"
+    },
+    {
+      "name": "029_memory_integrity_audit.sql",
+      "digest": "8da2949a8fce8b6f6b9f78c639281217e19345a8b4e937773d325d2e7e716454"
+    },
+    {
+      "name": "030_memory_decision_reassessment.sql",
+      "digest": "6c224caa93ea1a1dc3513965f4095b2c11c9df1fde8768e512a41d0edf82c206"
+    },
+    {
+      "name": "031_memory_operator_actions.sql",
+      "digest": "0092d7e01c01ef8be67aa160de42cdd46bc51aef1914c9deb2ee23d2a80d8755"
+    },
+    {
+      "name": "032_memory_audit_invalidation.sql",
+      "digest": "3ac337670bed3fd2d56f3e4a9a0c9bca80ee6b2f206fb3242753e648b12f215b"
+    },
+    {
+      "name": "033_memory_online_projection.sql",
+      "digest": "86aac69d3ec93ba4ec6b99cb15d2f3140d3f122ea88c59fe40070229dd6df9c4"
+    },
+    {
+      "name": "034_memory_context_effect_lookup.sql",
+      "digest": "f21d2b126bc748393cfea99920189680531c7659cf1ccd6305f4aa954d0d4b2b"
+    },
+    {
+      "name": "035_memory_legacy_workflow.sql",
+      "digest": "21563e83ee4b8ad23a6bf20fc51725c3fdb5e268e7a5158967d316cacf528755"
+    },
+    {
+      "name": "036_memory_retrieval_completeness.sql",
+      "digest": "e77b06b0f1dd37502c6dbb9551ebae45ae9151bbe81b82643a84588f7821cf25"
+    },
+    {
+      "name": "037_accepted_user_ingestion.sql",
+      "digest": "e3522bfca8eb88e5c2a8c0da083f0b74a289a2e40e028166b8b64484e225b148"
+    },
+    {
+      "name": "038_observation_retention.sql",
+      "digest": "a2672b9f64f62c094fbe3f493f6b86ed87aac8a1ea6b4438dcfd9dd611752587"
+    },
+    {
+      "name": "039_observation_erasure_guard.sql",
+      "digest": "7c05c4d5db9646230b190eff30dc1a05e259ddb3f85eeb7c3476e134f239edf8"
+    },
+    {
+      "name": "040_observation_terminal_commit.sql",
+      "digest": "53ba627adc8a1a8e4deb0cabe277e4ca312305fe4060d0298bde9c9b17cfba44"
+    },
+    {
+      "name": "041_memory_retrieval_plan.sql",
+      "digest": "9f7be552fb4edf96755ae84e242fceb04d2cb2cdbeafbea6f8fb41966ca723f8"
+    },
+    {
+      "name": "042_memory_lexical_postings.sql",
+      "digest": "450e285741797b4b2d63727f3939372cb405f6a47f183fc4d677a131e35bc311"
+    },
+    {
+      "name": "043_memory_lexical_seek.sql",
+      "digest": "6ac00bb59f5cccb52f6a8463d45741f822c71933ba0f057eb4828b4efeaaec93"
+    },
+    {
+      "name": "044_memory_projection_point_lookup.sql",
+      "digest": "74164b9fa26ea40dc456cd204773c44181a88e547e19c6d1d7a230d416a240bd"
+    }
+  ],
+  "oldFrequent": {
+    "targetId": "pgm1_28caf0d5caba5ddc846b184dae18dd69ee97fe8eb80e159b4c99617305abe34e",
+    "currentState": "current",
+    "boundedFound": false,
+    "boundedLimited": true,
+    "conjunctionPrototypeFound": true,
+    "prototypeElapsedMs": 1.665737999999692,
+    "prototypePlan": {
+      "QUERY PLAN": [
+        {
+          "Plan": {
+            "Node Type": "Limit",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Startup Cost": 16.48,
+            "Total Cost": 16.49,
+            "Plan Rows": 1,
+            "Plan Width": 40,
+            "Actual Startup Time": 0.055,
+            "Actual Total Time": 0.055,
+            "Actual Rows": 1,
+            "Actual Loops": 1,
+            "Shared Hit Blocks": 145,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0,
+            "Plans": [
+              {
+                "Node Type": "Sort",
+                "Parent Relationship": "Outer",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Startup Cost": 16.48,
+                "Total Cost": 16.49,
+                "Plan Rows": 1,
+                "Plan Width": 40,
+                "Actual Startup Time": 0.055,
+                "Actual Total Time": 0.055,
+                "Actual Rows": 1,
+                "Actual Loops": 1,
+                "Sort Key": [
+                  "c.version DESC",
+                  "c.id"
+                ],
+                "Sort Method": "quicksort",
+                "Sort Space Used": 25,
+                "Sort Space Type": "Memory",
+                "Shared Hit Blocks": 145,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0,
+                "Plans": [
+                  {
+                    "Node Type": "Nested Loop",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Join Type": "Inner",
+                    "Startup Cost": 0.42,
+                    "Total Cost": 16.47,
+                    "Plan Rows": 1,
+                    "Plan Width": 40,
+                    "Actual Startup Time": 0.021,
+                    "Actual Total Time": 0.053,
+                    "Actual Rows": 1,
+                    "Actual Loops": 1,
+                    "Inner Unique": false,
+                    "Shared Hit Blocks": 145,
+                    "Shared Read Blocks": 0,
+                    "Shared Dirtied Blocks": 0,
+                    "Shared Written Blocks": 0,
+                    "Local Hit Blocks": 0,
+                    "Local Read Blocks": 0,
+                    "Local Dirtied Blocks": 0,
+                    "Local Written Blocks": 0,
+                    "Temp Read Blocks": 0,
+                    "Temp Written Blocks": 0,
+                    "Plans": [
+                      {
+                        "Node Type": "Index Scan",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Scan Direction": "Forward",
+                        "Index Name": "memory_authority_scopes_pkey",
+                        "Relation Name": "memory_authority_scopes",
+                        "Alias": "s",
+                        "Startup Cost": 0.15,
+                        "Total Cost": 8.17,
+                        "Plan Rows": 1,
+                        "Plan Width": 40,
+                        "Actual Startup Time": 0.002,
+                        "Actual Total Time": 0.002,
+                        "Actual Rows": 1,
+                        "Actual Loops": 1,
+                        "Index Cond": "(scope = 'yuvi:v1:user:stack-person:character:stack-persona'::text)",
+                        "Rows Removed by Index Recheck": 0,
+                        "Shared Hit Blocks": 2,
+                        "Shared Read Blocks": 0,
+                        "Shared Dirtied Blocks": 0,
+                        "Shared Written Blocks": 0,
+                        "Local Hit Blocks": 0,
+                        "Local Read Blocks": 0,
+                        "Local Dirtied Blocks": 0,
+                        "Local Written Blocks": 0,
+                        "Temp Read Blocks": 0,
+                        "Temp Written Blocks": 0
+                      },
+                      {
+                        "Node Type": "Index Scan",
+                        "Parent Relationship": "Inner",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Scan Direction": "Forward",
+                        "Index Name": "memory_projection_candidate_idx",
+                        "Relation Name": "memory_authority_projection_rows",
+                        "Alias": "c",
+                        "Startup Cost": 0.27,
+                        "Total Cost": 8.29,
+                        "Plan Rows": 1,
+                        "Plan Width": 80,
+                        "Actual Startup Time": 0.018,
+                        "Actual Total Time": 0.05,
+                        "Actual Rows": 1,
+                        "Actual Loops": 1,
+                        "Index Cond": "((scope = 'yuvi:v1:user:stack-person:character:stack-persona'::text) AND (generation = s.projection_generation))",
+                        "Rows Removed by Index Recheck": 0,
+                        "Filter": "(search @@ '''amber'' & ''spruce'''::tsquery)",
+                        "Rows Removed by Filter": 160,
+                        "Shared Hit Blocks": 143,
+                        "Shared Read Blocks": 0,
+                        "Shared Dirtied Blocks": 0,
+                        "Shared Written Blocks": 0,
+                        "Local Hit Blocks": 0,
+                        "Local Read Blocks": 0,
+                        "Local Dirtied Blocks": 0,
+                        "Local Written Blocks": 0,
+                        "Temp Read Blocks": 0,
+                        "Temp Written Blocks": 0
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "Planning": {
+            "Shared Hit Blocks": 5,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0
+          },
+          "Planning Time": 0.075,
+          "Triggers": [],
+          "Execution Time": 0.061
+        }
+      ]
+    },
+    "note": "Conjunctive GIN is a diagnostic prototype, not shipped. Broad conjunction still has potentially unbounded matching/sort cost."
+  },
+  "longText": {
+    "chars": 1623,
+    "postingCount": 512,
+    "tailFound": false,
+    "note": "Known term-bound omission; no claim of full long-record indexing."
+  },
+  "beforeShadow": {
+    "postings": 1325,
+    "relationBytes": "1015808",
+    "states": [
+      {
+        "state": "current",
+        "n": 163
+      },
+      {
+        "state": "superseded",
+        "n": 12
+      }
+    ]
+  },
+  "interruptedShadow": {
+    "schema": "memory.rebuild.v1",
+    "id": "shadow-integrate",
+    "generation": "2",
+    "anchor": "175",
+    "checkpoint": "40",
+    "deltaVersion": "0",
+    "deltaId": "",
+    "records": "40",
+    "status": "PAUSED",
+    "errorCode": null
+  },
+  "afterShadow": {
+    "state": {
+      "schema": "memory.rebuild.v1",
+      "id": "shadow-integrate",
+      "generation": "2",
+      "anchor": "175",
+      "checkpoint": "175",
+      "deltaVersion": "0",
+      "deltaId": "",
+      "records": "175",
+      "status": "ACTIVE",
+      "errorCode": null
+    },
+    "size": {
+      "postings": 2650,
+      "relationBytes": "1949696",
+      "states": [
+        {
+          "state": "current",
+          "n": 163
+        },
+        {
+          "state": "superseded",
+          "n": 12
+        }
+      ]
+    }
+  },
+  "afterRetirement": {
+    "postings": 1325,
+    "relationBytes": "1949696",
+    "states": [
+      {
+        "state": "current",
+        "n": 163
+      },
+      {
+        "state": "superseded",
+        "n": 12
+      }
+    ]
+  },
+  "corruption": {
+    "schema": "memory.lexical-verification.v1",
+    "status": "MISMATCH",
+    "version": "175",
+    "generation": "2",
+    "checked": 175,
+    "mismatches": [
+      "pgm1_bd82dedd246daf0a14c91ee670ac7b97319cc724bce2f6240e7c290068dda337"
+    ],
+    "nextCursor": null
+  },
+  "interruptedLexical": {
+    "status": "BUILDING",
+    "generation": "2",
+    "checkpoint": "pgm1_28caf0d5caba5ddc846b184dae18dd69ee97fe8eb80e159b4c99617305abe34e",
+    "processed": "30",
+    "actor": "explicit-maintenance-caller",
+    "updatedAt": "2026-10-18T06:59:57.000Z"
+  },
+  "repaired": {
+    "schema": "memory.lexical-verification.v1",
+    "status": "VERIFIED_BATCH",
+    "version": "176",
+    "generation": "2",
+    "checked": 176,
+    "mismatches": [],
+    "nextCursor": null
+  },
+  "concurrentBackfill": {
+    "reads": {
+      "n": 40,
+      "p50": 0.6515750000007756,
+      "p95": 1.4023690000003626,
+      "max": 8.727083000000675
+    },
+    "writesIncludingJournalAndAdmission": {
+      "n": 9,
+      "p50": 14.688883999999234,
+      "p95": 24.457651000000624,
+      "max": 24.457651000000624
+    },
+    "lockSamples": [
+      {
+        "wait_event_type": "Lock",
+        "wait_event": "transactionid",
+        "n": 1
+      }
+    ],
+    "note": "Short burst on an isolated small scope; 5ms sampler can miss locks. Not a long-running SLO."
+  },
+  "postingStatisticsBeforeVacuum": {
+    "n_tup_ins": "2175",
+    "n_tup_upd": "0",
+    "n_tup_del": "808",
+    "n_live_tup": "1367",
+    "n_dead_tup": "808",
+    "vacuum_count": "0",
+    "autovacuum_count": "0"
+  },
+  "afterVacuum": {
+    "postings": 1430,
+    "relationBytes": "2760704",
+    "states": [
+      {
+        "state": "current",
+        "n": 173
+      },
+      {
+        "state": "superseded",
+        "n": 12
+      }
+    ]
+  },
+  "concurrentIndexVerified": {
+    "schema": "memory.lexical-verification.v1",
+    "status": "VERIFIED_BATCH",
+    "version": "185",
+    "generation": "2",
+    "checked": 185,
+    "mismatches": [],
+    "nextCursor": null
+  },
+  "sourceAudit": {
+    "schema": "memory.integrity.v1",
+    "id": "backup-source-audit",
+    "status": "VERIFIED",
+    "anchor": "185",
+    "checkpoint": "185",
+    "checked": "185",
+    "issues": "0",
+    "incomplete": "0",
+    "problems": [],
+    "problemsLimited": false
+  },
+  "writeLatency": {
+    "n": 160,
+    "p50": 3.87443200000007,
+    "p95": 5.492965000000368
+  },
+  "beforeBackup": {
+    "history": "df0d138869c7d3223f3cc07fb2f601cd",
+    "generations": "f2c5f2b0c8408ce4df5bc43067087d77",
+    "history_count": 185,
+    "journal_count": 185,
+    "posting_count": 1430,
+    "legacy_digest": "af2303920429596ec9119703387aa23b"
+  },
+  "backup": {
+    "bytes": 1719243,
+    "elapsedMs": 137.75751299999956
+  },
+  "afterRestore": {
+    "history": "df0d138869c7d3223f3cc07fb2f601cd",
+    "generations": "f2c5f2b0c8408ce4df5bc43067087d77",
+    "history_count": 185,
+    "journal_count": 185,
+    "posting_count": 1430,
+    "legacy_digest": "af2303920429596ec9119703387aa23b"
+  },
+  "restoreMatches": true,
+  "restoredIndex": {
+    "schema": "memory.lexical-verification.v1",
+    "status": "VERIFIED_BATCH",
+    "version": "185",
+    "generation": "2",
+    "checked": 185,
+    "mismatches": [],
+    "nextCursor": null
+  },
+  "restoreMigrationReplay": [],
+  "oldRunnerReplay": {
+    "code": "42809",
+    "message": "cannot create index on relation \"memory_authority_current\"",
+    "note": "Only disposable restored database. Old runner is not a rollback mechanism."
+  }
+}

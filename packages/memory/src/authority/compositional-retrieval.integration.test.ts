@@ -10,6 +10,8 @@ import { PostgresMemoryAuthority } from "./store.js";
 import { PostgresMemoryProvider } from "./provider.js";
 import { advanceLexicalIndex, rebuildLexicalIndex, verifyLexicalIndex } from "./lexical-index.js";
 import { MemoryProjectionRebuild } from "./projection-rebuild.js";
+import { assessEvidenceSupport } from "./evidence-support.js";
+import { MemoryAuthorityError } from "./types.js";
 import { MemoryVectorIndexer } from "./vector.js";
 const url = process.env["YUVI_MEMORY_R5_TEST_DATABASE_URL"],
   schema = "composition_test_" + randomUUID().replaceAll("-", "");
@@ -112,6 +114,71 @@ describe.skipIf(!url)(
         const audit = await p.retrievalEvidence.detail(scope, r.retrievalId!);
         expect(audit?.queryPlan?.coverage).toHaveLength(c.needs.length);
       }
+    });
+    it("separates a selected distractor from supported evidence, without hiding the selection audit", async () => {
+      const query = "编辑器和航空座位",
+        plan = async () => ({
+          queries: [],
+          model: "protocol-fixture",
+          usage: null,
+          needs: [
+            { id: "n0", quote: "编辑器", queries: ["露川-4A87"] },
+            { id: "n1", quote: "航空座位", queries: ["月桂-5967"] }
+          ]
+        });
+      const p = new PostgresMemoryProvider(authority, undefined, plan, async (input) =>
+        assessEvidenceSupport(
+          {
+            generateReasoning: async () => ({
+              reasoning: JSON.stringify({
+                needs: [
+                  {
+                    id: "n0",
+                    verdict: "SUPPORTED",
+                    citations: [{ id: ids.get("editor"), quote: "露川-4A87" }]
+                  },
+                  { id: "n1", verdict: "INSUFFICIENT", citations: [] }
+                ]
+              })
+            })
+          },
+          input
+        )
+      );
+      const r = await p.retrieveRelevant({ scope, access, text: query, limit: 5 });
+      expect(r.coverage?.[1]?.preferredSelected).toBe(true);
+      expect(r.evidenceSupport?.needs.map((n) => n.verdict)).toEqual(["SUPPORTED", "INSUFFICIENT"]);
+      expect(r.events.map((e) => e.id)).toEqual([ids.get("editor")]);
+      const audit = await p.retrievalEvidence.detail(scope, r.retrievalId!);
+      expect(audit?.queryPlan?.evidenceSupport?.needs[1]?.verdict).toBe("INSUFFICIENT");
+      expect(
+        audit?.candidates.some(
+          (c) => c.id === ids.get("tea") && c.reason === "EVIDENCE_NOT_ESTABLISHED" && !c.selected
+        )
+      ).toBe(true);
+    });
+    it("keeps assessment outage distinct from insufficiency and rejects real authority loss", async () => {
+      for (const [error, expected] of [
+        [Error("timeout"), "partial"],
+        [new MemoryAuthorityError("MEMORY_READER_AUTHORITY_REVOKED"), "error"]
+      ] as const) {
+        const p = new PostgresMemoryProvider(authority, undefined, undefined, async () => {
+          throw error;
+        });
+        const r = await p.retrieveRelevant({ scope, access, text: "露川-4A87", limit: 5 });
+        expect(r.status).toBe(expected);
+        expect(r.events).toEqual([]);
+        if (expected === "partial")
+          expect(r.evidenceSupport?.needs[0]?.verdict).toBe("UNAVAILABLE");
+        else expect(r.errorCode).toBe("MEMORY_READER_AUTHORITY_REVOKED");
+      }
+      let calls = 0;
+      const p = new PostgresMemoryProvider(authority, undefined, undefined, async () => {
+        calls++;
+        throw Error("must not assess anonymous");
+      });
+      expect((await p.retrieveRelevant({ scope, text: "露川-4A87" })).status).toBe("unavailable");
+      expect(calls).toBe(0);
     });
     it("invalid demand provenance cannot displace the original authorized query", async () => {
       const p = new PostgresMemoryProvider(authority, undefined, async () => ({

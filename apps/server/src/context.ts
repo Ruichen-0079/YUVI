@@ -1,4 +1,8 @@
-import { expandMemorySearch } from "@companion/memory";
+import {
+  expandMemorySearch,
+  assessEvidenceSupport,
+  type MemoryRetrievalInput
+} from "@companion/memory";
 import { MemoryAuthorityError } from "@companion/memory";
 import { observationRetentionConfig } from "./config.js";
 import { HostObservationContinuity } from "./observation-continuity.js";
@@ -788,54 +792,61 @@ export async function createAppContext(
             }
           )
         : undefined;
+    const guardedMemoryRead = async <T>(
+      input: MemoryRetrievalInput,
+      work: () => Promise<T>
+    ): Promise<T> => {
+      const scope = input.scope;
+      if (!scope) throw new MemoryAuthorityError("MEMORY_SCOPE_MISSING");
+      const verify = async () => {
+        try {
+          if (memory !== service || !input.scope || !input.access) return false;
+          const actual = await conversationHost?.readAuthority(input.sourceJournalRef, input.scope);
+          return (
+            !!actual &&
+            actual.personId === input.access.personId &&
+            actual.principal.namespace === input.access.principal.namespace &&
+            actual.principal.actorId === input.access.principal.actorId
+          );
+        } catch {
+          return false;
+        }
+      };
+      if (!(await verify())) throw new MemoryAuthorityError("MEMORY_READER_AUTHORITY_UNRESOLVED");
+      let result;
+      try {
+        result = await withProviderWorkContext(
+          {
+            scope,
+            cause: input.sourceJournalRef,
+            verifyAuthority: verify,
+            isCurrent: () => memory === service
+          },
+          () => work()
+        );
+      } catch (error) {
+        if (!(await verify())) throw new MemoryAuthorityError("MEMORY_READER_AUTHORITY_REVOKED");
+        throw error;
+      }
+      if (!(await verify())) throw new MemoryAuthorityError("MEMORY_READER_AUTHORITY_REVOKED");
+      return result;
+    };
     const postgresProvider = authority
       ? new PostgresMemoryProvider(
           authority,
           vectorIndexer,
           config.memoryQueryExpansion
             ? async (input) => {
-                const scope = input.scope;
-                if (!scope) throw new MemoryAuthorityError("MEMORY_SCOPE_MISSING");
-                const verify = async () => {
-                  try {
-                    if (memory !== service || !input.scope || !input.access) return false;
-                    const actual = await conversationHost?.readAuthority(
-                      input.sourceJournalRef,
-                      input.scope
-                    );
-                    return (
-                      !!actual &&
-                      actual.personId === input.access.personId &&
-                      actual.principal.namespace === input.access.principal.namespace &&
-                      actual.principal.actorId === input.access.principal.actorId
-                    );
-                  } catch {
-                    return false;
-                  }
-                };
-                if (!(await verify()))
-                  throw new MemoryAuthorityError("MEMORY_READER_AUTHORITY_UNRESOLVED");
-                let result;
-                try {
-                  result = await withProviderWorkContext(
-                    {
-                      scope,
-                      cause: input.sourceJournalRef,
-                      verifyAuthority: verify,
-                      isCurrent: () => memory === service
-                    },
-                    () =>
-                      expandMemorySearch(providers.getReasoningProvider(), input.text, input.signal)
-                  );
-                } catch (error) {
-                  if (!(await verify()))
-                    throw new MemoryAuthorityError("MEMORY_READER_AUTHORITY_REVOKED");
-                  throw error;
-                }
-                if (!(await verify()))
-                  throw new MemoryAuthorityError("MEMORY_READER_AUTHORITY_REVOKED");
-                return result;
+                return guardedMemoryRead(input, () =>
+                  expandMemorySearch(providers.getReasoningProvider(), input.text, input.signal)
+                );
               }
+            : undefined,
+          config.memoryEvidenceSupport
+            ? (support) =>
+                guardedMemoryRead(support.request, () =>
+                  assessEvidenceSupport(providers.getReasoningProvider(), support)
+                )
             : undefined
         )
       : undefined;

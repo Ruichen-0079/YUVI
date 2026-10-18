@@ -26,3 +26,5 @@
 
 旧 `/memory` CRUD/提取兼容接口仍服务 legacy store，并不等于新 authority 的当前认识。它们的统一迁移/版本化和旧客户端告知尚未完成；不能把新 Finalized 路径无规则 fallback 推广为全产品旧接口已退役。
 2026-10-17：[组合检索与证据忠实度](../compositional-retrieval/README.zh.md)交付需求首选分配、有限 posting 检索及真实同库对照；冻结的已知可读事实覆盖回归通过，但 UNKNOWN 无关候选、precision、第一人称归属、广泛回答忠实度仍开放。自然纠正开发实验又捕获双命题中一条写入耗尽重试的 PARTIAL；不能以检索改善关闭形成/写入门槛。未切换真实 Alice。
+
+2026-10-18：[证据支持与集成就绪度](../evidence-truthfulness/README.zh.md)新增可选支持评估、来源归属和正式Runtime对照；误支持/错误拒答与最终回答分开计量，质量门槛未整体关闭。同来源双纠正PARTIAL准确定位为目标失效后new关系被重评器拒绝。十PR祖先链、001–044升级和合成数据库恢复通过；旧runner回退真实失败，高频旧current与长正文尾部仍漏召回。仍不允许真实Alice切换。

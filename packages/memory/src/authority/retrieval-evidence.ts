@@ -3,6 +3,7 @@ import { ContextBlockSchema, ContextExposureSchema } from "@companion/protocol";
 import { randomUUID } from "node:crypto";
 import { canonicalScope, MemoryAuthorityError, type AuthorityQuery } from "./types.js";
 import type { MemoryRetrievalInput, MemoryRetrievalOutcome } from "../provider.js";
+import { EvidenceSupportSchema } from "./evidence-support.js";
 const coverageSchema = z
   .array(
     z
@@ -55,6 +56,7 @@ export const RetrievalQueryPlanSchema = z
       )
       .max(26),
     coverage: coverageSchema.optional(),
+    evidenceSupport: EvidenceSupportSchema.optional(),
     vectorChannels: z
       .array(
         z
@@ -78,7 +80,7 @@ export type RetrievalCandidate = {
   state: string;
   channels: ("TEXT" | "VECTOR")[];
   selected: boolean;
-  reason: "SELECTED" | "RESULT_BOUND" | "NO_LONGER_CURRENT";
+  reason: "SELECTED" | "RESULT_BOUND" | "NO_LONGER_CURRENT" | "EVIDENCE_NOT_ESTABLISHED";
   content: string;
 };
 const candidateSchema = z
@@ -95,7 +97,7 @@ const candidateSchema = z
     ]),
     channels: z.array(z.enum(["TEXT", "VECTOR"])).max(2),
     selected: z.boolean(),
-    reason: z.enum(["SELECTED", "RESULT_BOUND", "NO_LONGER_CURRENT"]),
+    reason: z.enum(["SELECTED", "RESULT_BOUND", "NO_LONGER_CURRENT", "EVIDENCE_NOT_ESTABLISHED"]),
     content: z.string().max(16000)
   })
   .strip();

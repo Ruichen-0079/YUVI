@@ -1,0 +1,2875 @@
+{
+  "sha": "527533325e0899a695509df19a2f1cd54e72f9c1",
+  "models": {
+    "OPENAI_COMPATIBLE_CHAT_MODEL": "deepseek-ai/DeepSeek-V4-Flash-0731",
+    "OPENAI_COMPATIBLE_REASONING_MODEL": "deepseek-ai/DeepSeek-V4-Flash-0731"
+  },
+  "embeddingModel": "Qwen/Qwen3-Embedding-0.6B",
+  "personaVersion": "evidence-synthetic-v1",
+  "temperature": 0,
+  "maxTokens": 2048,
+  "status": "COMPLETED",
+  "usage": {
+    "calls": 31,
+    "input": 34129,
+    "output": 1911,
+    "cached": 11520,
+    "estimatedCostUSD": 0.0018733200000000004,
+    "unknownCostCalls": 0
+  },
+  "executionSegments": [
+    {
+      "startedAt": 1792306720.028266,
+      "sha": "527533325e0899a695509df19a2f1cd54e72f9c1",
+      "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "startedAt": 1792306745.7335145,
+      "sha": "527533325e0899a695509df19a2f1cd54e72f9c1",
+      "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "startedAt": 1792306757.0999756,
+      "sha": "527533325e0899a695509df19a2f1cd54e72f9c1",
+      "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "startedAt": 1792306765.8757076,
+      "sha": "527533325e0899a695509df19a2f1cd54e72f9c1",
+      "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "startedAt": 1792306766.661565,
+      "sha": "527533325e0899a695509df19a2f1cd54e72f9c1",
+      "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "startedAt": 1792306862.2473333,
+      "sha": "489079cf6c1b737c09b8a4d1f09abb5ed7a3d0a8",
+      "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "startedAt": 1792306863.1667666,
+      "sha": "489079cf6c1b737c09b8a4d1f09abb5ed7a3d0a8",
+      "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "startedAt": 1792306940.7980413,
+      "sha": "e44c15cd1943c02132a06fc2c6d8b725d43cf876",
+      "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "startedAt": 1792306941.809047,
+      "sha": "e44c15cd1943c02132a06fc2c6d8b725d43cf876",
+      "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "authorityState": [
+    {
+      "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-6023f724a4aa421bb051b38960c54de8",
+      "id": "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+      "event": {
+        "id": "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+        "kind": "fact",
+        "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-6023f724a4aa421bb051b38960c54de8",
+        "source": "postgres",
+        "content": "我长期使用的编辑器代号是苔桥-4836。",
+        "lineage": {
+          "state": "GROUNDED",
+          "origin": "USER_ASSERTION",
+          "parents": [
+            {
+              "ref": {
+                "kind": "JOURNAL_EVENT",
+                "eventId": "jev1_lM4sxHtdzmJ5YsE99gx4zMw_45rF49ZF",
+                "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+              },
+              "selector": {
+                "range": {
+                  "end": 20,
+                  "unit": "UNICODE_CODE_POINT",
+                  "start": 0
+                },
+                "payload": {
+                  "version": "v1",
+                  "namespace": "yuvi:conversation-input",
+                  "payloadId": "text_maCDjjuSmP7vgnGhAuxbX71BbyZxR_dQ"
+                },
+                "version": "source-selector.v1",
+                "modality": "TEXT"
+              }
+            }
+          ],
+          "version": "memory-lineage.v1",
+          "authority": {
+            "binding": {
+              "kind": "PERSON_BINDING",
+              "state": "RESOLVED",
+              "personId": "person-a",
+              "bindingVersion": "mhg_9c02e3f0-fd8a-4968-a8a9-64a1eaf684b6"
+            },
+            "audience": {
+              "kind": "PRIVATE",
+              "channelRef": "host-private:person-a:character-instance:ec-live-6023f724a4aa421bb051b38960c54de8"
+            },
+            "principal": {
+              "kind": "PRINCIPAL",
+              "state": "RESOLVED",
+              "actorId": "http_e660dc93-5f38-4ad8-8c94-7172e14b7029",
+              "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+            }
+          },
+          "derivation": {
+            "kind": "FINALIZED_INGESTION",
+            "producer": "@companion/memory",
+            "policyVersion": "memory.semantic.v1/finalized-authority-v1",
+            "producerVersion": "0.1.0"
+          },
+          "sourceTime": {
+            "commitSeq": 1,
+            "recordedAt": "2026-10-18T06:58:40.791Z",
+            "occurrenceTime": {
+              "state": "UNKNOWN"
+            }
+          },
+          "consumerKey": "mlf1_YVzfDiiKrAIxG4MRInkc4x4SkKAw7khvlCoJEtP7OsY",
+          "sourceAvailability": {
+            "state": "RETAINED_SELECTABLE"
+          }
+        },
+        "metadata": {
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "semanticPolicy": "memory.semantic.v1",
+          "semanticRevision": "dialogue-proposition-equivalence.v2",
+          "evidenceSelection": {
+            "end": 20,
+            "unit": "UNICODE_CODE_POINT",
+            "start": 0
+          }
+        },
+        "assertion": {
+          "source": "user",
+          "verification": "unverified"
+        },
+        "observedAt": "2026-10-18T06:58:40.791Z",
+        "recordedAt": "2026-10-18T06:58:40.791Z",
+        "sourceTurnIds": [
+          "a71258d9-492b-4ebe-9ecf-cf74500c253a"
+        ],
+        "conversationId": "70bd2966-ae77-434f-80b4-0021ab2eda7e",
+        "sourceRecordId": "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+      },
+      "version": "1"
+    },
+    {
+      "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-6023f724a4aa421bb051b38960c54de8",
+      "id": "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+      "event": {
+        "id": "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+        "kind": "fact",
+        "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-6023f724a4aa421bb051b38960c54de8",
+        "source": "postgres",
+        "content": "我偏爱的茶是木槿-9275。",
+        "lineage": {
+          "state": "GROUNDED",
+          "origin": "USER_ASSERTION",
+          "parents": [
+            {
+              "ref": {
+                "kind": "JOURNAL_EVENT",
+                "eventId": "jev1_W-c7xWGJWZcV0B_eyg8fS7Ys_z-5U9Iy",
+                "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+              },
+              "selector": {
+                "range": {
+                  "end": 14,
+                  "unit": "UNICODE_CODE_POINT",
+                  "start": 0
+                },
+                "payload": {
+                  "version": "v1",
+                  "namespace": "yuvi:conversation-input",
+                  "payloadId": "text__kHpSB3zMvYwQIYo5r7aPUatmXHfz6o-"
+                },
+                "version": "source-selector.v1",
+                "modality": "TEXT"
+              }
+            }
+          ],
+          "version": "memory-lineage.v1",
+          "authority": {
+            "binding": {
+              "kind": "PERSON_BINDING",
+              "state": "RESOLVED",
+              "personId": "person-a",
+              "bindingVersion": "mhg_9c02e3f0-fd8a-4968-a8a9-64a1eaf684b6"
+            },
+            "audience": {
+              "kind": "PRIVATE",
+              "channelRef": "host-private:person-a:character-instance:ec-live-6023f724a4aa421bb051b38960c54de8"
+            },
+            "principal": {
+              "kind": "PRINCIPAL",
+              "state": "RESOLVED",
+              "actorId": "http_e660dc93-5f38-4ad8-8c94-7172e14b7029",
+              "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+            }
+          },
+          "derivation": {
+            "kind": "FINALIZED_INGESTION",
+            "producer": "@companion/memory",
+            "policyVersion": "memory.semantic.v1/finalized-authority-v1",
+            "producerVersion": "0.1.0"
+          },
+          "sourceTime": {
+            "commitSeq": 2,
+            "recordedAt": "2026-10-18T06:58:48.418Z",
+            "occurrenceTime": {
+              "state": "UNKNOWN"
+            }
+          },
+          "consumerKey": "mlf1_kyejJ7hq_Ys6K5pNfqt_uTLBHQziHPNTBPTRcjEYlB4",
+          "sourceAvailability": {
+            "state": "RETAINED_SELECTABLE"
+          }
+        },
+        "metadata": {
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "semanticPolicy": "memory.semantic.v1",
+          "semanticRevision": "dialogue-proposition-equivalence.v2",
+          "evidenceSelection": {
+            "end": 14,
+            "unit": "UNICODE_CODE_POINT",
+            "start": 0
+          }
+        },
+        "assertion": {
+          "source": "user",
+          "verification": "unverified"
+        },
+        "observedAt": "2026-10-18T06:58:48.418Z",
+        "recordedAt": "2026-10-18T06:58:48.418Z",
+        "sourceTurnIds": [
+          "a39236fd-d1d0-4315-bbca-9de3bb73c2de"
+        ],
+        "conversationId": "407e1f68-27d9-4b56-b17c-974873cbf30a",
+        "sourceRecordId": "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b"
+      },
+      "version": "2"
+    },
+    {
+      "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-6023f724a4aa421bb051b38960c54de8",
+      "id": "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+      "event": {
+        "id": "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+        "kind": "fact",
+        "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-6023f724a4aa421bb051b38960c54de8",
+        "source": "postgres",
+        "content": "我昨天下单了一个咖啡杯，订单代号是溪石-315。",
+        "lineage": {
+          "state": "GROUNDED",
+          "origin": "USER_ASSERTION",
+          "parents": [
+            {
+              "ref": {
+                "kind": "JOURNAL_EVENT",
+                "eventId": "jev1_P9F9JFu4lgRgIHTcNpivsWdzvVJ8xxp5",
+                "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+              },
+              "selector": {
+                "range": {
+                  "end": 24,
+                  "unit": "UNICODE_CODE_POINT",
+                  "start": 0
+                },
+                "payload": {
+                  "version": "v1",
+                  "namespace": "yuvi:conversation-input",
+                  "payloadId": "text_ijRVkJggMV3Lz8IBDwBhM2b19hWhVcVx"
+                },
+                "version": "source-selector.v1",
+                "modality": "TEXT"
+              }
+            }
+          ],
+          "version": "memory-lineage.v1",
+          "authority": {
+            "binding": {
+              "kind": "PERSON_BINDING",
+              "state": "RESOLVED",
+              "personId": "person-a",
+              "bindingVersion": "mhg_9c02e3f0-fd8a-4968-a8a9-64a1eaf684b6"
+            },
+            "audience": {
+              "kind": "PRIVATE",
+              "channelRef": "host-private:person-a:character-instance:ec-live-6023f724a4aa421bb051b38960c54de8"
+            },
+            "principal": {
+              "kind": "PRINCIPAL",
+              "state": "RESOLVED",
+              "actorId": "http_e660dc93-5f38-4ad8-8c94-7172e14b7029",
+              "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+            }
+          },
+          "derivation": {
+            "kind": "FINALIZED_INGESTION",
+            "producer": "@companion/memory",
+            "policyVersion": "memory.semantic.v1/finalized-authority-v1",
+            "producerVersion": "0.1.0"
+          },
+          "sourceTime": {
+            "commitSeq": 3,
+            "recordedAt": "2026-10-18T06:58:56.963Z",
+            "occurrenceTime": {
+              "state": "UNKNOWN"
+            }
+          },
+          "consumerKey": "mlf1_rhoKuJtE4nm4QX6LtnugvmLt5aqwZ5q7ro8VyOf3bQw",
+          "sourceAvailability": {
+            "state": "RETAINED_SELECTABLE"
+          }
+        },
+        "metadata": {
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "semanticPolicy": "memory.semantic.v1",
+          "semanticRevision": "dialogue-proposition-equivalence.v2",
+          "evidenceSelection": {
+            "end": 24,
+            "unit": "UNICODE_CODE_POINT",
+            "start": 0
+          }
+        },
+        "assertion": {
+          "source": "user",
+          "verification": "unverified"
+        },
+        "observedAt": "2026-10-18T06:58:56.963Z",
+        "recordedAt": "2026-10-18T06:58:56.963Z",
+        "sourceTurnIds": [
+          "d7b0450b-14ae-4f49-818f-aeab3aec97b2"
+        ],
+        "conversationId": "b6eddda5-8355-4ce4-a2aa-873cd1b73d57",
+        "sourceRecordId": "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda"
+      },
+      "version": "3"
+    }
+  ],
+  "projection": [
+    {
+      "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-6023f724a4aa421bb051b38960c54de8",
+      "id": "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+      "state": "current",
+      "version": "1"
+    },
+    {
+      "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-6023f724a4aa421bb051b38960c54de8",
+      "id": "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+      "state": "current",
+      "version": "2"
+    },
+    {
+      "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-6023f724a4aa421bb051b38960c54de8",
+      "id": "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+      "state": "current",
+      "version": "3"
+    }
+  ],
+  "relations": [],
+  "schema": "memory.support-runtime.v1",
+  "turns": [
+    {
+      "ordinal": 0,
+      "input": "我长期使用的编辑器代号是苔桥-4836。",
+      "person": "person-a",
+      "shortContextCleared": false,
+      "ingestion": {
+        "id": "a71258d9-492b-4ebe-9ecf-cf74500c253a",
+        "source_journal_ref": {
+          "kind": "JOURNAL_EVENT",
+          "eventId": "jev1_lM4sxHtdzmJ5YsE99gx4zMw_45rF49ZF",
+          "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+        },
+        "ingestion_requested": true,
+        "finalized_turn_id": "accepted-user:a71258d9-492b-4ebe-9ecf-cf74500c253a",
+        "status": "complete",
+        "last_error_code": null,
+        "rejected_propositions": []
+      },
+      "implementation": {
+        "startedAt": 1792306720.028266,
+        "sha": "527533325e0899a695509df19a2f1cd54e72f9c1",
+        "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsedMs": 7282.025307000367,
+      "answer": "明白了，你长期使用的编辑器代号是苔桥-4836。我记下这个信息了。\n\n不过要说明一下：这个新提议的保存目前还没有确认完成，我不会承诺它已经成功写入。如果你之后需要用到这个代号，可以再提醒我确认一下。"
+    },
+    {
+      "ordinal": 1,
+      "input": "我偏爱的茶是木槿-9275。",
+      "person": "person-a",
+      "shortContextCleared": false,
+      "ingestion": {
+        "id": "a39236fd-d1d0-4315-bbca-9de3bb73c2de",
+        "source_journal_ref": {
+          "kind": "JOURNAL_EVENT",
+          "eventId": "jev1_W-c7xWGJWZcV0B_eyg8fS7Ys_z-5U9Iy",
+          "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+        },
+        "ingestion_requested": true,
+        "finalized_turn_id": "accepted-user:a39236fd-d1d0-4315-bbca-9de3bb73c2de",
+        "status": "complete",
+        "last_error_code": null,
+        "rejected_propositions": []
+      },
+      "implementation": {
+        "startedAt": 1792306720.028266,
+        "sha": "527533325e0899a695509df19a2f1cd54e72f9c1",
+        "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsedMs": 8206.931052000073,
+      "answer": "明白了，你偏爱的茶是木槿-9275。我记下这个信息了。\n\n不过要说明一下：这个新提议的保存目前还没有确认完成，我不会承诺它已经成功写入。如果你之后需要用到这个偏好，可以再提醒我确认一下。"
+    },
+    {
+      "ordinal": 2,
+      "input": "我昨天下单了一个咖啡杯，订单代号是溪石-315。",
+      "person": "person-a",
+      "shortContextCleared": false,
+      "ingestion": {
+        "id": "d7b0450b-14ae-4f49-818f-aeab3aec97b2",
+        "source_journal_ref": {
+          "kind": "JOURNAL_EVENT",
+          "eventId": "jev1_P9F9JFu4lgRgIHTcNpivsWdzvVJ8xxp5",
+          "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+        },
+        "ingestion_requested": true,
+        "finalized_turn_id": "accepted-user:d7b0450b-14ae-4f49-818f-aeab3aec97b2",
+        "status": "complete",
+        "last_error_code": null,
+        "rejected_propositions": []
+      },
+      "implementation": {
+        "startedAt": 1792306720.028266,
+        "sha": "527533325e0899a695509df19a2f1cd54e72f9c1",
+        "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsedMs": 8104.663869999058,
+      "answer": "好的，我记下了：你昨天（10月17日）下单了一个咖啡杯，订单代号是溪石-315。\n\n需要说明一下，这个新提议的保存目前还没有确认完成，我不会承诺它已经成功写入。如果你之后需要用到这个订单信息，可以再提醒我确认一下。"
+    },
+    {
+      "ordinal": 3,
+      "input": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "person": "person-a",
+      "shortContextCleared": true,
+      "ingestion": null,
+      "implementation": {
+        "startedAt": 1792306745.7335145,
+        "sha": "527533325e0899a695509df19a2f1cd54e72f9c1",
+        "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsedMs": 10263.009009000598,
+      "answer": "你现在的编辑器代号是苔桥-4836，你偏爱的茶是木槿-9275。至于偏好的咖啡烘焙，我这边没有足够的证据来确认，所以暂时没法给出答案。"
+    },
+    {
+      "ordinal": 4,
+      "input": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "person": "person-b",
+      "shortContextCleared": true,
+      "ingestion": null,
+      "implementation": {
+        "startedAt": 1792306757.0999756,
+        "sha": "527533325e0899a695509df19a2f1cd54e72f9c1",
+        "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsedMs": 7187.675539000338,
+      "answer": "关于你提到的这三项，我目前没有足够的记忆或证据来确认具体内容：\n\n- **你现在的编辑器**：没有相关记录。\n- **你喜欢的茶**：没有相关记录。\n- **偏好的咖啡烘焙**：没有相关记录。\n\n如果你愿意告诉我这些信息，我可以帮你记下来；不过要说明的是，保存这类新信息目前只是“提出保存”，尚未确认写入成功。你也可以直接告诉我，我再根据情况处理。"
+    },
+    {
+      "ordinal": 5,
+      "input": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "person": "person-a",
+      "shortContextCleared": true,
+      "ingestion": null,
+      "implementation": {
+        "startedAt": 1792306766.661565,
+        "sha": "527533325e0899a695509df19a2f1cd54e72f9c1",
+        "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsedMs": 5581.073886998638,
+      "answer": "我目前没有足够的信息来回答这个问题——关于你现在的编辑器、喜欢的茶，以及偏好的咖啡烘焙，我这边没有相关的记录或证据。\n\n如果你愿意告诉我这些偏好，我可以帮你记下来，方便以后参考。不过要说明的是，保存这些新信息目前还没有确认完成，我不会承诺它已经成功写入。"
+    },
+    {
+      "ordinal": 6,
+      "input": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "person": "person-a",
+      "shortContextCleared": true,
+      "ingestion": null,
+      "implementation": {
+        "startedAt": 1792306863.1667666,
+        "sha": "489079cf6c1b737c09b8a4d1f09abb5ed7a3d0a8",
+        "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsedMs": 11333.15395200043,
+      "answer": "关于你现在的编辑器、喜欢的茶和偏好的咖啡烘焙，我目前没有足够的信息来确认这些细节——我这边没有相关的记录或证据。\n\n如果你愿意告诉我，我可以帮你记下来，但需要说明的是：**保存这个新提议目前尚未确认**，我不会承诺它一定成功。你可以直接告诉我这三项分别是什么，我再尝试处理。"
+    },
+    {
+      "ordinal": 7,
+      "input": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "person": "person-a",
+      "shortContextCleared": true,
+      "ingestion": null,
+      "implementation": {
+        "startedAt": 1792306941.809047,
+        "sha": "e44c15cd1943c02132a06fc2c6d8b725d43cf876",
+        "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "elapsedMs": 7871.428398999342,
+      "answer": "你现在的编辑器代号是苔桥-4836，你偏爱的茶是木槿-9275。至于偏好的咖啡烘焙，我这边没有足够的证据来确认，所以暂时没法给出答案。"
+    }
+  ],
+  "retrievalEvidence": [
+    {
+      "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-6023f724a4aa421bb051b38960c54de8",
+      "retrieval_id": "mre_0ee92324-42a3-48a3-944f-5da11bf9073d",
+      "trace_id": "a71258d9-492b-4ebe-9ecf-cf74500c253a",
+      "session_id": "70bd2966-ae77-434f-80b4-0021ab2eda7e",
+      "source_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_lM4sxHtdzmJ5YsE99gx4zMw_45rF49ZF",
+        "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+      },
+      "reader": {
+        "personId": "person-a",
+        "principal": {
+          "actorId": "http_e660dc93-5f38-4ad8-8c94-7172e14b7029",
+          "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+        }
+      },
+      "query": "我长期使用的编辑器代号是苔桥-4836。",
+      "status": "partial",
+      "error_code": "MEMORY_VECTOR_CANDIDATE_BOUND",
+      "limited": true,
+      "watermark": "1",
+      "model_tag": "isolated-embedding:Qwen/Qwen3-Embedding-0.6B:512",
+      "candidates": [
+        {
+          "id": "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+          "state": "current",
+          "reason": "SELECTED",
+          "content": "我长期使用的编辑器代号是苔桥-4836。",
+          "version": "1",
+          "channels": [
+            "TEXT"
+          ],
+          "selected": true
+        }
+      ],
+      "created_at": "2026-10-18T06:58:45.549Z",
+      "candidate_count": 1,
+      "candidate_evidence_limited": false,
+      "query_plan": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "usage": {
+          "inputTokens": 141,
+          "outputTokens": 42,
+          "cachedInputTokens": 0
+        },
+        "schema": "memory.search-plan.v1",
+        "status": "APPLIED",
+        "queries": [
+          "我长期使用的编辑器代号是苔桥-4836。"
+        ],
+        "channels": [
+          {
+            "ids": [],
+            "query": "我长期使用的编辑器代号是苔桥-4836。",
+            "needId": null,
+            "status": "OK",
+            "lexicalIndex": "EMPTY_SCOPE",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "苔桥 4836 编辑器",
+            "needId": "n0",
+            "status": "OK",
+            "lexicalIndex": "EMPTY_SCOPE",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "Taqiao 4836 editor",
+            "needId": "n0",
+            "status": "OK",
+            "lexicalIndex": "EMPTY_SCOPE",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "query": "我长期使用的编辑器代号是苔桥-4836。",
+            "needId": null,
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "query": "苔桥 4836 编辑器",
+            "needId": "n0",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "Taqiao 4836 editor",
+            "needId": "n0",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          }
+        ],
+        "coverage": [
+          {
+            "id": "n0",
+            "quote": "我长期使用的编辑器代号是苔桥-4836",
+            "status": "SELECTED_CANDIDATE",
+            "preferredId": "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+            "selectedIds": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "candidateIds": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "preferredSelected": true
+          }
+        ],
+        "textStatus": "OK",
+        "vectorStatus": "OK",
+        "vectorChannels": [
+          {
+            "ids": [],
+            "query": "我长期使用的编辑器代号是苔桥-4836。",
+            "needId": null,
+            "status": "OK"
+          },
+          {
+            "ids": [],
+            "query": "苔桥 4836 编辑器 Taqiao 4836 editor",
+            "needId": "n0",
+            "status": "OK"
+          }
+        ],
+        "evidenceSupport": {
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "needs": [
+            {
+              "id": "n0",
+              "quote": "我长期使用的编辑器代号是苔桥-4836",
+              "reason": "EXPLICIT_EVIDENCE",
+              "verdict": "SUPPORTED",
+              "citations": [
+                {
+                  "id": "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+                  "quote": "我长期使用的编辑器代号是苔桥-4836。"
+                }
+              ]
+            }
+          ],
+          "usage": {
+            "inputTokens": 360,
+            "outputTokens": 83,
+            "cachedInputTokens": 0
+          },
+          "schema": "memory.evidence-support.v1",
+          "status": "ASSESSED",
+          "elapsedMs": 1002.5060969999995,
+          "decomposed": false
+        },
+        "originalQueryTruncated": false
+      }
+    },
+    {
+      "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-6023f724a4aa421bb051b38960c54de8",
+      "retrieval_id": "mre_c923e107-2376-4e71-95df-e8d69a8f8063",
+      "trace_id": "a39236fd-d1d0-4315-bbca-9de3bb73c2de",
+      "session_id": "407e1f68-27d9-4b56-b17c-974873cbf30a",
+      "source_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_W-c7xWGJWZcV0B_eyg8fS7Ys_z-5U9Iy",
+        "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+      },
+      "reader": {
+        "personId": "person-a",
+        "principal": {
+          "actorId": "http_e660dc93-5f38-4ad8-8c94-7172e14b7029",
+          "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+        }
+      },
+      "query": "我偏爱的茶是木槿-9275。",
+      "status": "partial",
+      "error_code": "MEMORY_VECTOR_CANDIDATE_BOUND",
+      "limited": true,
+      "watermark": "2",
+      "model_tag": "isolated-embedding:Qwen/Qwen3-Embedding-0.6B:512",
+      "candidates": [
+        {
+          "id": "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+          "state": "current",
+          "reason": "SELECTED",
+          "content": "我偏爱的茶是木槿-9275。",
+          "version": "2",
+          "channels": [
+            "TEXT"
+          ],
+          "selected": true
+        },
+        {
+          "id": "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+          "state": "current",
+          "reason": "EVIDENCE_NOT_ESTABLISHED",
+          "content": "我长期使用的编辑器代号是苔桥-4836。",
+          "version": "1",
+          "channels": [
+            "TEXT",
+            "VECTOR"
+          ],
+          "selected": false
+        }
+      ],
+      "created_at": "2026-10-18T06:58:54.129Z",
+      "candidate_count": 2,
+      "candidate_evidence_limited": false,
+      "query_plan": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "usage": {
+          "inputTokens": 140,
+          "outputTokens": 41,
+          "cachedInputTokens": 0
+        },
+        "schema": "memory.search-plan.v1",
+        "status": "APPLIED",
+        "queries": [
+          "我偏爱的茶是木槿-9275。"
+        ],
+        "channels": [
+          {
+            "ids": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "query": "我偏爱的茶是木槿-9275。",
+            "needId": null,
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "木槿-9275 茶",
+            "needId": "n0",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "Hibiscus-9275 tea",
+            "needId": "n0",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "query": "我偏爱的茶是木槿-9275。",
+            "needId": null,
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b"
+            ],
+            "query": "木槿-9275 茶",
+            "needId": "n0",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "Hibiscus-9275 tea",
+            "needId": "n0",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          }
+        ],
+        "coverage": [
+          {
+            "id": "n0",
+            "quote": "我偏爱的茶是木槿-9275",
+            "status": "SELECTED_CANDIDATE",
+            "preferredId": "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+            "selectedIds": [
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "candidateIds": [
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "preferredSelected": true
+          }
+        ],
+        "textStatus": "OK",
+        "vectorStatus": "OK",
+        "vectorChannels": [
+          {
+            "ids": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "query": "我偏爱的茶是木槿-9275。",
+            "needId": null,
+            "status": "OK"
+          },
+          {
+            "ids": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "query": "木槿-9275 茶 Hibiscus-9275 tea",
+            "needId": "n0",
+            "status": "OK"
+          }
+        ],
+        "evidenceSupport": {
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "needs": [
+            {
+              "id": "n0",
+              "quote": "我偏爱的茶是木槿-9275",
+              "reason": "EXPLICIT_EVIDENCE",
+              "verdict": "SUPPORTED",
+              "citations": [
+                {
+                  "id": "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+                  "quote": "我偏爱的茶是木槿-9275。"
+                }
+              ]
+            }
+          ],
+          "usage": {
+            "inputTokens": 443,
+            "outputTokens": 83,
+            "cachedInputTokens": 0
+          },
+          "schema": "memory.evidence-support.v1",
+          "status": "ASSESSED",
+          "elapsedMs": 1142.0694480000002,
+          "decomposed": false
+        },
+        "originalQueryTruncated": false
+      }
+    },
+    {
+      "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-6023f724a4aa421bb051b38960c54de8",
+      "retrieval_id": "mre_64b2965c-21f4-411e-bb7d-ab39aa27c297",
+      "trace_id": "d7b0450b-14ae-4f49-818f-aeab3aec97b2",
+      "session_id": "b6eddda5-8355-4ce4-a2aa-873cd1b73d57",
+      "source_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_P9F9JFu4lgRgIHTcNpivsWdzvVJ8xxp5",
+        "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+      },
+      "reader": {
+        "personId": "person-a",
+        "principal": {
+          "actorId": "http_e660dc93-5f38-4ad8-8c94-7172e14b7029",
+          "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+        }
+      },
+      "query": "我昨天下单了一个咖啡杯，订单代号是溪石-315。",
+      "status": "partial",
+      "error_code": "MEMORY_VECTOR_CANDIDATE_BOUND",
+      "limited": true,
+      "watermark": "3",
+      "model_tag": "isolated-embedding:Qwen/Qwen3-Embedding-0.6B:512",
+      "candidates": [
+        {
+          "id": "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+          "state": "current",
+          "reason": "SELECTED",
+          "content": "我昨天下单了一个咖啡杯，订单代号是溪石-315。",
+          "version": "3",
+          "channels": [
+            "TEXT"
+          ],
+          "selected": true
+        },
+        {
+          "id": "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+          "state": "current",
+          "reason": "EVIDENCE_NOT_ESTABLISHED",
+          "content": "我长期使用的编辑器代号是苔桥-4836。",
+          "version": "1",
+          "channels": [
+            "TEXT",
+            "VECTOR"
+          ],
+          "selected": false
+        },
+        {
+          "id": "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+          "state": "current",
+          "reason": "EVIDENCE_NOT_ESTABLISHED",
+          "content": "我偏爱的茶是木槿-9275。",
+          "version": "2",
+          "channels": [
+            "TEXT",
+            "VECTOR"
+          ],
+          "selected": false
+        }
+      ],
+      "created_at": "2026-10-18T06:59:02.295Z",
+      "candidate_count": 3,
+      "candidate_evidence_limited": false,
+      "query_plan": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "usage": {
+          "inputTokens": 145,
+          "outputTokens": 60,
+          "cachedInputTokens": 0
+        },
+        "schema": "memory.search-plan.v1",
+        "status": "APPLIED",
+        "queries": [
+          "我昨天下单了一个咖啡杯，订单代号是溪石-315。"
+        ],
+        "channels": [
+          {
+            "ids": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b"
+            ],
+            "query": "我昨天下单了一个咖啡杯，订单代号是溪石-315。",
+            "needId": null,
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": true,
+            "queryTermsLimited": true
+          },
+          {
+            "ids": [],
+            "query": "咖啡杯 订单",
+            "needId": "n0",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "coffee cup order",
+            "needId": "n0",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "溪石-315 订单",
+            "needId": "n1",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "Xishi-315 order",
+            "needId": "n1",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b"
+            ],
+            "query": "我昨天下单了一个咖啡杯，订单代号是溪石-315。",
+            "needId": null,
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": true,
+            "queryTermsLimited": true
+          },
+          {
+            "ids": [
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda"
+            ],
+            "query": "咖啡杯 订单",
+            "needId": "n0",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "coffee cup order",
+            "needId": "n0",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda"
+            ],
+            "query": "溪石-315 订单",
+            "needId": "n1",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "Xishi-315 order",
+            "needId": "n1",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          }
+        ],
+        "coverage": [
+          {
+            "id": "n0",
+            "quote": "我昨天下单了一个咖啡杯",
+            "status": "SELECTED_CANDIDATE",
+            "preferredId": "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+            "selectedIds": [
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "candidateIds": [
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "preferredSelected": true
+          },
+          {
+            "id": "n1",
+            "quote": "订单代号是溪石-315",
+            "status": "SELECTED_CANDIDATE",
+            "preferredId": "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+            "selectedIds": [
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "candidateIds": [
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "preferredSelected": true
+          }
+        ],
+        "textStatus": "OK",
+        "vectorStatus": "OK",
+        "vectorChannels": [
+          {
+            "ids": [
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "query": "我昨天下单了一个咖啡杯，订单代号是溪石-315。",
+            "needId": null,
+            "status": "OK"
+          },
+          {
+            "ids": [
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "query": "咖啡杯 订单 coffee cup order",
+            "needId": "n0",
+            "status": "OK"
+          },
+          {
+            "ids": [
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "query": "溪石-315 订单 Xishi-315 order",
+            "needId": "n1",
+            "status": "OK"
+          }
+        ],
+        "evidenceSupport": {
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "needs": [
+            {
+              "id": "n0",
+              "quote": "我昨天下单了一个咖啡杯",
+              "reason": "EXPLICIT_EVIDENCE",
+              "verdict": "SUPPORTED",
+              "citations": [
+                {
+                  "id": "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+                  "quote": "我昨天下单了一个咖啡杯"
+                }
+              ]
+            },
+            {
+              "id": "n1",
+              "quote": "订单代号是溪石-315",
+              "reason": "EXPLICIT_EVIDENCE",
+              "verdict": "SUPPORTED",
+              "citations": [
+                {
+                  "id": "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+                  "quote": "订单代号是溪石-315"
+                }
+              ]
+            }
+          ],
+          "usage": {
+            "inputTokens": 553,
+            "outputTokens": 157,
+            "cachedInputTokens": 0
+          },
+          "schema": "memory.evidence-support.v1",
+          "status": "ASSESSED",
+          "elapsedMs": 2472.850043000002,
+          "decomposed": false
+        },
+        "originalQueryTruncated": false
+      }
+    },
+    {
+      "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-6023f724a4aa421bb051b38960c54de8",
+      "retrieval_id": "mre_6fc92b23-7060-4601-b716-7b24e5cd336f",
+      "trace_id": "8f511dde-66be-4679-a2a4-2120e8bcf5b6",
+      "session_id": "afc359c5-7b5d-4605-9fac-56b227986f1e",
+      "source_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_KFswXKruZx2hPOYngjDpfS3UEWc7wI3D",
+        "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+      },
+      "reader": {
+        "personId": "person-a",
+        "principal": {
+          "actorId": "http_e660dc93-5f38-4ad8-8c94-7172e14b7029",
+          "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+        }
+      },
+      "query": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "status": "partial",
+      "error_code": "MEMORY_TEXT_CANDIDATE_BOUND",
+      "limited": true,
+      "watermark": "3",
+      "model_tag": "isolated-embedding:Qwen/Qwen3-Embedding-0.6B:512",
+      "candidates": [
+        {
+          "id": "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+          "state": "current",
+          "reason": "SELECTED",
+          "content": "我长期使用的编辑器代号是苔桥-4836。",
+          "version": "1",
+          "channels": [
+            "TEXT",
+            "VECTOR"
+          ],
+          "selected": true
+        },
+        {
+          "id": "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+          "state": "current",
+          "reason": "SELECTED",
+          "content": "我偏爱的茶是木槿-9275。",
+          "version": "2",
+          "channels": [
+            "TEXT",
+            "VECTOR"
+          ],
+          "selected": true
+        },
+        {
+          "id": "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+          "state": "current",
+          "reason": "EVIDENCE_NOT_ESTABLISHED",
+          "content": "我昨天下单了一个咖啡杯，订单代号是溪石-315。",
+          "version": "3",
+          "channels": [
+            "TEXT",
+            "VECTOR"
+          ],
+          "selected": false
+        }
+      ],
+      "created_at": "2026-10-18T06:59:12.331Z",
+      "candidate_count": 3,
+      "candidate_evidence_limited": false,
+      "query_plan": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "usage": {
+          "inputTokens": 143,
+          "outputTokens": 63,
+          "cachedInputTokens": 0
+        },
+        "schema": "memory.search-plan.v1",
+        "status": "APPLIED",
+        "queries": [
+          "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？"
+        ],
+        "channels": [
+          {
+            "ids": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda"
+            ],
+            "query": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+            "needId": null,
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": true,
+            "queryTermsLimited": true
+          },
+          {
+            "ids": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b"
+            ],
+            "query": "当前使用的编辑器",
+            "needId": "n0",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "current editor",
+            "needId": "n0",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "query": "喜欢的茶",
+            "needId": "n1",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "favorite tea",
+            "needId": "n1",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b"
+            ],
+            "query": "咖啡烘焙偏好",
+            "needId": "n2",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "coffee roast preference",
+            "needId": "n2",
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          }
+        ],
+        "coverage": [
+          {
+            "id": "n0",
+            "quote": "我现在的编辑器",
+            "status": "SELECTED_CANDIDATE",
+            "preferredId": "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+            "selectedIds": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda"
+            ],
+            "candidateIds": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda"
+            ],
+            "preferredSelected": true
+          },
+          {
+            "id": "n1",
+            "quote": "喜欢的茶",
+            "status": "SELECTED_CANDIDATE",
+            "preferredId": "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+            "selectedIds": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda"
+            ],
+            "candidateIds": [
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda"
+            ],
+            "preferredSelected": true
+          },
+          {
+            "id": "n2",
+            "quote": "偏好的咖啡烘焙",
+            "status": "SELECTED_CANDIDATE",
+            "preferredId": "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+            "selectedIds": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda"
+            ],
+            "candidateIds": [
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "preferredSelected": true
+          }
+        ],
+        "textStatus": "OK",
+        "vectorStatus": "OK",
+        "vectorChannels": [
+          {
+            "ids": [
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda"
+            ],
+            "query": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+            "needId": null,
+            "status": "OK"
+          },
+          {
+            "ids": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda"
+            ],
+            "query": "当前使用的编辑器 current editor",
+            "needId": "n0",
+            "status": "OK"
+          },
+          {
+            "ids": [
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "query": "喜欢的茶 favorite tea",
+            "needId": "n1",
+            "status": "OK"
+          },
+          {
+            "ids": [
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd"
+            ],
+            "query": "咖啡烘焙偏好 coffee roast preference",
+            "needId": "n2",
+            "status": "OK"
+          }
+        ],
+        "evidenceSupport": {
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "needs": [
+            {
+              "id": "n0",
+              "quote": "我现在的编辑器",
+              "reason": "EXPLICIT_EVIDENCE",
+              "verdict": "SUPPORTED",
+              "citations": [
+                {
+                  "id": "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+                  "quote": "我长期使用的编辑器代号是苔桥-4836。"
+                }
+              ]
+            },
+            {
+              "id": "n1",
+              "quote": "喜欢的茶",
+              "reason": "EXPLICIT_EVIDENCE",
+              "verdict": "SUPPORTED",
+              "citations": [
+                {
+                  "id": "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+                  "quote": "我偏爱的茶是木槿-9275。"
+                }
+              ]
+            },
+            {
+              "id": "n2",
+              "quote": "偏好的咖啡烘焙",
+              "reason": "NO_SUFFICIENT_EVIDENCE",
+              "verdict": "INSUFFICIENT",
+              "citations": []
+            }
+          ],
+          "usage": {
+            "inputTokens": 555,
+            "outputTokens": 178,
+            "cachedInputTokens": 0
+          },
+          "schema": "memory.evidence-support.v1",
+          "status": "ASSESSED",
+          "elapsedMs": 1529.0763500000003,
+          "decomposed": false
+        },
+        "originalQueryTruncated": false
+      }
+    },
+    {
+      "scope": "yuvi:v1:user:person-b:character:character-instance%3Aec-live-6023f724a4aa421bb051b38960c54de8",
+      "retrieval_id": "mre_a66f6faf-5215-428e-b9e8-6fc2f40e2a05",
+      "trace_id": "e66a8428-dc1d-448c-877d-15406e04514e",
+      "session_id": "f51191ee-6eac-4a2f-8e3a-bd185d654872",
+      "source_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_eFCEKpec1Qf2Go5iUeHqtV6j0o2Qjp_E",
+        "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+      },
+      "reader": {
+        "personId": "person-b",
+        "principal": {
+          "actorId": "http_b6122622-116e-4d17-b7d5-b3bb64cac84d",
+          "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+        }
+      },
+      "query": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "status": "partial",
+      "error_code": "MEMORY_DEMAND_COVERAGE_INCOMPLETE",
+      "limited": true,
+      "watermark": "0",
+      "model_tag": "isolated-embedding:Qwen/Qwen3-Embedding-0.6B:512",
+      "candidates": [],
+      "created_at": "2026-10-18T06:59:21.759Z",
+      "candidate_count": 0,
+      "candidate_evidence_limited": false,
+      "query_plan": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "usage": {
+          "inputTokens": 143,
+          "outputTokens": 66,
+          "cachedInputTokens": 0
+        },
+        "schema": "memory.search-plan.v1",
+        "status": "APPLIED",
+        "queries": [
+          "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？"
+        ],
+        "channels": [
+          {
+            "ids": [],
+            "query": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+            "needId": null,
+            "status": "OK",
+            "lexicalIndex": "EMPTY_SCOPE",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "当前使用的编辑器",
+            "needId": "n0",
+            "status": "OK",
+            "lexicalIndex": "EMPTY_SCOPE",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "current editor in use",
+            "needId": "n0",
+            "status": "OK",
+            "lexicalIndex": "EMPTY_SCOPE",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "喜欢的茶",
+            "needId": "n1",
+            "status": "OK",
+            "lexicalIndex": "EMPTY_SCOPE",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "favorite tea",
+            "needId": "n1",
+            "status": "OK",
+            "lexicalIndex": "EMPTY_SCOPE",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "偏好的咖啡烘焙",
+            "needId": "n2",
+            "status": "OK",
+            "lexicalIndex": "EMPTY_SCOPE",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          },
+          {
+            "ids": [],
+            "query": "preferred coffee roast",
+            "needId": "n2",
+            "status": "OK",
+            "lexicalIndex": "EMPTY_SCOPE",
+            "candidateLimited": false,
+            "queryTermsLimited": false
+          }
+        ],
+        "coverage": [
+          {
+            "id": "n0",
+            "quote": "我现在的编辑器",
+            "status": "NO_AUTHORIZED_CANDIDATE",
+            "preferredId": null,
+            "selectedIds": [],
+            "candidateIds": [],
+            "preferredSelected": false
+          },
+          {
+            "id": "n1",
+            "quote": "喜欢的茶",
+            "status": "NO_AUTHORIZED_CANDIDATE",
+            "preferredId": null,
+            "selectedIds": [],
+            "candidateIds": [],
+            "preferredSelected": false
+          },
+          {
+            "id": "n2",
+            "quote": "偏好的咖啡烘焙",
+            "status": "NO_AUTHORIZED_CANDIDATE",
+            "preferredId": null,
+            "selectedIds": [],
+            "candidateIds": [],
+            "preferredSelected": false
+          }
+        ],
+        "textStatus": "OK",
+        "vectorStatus": "OK",
+        "vectorChannels": [
+          {
+            "ids": [],
+            "query": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+            "needId": null,
+            "status": "OK"
+          },
+          {
+            "ids": [],
+            "query": "当前使用的编辑器 current editor in use",
+            "needId": "n0",
+            "status": "OK"
+          },
+          {
+            "ids": [],
+            "query": "喜欢的茶 favorite tea",
+            "needId": "n1",
+            "status": "OK"
+          },
+          {
+            "ids": [],
+            "query": "偏好的咖啡烘焙 preferred coffee roast",
+            "needId": "n2",
+            "status": "OK"
+          }
+        ],
+        "evidenceSupport": {
+          "model": null,
+          "needs": [
+            {
+              "id": "n0",
+              "quote": "我现在的编辑器",
+              "reason": "NO_SUFFICIENT_EVIDENCE",
+              "verdict": "INSUFFICIENT",
+              "citations": []
+            },
+            {
+              "id": "n1",
+              "quote": "喜欢的茶",
+              "reason": "NO_SUFFICIENT_EVIDENCE",
+              "verdict": "INSUFFICIENT",
+              "citations": []
+            },
+            {
+              "id": "n2",
+              "quote": "偏好的咖啡烘焙",
+              "reason": "NO_SUFFICIENT_EVIDENCE",
+              "verdict": "INSUFFICIENT",
+              "citations": []
+            }
+          ],
+          "usage": null,
+          "schema": "memory.evidence-support.v1",
+          "status": "ASSESSED",
+          "elapsedMs": 0
+        },
+        "originalQueryTruncated": false
+      }
+    },
+    {
+      "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-6023f724a4aa421bb051b38960c54de8",
+      "retrieval_id": "mre_e4f93b9b-4558-4be4-91b5-8da1793531ce",
+      "trace_id": "8aad331c-bd42-4258-ac5d-66f2423cb933",
+      "session_id": "a82a635c-7e49-4155-8615-c134ab9fea35",
+      "source_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_hVadoR-8RgNP11JJ9btdyJdXyFUlTRQ_",
+        "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+      },
+      "reader": {
+        "personId": "person-a",
+        "principal": {
+          "actorId": "http_e660dc93-5f38-4ad8-8c94-7172e14b7029",
+          "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+        }
+      },
+      "query": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "status": "partial",
+      "error_code": "MEMORY_TEXT_CANDIDATE_BOUND",
+      "limited": true,
+      "watermark": "3",
+      "model_tag": "isolated-embedding:Qwen/Qwen3-Embedding-0.6B:512",
+      "candidates": [
+        {
+          "id": "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+          "state": "current",
+          "reason": "EVIDENCE_NOT_ESTABLISHED",
+          "content": "我昨天下单了一个咖啡杯，订单代号是溪石-315。",
+          "version": "3",
+          "channels": [
+            "TEXT",
+            "VECTOR"
+          ],
+          "selected": false
+        },
+        {
+          "id": "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+          "state": "current",
+          "reason": "EVIDENCE_NOT_ESTABLISHED",
+          "content": "我长期使用的编辑器代号是苔桥-4836。",
+          "version": "1",
+          "channels": [
+            "TEXT",
+            "VECTOR"
+          ],
+          "selected": false
+        },
+        {
+          "id": "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+          "state": "current",
+          "reason": "EVIDENCE_NOT_ESTABLISHED",
+          "content": "我偏爱的茶是木槿-9275。",
+          "version": "2",
+          "channels": [
+            "TEXT",
+            "VECTOR"
+          ],
+          "selected": false
+        }
+      ],
+      "created_at": "2026-10-18T06:59:30.023Z",
+      "candidate_count": 3,
+      "candidate_evidence_limited": false,
+      "query_plan": {
+        "model": null,
+        "usage": null,
+        "schema": "memory.search-plan.v1",
+        "status": "DISABLED",
+        "queries": [
+          "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？"
+        ],
+        "channels": [
+          {
+            "ids": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda"
+            ],
+            "query": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+            "needId": null,
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": true,
+            "queryTermsLimited": true
+          }
+        ],
+        "textStatus": "OK",
+        "vectorStatus": "OK",
+        "vectorChannels": [
+          {
+            "ids": [
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda"
+            ],
+            "query": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+            "needId": null,
+            "status": "OK"
+          }
+        ],
+        "evidenceSupport": {
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "needs": [
+            {
+              "id": "q0",
+              "quote": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+              "reason": "NO_SUFFICIENT_EVIDENCE",
+              "verdict": "INSUFFICIENT",
+              "citations": []
+            }
+          ],
+          "usage": {
+            "inputTokens": 613,
+            "outputTokens": 26,
+            "cachedInputTokens": 0
+          },
+          "schema": "memory.evidence-support.v1",
+          "status": "ASSESSED",
+          "elapsedMs": 915.7427660000003,
+          "decomposed": false
+        },
+        "originalQueryTruncated": false
+      }
+    },
+    {
+      "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-6023f724a4aa421bb051b38960c54de8",
+      "retrieval_id": "mre_c36ae4a3-afbe-40af-aa3f-76c22aca022e",
+      "trace_id": "6619d9b6-617c-4581-a9c3-f9e34d966c5a",
+      "session_id": "f62a22d3-44be-4d4c-b604-d05baf97471b",
+      "source_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_TdBXWCbALln-Ztyg6Mbii13eW99-mz4y",
+        "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+      },
+      "reader": {
+        "personId": "person-a",
+        "principal": {
+          "actorId": "http_e660dc93-5f38-4ad8-8c94-7172e14b7029",
+          "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+        }
+      },
+      "query": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "status": "partial",
+      "error_code": "MEMORY_TEXT_CANDIDATE_BOUND",
+      "limited": true,
+      "watermark": "3",
+      "model_tag": "isolated-embedding:Qwen/Qwen3-Embedding-0.6B:512",
+      "candidates": [
+        {
+          "id": "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+          "state": "current",
+          "reason": "EVIDENCE_NOT_ESTABLISHED",
+          "content": "我昨天下单了一个咖啡杯，订单代号是溪石-315。",
+          "version": "3",
+          "channels": [
+            "TEXT",
+            "VECTOR"
+          ],
+          "selected": false
+        },
+        {
+          "id": "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+          "state": "current",
+          "reason": "EVIDENCE_NOT_ESTABLISHED",
+          "content": "我长期使用的编辑器代号是苔桥-4836。",
+          "version": "1",
+          "channels": [
+            "TEXT",
+            "VECTOR"
+          ],
+          "selected": false
+        },
+        {
+          "id": "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+          "state": "current",
+          "reason": "EVIDENCE_NOT_ESTABLISHED",
+          "content": "我偏爱的茶是木槿-9275。",
+          "version": "2",
+          "channels": [
+            "TEXT",
+            "VECTOR"
+          ],
+          "selected": false
+        }
+      ],
+      "created_at": "2026-10-18T07:01:12.288Z",
+      "candidate_count": 3,
+      "candidate_evidence_limited": false,
+      "query_plan": {
+        "model": null,
+        "usage": null,
+        "schema": "memory.search-plan.v1",
+        "status": "DISABLED",
+        "queries": [
+          "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？"
+        ],
+        "channels": [
+          {
+            "ids": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda"
+            ],
+            "query": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+            "needId": null,
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": true,
+            "queryTermsLimited": true
+          }
+        ],
+        "textStatus": "OK",
+        "vectorStatus": "OK",
+        "vectorChannels": [
+          {
+            "ids": [
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda"
+            ],
+            "query": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+            "needId": null,
+            "status": "OK"
+          }
+        ],
+        "evidenceSupport": {
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "needs": [
+            {
+              "id": "q0",
+              "quote": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+              "reason": "NO_SUFFICIENT_EVIDENCE",
+              "verdict": "INSUFFICIENT",
+              "citations": []
+            }
+          ],
+          "usage": {
+            "inputTokens": 609,
+            "outputTokens": 43,
+            "cachedInputTokens": 0
+          },
+          "schema": "memory.evidence-support.v1",
+          "status": "ASSESSED",
+          "elapsedMs": 1185.887330999999,
+          "decomposed": true
+        },
+        "originalQueryTruncated": false
+      }
+    },
+    {
+      "scope": "yuvi:v1:user:person-a:character:character-instance%3Aec-live-6023f724a4aa421bb051b38960c54de8",
+      "retrieval_id": "mre_e90765bd-bf0c-4500-9049-ffc1ff4212aa",
+      "trace_id": "8e5807df-06f8-493c-a135-a4cafede4b03",
+      "session_id": "478f95d5-ba7d-4bce-b562-01b2e3642872",
+      "source_ref": {
+        "kind": "JOURNAL_EVENT",
+        "eventId": "jev1_kYRuHwD5SRJuqjWMPsHq3moCUYQmwqtn",
+        "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+      },
+      "reader": {
+        "personId": "person-a",
+        "principal": {
+          "actorId": "http_e660dc93-5f38-4ad8-8c94-7172e14b7029",
+          "namespace": "yuvi:character:ec-live-6023f724a4aa421bb051b38960c54de8"
+        }
+      },
+      "query": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "status": "partial",
+      "error_code": "MEMORY_TEXT_CANDIDATE_BOUND",
+      "limited": true,
+      "watermark": "3",
+      "model_tag": "isolated-embedding:Qwen/Qwen3-Embedding-0.6B:512",
+      "candidates": [
+        {
+          "id": "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+          "state": "current",
+          "reason": "SELECTED",
+          "content": "我长期使用的编辑器代号是苔桥-4836。",
+          "version": "1",
+          "channels": [
+            "TEXT",
+            "VECTOR"
+          ],
+          "selected": true
+        },
+        {
+          "id": "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+          "state": "current",
+          "reason": "SELECTED",
+          "content": "我偏爱的茶是木槿-9275。",
+          "version": "2",
+          "channels": [
+            "TEXT",
+            "VECTOR"
+          ],
+          "selected": true
+        },
+        {
+          "id": "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda",
+          "state": "current",
+          "reason": "EVIDENCE_NOT_ESTABLISHED",
+          "content": "我昨天下单了一个咖啡杯，订单代号是溪石-315。",
+          "version": "3",
+          "channels": [
+            "TEXT",
+            "VECTOR"
+          ],
+          "selected": false
+        }
+      ],
+      "created_at": "2026-10-18T07:02:27.655Z",
+      "candidate_count": 3,
+      "candidate_evidence_limited": false,
+      "query_plan": {
+        "model": null,
+        "usage": null,
+        "schema": "memory.search-plan.v1",
+        "status": "DISABLED",
+        "queries": [
+          "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？"
+        ],
+        "channels": [
+          {
+            "ids": [
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda"
+            ],
+            "query": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+            "needId": null,
+            "status": "OK",
+            "lexicalIndex": "POSTINGS_V1",
+            "candidateLimited": true,
+            "queryTermsLimited": true
+          }
+        ],
+        "textStatus": "OK",
+        "vectorStatus": "OK",
+        "vectorChannels": [
+          {
+            "ids": [
+              "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+              "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+              "pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda"
+            ],
+            "query": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+            "needId": null,
+            "status": "OK"
+          }
+        ],
+        "evidenceSupport": {
+          "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+          "needs": [
+            {
+              "id": "q0",
+              "quote": "我现在的编辑器",
+              "reason": "EXPLICIT_EVIDENCE",
+              "verdict": "SUPPORTED",
+              "citations": [
+                {
+                  "id": "pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd",
+                  "quote": "我长期使用的编辑器代号是苔桥-4836。"
+                }
+              ]
+            },
+            {
+              "id": "q1",
+              "quote": "喜欢的茶",
+              "reason": "EXPLICIT_EVIDENCE",
+              "verdict": "SUPPORTED",
+              "citations": [
+                {
+                  "id": "pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b",
+                  "quote": "我偏爱的茶是木槿-9275。"
+                }
+              ]
+            },
+            {
+              "id": "q2",
+              "quote": "偏好的咖啡烘焙",
+              "reason": "NO_SUFFICIENT_EVIDENCE",
+              "verdict": "INSUFFICIENT",
+              "citations": []
+            }
+          ],
+          "usage": {
+            "inputTokens": 582,
+            "outputTokens": 266,
+            "cachedInputTokens": 0
+          },
+          "schema": "memory.evidence-support.v1",
+          "status": "ASSESSED",
+          "elapsedMs": 2732.6553559999998,
+          "decomposed": true
+        },
+        "originalQueryTruncated": false
+      }
+    }
+  ],
+  "wire": [
+    {
+      "study": "runtime",
+      "ordinal": "wire-0-calls/call-0.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "PLAN",
+      "inputDigest": "99c04beb85ecd90333b8b867afb84c54dec70b4ae9a569ff5a7e2d1120eab92a",
+      "inputTokens": 141,
+      "outputTokens": 42,
+      "cachedTokens": 0,
+      "providerEstimatedCostUSD": 1.6020000000000002e-05,
+      "elapsedMs": 2178.570151,
+      "httpStatus": 200,
+      "lastQuestion": "{\"question\":\"我长期使用的编辑器代号是苔桥-4836。\"}",
+      "hasL1": false,
+      "hasEditor": true,
+      "hasTea": false,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-0-calls/call-13.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "INGESTION",
+      "inputDigest": "6c98f7a2d90efc86627ed69c6e2a13ea28dfb538df030e1f9fcbc93dcb9a5a2e",
+      "inputTokens": 526,
+      "outputTokens": 45,
+      "cachedTokens": 0,
+      "providerEstimatedCostUSD": 3.9659999999999996e-05,
+      "elapsedMs": 986.7602299999999,
+      "httpStatus": 200,
+      "lastQuestion": "{\"source\":\"我偏爱的茶是木槿-9275。\",\"sourceAt\":\"2026-10-18T06:58:48.418Z\",\"sourceCommitSeq\":2,\"origin\":\"USER_ASSERTION\",\"dialogueContext\":[],\"prior\":[{\"id\":\"pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd\",\"content\":\"我长期使用的编辑器代号是苔桥-4836。\",\"sourceAt\":\"2026-10-18T06:58:40.791Z\",\"sourceCommitSeq\":1,\"state\":\"current\"}]}",
+      "hasL1": false,
+      "hasEditor": true,
+      "hasTea": true,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-0-calls/call-15.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "SUPPORT",
+      "inputDigest": "77b9afc550a09ad4c871d019f931e130d1dbe15543fdd1e5916dc9befec0b2a1",
+      "inputTokens": 443,
+      "outputTokens": 83,
+      "cachedTokens": 0,
+      "providerEstimatedCostUSD": 4.152e-05,
+      "elapsedMs": 1080.8929590000007,
+      "httpStatus": 200,
+      "lastQuestion": "{\"question\":\"我偏爱的茶是木槿-9275。\",\"needs\":[{\"id\":\"n0\",\"quote\":\"我偏爱的茶是木槿-9275\"}],\"claims\":[{\"id\":\"pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我偏爱的茶是木槿-9275。\"},{\"id\":\"pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我长期使用的编辑器代号是苔桥-4836。\"}]}",
+      "hasL1": false,
+      "hasEditor": true,
+      "hasTea": true,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-0-calls/call-16.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "GATE_OR_REASONING",
+      "inputDigest": "f3f77df10661a209eae1391ce5e67581da42b461c838c8823137021187b51bb4",
+      "inputTokens": 2095,
+      "outputTokens": 20,
+      "cachedTokens": 768,
+      "providerEstimatedCostUSD": 9.474e-05,
+      "elapsedMs": 841.8426729999992,
+      "httpStatus": 200,
+      "lastQuestion": "我偏爱的茶是木槿-9275。",
+      "hasL1": true,
+      "hasEditor": true,
+      "hasTea": true,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-0-calls/call-17.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "BODY",
+      "inputDigest": "fa5ebf471fa65d2d6d26dd5681ae043260b965099a472ef2b8e3474c249c5f25",
+      "inputTokens": 1753,
+      "outputTokens": 57,
+      "cachedTokens": 512,
+      "providerEstimatedCostUSD": 9.24e-05,
+      "elapsedMs": 1432.7175930000012,
+      "httpStatus": 200,
+      "lastQuestion": "我偏爱的茶是木槿-9275。",
+      "hasL1": true,
+      "hasEditor": true,
+      "hasTea": true,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-0-calls/call-18.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "PLAN",
+      "inputDigest": "9583d1cae9877b6bad51e15d31e9c39f5a60753d60bedcc8a15aaac2414d1b2a",
+      "inputTokens": 145,
+      "outputTokens": 60,
+      "cachedTokens": 0,
+      "providerEstimatedCostUSD": 1.95e-05,
+      "elapsedMs": 963.4930299999978,
+      "httpStatus": 200,
+      "lastQuestion": "{\"question\":\"我昨天下单了一个咖啡杯，订单代号是溪石-315。\"}",
+      "hasL1": false,
+      "hasEditor": false,
+      "hasTea": false,
+      "hasCupOrder": true
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-0-calls/call-2.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "INGESTION",
+      "inputDigest": "3587c56b7be720f53a1ac5d159e2637d41cdc18376324263047a8655a65bf651",
+      "inputTokens": 438,
+      "outputTokens": 47,
+      "cachedTokens": 0,
+      "providerEstimatedCostUSD": 3.474e-05,
+      "elapsedMs": 865.2016830000002,
+      "httpStatus": 200,
+      "lastQuestion": "{\"source\":\"我长期使用的编辑器代号是苔桥-4836。\",\"sourceAt\":\"2026-10-18T06:58:40.791Z\",\"sourceCommitSeq\":1,\"origin\":\"USER_ASSERTION\",\"dialogueContext\":[],\"prior\":[]}",
+      "hasL1": false,
+      "hasEditor": true,
+      "hasTea": false,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-0-calls/call-23.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "INGESTION",
+      "inputDigest": "d987efdf6d696739486178a7a9f1b2f601bfd9c69261cae3bede0039bcd94aab",
+      "inputTokens": 620,
+      "outputTokens": 55,
+      "cachedTokens": 256,
+      "providerEstimatedCostUSD": 3.558e-05,
+      "elapsedMs": 1185.690337,
+      "httpStatus": 200,
+      "lastQuestion": "{\"source\":\"我昨天下单了一个咖啡杯，订单代号是溪石-315。\",\"sourceAt\":\"2026-10-18T06:58:56.963Z\",\"sourceCommitSeq\":3,\"origin\":\"USER_ASSERTION\",\"dialogueContext\":[],\"prior\":[{\"id\":\"pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b\",\"content\":\"我偏爱的茶是木槿-9275。\",\"sourceAt\":\"2026-10-18T06:58:48.418Z\",\"sourceCommitSeq\":2,\"state\":\"current\"},{\"id\":\"pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd\",\"content\":\"我长期使用的编辑器代号是苔桥-4836。\",\"sourceAt\":\"2026-10-18T06:58:40.791Z\",\"sourceCommitSeq\":1,\"state\":\"current\"}]}",
+      "hasL1": false,
+      "hasEditor": true,
+      "hasTea": true,
+      "hasCupOrder": true
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-0-calls/call-24.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "SUPPORT",
+      "inputDigest": "9fe60b6e3caeda8b9fe6e943bc959924b0b42975524dac0ca2ae242de17a9825",
+      "inputTokens": 553,
+      "outputTokens": 157,
+      "cachedTokens": 0,
+      "providerEstimatedCostUSD": 6.144000000000001e-05,
+      "elapsedMs": 2436.9935100000002,
+      "httpStatus": 200,
+      "lastQuestion": "{\"question\":\"我昨天下单了一个咖啡杯，订单代号是溪石-315。\",\"needs\":[{\"id\":\"n0\",\"quote\":\"我昨天下单了一个咖啡杯\"},{\"id\":\"n1\",\"quote\":\"订单代号是溪石-315\"}],\"claims\":[{\"id\":\"pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我昨天下单了一个咖啡杯，订单代号是溪石-315。\"},{\"id\":\"pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我偏爱的茶是木槿-9275。\"},{\"id\":\"pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我长期使用的编辑器代号是苔桥-4836。\"}]}",
+      "hasL1": false,
+      "hasEditor": true,
+      "hasTea": true,
+      "hasCupOrder": true
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-0-calls/call-26.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "GATE_OR_REASONING",
+      "inputDigest": "6ec8357a7d7f2e50af101c34da71d811e6792da3abe53de2d21c53559bd05fc8",
+      "inputTokens": 2601,
+      "outputTokens": 20,
+      "cachedTokens": 1024,
+      "providerEstimatedCostUSD": 0.00011358000000000001,
+      "elapsedMs": 1177.9014490000009,
+      "httpStatus": 200,
+      "lastQuestion": "我昨天下单了一个咖啡杯，订单代号是溪石-315。",
+      "hasL1": true,
+      "hasEditor": true,
+      "hasTea": true,
+      "hasCupOrder": true
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-0-calls/call-27.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "BODY",
+      "inputDigest": "37bb2923e5397b52b2163e20b1614eba88096d1cf4b16d032813a8f9a4b49948",
+      "inputTokens": 2259,
+      "outputTokens": 64,
+      "cachedTokens": 768,
+      "providerEstimatedCostUSD": 0.00011250000000000001,
+      "elapsedMs": 1335.7626359999995,
+      "httpStatus": 200,
+      "lastQuestion": "我昨天下单了一个咖啡杯，订单代号是溪石-315。",
+      "hasL1": true,
+      "hasEditor": true,
+      "hasTea": true,
+      "hasCupOrder": true
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-0-calls/call-5.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "SUPPORT",
+      "inputDigest": "64073ec301e6bf9c2a2dbf780225de9b87318e82bdb66a47e002469bde933306",
+      "inputTokens": 360,
+      "outputTokens": 83,
+      "cachedTokens": 0,
+      "providerEstimatedCostUSD": 3.654e-05,
+      "elapsedMs": 937.1107300000003,
+      "httpStatus": 200,
+      "lastQuestion": "{\"question\":\"我长期使用的编辑器代号是苔桥-4836。\",\"needs\":[{\"id\":\"n0\",\"quote\":\"我长期使用的编辑器代号是苔桥-4836\"}],\"claims\":[{\"id\":\"pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我长期使用的编辑器代号是苔桥-4836。\"}]}",
+      "hasL1": false,
+      "hasEditor": true,
+      "hasTea": false,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-0-calls/call-7.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "GATE_OR_REASONING",
+      "inputDigest": "b1b9e29fe9dba989cbe82f089eadb4d7b1bca9b83cf4cb4dc2f18fe392fb2517",
+      "inputTokens": 1784,
+      "outputTokens": 22,
+      "cachedTokens": 768,
+      "providerEstimatedCostUSD": 7.643999999999999e-05,
+      "elapsedMs": 829.9752779999999,
+      "httpStatus": 200,
+      "lastQuestion": "我长期使用的编辑器代号是苔桥-4836。",
+      "hasL1": false,
+      "hasEditor": true,
+      "hasTea": false,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-0-calls/call-8.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "BODY",
+      "inputDigest": "4d7d8bdf72c90bb728574c5808b7b726b3b5bf4c46ddc7e3828ca4f52924256d",
+      "inputTokens": 1442,
+      "outputTokens": 58,
+      "cachedTokens": 512,
+      "providerEstimatedCostUSD": 7.392e-05,
+      "elapsedMs": 1341.3244480000003,
+      "httpStatus": 200,
+      "lastQuestion": "我长期使用的编辑器代号是苔桥-4836。",
+      "hasL1": false,
+      "hasEditor": true,
+      "hasTea": false,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-0-calls/call-9.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "PLAN",
+      "inputDigest": "02b36c87335dd948181a3b3a34a597aab0a620f07781cf2c8ae18d062928dbd1",
+      "inputTokens": 140,
+      "outputTokens": 41,
+      "cachedTokens": 0,
+      "providerEstimatedCostUSD": 1.578e-05,
+      "elapsedMs": 927.6482049999995,
+      "httpStatus": 200,
+      "lastQuestion": "{\"question\":\"我偏爱的茶是木槿-9275。\"}",
+      "hasL1": false,
+      "hasEditor": false,
+      "hasTea": true,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-1-calls/call-0.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "PLAN",
+      "inputDigest": "471c205c314dcd499bda2ff8653ffc24db6a13fc8ad7c553d88106f1801988c6",
+      "inputTokens": 143,
+      "outputTokens": 63,
+      "cachedTokens": 0,
+      "providerEstimatedCostUSD": 1.992e-05,
+      "elapsedMs": 1814.384694,
+      "httpStatus": 200,
+      "lastQuestion": "{\"question\":\"我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？\"}",
+      "hasL1": false,
+      "hasEditor": false,
+      "hasTea": false,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-1-calls/call-5.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "SUPPORT",
+      "inputDigest": "d16c23c95eb8e2c6a22877758c550c293409df1cbeb759e918f6f3a1f98eb5d4",
+      "inputTokens": 555,
+      "outputTokens": 178,
+      "cachedTokens": 0,
+      "providerEstimatedCostUSD": 6.534e-05,
+      "elapsedMs": 1488.6695150000005,
+      "httpStatus": 200,
+      "lastQuestion": "{\"question\":\"我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？\",\"needs\":[{\"id\":\"n0\",\"quote\":\"我现在的编辑器\"},{\"id\":\"n1\",\"quote\":\"喜欢的茶\"},{\"id\":\"n2\",\"quote\":\"偏好的咖啡烘焙\"}],\"claims\":[{\"id\":\"pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我长期使用的编辑器代号是苔桥-4836。\"},{\"id\":\"pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我偏爱的茶是木槿-9275。\"},{\"id\":\"pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我昨天下单了一个咖啡杯，订单代号是溪石-315。\"}]}",
+      "hasL1": false,
+      "hasEditor": true,
+      "hasTea": true,
+      "hasCupOrder": true
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-1-calls/call-6.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "GATE_OR_REASONING",
+      "inputDigest": "272ead35ca562d1ad99c48a942521a660975a5a20e7e8e99cc27038056e34442",
+      "inputTokens": 2044,
+      "outputTokens": 18,
+      "cachedTokens": 1024,
+      "providerEstimatedCostUSD": 7.980000000000002e-05,
+      "elapsedMs": 876.4260080000004,
+      "httpStatus": 200,
+      "lastQuestion": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "hasL1": false,
+      "hasEditor": true,
+      "hasTea": true,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-1-calls/call-7.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "BODY",
+      "inputDigest": "5c4044ca8a58446a9fc135cc788c4d4e6478b974cc35b604084a1478982258a0",
+      "inputTokens": 1702,
+      "outputTokens": 43,
+      "cachedTokens": 512,
+      "providerEstimatedCostUSD": 8.682e-05,
+      "elapsedMs": 3057.4640709999994,
+      "httpStatus": 200,
+      "lastQuestion": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "hasL1": false,
+      "hasEditor": true,
+      "hasTea": true,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-2-calls/call-0.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "PLAN",
+      "inputDigest": "471c205c314dcd499bda2ff8653ffc24db6a13fc8ad7c553d88106f1801988c6",
+      "inputTokens": 143,
+      "outputTokens": 66,
+      "cachedTokens": 0,
+      "providerEstimatedCostUSD": 2.046e-05,
+      "elapsedMs": 2387.432093,
+      "httpStatus": 200,
+      "lastQuestion": "{\"question\":\"我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？\"}",
+      "hasL1": false,
+      "hasEditor": false,
+      "hasTea": false,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-2-calls/call-5.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "GATE_OR_REASONING",
+      "inputDigest": "ab7bd37aa627aaaa39dd87ed0682b03f895902920b6865a19337eba01c437a39",
+      "inputTokens": 1663,
+      "outputTokens": 18,
+      "cachedTokens": 1024,
+      "providerEstimatedCostUSD": 5.694e-05,
+      "elapsedMs": 1366.802229,
+      "httpStatus": 200,
+      "lastQuestion": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "hasL1": false,
+      "hasEditor": false,
+      "hasTea": false,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-2-calls/call-6.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "BODY",
+      "inputDigest": "5e77e05657a200f97623c38b6c9af66db816757287cfc503f9479eb902c97276",
+      "inputTokens": 1321,
+      "outputTokens": 93,
+      "cachedTokens": 512,
+      "providerEstimatedCostUSD": 7.296e-05,
+      "elapsedMs": 1491.009618,
+      "httpStatus": 200,
+      "lastQuestion": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "hasL1": false,
+      "hasEditor": false,
+      "hasTea": false,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-4-calls/call-1.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "SUPPORT",
+      "inputDigest": "812c988cef3fa5afa29c322b7922b31e675f624201ab94054fbf8046b86af07a",
+      "inputTokens": 613,
+      "outputTokens": 26,
+      "cachedTokens": 0,
+      "providerEstimatedCostUSD": 4.1460000000000006e-05,
+      "elapsedMs": 874.4824189999999,
+      "httpStatus": 200,
+      "lastQuestion": "{\"question\":\"我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？\",\"needs\":[{\"id\":\"q0\",\"quote\":\"我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？\"}],\"claims\":[{\"id\":\"pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我偏爱的茶是木槿-9275。\"},{\"id\":\"pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我长期使用的编辑器代号是苔桥-4836。\"},{\"id\":\"pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我昨天下单了一个咖啡杯，订单代号是溪石-315。\"}]}",
+      "hasL1": false,
+      "hasEditor": true,
+      "hasTea": true,
+      "hasCupOrder": true
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-4-calls/call-2.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "GATE_OR_REASONING",
+      "inputDigest": "6f81d507a111130b77f1eb185c160dae9330c565eebf74e3f0bb51d0dff4c7d6",
+      "inputTokens": 1598,
+      "outputTokens": 20,
+      "cachedTokens": 1024,
+      "providerEstimatedCostUSD": 5.3400000000000004e-05,
+      "elapsedMs": 1277.88101,
+      "httpStatus": 200,
+      "lastQuestion": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "hasL1": false,
+      "hasEditor": false,
+      "hasTea": false,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-4-calls/call-3.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "BODY",
+      "inputDigest": "9129992a81c20aa746bc13740da9d487f1ce33d73f46aed0116283bebc02f198",
+      "inputTokens": 1256,
+      "outputTokens": 68,
+      "cachedTokens": 768,
+      "providerEstimatedCostUSD": 5.304000000000001e-05,
+      "elapsedMs": 1131.1726049999997,
+      "httpStatus": 200,
+      "lastQuestion": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "hasL1": false,
+      "hasEditor": false,
+      "hasTea": false,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-6-calls/call-1.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "SUPPORT",
+      "inputDigest": "685446607dd33b88c40d5166385d5ef76aa74f082857b45e14f2e6ef9abe4479",
+      "inputTokens": 609,
+      "outputTokens": 43,
+      "cachedTokens": 0,
+      "providerEstimatedCostUSD": 4.428e-05,
+      "elapsedMs": 1090.4548339999992,
+      "httpStatus": 200,
+      "lastQuestion": "{\"question\":\"我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？\",\"needs\":[{\"id\":\"q0\",\"quote\":\"我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？\"}],\"claims\":[{\"id\":\"pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我偏爱的茶是木槿-9275。\"},{\"id\":\"pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我长期使用的编辑器代号是苔桥-4836。\"},{\"id\":\"pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我昨天下单了一个咖啡杯，订单代号是溪石-315。\"}]}",
+      "hasL1": false,
+      "hasEditor": true,
+      "hasTea": true,
+      "hasCupOrder": true
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-6-calls/call-2.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "GATE_OR_REASONING",
+      "inputDigest": "3c52d3bcdc2595c247a70fe28dc3b83464878741a932f570b032dbdc2c326cb3",
+      "inputTokens": 1598,
+      "outputTokens": 20,
+      "cachedTokens": 1280,
+      "providerEstimatedCostUSD": 4.188e-05,
+      "elapsedMs": 908.4888630000005,
+      "httpStatus": 200,
+      "lastQuestion": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "hasL1": false,
+      "hasEditor": false,
+      "hasTea": false,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-6-calls/call-3.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "BODY",
+      "inputDigest": "2f68a5607ef9bddff8d3e0ccacdee6da3acf00b8607bed48bc5eff7e36ac03b0",
+      "inputTokens": 1256,
+      "outputTokens": 74,
+      "cachedTokens": 768,
+      "providerEstimatedCostUSD": 5.4120000000000004e-05,
+      "elapsedMs": 1631.4077850000012,
+      "httpStatus": 200,
+      "lastQuestion": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "hasL1": false,
+      "hasEditor": false,
+      "hasTea": false,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-8-calls/call-1.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "SUPPORT",
+      "inputDigest": "5f1f42216e61210314bc6235fc2cc71fa5b2fed8cd1c37657cb25779dc8dba50",
+      "inputTokens": 582,
+      "outputTokens": 266,
+      "cachedTokens": 0,
+      "providerEstimatedCostUSD": 8.28e-05,
+      "elapsedMs": 2644.7762139999995,
+      "httpStatus": 200,
+      "lastQuestion": "{\"question\":\"我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？\",\"claims\":[{\"id\":\"pgm1_dc79a2a1e4a069785683b868a78203c1a50500d09aaba52d7b7478a3829bb37b\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我偏爱的茶是木槿-9275。\"},{\"id\":\"pgm1_ca21c3ba102d11fdd33a1d818bab4151fd080df0be8cf0a3c0a033c951419cbd\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我长期使用的编辑器代号是苔桥-4836。\"},{\"id\":\"pgm1_2eb4c906da78396be5a281f6c77b3f85c0f245d0f42ca23815663c7a48b77bda\",\"state\":\"current\",\"sourceSpeaker\":\"user\",\"sourcePersonId\":\"person-a\",\"subject\":null,\"truncated\":false,\"text\":\"我昨天下单了一个咖啡杯，订单代号是溪石-315。\"}]}",
+      "hasL1": false,
+      "hasEditor": true,
+      "hasTea": true,
+      "hasCupOrder": true
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-8-calls/call-2.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "GATE_OR_REASONING",
+      "inputDigest": "5c4e416ad88d0801f5aa9b3cd1536a36d439edf7103c5d84f861ef16b2ec56e2",
+      "inputTokens": 2044,
+      "outputTokens": 18,
+      "cachedTokens": 0,
+      "providerEstimatedCostUSD": 0.00012588,
+      "elapsedMs": 902.7855309999995,
+      "httpStatus": 200,
+      "lastQuestion": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "hasL1": false,
+      "hasEditor": true,
+      "hasTea": true,
+      "hasCupOrder": false
+    },
+    {
+      "study": "runtime",
+      "ordinal": "wire-8-calls/call-3.json",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "phase": "BODY",
+      "inputDigest": "e9fe087707dc5ae2fcd4e7a45d29458ac5d45ca3c7937dfc0eeff51e1028c1f3",
+      "inputTokens": 1702,
+      "outputTokens": 43,
+      "cachedTokens": 0,
+      "providerEstimatedCostUSD": 0.00010986000000000001,
+      "elapsedMs": 1373.876475,
+      "httpStatus": 200,
+      "lastQuestion": "我现在的编辑器、喜欢的茶、偏好的咖啡烘焙分别是什么？",
+      "hasL1": false,
+      "hasEditor": true,
+      "hasTea": true,
+      "hasCupOrder": false
+    }
+  ],
+  "embeddingCalls": [
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 17,
+        "total_tokens": 17
+      },
+      "elapsedMs": 2164.107678,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 15,
+        "total_tokens": 15
+      },
+      "elapsedMs": 2870.3447140000007,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 15,
+        "total_tokens": 15
+      },
+      "elapsedMs": 3053.090796999999,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 20,
+        "total_tokens": 20
+      },
+      "elapsedMs": 3531.883921999999,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 15,
+        "total_tokens": 15
+      },
+      "elapsedMs": 806.010198,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 20,
+        "total_tokens": 20
+      },
+      "elapsedMs": 1385.089415999999,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 16,
+        "total_tokens": 16
+      },
+      "elapsedMs": 681.4563769999986,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 8,
+        "total_tokens": 8
+      },
+      "elapsedMs": 1709.696995000002,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 20,
+        "total_tokens": 20
+      },
+      "elapsedMs": 1707.3924499999994,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 20,
+        "total_tokens": 20
+      },
+      "elapsedMs": 710.3155829999996,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 21,
+        "total_tokens": 21
+      },
+      "elapsedMs": 1073.2434100000005,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 17,
+        "total_tokens": 17
+      },
+      "elapsedMs": 1308.3510739999997,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 17,
+        "total_tokens": 17
+      },
+      "elapsedMs": 623.1425159999999,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 17,
+        "total_tokens": 17
+      },
+      "elapsedMs": 1416.2788689999998,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 7,
+        "total_tokens": 7
+      },
+      "elapsedMs": 1412.9412789999997,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 7,
+        "total_tokens": 7
+      },
+      "elapsedMs": 1687.712337,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 6,
+        "total_tokens": 6
+      },
+      "elapsedMs": 2323.7773139999995,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 9,
+        "total_tokens": 9
+      },
+      "elapsedMs": 979.3601520000002,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 17,
+        "total_tokens": 17
+      },
+      "elapsedMs": 1484.537492,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 6,
+        "total_tokens": 6
+      },
+      "elapsedMs": 1490.088213,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 8,
+        "total_tokens": 8
+      },
+      "elapsedMs": 1487.9849420000005,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 17,
+        "total_tokens": 17
+      },
+      "elapsedMs": 1699.4300899999998,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 17,
+        "total_tokens": 17
+      },
+      "elapsedMs": 7286.3452099999995,
+      "httpStatus": 200
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "dimensions": 512,
+      "usage": {
+        "prompt_tokens": 17,
+        "total_tokens": 17
+      },
+      "elapsedMs": 2280.602917,
+      "httpStatus": 200
+    }
+  ],
+  "note": "All questions run via actual Server, Host grant, Character, Journal and PostgreSQL. Before every QA, formal L1 expiration + isolated restart + new session. Operator only provisions synthetic grants; ordinary messages use grants. No product Desktop/QQ credential claim. Failed no-planner ordinals 5/6 remain; ordinal7 changes only implementation/derived assessment protocol, not facts."
+}

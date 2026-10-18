@@ -99,6 +99,34 @@ describe.skipIf(!url)("accepted sources through the actual Server/Character entr
         );
         return;
       }
+      if (
+        typeof body.messages[0]?.content === "string" &&
+        body.messages[0].content.startsWith("Evaluate whether each untrusted question")
+      ) {
+        const input = JSON.parse(source);
+        const needs = input.needs.map((n: any) => {
+          const record = input.claims.find((c: any) =>
+            n.quote.includes("EC_FACT_restart")
+              ? c.text.includes("EC_FACT_restart")
+              : n.quote.includes("面试")
+                ? c.text.includes("周四")
+                : false
+          );
+          return {
+            id: n.id,
+            verdict: record ? "SUPPORTED" : "INSUFFICIENT",
+            citations: record ? [{ id: record.id, quote: record.text.slice(0, 400) }] : []
+          };
+        });
+        response.writeHead(200, { "content-type": "application/json" });
+        response.end(
+          JSON.stringify({
+            model: body.model,
+            choices: [{ message: { content: JSON.stringify({ needs }) }, finish_reason: "stop" }]
+          })
+        );
+        return;
+      }
       if (body.model === "fixture-vision") {
         if (holdVision) {
           holdVision = false;
@@ -337,7 +365,7 @@ describe.skipIf(!url)("accepted sources through the actual Server/Character entr
 const original=RuntimeOrchestrator.prototype.handleUserMessage;
 RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input.payload?.content?.includes("EC_BEFORE_RUNTIME")) process.exit(73); return original.call(this,input,...args);};`
       );
-      const start = async (enabled: boolean, crashBeforeRuntime = false) => {
+      const start = async (enabled: boolean, crashBeforeRuntime = false, support = false) => {
         let legacyPort = 0;
         base = "";
         // Historical checkouts predate readiness IPC. Only the explicit
@@ -375,6 +403,7 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
               DATABASE_URL: connection.toString(),
               MEMORY_BACKEND: "postgres",
               MEMORY_QUERY_EXPANSION_ENABLED: "true",
+              MEMORY_EVIDENCE_SUPPORT_ENABLED: support ? "true" : "false",
               MEMORY_REPOSITORY: "postgres",
               CONVERSATION_REPOSITORY: "postgres",
               YUVI_JOURNAL_NAMESPACE: schema,
@@ -648,6 +677,58 @@ RuntimeOrchestrator.prototype.handleUserMessage=function(input,...args){if(input
       ).rows[0].query_plan;
       expect(compositionAudit.coverage).toHaveLength(2);
       expect(compositionAudit.coverage.every((n: any) => n.selectedIds.length > 0)).toBe(true);
+      await stop();
+      for (const r of (await pool.query("select episode_id from recent_episodes")).rows)
+        await recentEpisodes.markStatus(r.episode_id, "expired");
+      await start(true, false, true);
+      const supportBefore = calls.length;
+      expect(
+        (await send("面试时间和EC_FACT_restart分别是什么？", randomUUID(), false)).status
+      ).toBe(200);
+      const supportCalls = calls.slice(supportBefore);
+      expect(
+        supportCalls.filter((c) =>
+          c.messages[0]?.content.startsWith("Evaluate whether each untrusted question")
+        )
+      ).toHaveLength(1);
+      const supportedCharacter = supportCalls.filter((c) => c.model === "fixture-chat");
+      expect(supportedCharacter).toHaveLength(2);
+      for (const c of supportedCharacter) {
+        expect(JSON.stringify(c.messages)).toContain("SUPPORTED");
+        expect(JSON.stringify(c.messages)).toContain("用户面试在周四。");
+        expect(JSON.stringify(c.messages)).toContain("EC_FACT_restart SILENCE_REPLY");
+        expect(JSON.stringify(c.messages)).toContain("sourcePerson");
+      }
+      const supportAudit = (
+        await pool.query(
+          "select query_plan from memory_retrieval_runs where query=$1 order by created_at desc limit 1",
+          ["面试时间和EC_FACT_restart分别是什么？"]
+        )
+      ).rows[0].query_plan;
+      expect(supportAudit.evidenceSupport.status).toBe("ASSESSED");
+      expect(supportAudit.evidenceSupport.needs.every((n: any) => n.verdict === "SUPPORTED")).toBe(
+        true
+      );
+      const supportRef = (
+        await pool.query(
+          "select scope,retrieval_id from memory_retrieval_runs where query=$1 order by created_at desc limit 1",
+          ["面试时间和EC_FACT_restart分别是什么？"]
+        )
+      ).rows[0];
+      const supportUrl =
+        base +
+        "/memory/v1/retrieval?" +
+        new URLSearchParams({ scope: supportRef.scope, id: supportRef.retrieval_id });
+      const supportRead = await fetch(supportUrl, {
+        headers: { authorization: "Bearer synthetic-operator" }
+      });
+      expect(supportRead.status).toBe(200);
+      expect(((await supportRead.json()) as any).queryPlan.evidenceSupport.status).toBe("ASSESSED");
+      expect(
+        (await fetch(supportUrl, { headers: { authorization: "Bearer " + grant.token } })).status
+      ).toBe(401);
+      await stop();
+      await start(true);
       const sourceRuns = (
         await pool.query(
           "select finalized_turn_id,count(*)::int n from finalized_ingestion_events group by finalized_turn_id"

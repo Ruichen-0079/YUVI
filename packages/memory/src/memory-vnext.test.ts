@@ -17,6 +17,40 @@ import { projectThinTemporalContext } from "./temporal-projection.js";
 
 const now = new Date("2026-08-31T10:00:00.000Z");
 const timezone = "Asia/Shanghai";
+it("does not promote arbitrary legacy metadata or support labels into Authority evidence", () => {
+  const rendered = plannedMemoryEvidence({
+    status: "ok",
+    source: "mem0",
+    limited: false,
+    events: [event({ metadata: { knowledgeState: "current" } })],
+    evidenceSupport: {
+      schema: "memory.evidence-support.v1",
+      status: "ASSESSED",
+      model: "untrusted-backend",
+      usage: null,
+      elapsedMs: 0,
+      needs: [
+        {
+          id: "n0",
+          quote: "preference",
+          verdict: "SUPPORTED",
+          citations: [],
+          reason: "EXPLICIT_EVIDENCE"
+        }
+      ]
+    }
+  });
+  const body = JSON.parse(rendered.slice(rendered.lastIndexOf("\n") + 1));
+  expect(body.supportAssessment).toBe("NOT_ASSESSED");
+  expect(body.claims[0]).toMatchObject({
+    state: "unknown",
+    sourcePerson: null,
+    subject: null,
+    sourceBinding: "UNVERIFIED_PROVIDER_CLAIM",
+    quotedClaim: "The user prefers short replies."
+  });
+  expect(body.assessment).toBeUndefined();
+});
 it("binds demand claims without rewriting values, speakers, conflicts or unavailable slots", () => {
   const tea = event({
       id: "tea",
@@ -50,7 +84,7 @@ it("binds demand claims without rewriting values, speakers, conflicts or unavail
       }
     ]
   });
-  const rendered = JSON.parse(text.slice(text.indexOf("\n") + 1));
+  const rendered = JSON.parse(text.slice(text.lastIndexOf("\n") + 1));
   expect(rendered.demands[0].preferredEvidence).toMatchObject({
     quotedClaim: "茶叶偏好是月桂-5967。",
     source: "user",
