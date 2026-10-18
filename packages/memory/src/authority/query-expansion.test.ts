@@ -24,4 +24,22 @@ describe("bounded query expansion protocol, not semantic quality", () => {
         expandMemorySearch({ generateReasoning: async () => output }, "query")
       ).rejects.toThrow();
   });
+  it("keeps disjoint exact source spans and rejects invented or overlapping demands", async () => {
+    const reasoner = (needs: unknown) => ({
+      generateReasoning: async () => ({ reasoning: JSON.stringify({ needs }) })
+    });
+    const valid = [
+      { quote: "date", queries: ["日期", "date"] },
+      { quote: "tea", queries: ["茶叶", "tea"] }
+    ];
+    expect(
+      (await expandMemorySearch(reasoner(valid), "date and tea")).needs?.map((n) => n.id)
+    ).toEqual(["n0", "n1"]);
+    for (const invalid of [
+      [{ quote: "owner", queries: ["负责人"] }],
+      [valid[0], valid[0]],
+      [valid[1], valid[0]]
+    ])
+      await expect(expandMemorySearch(reasoner(invalid), "date and tea")).rejects.toThrow();
+  });
 });

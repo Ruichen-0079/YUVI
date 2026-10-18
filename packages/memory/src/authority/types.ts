@@ -90,7 +90,7 @@ export function searchTerms(text: string): string[] {
     text
       .normalize("NFKC")
       .toLowerCase()
-      .match(/[\p{Script=Han}]+|[\p{L}\p{N}_-]+/gu) ?? [];
+      .match(/[\p{Script=Han}]+|(?:(?!\p{Script=Han})[\p{L}\p{N}_-])+/gu) ?? [];
   const terms = new Set<string>();
   for (const part of parts) {
     if (/^\p{Script=Han}+$/u.test(part)) {

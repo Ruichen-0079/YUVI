@@ -1,0 +1,12 @@
+{
+  "queryExpansion": true,
+  "turns": [
+    {
+      "text": "我的面试日期、正在使用的编辑器，以及喜欢的茶分别是什么？",
+      "clearShortContext": true,
+      "writeMemory": false
+    }
+  ],
+  "migrateIsolatedOnResume": true,
+  "prepareLexicalIndex": true
+}

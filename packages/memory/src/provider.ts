@@ -178,6 +178,20 @@ export type MemoryRetrievalStatus = "ok" | "empty" | "unavailable" | "error" | "
  * "error" must not be collapsed into "empty" by a Runtime caller.
  */
 export type MemoryRetrievalOutcome = {
+  /** Candidate availability, not entailment or a promise of answer completeness. */
+  coverage?: Array<{
+    id: string;
+    quote: string;
+    candidateIds: string[];
+    selectedIds: string[];
+    preferredId: string | null;
+    preferredSelected: boolean;
+    status:
+      | "SELECTED_CANDIDATE"
+      | "NO_AUTHORIZED_CANDIDATE"
+      | "RESULT_BOUND"
+      | "CHANNEL_UNAVAILABLE";
+  }>;
   retrievalId?: string | undefined;
   watermark?: string | undefined;
   status: MemoryRetrievalStatus;

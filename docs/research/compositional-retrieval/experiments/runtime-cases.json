@@ -1,0 +1,20 @@
+{
+ "queryExpansion":true,
+ "turns":[
+  {"text":"我的面试日期是下周四，地点在北塔三层。我使用的编辑器代号是栀子-613。"},
+  {"text":"茶叶偏好是月桂-5967。"},
+  {"text":"我们持续合作的项目名称是星桥-28，负责人是林舟。最新决定是先验证只读影子迁移，暂不切换正式数据库。"},
+  {"text":"My unit test framework preference is CedarTest-91."},
+  {"text":"Our backup region is Helsinki, code FIN-42. My usual hiking route is the eastern ridge trail."},
+  {"text":"我不能吃花生，会引起过敏。"},
+  {"text":"之前编辑器代号说错了，现在用的是露川-4A87，栀子-613已经无效。"},
+  {"text":"What are my interview date, current editor and preferred tea?","clearShortContext":true,"writeMemory":false},
+  {"text":"我的面试日期、正在使用的编辑器，以及喜欢的茶分别是什么？","clearShortContext":true,"writeMemory":false},
+  {"text":"What are my interview date, current editor and preferred tea?","clearShortContext":true,"writeMemory":false},
+  {"text":"单元测试框架和备份地区分别是什么？","clearShortContext":true,"writeMemory":false},
+  {"text":"面试日期、茶叶偏好、test framework、backup region，以及星桥-28负责人分别是什么？","clearShortContext":true,"writeMemory":false},
+  {"text":"请列出面试地点、饮食禁忌和登山路线。","clearShortContext":true,"writeMemory":false},
+  {"text":"编辑器、茶叶和航空座位分别是什么？","clearShortContext":true,"writeMemory":false},
+  {"text":"What are my interview date, current editor and preferred tea?","clearShortContext":true,"writeMemory":false,"person":"person-b"}
+ ]
+}

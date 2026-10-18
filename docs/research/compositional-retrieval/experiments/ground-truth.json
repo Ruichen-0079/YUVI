@@ -1,0 +1,37 @@
+{
+  "schema": "memory.composition-ground-truth.v1",
+  "facts": [
+    {"key":"interview","text":"我的面试日期是下周四。"},
+    {"key":"location","text":"面试地点在北塔三层。"},
+    {"key":"editor-old","text":"我的编辑器代号是栀子-613。"},
+    {"key":"editor","text":"现在使用的编辑器代号是露川-4A87，栀子-613已经无效。","supersedes":"editor-old"},
+    {"key":"tea","text":"茶叶偏好是月桂-5967。"},
+    {"key":"diet","text":"我不能吃花生，会引起过敏。"},
+    {"key":"project","text":"我们持续合作的项目名称是星桥-28。"},
+    {"key":"owner","text":"星桥-28项目负责人是林舟。"},
+    {"key":"decision","text":"星桥-28最新决定是先验证只读影子迁移，暂不切换正式数据库。"},
+    {"key":"framework","text":"My unit test framework preference is CedarTest-91."},
+    {"key":"region","text":"Our backup region is Helsinki, code FIN-42."},
+    {"key":"route","text":"My usual hiking route is the eastern ridge trail."},
+    {"key":"timezone-a","text":"协作时区可能是UTC+8。"},
+    {"key":"timezone-b","text":"协作时区也有证据称为UTC+9，尚未确认。","conflicts":"timezone-a"},
+    {"key":"support-tea","text":"茶叶偏好仍为月桂-5967。","supports":"tea"},
+    {"key":"foreign","text":"另一个人的私人航空座位是14C。","person":"other"},
+    {"key":"foreign-persona","text":"另一个人格的私人宠物叫琥珀。","persona":"other"}
+  ],
+  "distractors": {"count":96,"template":"面试准备笔记第{n}条：一般需要提前整理材料，不是用户的面试时间或地点。"},
+  "cases": [
+    {"id":"exact","split":"development","query":"编辑器代号是什么？","needs":[{"quote":"编辑器代号","queries":["编辑器 代号","editor code"],"keys":["editor"]}]},
+    {"id":"zh-synonym","split":"development","query":"我喜欢的茶是什么？","needs":[{"quote":"喜欢的茶","queries":["喜欢的茶","preferred tea"],"keys":["tea"]}]},
+    {"id":"zh-to-en","split":"holdout","query":"单元测试框架和备份地区分别是什么？","needs":[{"quote":"单元测试框架","queries":["单元测试框架","unit test framework"],"keys":["framework"]},{"quote":"备份地区","queries":["备份地区","backup region"],"keys":["region"]}]},
+    {"id":"en-to-zh","split":"development","query":"What are my interview date, current editor and preferred tea?","needs":[{"quote":"interview date","queries":["面试日期","interview date"],"keys":["interview"]},{"quote":"current editor","queries":["当前编辑器","current editor"],"keys":["editor"]},{"quote":"preferred tea","queries":["喜欢的茶","preferred tea"],"keys":["tea"]}]},
+    {"id":"three-zh","split":"development","query":"我的面试日期、正在使用的编辑器，以及喜欢的茶分别是什么？","needs":[{"quote":"面试日期","queries":["面试日期","interview date"],"keys":["interview"]},{"quote":"正在使用的编辑器","queries":["编辑器","current editor"],"keys":["editor"]},{"quote":"喜欢的茶","queries":["喜欢的茶","preferred tea"],"keys":["tea"]}]},
+    {"id":"three-unseen","split":"holdout","query":"请列出面试地点、饮食禁忌和登山路线。","needs":[{"quote":"面试地点","queries":["面试地点","interview location"],"keys":["location"]},{"quote":"饮食禁忌","queries":["饮食 过敏 禁忌","diet allergy restriction"],"keys":["diet"]},{"quote":"登山路线","queries":["登山路线","hiking route"],"keys":["route"]}]},
+    {"id":"five-mixed","split":"holdout","query":"面试日期、茶叶偏好、test framework、backup region，以及星桥-28负责人分别是什么？","needs":[{"quote":"面试日期","queries":["面试日期","interview date"],"keys":["interview"]},{"quote":"茶叶偏好","queries":["茶叶偏好","tea preference"],"keys":["tea"]},{"quote":"test framework","queries":["测试框架","test framework"],"keys":["framework"]},{"quote":"backup region","queries":["备份地区","backup region"],"keys":["region"]},{"quote":"星桥-28负责人","queries":["星桥-28负责人","project owner"],"keys":["owner"]}]},
+    {"id":"project-three","split":"holdout","query":"What is our project name, its owner, and the latest decision?","needs":[{"quote":"project name","queries":["项目名称","project name"],"keys":["project"]},{"quote":"its owner","queries":["项目负责人","project owner"],"keys":["owner"]},{"quote":"latest decision","queries":["最新决定","latest decision"],"keys":["decision"]}]},
+    {"id":"one-unknown","split":"holdout","query":"编辑器、茶叶和航空座位分别是什么？","needs":[{"quote":"编辑器","queries":["编辑器","editor"],"keys":["editor"]},{"quote":"茶叶","queries":["茶叶","tea"],"keys":["tea"]},{"quote":"航空座位","queries":["航空座位","airline seat"],"keys":[]}]},
+    {"id":"conflict","split":"holdout","query":"协作时区和备份地区是什么？","needs":[{"quote":"协作时区","queries":["协作时区","collaboration timezone"],"keys":["timezone-a","timezone-b"]},{"quote":"备份地区","queries":["备份地区","backup region"],"keys":["region"]}]},
+    {"id":"private-person","split":"holdout","query":"另一个人的私人航空座位是什么？","needs":[{"quote":"私人航空座位","queries":["私人航空座位","private airline seat"],"keys":[]}]},
+    {"id":"private-persona","split":"holdout","query":"另一个人格的宠物叫什么？","needs":[{"quote":"宠物","queries":["宠物","pet"],"keys":[]}]}
+  ]
+}

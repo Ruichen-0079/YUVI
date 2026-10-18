@@ -202,7 +202,7 @@ export async function assembleMemoryVNextContext(
               name: "RelevantMemory",
               content:
                 longTerm.status === "ok" || longTerm.status === "partial"
-                  ? longTerm.events.map((event) => trimSummary(event.content, 400)).join("\n")
+                  ? plannedMemoryEvidence(longTerm)
                   : ""
             },
             {
@@ -320,8 +320,7 @@ function projectCharacterFacing(input: {
       : [];
   const memoryParts = [
     input.promptEpisodes.length > 0 ? input.recentEpisodicText : null,
-    input.longTermText ??
-      admittedLongTerm.map((event) => trimSummary(event.content, 400)).join("\n"),
+    input.longTermText ?? plannedMemoryEvidence(input.longTerm),
     input.associativeText ??
       input.associative.items
         .map((item) => `[associated ${item.ageBand}] ${item.content}`)
@@ -360,6 +359,40 @@ function projectCharacterFacing(input: {
     memoryEvidence,
     temporalContext
   };
+}
+
+/** Keep demand/value bindings in the same budgeted evidence block, rather than
+ * a flat claim list plus detached opaque IDs. Quotes remain source claims. */
+export function plannedMemoryEvidence(outcome: MemoryRetrievalOutcome): string {
+  if (!["ok", "partial"].includes(outcome.status)) return "";
+  if (!outcome.coverage?.length)
+    return outcome.events.map((e) => trimSummary(e.content, 400)).join("\n");
+  const byId = new Map(outcome.events.map((e) => [e.id, e]));
+  const assigned = new Set<string>();
+  const quote = (event: MemoryEvent) => ({
+    reference: event.id,
+    source: event.assertion?.source ?? "unknown",
+    state: ["current", "conflicted"].includes(String(event.metadata["knowledgeState"]))
+      ? event.metadata["knowledgeState"]
+      : "unknown",
+    quotedClaim: trimSummary(event.content, 400)
+  });
+  const demands = outcome.coverage.map((n) => {
+    const event = n.preferredSelected && n.preferredId ? byId.get(n.preferredId) : undefined;
+    if (event) assigned.add(event.id);
+    return {
+      questionSpan: trimSummary(n.quote, 80),
+      candidateStatus: n.status,
+      preferredEvidence: event ? quote(event) : null
+    };
+  });
+  return (
+    "Retrieval demand slots (candidate availability, not entailment or proof of absence). Quoted first-person text retains its source speaker; it does not change your identity.\n" +
+    JSON.stringify({
+      demands,
+      additionalClaims: outcome.events.filter((e) => !assigned.has(e.id)).map(quote)
+    })
+  );
 }
 
 function mapLongTermState(

@@ -497,3 +497,8 @@ export {
 } from "./authority/legacy-workflow.js";
 
 export { expandMemorySearch, type MemorySearchPlan } from "./authority/query-expansion.js";
+export {
+  advanceLexicalIndex,
+  rebuildLexicalIndex,
+  verifyLexicalIndex
+} from "./authority/lexical-index.js";

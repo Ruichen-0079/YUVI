@@ -2,6 +2,9 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import {
   MemoryProjectionRebuild,
+  advanceLexicalIndex,
+  rebuildLexicalIndex,
+  verifyLexicalIndex,
   MemoryLegacyWorkflow,
   retryStaleFinalizedDecision,
   PostgresMemoryProvider,
@@ -27,6 +30,9 @@ export async function registerMemoryOperationRoutes(
         "AUDIT_STATUS",
         "PROJECTION_VERIFY",
         "VECTOR_REQUEUE",
+        "LEXICAL_ADVANCE",
+        "LEXICAL_REBUILD",
+        "LEXICAL_VERIFY",
         "RETRY_FINALIZED",
         "REBUILD_START",
         "REBUILD_ADVANCE",
@@ -61,6 +67,33 @@ export async function registerMemoryOperationRoutes(
       const provider = context.memory.getAuthorityInfrastructure();
       if (!(provider instanceof PostgresMemoryProvider) || !context.memoryIntegrity)
         throw new MemoryAuthorityError("MEMORY_AUTHORITY_NOT_ENABLED");
+      if (i.operation === "LEXICAL_ADVANCE")
+        return {
+          schema: "memory.lexical-index.v1",
+          ...(await advanceLexicalIndex(
+            provider.authority,
+            i.scope,
+            i.limit,
+            "authenticated-local-operator"
+          ))
+        };
+      if (i.operation === "LEXICAL_REBUILD")
+        return {
+          schema: "memory.lexical-index.v1",
+          ...(await rebuildLexicalIndex(
+            provider.authority,
+            i.scope,
+            "authenticated-local-operator"
+          ))
+        };
+      if (i.operation === "LEXICAL_VERIFY")
+        return await verifyLexicalIndex(
+          provider.authority,
+          i.scope,
+          i.id ?? "",
+          i.limit,
+          "authenticated-local-operator"
+        );
       if (i.operation.startsWith("MIGRATION_")) {
         if (!i.id) throw new MemoryAuthorityError("MEMORY_OPERATION_ID_REQUIRED");
         const workflow = new MemoryLegacyWorkflow(provider.authority),

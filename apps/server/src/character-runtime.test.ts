@@ -54,6 +54,27 @@ function characterHarness(overrides: { responses: ChatOutput[] }) {
 }
 
 describe("production Character runtime adapter", () => {
+  it("projects label/value comparison guidance only to bodies with an actual report", async () => {
+    for (const report of [
+      undefined,
+      { status: "AVAILABLE" as const, observations: "A:12, B:7, C:19" }
+    ]) {
+      const calls = characterHarness({ responses: [output('{"disposition":"RESPOND"}')] });
+      const result = await createServerCharacterPort().generate({
+        prompt,
+        userMessage: "Which is shortest?",
+        generateChat: calls.generateChat,
+        ...(report ? { visualEvidence: report } : {})
+      });
+      const gate = JSON.stringify(calls.generateChat.mock.calls[0]![0]);
+      expect(gate).not.toContain("state the reported label–value pairs");
+      const reply = result.decision.reply;
+      if (!("body" in reply)) throw Error("Expected deferred response body");
+      expect(JSON.stringify(reply.body).includes("state the reported label–value pairs")).toBe(
+        !!report
+      );
+    }
+  });
   it("serializes the shared canonical P8 and Memory projection with current input", async () => {
     const canonicalContext = assembleCanonicalContext({
       semanticSections: [
