@@ -1,0 +1,22 @@
+{
+  "basePR": 334,
+  "baseHead": "8e6f3ca09ae758612b8ae85b5f4dc4ced275bbb1",
+  "implementationHeads": [
+    "c51d9aa91e41d0770325ad0d2130439126b33b4b",
+    "415adabd3f2d02f9707493159bf6771ce29559bb"
+  ],
+  "nativeBinarySha256": "c85ddfca011c885706c8d17d857c3d2563a681a2b937c67db5698cb5047e1204",
+  "debSha256": "2f75831190685bfc21839cd99a40ad4d55acef15bb22d9bf76c01314db914272",
+  "nativeRun": "run-rEiBXi",
+  "nativeChecks": 18,
+  "platform": "Linux x86_64 / XWayland / WebKitGTK software rendering",
+  "bundle": "Tauri CLI release deb; executable extracted and run; independent production Supervisor/Runtime fixture",
+  "notCovered": [
+    "Windows",
+    "macOS",
+    "full dependency installer",
+    "native GPU/Wayland",
+    "actual licensed Cubism rendering",
+    "real model Test B"
+  ]
+}

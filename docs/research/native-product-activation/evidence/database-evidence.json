@@ -1,0 +1,219 @@
+{
+  "authority": [
+    {
+      "scope": "yuvi:v1:user:f6cb387f-efe1-4a57-8465-25a65e167ac5:character:character-instance%3Aproduct-ui-320ff95b-cd2b-4184-b4ee-b774a7b1760f",
+      "id": "pgm1_888468b2a9887e29e3fe2815c4bccdfd7cc799f68da25a21a759f1048675b428",
+      "digest": "b8088155249834fafd596e581c997a1771ea904c21462978110685c56e6658f1",
+      "version": "1",
+      "classification": "GROUNDED",
+      "event": {
+        "id": "pgm1_888468b2a9887e29e3fe2815c4bccdfd7cc799f68da25a21a759f1048675b428",
+        "kind": "fact",
+        "scope": "yuvi:v1:user:f6cb387f-efe1-4a57-8465-25a65e167ac5:character:character-instance%3Aproduct-ui-320ff95b-cd2b-4184-b4ee-b774a7b1760f",
+        "source": "postgres",
+        "content": "My favorite color is lake-blue.",
+        "lineage": {
+          "state": "GROUNDED",
+          "origin": "USER_ASSERTION",
+          "parents": [
+            {
+              "ref": {
+                "kind": "JOURNAL_EVENT",
+                "eventId": "jev1_7S1IDEn1uAPh_OHKyxx54ms54I3VjoW9",
+                "namespace": "yuvi:character:product-ui-320ff95b-cd2b-4184-b4ee-b774a7b1760f"
+              },
+              "selector": {
+                "range": {
+                  "end": 48,
+                  "unit": "UNICODE_CODE_POINT",
+                  "start": 0
+                },
+                "payload": {
+                  "version": "v1",
+                  "namespace": "yuvi:conversation-input",
+                  "payloadId": "text_mQegQzmxBzh6Rj9cp23HhbzRZPdE9I4V"
+                },
+                "version": "source-selector.v1",
+                "modality": "TEXT"
+              }
+            }
+          ],
+          "version": "memory-lineage.v1",
+          "authority": {
+            "binding": {
+              "kind": "PERSON_BINDING",
+              "state": "RESOLVED",
+              "personId": "f6cb387f-efe1-4a57-8465-25a65e167ac5",
+              "bindingVersion": "mhg_6a02e138-6e8c-46df-936b-9e0dab60e254"
+            },
+            "audience": {
+              "kind": "PRIVATE",
+              "channelRef": "host-private:f6cb387f-efe1-4a57-8465-25a65e167ac5:character-instance:product-ui-320ff95b-cd2b-4184-b4ee-b774a7b1760f"
+            },
+            "principal": {
+              "kind": "PRINCIPAL",
+              "state": "RESOLVED",
+              "actorId": "http_4fe78cfd-6050-4c68-bc6f-f84d35849a79",
+              "namespace": "yuvi:character:product-ui-320ff95b-cd2b-4184-b4ee-b774a7b1760f"
+            }
+          },
+          "derivation": {
+            "kind": "FINALIZED_INGESTION",
+            "producer": "@companion/memory",
+            "policyVersion": "memory.semantic.v1/finalized-authority-v1",
+            "producerVersion": "0.1.0"
+          },
+          "sourceTime": {
+            "commitSeq": 2,
+            "recordedAt": "2026-10-18T18:36:29.223Z",
+            "occurrenceTime": {
+              "state": "UNKNOWN"
+            }
+          },
+          "consumerKey": "mlf1_LIeAdO2ak4KKFDCIkYFRsjraH_WgNCFy2BN1l_Y-uGM",
+          "sourceAvailability": {
+            "state": "RETAINED_SELECTABLE"
+          }
+        },
+        "metadata": {
+          "model": "fixture-reasoning",
+          "semanticPolicy": "memory.semantic.v1",
+          "semanticRevision": "dialogue-proposition-equivalence.v2",
+          "evidenceSelection": {
+            "end": 48,
+            "unit": "UNICODE_CODE_POINT",
+            "start": 0
+          }
+        },
+        "assertion": {
+          "source": "user",
+          "verification": "unverified"
+        },
+        "observedAt": "2026-10-18T18:36:29.223Z",
+        "recordedAt": "2026-10-18T18:36:29.223Z",
+        "sourceTurnIds": [
+          "7800f4e5-2a04-4683-837d-f5350b9e9259"
+        ],
+        "conversationId": "8d665165-6037-4a53-96a3-e9dd528c8246",
+        "sourceRecordId": "pgm1_888468b2a9887e29e3fe2815c4bccdfd7cc799f68da25a21a759f1048675b428"
+      },
+      "state": "superseded"
+    },
+    {
+      "scope": "yuvi:v1:user:f6cb387f-efe1-4a57-8465-25a65e167ac5:character:character-instance%3Aproduct-ui-320ff95b-cd2b-4184-b4ee-b774a7b1760f",
+      "id": "pgm1_f5b49f88a45d5b1ac62acc3c8bf780c0f284eab5d38f8a05abda3d607a6c714f",
+      "digest": "dbd6ddacb7a47175974095ad444e60c38ed9f55a116cf97959ca2bec531634ce",
+      "version": "2",
+      "classification": "GROUNDED",
+      "event": {
+        "id": "pgm1_f5b49f88a45d5b1ac62acc3c8bf780c0f284eab5d38f8a05abda3d607a6c714f",
+        "kind": "correction",
+        "scope": "yuvi:v1:user:f6cb387f-efe1-4a57-8465-25a65e167ac5:character:character-instance%3Aproduct-ui-320ff95b-cd2b-4184-b4ee-b774a7b1760f",
+        "source": "postgres",
+        "content": "My favorite color is forest-green.",
+        "lineage": {
+          "state": "GROUNDED",
+          "origin": "USER_ASSERTION",
+          "parents": [
+            {
+              "ref": {
+                "kind": "JOURNAL_EVENT",
+                "eventId": "jev1_8tiPCHNy0UeVeVPxnVYm5WtsjEiD0JgY",
+                "namespace": "yuvi:character:product-ui-320ff95b-cd2b-4184-b4ee-b774a7b1760f"
+              },
+              "selector": {
+                "range": {
+                  "end": 46,
+                  "unit": "UNICODE_CODE_POINT",
+                  "start": 0
+                },
+                "payload": {
+                  "version": "v1",
+                  "namespace": "yuvi:conversation-input",
+                  "payloadId": "text_n_dFOuE0VcndzJ1D_G1PphM4r8lyQuRL"
+                },
+                "version": "source-selector.v1",
+                "modality": "TEXT"
+              }
+            }
+          ],
+          "version": "memory-lineage.v1",
+          "authority": {
+            "binding": {
+              "kind": "PERSON_BINDING",
+              "state": "RESOLVED",
+              "personId": "f6cb387f-efe1-4a57-8465-25a65e167ac5",
+              "bindingVersion": "mhg_6a02e138-6e8c-46df-936b-9e0dab60e254"
+            },
+            "audience": {
+              "kind": "PRIVATE",
+              "channelRef": "host-private:f6cb387f-efe1-4a57-8465-25a65e167ac5:character-instance:product-ui-320ff95b-cd2b-4184-b4ee-b774a7b1760f"
+            },
+            "principal": {
+              "kind": "PRINCIPAL",
+              "state": "RESOLVED",
+              "actorId": "http_4fe78cfd-6050-4c68-bc6f-f84d35849a79",
+              "namespace": "yuvi:character:product-ui-320ff95b-cd2b-4184-b4ee-b774a7b1760f"
+            }
+          },
+          "derivation": {
+            "kind": "FINALIZED_INGESTION",
+            "producer": "@companion/memory",
+            "policyVersion": "memory.semantic.v1/finalized-authority-v1",
+            "producerVersion": "0.1.0"
+          },
+          "sourceTime": {
+            "commitSeq": 4,
+            "recordedAt": "2026-10-18T18:36:30.133Z",
+            "occurrenceTime": {
+              "state": "UNKNOWN"
+            }
+          },
+          "consumerKey": "mlf1_HhbRsb4OkRICkBh4YatqrGzoBv23nxQaIqHJ0HkpyW4",
+          "sourceAvailability": {
+            "state": "RETAINED_SELECTABLE"
+          }
+        },
+        "metadata": {
+          "model": "fixture-reasoning",
+          "semanticPolicy": "memory.semantic.v1",
+          "semanticRevision": "dialogue-proposition-equivalence.v2",
+          "evidenceSelection": {
+            "end": 46,
+            "unit": "UNICODE_CODE_POINT",
+            "start": 0
+          }
+        },
+        "assertion": {
+          "source": "user",
+          "verification": "unverified"
+        },
+        "observedAt": "2026-10-18T18:36:30.133Z",
+        "recordedAt": "2026-10-18T18:36:30.133Z",
+        "sourceTurnIds": [
+          "847ad26b-ff99-44bb-b526-28c6f107f55c"
+        ],
+        "conversationId": "8d665165-6037-4a53-96a3-e9dd528c8246",
+        "sourceRecordId": "pgm1_f5b49f88a45d5b1ac62acc3c8bf780c0f284eab5d38f8a05abda3d607a6c714f"
+      },
+      "state": "current"
+    }
+  ],
+  "grants": [
+    {
+      "person_id": "f6cb387f-efe1-4a57-8465-25a65e167ac5",
+      "revoked": true,
+      "expires_at": "2026-10-19T18:36:31.973Z"
+    },
+    {
+      "person_id": "84153a6d-3a22-4ac4-a75b-f6298910c78b",
+      "revoked": true,
+      "expires_at": "2026-10-19T18:36:36.515Z"
+    },
+    {
+      "person_id": "84153a6d-3a22-4ac4-a75b-f6298910c78b",
+      "revoked": true,
+      "expires_at": "2026-10-19T18:36:38.692Z"
+    }
+  ]
+}

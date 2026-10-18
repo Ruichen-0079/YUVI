@@ -1,0 +1,13 @@
+{
+  "pnpm check": "PASS",
+  "pnpm build": "PASS",
+  "pnpm test with six explicit PostgreSQL URLs": "PASS: Vitest 4116 passed / 81 skipped; Node 63 passed",
+  "PostgreSQL location": "isolated 127.0.0.1:31518 / yuvi_smoke and per-run yuvi_pr_product_host schemas",
+  "PostgreSQL mode": "CI=true only for existing explicit yuvi_smoke safety guards; no production database",
+  "cargo test --lib": "PASS: 110",
+  "desktop:package:test": "PASS: 78",
+  "actual native deb": "PASS: 18 checks",
+  "real provider Test B": "NOT_RUN; approved independent configuration not supplied",
+  "CI": "See current HEAD checks in the single Draft PR; local acceptance does not assert remote CI success.",
+  "skips": "Not counted as acceptance. Optional model/platform/other environment gates remain open."
+}
