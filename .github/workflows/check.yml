@@ -100,7 +100,7 @@ jobs:
           YUVI_PRODUCTION_PATH_EVIDENCE_DIRECTORY: ${{ runner.temp }}/yuvi-production-path
         run: |
           pnpm --filter @companion/memory exec vitest run src/authority/authority.integration.test.ts src/authority/retrieval-quality.integration.test.ts src/authority/compositional-retrieval.integration.test.ts src/authority/legacy-workflow.integration.test.ts src/authority/database-contract.integration.test.ts src/migrations-ledger.integration.test.ts src/finalized-ingestion-ledger.test.ts src/finalized-ingestion-executor.test.ts
-          pnpm --filter @companion/server exec vitest run src/production-reality-entry.integration.test.ts src/evidence-continuity-entry.integration.test.ts src/observation-atomic.integration.test.ts src/routes/memory-knowledge.integration.test.ts src/conversation-host-identity.integration.test.ts src/memory-authority-lifecycle.integration.test.ts
+          pnpm --filter @companion/server exec vitest run src/production-reality-entry.integration.test.ts src/evidence-continuity-entry.integration.test.ts src/observation-atomic.integration.test.ts src/routes/memory-knowledge.integration.test.ts src/conversation-host-identity.integration.test.ts src/memory-authority-lifecycle.integration.test.ts src/memory-sibling-convergence.integration.test.ts
 
       - name: Archive normal startup model input summaries
         if: always()
