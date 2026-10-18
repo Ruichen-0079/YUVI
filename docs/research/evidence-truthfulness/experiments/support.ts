@@ -51,7 +51,10 @@ const schema = "support_eval_" + randomUUID().replaceAll("-", ""),
   pool = new pg.Pool({ connectionString: url, options: "-c search_path=" + schema + ",public" }),
   authority = new PostgresMemoryAuthority(pool),
   reader = new MemoryKnowledgeReader(pool);
-const fixtureRaw = await readFile(new URL("./ground-truth.json", import.meta.url), "utf8"),
+const fixtureRaw = await readFile(
+    process.env.YUVI_SUPPORT_FIXTURE ?? new URL("./ground-truth.json", import.meta.url),
+    "utf8"
+  ),
   fixture = JSON.parse(fixtureRaw);
 let count = 0,
   knownCost = 0,
@@ -84,13 +87,23 @@ globalThis.fetch = async (url, init) => {
   });
   return response;
 };
+const previous = process.env.YUVI_SUPPORT_PRIOR
+  ? JSON.parse(await readFile(process.env.YUVI_SUPPORT_PRIOR, "utf8"))
+  : null;
 const report: any = {
   schema: "memory.support-eval.v1",
   kind: "actual PG/current resolution + fixed adversarial candidate set + real support/Character models, no L1",
   sha: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
   dirty: !!execFileSync("git", ["status", "--porcelain"], { encoding: "utf8" }).trim(),
   fixtureDigest: createHash("sha256").update(fixtureRaw).digest("hex"),
-  cases: []
+  cases: [],
+  baselineReplay: previous
+    ? {
+        sha: previous.sha,
+        fixtureDigest: previous.fixtureDigest,
+        note: "Original baseline answers reused, not new calls; same frozen content/questions but new admission row identities"
+      }
+    : null
 };
 async function save() {
   report.calls = calls;
@@ -227,6 +240,11 @@ try {
       cases: []
     };
     for (const mode of ["baseline", "revised"]) {
+      const prior = previous?.cases.find((x: any) => x.id === c.id);
+      if (mode === "baseline" && prior) {
+        item.cases.push({ ...prior.cases[0], reusedFrozenBaseline: true });
+        continue;
+      }
       const started = performance.now(),
         startCall = calls.length;
       let evidence = oldRender(outcome),
