@@ -365,7 +365,23 @@ try {
   const driverPort = await freePort(),
     nativePort = await freePort();
   const driverEnv = {
-    ...process.env,
+    ...Object.fromEntries(
+      [
+        "PATH",
+        "HOME",
+        "USER",
+        "LOGNAME",
+        "DISPLAY",
+        "WAYLAND_DISPLAY",
+        "XDG_RUNTIME_DIR",
+        "DBUS_SESSION_BUS_ADDRESS",
+        "XAUTHORITY",
+        "LANG",
+        "LC_ALL",
+        "LC_CTYPE",
+        "TZ"
+      ].flatMap((key) => (process.env[key] === undefined ? [] : [[key, process.env[key]!]]))
+    ),
     YUVI_SECRET_NAMESPACE: namespace,
     YUVI_SUPERVISOR_STATE_ROOT: stateRoot,
     YUVI_DESKTOP_SUPERVISOR_BINDING: "attach",
@@ -1087,6 +1103,25 @@ try {
   assert.equal(denied, true);
   record(
     "Native logout/revocation rejects old private chat and Memory; local page cannot silently regain a Host"
+  );
+  await click("以 Native Synthetic Y 进入");
+  await confirm();
+  await until(
+    text,
+    (v) => v.includes("当前身份：Native Synthetic Y"),
+    "owned Person reentry after explicit logout"
+  );
+  assert.equal((await api("/host/v1/product/status")).status, 200);
+  const reentered = JSON.parse(await readFile(vaultPath, "utf8"));
+  assert.notEqual(reentered.cookie, activeVault.cookie);
+  await click("退出身份");
+  await until(
+    text,
+    (v) => v.includes("以 Native Synthetic Y 进入") && !v.includes("退出身份"),
+    "reentered native identity exits cleanly"
+  );
+  record(
+    "Explicit reentry restores only the confirmed owned Person with a new limited grant; the revoked client stays invalid"
   );
   const finalRows = await admin.query(
     `select scope,count(*)::int as count from ${schema}.memory_authority_records group by scope`
