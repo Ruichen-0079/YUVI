@@ -1,3 +1,5 @@
+import { getDesktopRuntimeBinding } from "./service-supervisor-client.js";
+import { setDesktopRuntimeBinding } from "./desktop-runtime.js";
 import { NativeMemoryPermission } from "./native-product-permissions.js";
 import { ProductAuthorityMemory } from "./product-authority-memory.js";
 import { useEffect, useState, useRef, type ReactNode } from "react";
@@ -36,7 +38,14 @@ export function NativeActivation({ children }: { children: ReactNode }): JSX.Ele
           host = await productRequest<ProductHostState>("/host/v1/product/renew", {});
         memoryEnabled = host.memoryEnabled;
         enabled = host.status === "ACTIVE" && host.personId === next.person.id;
-        if (enabled) identity = { personId: host.personId, personaId: host.personaId };
+        if (enabled) {
+          const binding = await getDesktopRuntimeBinding();
+          if (!binding?.ready || !binding.runtimeUrl) enabled = false;
+          else {
+            setDesktopRuntimeBinding(binding.mode, binding.runtimeUrl);
+            identity = { personId: host.personId, personaId: host.personaId };
+          }
+        }
       } catch {
         /* Unavailable identity stays closed; fence stale async results below. */
       }
@@ -144,7 +153,15 @@ export function NativeActivation({ children }: { children: ReactNode }): JSX.Ele
       ) : (
         <>
           {view.serviceUnavailable && (
-            <p role="status">本机身份服务尚未就绪。请稍候或重新连接；不会连接其他实例。</p>
+            <>
+              <p role="status">本机身份服务尚未就绪。首次使用可以启用此桌面的本机记忆。</p>
+              <button
+                disabled={busy || view.pending || view.revocationPending}
+                onClick={() => void act("enable")}
+              >
+                启用本机记忆
+              </button>
+            </>
           )}
           {view.people.map((person) => (
             <p key={person.id}>

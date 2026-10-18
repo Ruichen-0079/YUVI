@@ -286,7 +286,24 @@ pub async fn native_product_activation(
   if vault.suspended && !matches!(action.as_str(), "status" | "logout") {
     return Err("Complete the pending sign-out before selecting another identity".into());
   }
-  if action == "create" || action == "resume" {
+  if action == "enable" {
+    if !consent(&window, "为此桌面启用本机 R5 记忆？\n会启动本实例的存储和 Runtime 服务；旧记忆不会自动迁移，也不会认领已有身份。") { return Err("Activation cancelled".into()); }
+    let patch: crate::config::UserSettingsPatch = serde_json::from_value(json!({
+      "memory":{"backend":"postgres","enabled":true,"mode":"managed"},
+      "runtime":{"autostart":true,"mode":"managed"}
+    }))
+    .map_err(|_| "Invalid native activation configuration")?;
+    app
+      .state::<crate::config::ConfigState>()
+      .service
+      .update_settings(patch)?;
+    let boot_app = app.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+      crate::durable_memory_boot::bootstrap_attached_linux(&boot_app)
+    })
+    .await
+    .map_err(|_| "Native activation interrupted")??;
+  } else if action == "create" || action == "resume" {
     if action == "create" && vault.pending.is_none() {
       let name = name
         .ok_or("A display name is required")?

@@ -88,13 +88,16 @@ void resolveDesktopSurface().then(async (surface) => {
   if (isTauriRuntime()) {
     let bindingMode: DesktopRuntimeBindingMode = "attach";
     try {
-      const binding = await waitDesktopBinding(getDesktopRuntimeBinding, (detail) => {
-        root.render(<RuntimeBindingUnavailable detail={detail} waiting />);
-      });
+      const productActivation = surface === "main" || surface === "webui";
+      const binding = productActivation
+        ? await getDesktopRuntimeBinding()
+        : await waitDesktopBinding(getDesktopRuntimeBinding, (detail) => {
+            root.render(<RuntimeBindingUnavailable detail={detail} waiting />);
+          });
       if (!binding) throw new Error("Desktop Runtime binding projection is unavailable.");
       bindingMode = binding.mode;
       setDesktopRuntimeBinding(binding.mode, binding.ready ? binding.runtimeUrl : null);
-      if (!binding.ready || !binding.runtimeUrl) {
+      if ((!binding.ready || !binding.runtimeUrl) && !productActivation) {
         root.render(
           <StrictMode>
             <RuntimeBindingUnavailable
@@ -108,14 +111,15 @@ void resolveDesktopSurface().then(async (surface) => {
       }
     } catch (error) {
       setDesktopRuntimeBinding(bindingMode, null);
-      root.render(
-        <StrictMode>
-          <RuntimeBindingUnavailable
-            detail={error instanceof Error ? error.message : "Runtime binding failed."}
-          />
-        </StrictMode>
-      );
-      return;
+      if (surface !== "main" && surface !== "webui")
+        root.render(
+          <StrictMode>
+            <RuntimeBindingUnavailable
+              detail={error instanceof Error ? error.message : "Runtime binding failed."}
+            />
+          </StrictMode>
+        );
+      if (surface !== "main" && surface !== "webui") return;
     }
     try {
       const view = await fetchUserSettings();

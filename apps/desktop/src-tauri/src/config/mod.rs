@@ -25,11 +25,12 @@ use tauri::{AppHandle, Emitter, Manager, State};
 
 pub struct ConfigState {
     pub service: Arc<ConfigService>,
+    pub(crate) boot: std::sync::Mutex<()>,
 }
 
 impl ConfigState {
     pub fn new(service: Arc<ConfigService>) -> Self {
-        Self { service }
+        Self { service, boot: std::sync::Mutex::new(()) }
     }
 }
 
