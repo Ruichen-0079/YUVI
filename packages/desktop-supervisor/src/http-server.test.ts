@@ -4,11 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { DesktopSupervisor } from "./supervisor.js";
-import {
-  CONTROL_TOKEN_HEADER,
-  startSupervisorHttpServer,
-  tokensMatch
-} from "./http-server.js";
+import { CONTROL_TOKEN_HEADER, startSupervisorHttpServer, tokensMatch } from "./http-server.js";
 import { assertLoopbackHost, generateControlToken } from "./config.js";
 import type { SupervisorConfig } from "./types.js";
 
@@ -112,7 +108,12 @@ describe("control plane auth + loopback", () => {
     const noTok = await request(port, "POST", "/v1/refresh");
     expect(noTok.status).toBe(401);
 
-    const badTok = await request(port, "POST", "/v1/refresh", "wrong-token-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+    const badTok = await request(
+      port,
+      "POST",
+      "/v1/refresh",
+      "wrong-token-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    );
     expect(badTok.status).toBe(401);
 
     const statusNoTok = await request(port, "GET", "/v1/status");
@@ -246,12 +247,7 @@ describe("control plane auth + loopback", () => {
     });
     servers.push(server);
 
-    const res = await request(
-      port,
-      "POST",
-      "/v1/services/local_stt/stop",
-      config.controlToken
-    );
+    const res = await request(port, "POST", "/v1/services/local_stt/stop", config.controlToken);
     expect(res.status).toBe(200);
     const body = JSON.parse(res.body) as {
       instanceId: string;
@@ -295,13 +291,62 @@ it("routes numeric service IDs through the existing lifecycle authority", async 
   const start = vi.spyOn(supervisor, "ensureService").mockResolvedValue(undefined);
   const restart = vi.spyOn(supervisor, "restartService").mockResolvedValue(supervisor.snapshot());
   const stop = vi.spyOn(supervisor, "stopService").mockResolvedValue(supervisor.snapshot());
-  const { server, port } = await startSupervisorHttpServer(supervisor, { host: "127.0.0.1", controlToken: config.controlToken });
+  const { server, port } = await startSupervisorHttpServer(supervisor, {
+    host: "127.0.0.1",
+    controlToken: config.controlToken
+  });
   servers.push(server);
   for (const action of ["start", "restart", "stop"]) {
-    expect((await request(port, "POST", `/v1/services/mem0/${action}`, config.controlToken)).status).toBe(200);
+    expect(
+      (await request(port, "POST", `/v1/services/mem0/${action}`, config.controlToken)).status
+    ).toBe(200);
   }
   expect(start).toHaveBeenCalledWith("mem0");
   expect(restart).toHaveBeenCalledWith("mem0");
   expect(stop).toHaveBeenCalledWith("mem0");
-  expect((await request(port, "POST", "/v1/services/mem1/start", config.controlToken)).status).toBe(404);
+  expect((await request(port, "POST", "/v1/services/mem1/start", config.controlToken)).status).toBe(
+    404
+  );
+});
+
+describe("native product pairing boundary", () => {
+  it("requires controller token, refuses browser callers, and returns only one-use ceremony data", async () => {
+    const config = cfg();
+    const supervisor = new DesktopSupervisor(config);
+    const create = vi.spyOn(supervisor, "createProductHostPairing").mockResolvedValue({
+      schema: "host.product-pairing.v1",
+      code: "yup_" + "x".repeat(43),
+      origin: "http://127.0.0.1:31910",
+      expiresInSeconds: 300
+    });
+    const { server, port } = await startSupervisorHttpServer(supervisor, {
+      controlToken: config.controlToken
+    });
+    servers.push(server);
+    const payload = { personId: "synthetic-x", origin: "http://127.0.0.1:31910" };
+    const endpoint = `http://127.0.0.1:${port}/v1/product-host/pairings`;
+    const send = (headers: Record<string, string>) =>
+      fetch(endpoint, {
+        method: "POST",
+        headers: { "content-type": "application/json", ...headers },
+        body: JSON.stringify(payload)
+      });
+    expect((await send({})).status).toBe(401);
+    for (const header of ["origin", "referer", "sec-fetch-site"])
+      expect(
+        (
+          await send({
+            [CONTROL_TOKEN_HEADER]: config.controlToken,
+            [header]: "http://127.0.0.1:31910"
+          })
+        ).status
+      ).toBe(403);
+    expect(create).not.toHaveBeenCalled();
+    const response = await send({ [CONTROL_TOKEN_HEADER]: config.controlToken });
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(await response.text()).not.toContain(config.controlToken);
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(create).toHaveBeenCalledWith(payload.personId, payload.origin);
+  });
 });

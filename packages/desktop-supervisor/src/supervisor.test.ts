@@ -135,21 +135,42 @@ function baseConfig(overrides: Partial<SupervisorConfig> = {}): SupervisorConfig
 
 it("Portable refuses a Product push that retargets Installed services before committing it", async () => {
   const cfg = baseConfig();
-  cfg.env = {...cfg.env, YUVI_PORTABLE_VERSION: "0.1.2", SERVER_PORT: "16121", MEM0_BASE_URL: "http://127.0.0.1:16131"};
+  cfg.env = {
+    ...cfg.env,
+    YUVI_PORTABLE_VERSION: "0.1.2",
+    SERVER_PORT: "16121",
+    MEM0_BASE_URL: "http://127.0.0.1:16131"
+  };
   const supervisor = createSupervisor(cfg);
-  for (const env of [{SERVER_PORT: "6121"}, {MEM0_BASE_URL: "http://127.0.0.1:6131"}, {YUVI_DATA_ROOT: "/installed"}]) {
-    await expect(supervisor.applyRuntimeConfig({env, unsetEnv: []})).rejects.toThrow("Portable isolation");
+  for (const env of [
+    { SERVER_PORT: "6121" },
+    { MEM0_BASE_URL: "http://127.0.0.1:6131" },
+    { YUVI_DATA_ROOT: "/installed" }
+  ]) {
+    await expect(supervisor.applyRuntimeConfig({ env, unsetEnv: [] })).rejects.toThrow(
+      "Portable isolation"
+    );
   }
   expect(supervisor.getConfig().env["SERVER_PORT"]).toBe("16121");
 });
 
 it("Portable cannot adopt or spawn over a healthy unowned local service", async () => {
-  vi.spyOn(health, "probeHttpHealth").mockResolvedValue({ok: true, statusCode: 200, protocolOk: true, message: "healthy foreign", latencyMs: 1});
+  vi.spyOn(health, "probeHttpHealth").mockResolvedValue({
+    ok: true,
+    statusCode: 200,
+    protocolOk: true,
+    message: "healthy foreign",
+    latencyMs: 1
+  });
   const cfg = baseConfig();
   cfg.env["YUVI_PORTABLE_VERSION"] = "0.1.2";
   const supervisor = createSupervisor(cfg);
   await supervisor.ensureService("runtime");
-  expect(supervisor.snapshot().services.find(s => s.id === "runtime")).toMatchObject({status: "unavailable", ownership: "external", pid: null});
+  expect(supervisor.snapshot().services.find((s) => s.id === "runtime")).toMatchObject({
+    status: "unavailable",
+    ownership: "external",
+    pid: null
+  });
   expect(unexpectedSpawnCalls).toBe(0);
 });
 
@@ -1653,10 +1674,12 @@ describe("DesktopSupervisor bounded Local STT suspend", () => {
     );
   }
 
-  function mockLocalSttLifecycle(options: {
-    initiallyHealthy?: boolean;
-    readyOnSpawn?: boolean;
-  } = {}) {
+  function mockLocalSttLifecycle(
+    options: {
+      initiallyHealthy?: boolean;
+      readyOnSpawn?: boolean;
+    } = {}
+  ) {
     let healthy = options.initiallyHealthy ?? false;
     const readyOnSpawn = options.readyOnSpawn ?? true;
     const children: Array<ReturnType<typeof fakeChild>> = [];
@@ -1706,8 +1729,8 @@ describe("DesktopSupervisor bounded Local STT suspend", () => {
         }
       };
     });
-    vi.spyOn(processWindows, "isProcessAlive").mockImplementation(
-      (pid) => children.some((child) => child.pid === pid && !child.killed)
+    vi.spyOn(processWindows, "isProcessAlive").mockImplementation((pid) =>
+      children.some((child) => child.pid === pid && !child.killed)
     );
     vi.spyOn(processWindows, "requestGracefulStop").mockImplementation(() => undefined);
     vi.spyOn(processWindows, "forceKillProcessTree").mockImplementation(() => undefined);
@@ -1727,7 +1750,9 @@ describe("DesktopSupervisor bounded Local STT suspend", () => {
 
     await supervisor.ensureService("local_stt");
     expect(processMock.spawn).toHaveBeenCalledTimes(1);
-    expect(supervisor.snapshot().services.find((service) => service.id === "local_stt")).toMatchObject({
+    expect(
+      supervisor.snapshot().services.find((service) => service.id === "local_stt")
+    ).toMatchObject({
       status: "healthy",
       ownership: "owned"
     });
@@ -1739,10 +1764,12 @@ describe("DesktopSupervisor bounded Local STT suspend", () => {
       manuallySuspended: true,
       activeVoiceLeases: 0
     });
-    expect(suspended.snapshot.services.find((service) => service.id === "local_stt")).toMatchObject({
-      status: "stopped",
-      ownership: "none"
-    });
+    expect(suspended.snapshot.services.find((service) => service.id === "local_stt")).toMatchObject(
+      {
+        status: "stopped",
+        ownership: "none"
+      }
+    );
 
     await supervisor.applyRuntimeConfig({
       env: { YUVI_AUTOSTART_LOCAL_STT: "false" },
@@ -1757,14 +1784,16 @@ describe("DesktopSupervisor bounded Local STT suspend", () => {
     expect(reenabled.restartedServices).toContain("local_stt");
     expect(processMock.spawn).toHaveBeenCalledTimes(1);
     expect(supervisor.snapshot().localSttControl?.manuallySuspended).toBe(true);
-    expect(supervisor.snapshot().services.find((service) => service.id === "local_stt")?.status).toBe(
-      "stopped"
-    );
+    expect(
+      supervisor.snapshot().services.find((service) => service.id === "local_stt")?.status
+    ).toBe("stopped");
 
     await supervisor.ensureService("local_stt");
     expect(processMock.spawn).toHaveBeenCalledTimes(2);
     expect(supervisor.snapshot().localSttControl?.manuallySuspended).toBe(false);
-    expect(supervisor.snapshot().services.find((service) => service.id === "local_stt")).toMatchObject({
+    expect(
+      supervisor.snapshot().services.find((service) => service.id === "local_stt")
+    ).toMatchObject({
       status: "healthy",
       ownership: "owned"
     });
@@ -1793,7 +1822,9 @@ describe("DesktopSupervisor bounded Local STT suspend", () => {
       manuallySuspended: true,
       activeVoiceLeases: 0
     });
-    expect(supervisor.snapshot().services.find((service) => service.id === "local_stt")).toMatchObject({
+    expect(
+      supervisor.snapshot().services.find((service) => service.id === "local_stt")
+    ).toMatchObject({
       status: "stopped",
       ownership: "none"
     });
@@ -1816,10 +1847,12 @@ describe("DesktopSupervisor bounded Local STT suspend", () => {
       reason: "EXTERNAL_PROCESS",
       activeVoiceLeases: 0
     });
-    expect(suspended.snapshot.services.find((service) => service.id === "local_stt")).toMatchObject({
-      status: "healthy",
-      ownership: "external"
-    });
+    expect(suspended.snapshot.services.find((service) => service.id === "local_stt")).toMatchObject(
+      {
+        status: "healthy",
+        ownership: "external"
+      }
+    );
     expect(gracefulStop).not.toHaveBeenCalled();
   });
 
@@ -1838,8 +1871,40 @@ describe("DesktopSupervisor bounded Local STT suspend", () => {
     expect(elapsedMs).toBeLessThan(3_000);
     expect(suspended.outcome).toBe("STOPPED");
     expect(processMock.children[0]?.killed).toBe(true);
-    expect(supervisor.snapshot().services.find((service) => service.id === "local_stt")?.status).toBe(
-      "stopped"
+    expect(
+      supervisor.snapshot().services.find((service) => service.id === "local_stt")?.status
+    ).toBe("stopped");
+  });
+});
+
+describe("product controller isolation", () => {
+  it("injects a stable derived controller secret only into Runtime and refuses pairing against an unowned endpoint", async () => {
+    const config = baseConfig({
+      mem0Start: {
+        file: "fixture",
+        args: [],
+        cwd: "/tmp",
+        env: { YUVI_DESKTOP_HOST_SECRET: "command-forgery" },
+        commandMarker: "fixture"
+      }
+    });
+    const supervisor = createSupervisor(config);
+    const runtime = supervisor.resolveSpawnEnv("runtime")!;
+    expect(runtime["YUVI_DESKTOP_HOST_SECRET"]).toMatch(/^ydc_[a-f0-9]{64}$/u);
+    expect(runtime["YUVI_DESKTOP_HOST_SECRET"]).not.toBe(config.controlToken);
+    expect(supervisor.resolveSpawnEnv("mem0")?.["YUVI_DESKTOP_HOST_SECRET"]).toBeUndefined();
+    expect(JSON.stringify(supervisor.snapshot())).not.toContain(
+      runtime["YUVI_DESKTOP_HOST_SECRET"]
     );
+    vi.spyOn(health, "probeHttpHealth").mockResolvedValue({
+      ok: false,
+      protocolOk: false,
+      statusCode: null,
+      message: "unavailable",
+      latencyMs: 0
+    });
+    await expect(
+      supervisor.createProductHostPairing("x", "http://127.0.0.1:31910")
+    ).rejects.toThrow("PRODUCT_OWNED_RUNTIME_REQUIRED");
   });
 });
