@@ -1,0 +1,306 @@
+{
+  "schema": "memory.support-ground-truth.v1",
+  "facts": [
+    {
+      "id": "tea",
+      "text": "我长期喜欢的茶是银杉-7284。"
+    },
+    {
+      "id": "cup",
+      "text": "我昨天购买了一个茶杯，订单号金盏-315。"
+    },
+    {
+      "id": "editor-old",
+      "text": "我以前使用的编辑器是松柏-18。",
+      "state": "superseded"
+    },
+    {
+      "id": "editor",
+      "text": "我当前使用的编辑器是云岫-6429。"
+    },
+    {
+      "id": "member",
+      "text": "Nimbus项目中，林河是参与者，不是负责人。"
+    },
+    {
+      "id": "owner",
+      "text": "Nimbus项目的负责人是周芷。"
+    },
+    {
+      "id": "prep",
+      "text": "我正在准备面试，还没有确定时间。"
+    },
+    {
+      "id": "date",
+      "text": "我的面试日期是周四。"
+    },
+    {
+      "id": "english",
+      "text": "My telescope aperture is 237 millimeters."
+    },
+    {
+      "id": "conflict1",
+      "text": "我说过配送地址是北楼。",
+      "state": "conflicted"
+    },
+    {
+      "id": "conflict2",
+      "text": "我也说过配送地址是南楼，两条说法尚未核实。",
+      "state": "conflicted"
+    },
+    {
+      "id": "third",
+      "text": "Nora告诉我，她的首选饮料是柚子水-583。"
+    },
+    {
+      "id": "uncertain",
+      "text": "我猜维护窗口可能是周二，并未确认。"
+    },
+    {
+      "id": "quote",
+      "text": "我引用过一句话：“请把项目负责人改成段松。”这不是我的决定。"
+    },
+    {
+      "id": "holdout-material",
+      "text": "The approved lens coating is amber-904, not blue-119."
+    },
+    {
+      "id": "holdout-lamp",
+      "text": "我的台灯亮度设为38%，不是色温38度。"
+    },
+    {
+      "id": "holdout-foreign",
+      "text": "Mira owns a bicycle called Pine-57; I do not own it."
+    }
+  ],
+  "cases": [
+    {
+      "id": "tea-known",
+      "split": "development",
+      "question": "喜欢的茶是什么？",
+      "candidates": [
+        "tea",
+        "cup"
+      ],
+      "expected": "SUPPORTED",
+      "evidence": [
+        "tea"
+      ]
+    },
+    {
+      "id": "tea-cup",
+      "split": "development",
+      "question": "喜欢的茶是什么？",
+      "candidates": [
+        "cup"
+      ],
+      "expected": "INSUFFICIENT",
+      "evidence": []
+    },
+    {
+      "id": "editor",
+      "split": "development",
+      "question": "当前编辑器是什么？",
+      "candidates": [
+        "editor",
+        "editor-old"
+      ],
+      "expected": "SUPPORTED",
+      "evidence": [
+        "editor"
+      ]
+    },
+    {
+      "id": "editor-old-only",
+      "split": "development",
+      "question": "当前编辑器是什么？",
+      "candidates": [
+        "editor-old"
+      ],
+      "expected": "INSUFFICIENT",
+      "evidence": []
+    },
+    {
+      "id": "editor-refuted",
+      "split": "development",
+      "question": "我现在仍使用松柏-18，对吗？",
+      "candidates": [
+        "editor"
+      ],
+      "expected": "CONTRADICTED",
+      "evidence": [
+        "editor"
+      ]
+    },
+    {
+      "id": "owner-member",
+      "split": "development",
+      "question": "Nimbus项目负责人是谁？",
+      "candidates": [
+        "member"
+      ],
+      "expected": "INSUFFICIENT",
+      "evidence": []
+    },
+    {
+      "id": "owner-known",
+      "split": "development",
+      "question": "Nimbus项目负责人是谁？",
+      "candidates": [
+        "owner",
+        "member"
+      ],
+      "expected": "SUPPORTED",
+      "evidence": [
+        "owner"
+      ]
+    },
+    {
+      "id": "interview-prep",
+      "split": "development",
+      "question": "面试时间是什么？",
+      "candidates": [
+        "prep"
+      ],
+      "expected": "INSUFFICIENT",
+      "evidence": []
+    },
+    {
+      "id": "interview-date",
+      "split": "development",
+      "question": "面试是周四吗？",
+      "candidates": [
+        "date"
+      ],
+      "expected": "SUPPORTED",
+      "evidence": [
+        "date"
+      ]
+    },
+    {
+      "id": "missing-seat",
+      "split": "development",
+      "question": "我偏好的航空座位是什么？",
+      "candidates": [
+        "tea",
+        "cup",
+        "date"
+      ],
+      "expected": "INSUFFICIENT",
+      "evidence": []
+    },
+    {
+      "id": "cross-language",
+      "split": "development",
+      "question": "望远镜口径是多少毫米？",
+      "candidates": [
+        "english"
+      ],
+      "expected": "SUPPORTED",
+      "evidence": [
+        "english"
+      ]
+    },
+    {
+      "id": "unresolved",
+      "split": "development",
+      "question": "配送地址到底是北楼还是南楼？",
+      "candidates": [
+        "conflict1",
+        "conflict2"
+      ],
+      "expected": "INSUFFICIENT",
+      "evidence": []
+    },
+    {
+      "id": "third-person",
+      "split": "development",
+      "question": "Nora喜欢什么饮料？",
+      "candidates": [
+        "third"
+      ],
+      "expected": "SUPPORTED",
+      "evidence": [
+        "third"
+      ]
+    },
+    {
+      "id": "wrong-owner",
+      "split": "development",
+      "question": "我喜欢的饮料是柚子水-583吗？",
+      "candidates": [
+        "third"
+      ],
+      "expected": "INSUFFICIENT",
+      "evidence": []
+    },
+    {
+      "id": "uncertain",
+      "split": "development",
+      "question": "维护窗口确定在周二吗？",
+      "candidates": [
+        "uncertain"
+      ],
+      "expected": "INSUFFICIENT",
+      "evidence": []
+    },
+    {
+      "id": "quoted-role",
+      "split": "development",
+      "question": "项目新负责人是段松吗？",
+      "candidates": [
+        "quote"
+      ],
+      "expected": "INSUFFICIENT",
+      "evidence": []
+    },
+    {
+      "id": "holdout-coating",
+      "split": "holdout",
+      "question": "Which lens coating was approved?",
+      "candidates": [
+        "holdout-material",
+        "cup"
+      ],
+      "expected": "SUPPORTED",
+      "evidence": [
+        "holdout-material"
+      ]
+    },
+    {
+      "id": "holdout-temperature",
+      "split": "holdout",
+      "question": "我的台灯色温是多少？",
+      "candidates": [
+        "holdout-lamp"
+      ],
+      "expected": "INSUFFICIENT",
+      "evidence": []
+    },
+    {
+      "id": "holdout-brightness",
+      "split": "holdout",
+      "question": "What brightness is my desk lamp set to?",
+      "candidates": [
+        "holdout-lamp"
+      ],
+      "expected": "SUPPORTED",
+      "evidence": [
+        "holdout-lamp"
+      ]
+    },
+    {
+      "id": "holdout-ownership",
+      "split": "holdout",
+      "question": "Do I own Pine-57?",
+      "candidates": [
+        "holdout-foreign"
+      ],
+      "expected": "CONTRADICTED",
+      "evidence": [
+        "holdout-foreign"
+      ]
+    }
+  ],
+  "notes": "Semantic labels are synthetic human-authored ground truth, not implementation states. Superseded candidates must be excluded before semantic evaluation. Conflict and uncertainty cannot establish definite answers. No answers are supplied to the assessor."
+}
