@@ -156,13 +156,17 @@ export function NativeActivation({ children }: { children: ReactNode }): JSX.Ele
           <NativeProviderSetup />
           {view.serviceUnavailable && (
             <>
-              <p role="status">本机身份服务尚未就绪。首次使用可以启用此桌面的本机记忆。</p>
+              <p role="status">{view.memoryConfigured
+                ? "已启用本机记忆，身份服务暂不可用。请检查本机服务状态；不会重新创建已有身份或覆盖数据。"
+                : "本机身份服务尚未就绪。首次使用可以启用此桌面的本机记忆。"}</p>
+              {view.memoryConfigured ? <button disabled={busy} onClick={() => void refresh().catch((e) => setError(String(e)))}>重新连接</button> : <>
               <button
                 disabled={busy || view.pending || view.revocationPending}
                 onClick={() => void act("enable")}
               >
                 启用本机记忆
               </button>
+              </>}
             </>
           )}
           {view.people.map((person) => (

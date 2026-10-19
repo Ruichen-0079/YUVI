@@ -12,6 +12,7 @@ if [ -e "$YUVI_RC_LAB/vm.qcow2" ]; then
 fi
 mkdir -p "$YUVI_RC_LAB/seed"
 chmod 700 "$YUVI_RC_LAB"
+test "$(stat -c %a "$YUVI_RC_LAB")" = 700 || { echo 'VM laboratory requires a POSIX filesystem enforcing mode 0700.' >&2; exit 1; }
 printf '%s  %s\n' "$YUVI_RC_IMAGE_SHA512" "$YUVI_RC_IMAGE" | sha512sum -c -
 ssh-keygen -q -t ed25519 -N '' -f "$YUVI_RC_SSH_KEY"
 test "$(stat -c %a "$YUVI_RC_SSH_KEY")" = 600 || { echo 'Private key filesystem must enforce mode 0600.' >&2; exit 1; }

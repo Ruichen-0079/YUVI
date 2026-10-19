@@ -7,6 +7,7 @@ export type NativeActivationState = {
   pending?: boolean;
   revocationPending?: boolean;
   serviceUnavailable?: boolean;
+  memoryConfigured?: boolean;
 };
 export const nativeActivation = (action = "status", args: Record<string, unknown> = {}) =>
   invoke<NativeActivationState>("native_product_activation", { action, ...args });

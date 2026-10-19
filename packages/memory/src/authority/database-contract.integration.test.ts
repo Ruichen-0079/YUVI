@@ -83,6 +83,15 @@ describe.skipIf(!url)("Authority application role database enforcement", () => {
         .rows[0]!.count
     ).toBe("1");
   });
+  it("refuses readiness when an otherwise restricted role cannot write the active projection view", async () => {
+    await admin.query(`revoke insert,update,delete on memory_authority_current from ${role}`);
+    try {
+      await expect(assertMemoryAuthorityDatabase(app, true)).rejects.toThrow("MEMORY_AUTHORITY_PROJECTION_WRITE_REQUIRED");
+    } finally {
+      await admin.query(`grant insert,update,delete on memory_authority_current to ${role}`);
+    }
+    await expect(assertMemoryAuthorityDatabase(app, true)).resolves.toMatchObject({ leastPrivilege: true });
+  });
   it("refuses a missing or mismatched required schema receipt", async () => {
     const db = {
       async query(sql: string, params?: unknown[]) {
