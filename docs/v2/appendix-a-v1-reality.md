@@ -129,7 +129,7 @@ Supervisor 管理以下服务：
 此外还有：
 
 - Tauri 外壳（Rust，约 7.9k 行；R5 堆叠中约 9.1k 行）；
-- WebUI（React，约 5.3 万行）；
+- WebUI（React；含 vendored Cubism 框架与样式约 5.3 万行，`src` 下 TS/TSX 约 4.7 万行，含测试）；
 - 本地嵌入服务：llama-server + Qwen3-Embedding-0.6B（512 维 MRL）。
 
 **模型分工：**
@@ -152,22 +152,22 @@ Supervisor 管理以下服务：
 
 **main 上各模块的源码行数：**
 
-| 模块        | 行数                                                  |
-| ----------- | ----------------------------------------------------- |
-| web         | 5.3 万                                                |
-| memory      | 2.6 万                                                |
-| server      | 2.1 万                                                |
-| core        | 1.4 万（`runtime-orchestrator.ts` 一个文件 8,106 行） |
-| providers   | 8.7k                                                  |
-| supervisor  | 7.7k                                                  |
-| p8          | 4.4k                                                  |
-| protocol    | 2.3k                                                  |
-| harness     | 2.1k                                                  |
-| effects     | 2k                                                    |
-| cognition   | 1.2k                                                  |
-| ABI         | 1k                                                    |
-| journal     | 0.8k                                                  |
-| Python 服务 | 约 6k                                                 |
+| 模块                          | 行数                                                  |
+| ----------------------------- | ----------------------------------------------------- |
+| web（含 vendored 框架与样式） | 5.3 万                                                |
+| memory                        | 2.6 万                                                |
+| server                        | 2.1 万                                                |
+| core                          | 1.4 万（`runtime-orchestrator.ts` 一个文件 8,106 行） |
+| providers                     | 8.7k                                                  |
+| supervisor                    | 7.7k                                                  |
+| p8                            | 4.4k                                                  |
+| protocol                      | 2.3k                                                  |
+| harness                       | 2.1k                                                  |
+| effects                       | 2k                                                    |
+| cognition                     | 1.2k                                                  |
+| ABI                           | 1k                                                    |
+| journal                       | 0.8k                                                  |
+| Python 服务                   | 约 6k                                                 |
 
 ## A.8 V1 没有的东西（对 V2 最重要）
 
