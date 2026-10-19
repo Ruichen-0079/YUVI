@@ -32,6 +32,16 @@ function tempDir(): string {
 }
 
 describe("Supervisor instance lock", () => {
+  it.skipIf(process.platform!=="linux")("retires boot/start-stale metadata without signalling the reused live PID", () => {
+    const root=tempDir(),file=path.join(root,SUPERVISOR_INSTANCE_LOCK_FILE);
+    const live=acquireSupervisorInstanceLock(root);const saved=JSON.parse(fs.readFileSync(file,"utf8"));live.release();
+    for (const changed of [{...saved.linuxIdentity,startTicks:String(BigInt(saved.linuxIdentity.startTicks)+1n)}, {...saved.linuxIdentity,bootId:"previous-boot"}]) {
+      fs.writeFileSync(file,JSON.stringify({...saved,linuxIdentity:changed}),{mode:0o600});
+      const renewed=acquireSupervisorInstanceLock(root);
+      expect(JSON.parse(fs.readFileSync(file,"utf8")).linuxIdentity).toEqual(saved.linuxIdentity);
+      expect(process.kill(process.pid,0)).toBe(true);renewed.release();
+    }
+  });
   it("refuses a second competing owner while the holder is alive", async () => {
     const root = tempDir();
     const lockPath = path.join(root, SUPERVISOR_INSTANCE_LOCK_FILE);

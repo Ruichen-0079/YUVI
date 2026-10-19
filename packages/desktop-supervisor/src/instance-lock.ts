@@ -19,6 +19,14 @@ export type SupervisorInstanceLock = {
   release: () => void;
 };
 
+function linuxIdentity(pid: number): { bootId: string; startTicks: string } {
+  const bootId=fs.readFileSync("/proc/sys/kernel/random/boot_id","utf8").trim();
+  const stat=fs.readFileSync(`/proc/${pid}/stat`,"utf8");
+  const startTicks=stat.slice(stat.lastIndexOf(") ")+2).split(" ")[19];
+  if (!startTicks || !/^\d+$/.test(startTicks)) throw Error("Kernel process start identity unavailable");
+  return {bootId,startTicks};
+}
+
 /**
  * Exclusive lock under the shared DesktopSupervisor pointer root so one
  * desktop owner cannot silently start a second competing Supervisor.
@@ -31,7 +39,7 @@ export function acquireSupervisorInstanceLock(pointerRoot: string): SupervisorIn
     try {
       fs.writeFileSync(
         lockPath,
-        `${JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() })}\n`,
+        `${JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString(), ...(process.platform==="linux" ? {linuxIdentity:linuxIdentity(process.pid)} : {}) })}\n`,
         { encoding: "utf8", flag: "wx", mode: 0o600 }
       );
       return { lockPath, release: () => releaseLockFile(lockPath, process.pid) };
@@ -40,10 +48,18 @@ export function acquireSupervisorInstanceLock(pointerRoot: string): SupervisorIn
       let stale = false;
       try {
         const raw = fs.readFileSync(lockPath, "utf8");
-        const data = JSON.parse(raw) as { pid?: unknown };
+        const data = JSON.parse(raw) as { pid?: unknown; linuxIdentity?: {bootId?:unknown;startTicks?:unknown} };
         const holder = Number(data?.pid);
         if (!Number.isFinite(holder) || holder <= 0 || !isProcessAlive(holder)) {
           stale = true;
+        } else if (process.platform==="linux" && data.linuxIdentity) {
+          const saved=data.linuxIdentity;
+          if (typeof saved.bootId!=="string" || typeof saved.startTicks!=="string") throw new SupervisorInstanceLockError("Malformed kernel lock identity; no process or lock was reclaimed.",holder);
+          let live;
+          try {live=linuxIdentity(holder);} catch {throw new SupervisorInstanceLockError("Kernel lock identity unavailable; no process or lock was reclaimed.",holder);}
+          if (saved.bootId!==live.bootId || saved.startTicks!==live.startTicks) stale=true;
+          else if (holder===process.pid) return {lockPath,release:()=>releaseLockFile(lockPath,process.pid)};
+          else throw new SupervisorInstanceLockError(`Another YUVI Supervisor is already running (kernel identity, pid ${holder}).`,holder);
         } else if (holder === process.pid) {
           return { lockPath, release: () => releaseLockFile(lockPath, process.pid) };
         } else {
@@ -71,7 +87,7 @@ export function acquireSupervisorInstanceLock(pointerRoot: string): SupervisorIn
 function releaseLockFile(lockPath: string, pid: number): void {
   try {
     const raw = fs.readFileSync(lockPath, "utf8");
-    const data = JSON.parse(raw) as { pid?: unknown };
+    const data = JSON.parse(raw) as { pid?: unknown; linuxIdentity?: {bootId?:unknown;startTicks?:unknown} };
     if (data?.pid === pid) fs.unlinkSync(lockPath);
   } catch {
     try {
