@@ -1,0 +1,6 @@
+PASS Managed crash preserves old immutable rows, Person, owner, creation receipts and completed ingestion
+PASS Fresh conversation receives the corrected R5 fact in its actual model context
+PASS Existing Person and corrected R5 memory recover without re-creation; new native chat recalls the fact
+PASS Same actual native window renders Authority current knowledge
+PASS Native history retains the superseded fact and correction
+PASS Private PG application role is restricted; durable SQL and owner identity inventory captured
