@@ -1,0 +1,12 @@
+[
+  {
+    "stage": "local full test",
+    "issue": "old WebSocket test assumed durable receipt commit within 20ms",
+    "result": "First run failed. Fixed test to wait for the actual immutable persisted receipt; complete rerun passed. No runtime behavior relaxed."
+  },
+  {
+    "stage": "correction recovery deadline",
+    "issue": "First harness waited 180s, production event lease is 300s",
+    "result": "Original timeout preserved. A separate normal native reopen waited for the unchanged lease, Worker recovered and corrected current fact became forest-green. No DB edits or production TTL reduction."
+  }
+]

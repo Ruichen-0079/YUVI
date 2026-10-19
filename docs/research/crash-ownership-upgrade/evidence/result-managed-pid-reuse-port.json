@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "actualPidReuse": true,
+  "oldSupervisorPid": 11375,
+  "replacementProcess": {
+    "pid": 11375,
+    "uid": 1000,
+    "startTicks": "84425",
+    "executable": "/home/tester/yuvi/runtime/node",
+    "cgroup": "0::/user.slice/user-1000.slice/session-60.scope",
+    "healthyLookalike": {
+      "status": "ok",
+      "runtimeInstanceId": "unrelated-lookalike"
+    }
+  },
+  "productExit": 1,
+  "diagnostic": "PORT_OCCUPIED_NO_ADOPTION_OR_SIGNAL",
+  "pgControlUnchanged": true,
+  "unrelatedProcessRemainedAlive": true,
+  "scope": "Same UID and Node executable, similar path and healthy HTTP endpoint; actual old pointer PID recycled outside the application cgroup"
+}

@@ -36,11 +36,11 @@ class Model(http.server.BaseHTTPRequestHandler):
             system=b.get('messages',[{}])[0].get('content',''); current=b.get('messages',[{}])[-1].get('content',''); whole=json.dumps(b.get('messages'))
             assert not any(p in whole for p in ['ydc_','yno_','yuh_'])
             if 'Evaluate every source for useful long-term memory' in system:
-                x=json.loads(current); value='forest-green' if 'forest-green' in x['source'] else 'lake-blue'
-                old=next((p for p in x['prior'] if 'lake-blue' in p['content']),None)
+                x=json.loads(current); value=next((c for c in ['amber-gold','forest-green','lake-blue'] if c in x['source'].split('not ')[0]),'lake-blue')
+                old=next((p for p in x['prior'] if value not in p['content'] and 'favorite color' in p['content']),None)
                 ps=[]
                 if 'favorite color' in x['source'] and not x['source'].rstrip().endswith('?'):
-                    ps=[{'content':'My favorite color is '+value+'.','evidenceText':x['source'],'relation':'supersedes' if old and value=='forest-green' else 'new','targetIds':[old['id']] if old and value=='forest-green' else []}]
+                    ps=[{'content':'My favorite color is '+value+'.','evidenceText':x['source'],'relation':'supersedes' if old is not None else 'new','targetIds':[old['id']] if old is not None else []}]
                 answer=json.dumps({'propositions':ps})
             elif 'Decompose the untrusted question' in system:
                 x=json.loads(current);answer=json.dumps({'needs':[{'quote':x['question'],'queries':['favorite color']}]})
@@ -165,7 +165,13 @@ try:
         q=runpy.run_path('/home/tester/guest-db.py')['sql']
         print(q("select json_build_object('jobs',(select json_agg(t) from (select status,result,error_code,provider_model from memory_semantic_jobs)t))"),flush=True)
     current=lambda:api('/memory/v1/current?'+urllib.parse.urlencode({'scope':scope}))
+    if MODE.startswith('managed-'):
+        import runpy
+        runpy.run_path('/home/tester/managed-lifecycle.py')['run'](MODE,native,api,scope,send,fill,script,wait)
+        session=None
+        sys.exit(0)
     if MODE in ('pg-crash','supervisor-crash'):
+
         import runpy,signal
         lab=pathlib.Path('/home/tester/.local/share/YUVI/portable/0.1.2')
         baseline=runpy.run_path('/home/tester/guest-db.py')['capture']()
@@ -209,6 +215,23 @@ try:
         wait(current,lambda x:any('forest-green' in r['event']['content'] for r in x.get('records',[])),'R5 correction',timeout=120)
         passed('Natural correction supersedes the previous fact through the same product entry')
     elif MODE!='seal':
+        if MODE=='reopen-managed':
+            import runpy
+            before=json.loads((ROOT/'before-last-managed-fault.json').read_text())
+            after=runpy.run_path('/home/tester/guest-db.py')['capture']()
+            assert before['identity']==after['identity']
+            for table,rows in before['immutableRows'].items():
+                assert all(after['immutableRows'][table].get(k)==v for k,v in rows.items()), 'Historical row changed: '+table
+            assert all(after['completedIngestion'].get(k)==v for k,v in before['completedIngestion'].items())
+            if (ROOT/'unresolved-at-backup.json').exists():
+                q=runpy.run_path('/home/tester/guest-db.py')['sql']
+                assert len(json.loads((ROOT/'fixture-unknown-dispatches.json').read_text()))==1
+                for probe in json.loads((ROOT/'unresolved-at-backup.json').read_text()):
+                    import re
+                    assert re.fullmatch(r'ea1_[a-f0-9]{64}',probe['attempt_id'])
+                    assert q("select count(*) from effect_observations where attempt_id='"+probe['attempt_id']+"' and category='TERMINAL' and evidence->>'certainty'='APPLIED'")=='0'
+                passed('Accepted unresolved effect remains un-replayed and is never rewritten as APPLIED')
+            passed('Managed crash preserves old immutable rows, Person, owner, creation receipts and completed ingestion')
         if MODE=='restore':
             import runpy
             before=json.loads(pathlib.Path('/home/tester/cold-seal.json').read_text())['snapshot']
@@ -231,12 +254,12 @@ try:
             passed('Unresolved accepted dispatch is not replayed and is never rewritten as APPLIED')
             passed('Restored Person, native owner, creation receipts, Journal and A9 evidence are identical; revoked Host remains 401')
             (ROOT/'restore-comparison.json').write_text(json.dumps({'status':'PASS','verifiedOldRows':{k:len(v) for k,v in before['immutableRows'].items()},'identityUnchanged':True,'oldHostStatus':401},indent=2))
-        if MODE=='restore':
+        if MODE in ('restore','reopen-managed'):
             script("for(const key of Object.keys(localStorage)){if(key.startsWith('yuvi.conversation-session.'))localStorage.removeItem(key)};location.reload();return true;")
             wait(text,lambda t:'切换身份' in t and 'Please remember:' not in t,'new conversation after restore')
-        records=current();assert any('forest-green' in r['event']['content'] for r in records.get('records',[]))
+        records=wait(current,lambda v:any('forest-green' in r['event']['content'] for r in v.get('records',[])),label='committed corrected current after recovery (production event lease may be 300s)',timeout=420)
         send('What is my favorite color?'); wait(text,lambda t:'Your current favorite color is forest-green' in t,'persistent recall')
-        if MODE=='restore':
+        if MODE in ('restore','reopen-managed'):
             last=next(x for x in reversed(transcripts) if x['model']=='fixture-chat')
             assert 'forest-green' in last['input'][0]['content'], 'Recall did not receive actual R5 context'
             assert not any(m.get('role')=='user' and ('Correction:' in str(m.get('content')) or 'Please remember:' in str(m.get('content'))) for m in last['input']), 'Recall leaked old conversation instead of a fresh session'

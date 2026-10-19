@@ -1,0 +1,9 @@
+{
+  "status": "INJECTED_REQUIRES_RESTART_VERIFICATION",
+  "checks": [
+    "Owned Supervisor SIGKILL observed; surviving child processes recorded without assuming automatic recovery"
+  ],
+  "observations": {
+    "survivingOwnedProcesses": []
+  }
+}
