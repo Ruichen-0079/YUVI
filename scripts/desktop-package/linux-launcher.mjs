@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import net from 'node:net';
 import { spawn } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { portableSecretNamespace, readPortablePackageIdentity, resolvePortableStateDirs, resolvePortableStateRoot } from './portable-state.mjs';
 import { CUBISM_CORE_FILENAME, cubismCoreStatus, provisionCubismCore } from './provision-cubism-core.mjs';
@@ -15,6 +16,7 @@ const dirs = resolvePortableStateDirs(state);
 process.umask(0o077);
 for (const dir of Object.values(dirs)) fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
 const pointer = path.join(dirs.supervisor, 'active-instance.json');
+const recoveryGate = path.join(state, 'recovery-required.json');
 const desktopShell = path.join(root, 'desktop', 'yuvi-desktop');
 if (!fs.existsSync(desktopShell)) throw new Error('Portable desktop shell is missing.');
 let expectedSupervisorPid;
@@ -57,7 +59,46 @@ try {
     } else {
       throw new Error('Usage: ./yuvi cubism-core [status|import /path/to/live2dcubismcore.min.js]');
     }
+  } else if (command === 'review-recovery') {
+    const gate = JSON.parse(fs.readFileSync(recoveryGate, 'utf8'));
+    const clearancePath = process.argv[3];
+    if (!clearancePath || !path.isAbsolute(clearancePath)) throw new Error('An explicit private recovery clearance file is required.');
+    const fd = fs.openSync(clearancePath, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+    let clearance;
+    try {
+      const stat = fs.fstatSync(fd);
+      if (!stat.isFile() || stat.uid !== process.getuid() || (stat.mode & 0o077)) throw new Error('Recovery clearance must be an owned mode-0600 file.');
+      clearance = JSON.parse(fs.readFileSync(fd, 'utf8'));
+    } finally { fs.closeSync(fd); }
+    if (gate.schema !== 'yuvi.cold-recovery-gate.v1' || clearance.schema !== 'yuvi.cold-recovery-clearance.v1' ||
+        clearance.backupId !== gate.backupId || clearance.checkoutSha !== packageIdentity.checkoutSha ||
+        !['SEALED_RESTORE', 'SOURCE_RESUME_INVALIDATES_BACKUP'].includes(clearance.action) ||
+        clearance.deletionReview !== 'NO_UNRECONCILED_DELETIONS' || clearance.executionReview !== 'NO_POST_POINT_EFFECTS') {
+      throw new Error('RECOVERY_RECONCILIATION_REQUIRED: missing or incompatible deletion/execution review.');
+    }
+    const receipt = path.join(state, `recovery-review-${gate.backupId}.json`);
+    const out = fs.openSync(receipt, 'wx', 0o600);
+    try { fs.writeFileSync(out, JSON.stringify(clearance)); fs.fsyncSync(out); } finally { fs.closeSync(out); }
+    fs.unlinkSync(recoveryGate);
+    const dir = fs.openSync(state, 'r');
+    try { fs.fsyncSync(dir); } finally { fs.closeSync(dir); }
+    console.log('Recovery review recorded. No services started; explicitly launch YUVI and confirm the existing native identity.');
+  } else if (command === 'prepare-backup') {
+    // Seal before stopping writers. A crash leaves the next launch closed.
+    // This is a preparation receipt, never a claim that a backup is complete.
+    if (!fs.existsSync(recoveryGate)) {
+      const fd = fs.openSync(recoveryGate, 'wx', 0o600);
+      try {
+        fs.writeFileSync(fd, JSON.stringify({ schema: 'yuvi.cold-recovery-gate.v1', backupId: randomUUID(), checkoutSha: packageIdentity.checkoutSha, createdAt: new Date().toISOString() }));
+        fs.fsyncSync(fd);
+      } finally { fs.closeSync(fd); }
+      const dir = fs.openSync(state, 'r');
+      try { fs.fsyncSync(dir); } finally { fs.closeSync(dir); }
+    }
+    await control('/v1/shutdown');
+    console.log('Writers are stopping; the next launch is blocked. Verify offline PostgreSQL, sign-out and the full recovery seal before backing up.');
   } else if (command === 'start') {
+    if (fs.existsSync(recoveryGate)) throw new Error('RECOVERY_REVIEW_REQUIRED: this state is sealed. Restore or source-resume requires the external recovery registry and deletion/execution audit; no services were started.');
     // Legacy env files can override both the Supervisor and Runtime transport
     // and state roots. Product settings/secrets are the Portable authority.
     for (const name of ['.env', '.env.local']) {
@@ -149,5 +190,5 @@ try {
       web.once('error', stop); web.once('exit', stop);
       console.log(`YUVI desktop shell started. Browser fallback: http://127.0.0.1:${webPort}/#/webui\nRun ./yuvi stop to shut down.`);
     }
-  } else throw new Error('Usage: ./yuvi [start|stop|status|cubism-core]');
+  } else throw new Error('Usage: ./yuvi [start|stop|status|prepare-backup|review-recovery /absolute/clearance.json|cubism-core]');
 } catch (error) { console.error(error.message); process.exitCode = 1; }
