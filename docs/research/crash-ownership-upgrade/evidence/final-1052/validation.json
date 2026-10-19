@@ -1,0 +1,24 @@
+{
+  "artifactInputSha": "1052ac93841642e80bf371d34d949c4ae9d0714b",
+  "artifactSha256": "481dfd40a4b3c98666faf7e9e1727663b97e5a36a83d04a9917fe74b5f1d0bfd",
+  "pnpmCheck": "PASS",
+  "pnpmBuild": "PASS",
+  "pnpmTest": {
+    "status": "PASS",
+    "vitestPassed": 4144,
+    "vitestSkipped": 57,
+    "nodePassed": 69
+  },
+  "rustReleaseDebian12": {
+    "passed": 112,
+    "failed": 0
+  },
+  "packaging": {
+    "passed": 78,
+    "failed": 0
+  },
+  "CI": "PENDING_DRAFT_A",
+  "realModel": "BLOCKED_NO_AUTHORIZED_ISOLATED_PROVIDER",
+  "platform": "Debian12 Linux x86_64 only",
+  "logs": "build/crash-ownership-validation"
+}

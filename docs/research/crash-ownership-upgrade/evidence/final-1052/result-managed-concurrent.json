@@ -1,0 +1,310 @@
+{
+  "scriptSha256": {
+    "managed-lifecycle.py": "569eea2f89a98db97c262d6b0aa15644f7db697c670d55766f027032456b297b",
+    "native-install.py": "e32b80c6820efc027f33c02c6c8e28f86deb0820a0d1a87377c3618dcfcaf496",
+    "run-guest.sh": "fe52e9ae4db9f423d4a614f9e431995cacb677641db511c80692122eafe85c71"
+  },
+  "status": "INJECTED_REQUIRES_NATIVE_REOPEN",
+  "mode": "managed-concurrent",
+  "lifecycle": {
+    "schema": "yuvi.linux-lifecycle.v1",
+    "unit": "yuvi-r5-a528c877c111ac5da44ede928362a5dd.service",
+    "description": "YUVI R5 1052ac93841642e80bf371d34d949c4ae9d0714b 967651c61d78a1ef06273082e47101bf",
+    "checkoutSha": "1052ac93841642e80bf371d34d949c4ae9d0714b",
+    "packageRoot": "/home/tester/yuvi",
+    "stateRoot": "/home/tester/.local/share/YUVI/portable/0.1.2",
+    "bootId": "9c24a0db-9316-4cdb-a2a7-d99dd66f26d9",
+    "invocationId": "4befb1ea41c94fe3bff66f527498bd8a",
+    "controlGroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service",
+    "launcherPid": 9882,
+    "startTicks": "80723"
+  },
+  "supervisorLock": {
+    "pid": 9893,
+    "startedAt": "2026-10-19T17:45:22.537Z",
+    "linuxIdentity": {
+      "bootId": "9c24a0db-9316-4cdb-a2a7-d99dd66f26d9",
+      "startTicks": "80738"
+    }
+  },
+  "unitBefore": {
+    "MainPID": "9882",
+    "ControlGroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service",
+    "ActiveState": "active",
+    "InvocationID": "4befb1ea41c94fe3bff66f527498bd8a"
+  },
+  "processesBefore": [
+    {
+      "pid": 9882,
+      "uid": 1000,
+      "startTicks": "80723",
+      "state": "S",
+      "executable": "/home/tester/yuvi/runtime/node",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    },
+    {
+      "pid": 9893,
+      "uid": 1000,
+      "startTicks": "80738",
+      "state": "S",
+      "executable": "/home/tester/yuvi/runtime/node",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    },
+    {
+      "pid": 9907,
+      "uid": 1000,
+      "startTicks": "80766",
+      "state": "S",
+      "executable": "/home/tester/yuvi/desktop/yuvi-desktop",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    },
+    {
+      "pid": 9908,
+      "uid": 1000,
+      "startTicks": "80766",
+      "state": "S",
+      "executable": "/home/tester/yuvi/runtime/node",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    },
+    {
+      "pid": 9928,
+      "uid": 1000,
+      "startTicks": "80775",
+      "state": "S",
+      "executable": "/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitNetworkProcess",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    },
+    {
+      "pid": 9933,
+      "uid": 1000,
+      "startTicks": "80775",
+      "state": "S",
+      "executable": "/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitWebProcess",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    },
+    {
+      "pid": 9945,
+      "uid": 1000,
+      "startTicks": "80778",
+      "state": "S",
+      "executable": "/home/tester/yuvi/postgres/bin/postgres",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    },
+    {
+      "pid": 9980,
+      "uid": 1000,
+      "startTicks": "80806",
+      "state": "S",
+      "executable": "/home/tester/yuvi/postgres/bin/postgres",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    },
+    {
+      "pid": 9981,
+      "uid": 1000,
+      "startTicks": "80806",
+      "state": "S",
+      "executable": "/home/tester/yuvi/postgres/bin/postgres",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    },
+    {
+      "pid": 9983,
+      "uid": 1000,
+      "startTicks": "80806",
+      "state": "S",
+      "executable": "/home/tester/yuvi/postgres/bin/postgres",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    },
+    {
+      "pid": 9984,
+      "uid": 1000,
+      "startTicks": "80806",
+      "state": "S",
+      "executable": "/home/tester/yuvi/postgres/bin/postgres",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    },
+    {
+      "pid": 9985,
+      "uid": 1000,
+      "startTicks": "80806",
+      "state": "S",
+      "executable": "/home/tester/yuvi/postgres/bin/postgres",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    },
+    {
+      "pid": 10001,
+      "uid": 1000,
+      "startTicks": "80843",
+      "state": "S",
+      "executable": "/home/tester/yuvi/runtime/node",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    },
+    {
+      "pid": 10023,
+      "uid": 1000,
+      "startTicks": "80868",
+      "state": "S",
+      "executable": "/home/tester/yuvi/postgres/bin/postgres",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    },
+    {
+      "pid": 10025,
+      "uid": 1000,
+      "startTicks": "80876",
+      "state": "S",
+      "executable": "/home/tester/yuvi/postgres/bin/postgres",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    },
+    {
+      "pid": 10026,
+      "uid": 1000,
+      "startTicks": "80876",
+      "state": "S",
+      "executable": "/home/tester/yuvi/postgres/bin/postgres",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    },
+    {
+      "pid": 10027,
+      "uid": 1000,
+      "startTicks": "80878",
+      "state": "S",
+      "executable": "/home/tester/yuvi/postgres/bin/postgres",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    },
+    {
+      "pid": 10028,
+      "uid": 1000,
+      "startTicks": "80878",
+      "state": "S",
+      "executable": "/home/tester/yuvi/postgres/bin/postgres",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+    }
+  ],
+  "concurrentRecovery": {
+    "newLifecycle": {
+      "schema": "yuvi.linux-lifecycle.v1",
+      "unit": "yuvi-r5-a528c877c111ac5da44ede928362a5dd.service",
+      "description": "YUVI R5 1052ac93841642e80bf371d34d949c4ae9d0714b 967651c61d78a1ef06273082e47101bf",
+      "checkoutSha": "1052ac93841642e80bf371d34d949c4ae9d0714b",
+      "packageRoot": "/home/tester/yuvi",
+      "stateRoot": "/home/tester/.local/share/YUVI/portable/0.1.2",
+      "bootId": "9c24a0db-9316-4cdb-a2a7-d99dd66f26d9",
+      "invocationId": "795637cf372145969d16f08fe9efdb1c",
+      "controlGroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service",
+      "launcherPid": 10119,
+      "startTicks": "81253"
+    },
+    "processes": [
+      {
+        "pid": 10119,
+        "uid": 1000,
+        "startTicks": "81253",
+        "state": "S",
+        "executable": "/home/tester/yuvi/runtime/node",
+        "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+      },
+      {
+        "pid": 10128,
+        "uid": 1000,
+        "startTicks": "81260",
+        "state": "S",
+        "executable": "/home/tester/yuvi/runtime/node",
+        "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+      },
+      {
+        "pid": 10147,
+        "uid": 1000,
+        "startTicks": "81288",
+        "state": "S",
+        "executable": "/home/tester/yuvi/desktop/yuvi-desktop",
+        "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+      },
+      {
+        "pid": 10148,
+        "uid": 1000,
+        "startTicks": "81288",
+        "state": "S",
+        "executable": "/home/tester/yuvi/runtime/node",
+        "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+      },
+      {
+        "pid": 10167,
+        "uid": 1000,
+        "startTicks": "81294",
+        "state": "S",
+        "executable": "/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitNetworkProcess",
+        "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+      },
+      {
+        "pid": 10171,
+        "uid": 1000,
+        "startTicks": "81295",
+        "state": "S",
+        "executable": "/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/WebKitWebProcess",
+        "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+      },
+      {
+        "pid": 10203,
+        "uid": 1000,
+        "startTicks": "81300",
+        "state": "S",
+        "executable": "/home/tester/yuvi/postgres/bin/postgres",
+        "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+      },
+      {
+        "pid": 10221,
+        "uid": 1000,
+        "startTicks": "81311",
+        "state": "S",
+        "executable": "/home/tester/yuvi/postgres/bin/postgres",
+        "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+      },
+      {
+        "pid": 10222,
+        "uid": 1000,
+        "startTicks": "81311",
+        "state": "S",
+        "executable": "/home/tester/yuvi/postgres/bin/postgres",
+        "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+      },
+      {
+        "pid": 10224,
+        "uid": 1000,
+        "startTicks": "81311",
+        "state": "S",
+        "executable": "/home/tester/yuvi/postgres/bin/postgres",
+        "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+      },
+      {
+        "pid": 10225,
+        "uid": 1000,
+        "startTicks": "81311",
+        "state": "S",
+        "executable": "/home/tester/yuvi/postgres/bin/postgres",
+        "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+      },
+      {
+        "pid": 10226,
+        "uid": 1000,
+        "startTicks": "81311",
+        "state": "S",
+        "executable": "/home/tester/yuvi/postgres/bin/postgres",
+        "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+      },
+      {
+        "pid": 10241,
+        "uid": 1000,
+        "startTicks": "81325",
+        "state": "R",
+        "executable": "/home/tester/yuvi/runtime/node",
+        "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service"
+      }
+    ],
+    "oneAcceptedOneRefused": true
+  },
+  "killedPids": [
+    9882
+  ],
+  "osCgroupCleaned": true,
+  "manualCleanup": false,
+  "notes": "Actual packaged processes killed by pinned pidfd. Compare durable state after normal native reopen; no real external side effects."
+}

@@ -48,6 +48,7 @@ def run(mode,native,api,scope,send,fill,script,wait):
  runtime=next(s for s in snapshot['services'] if s['id']=='runtime')['pid']
  pg=int((STATE/'data/Postgres/data/postmaster.pid').read_text().splitlines()[0])
  sup=json.loads((STATE/'supervisor/active-instance.json').read_text())['pid']
+ saved_lock=json.loads((STATE/'supervisor/supervisor.instance.lock').read_text())
  targets={'managed-supervisor':[sup],'managed-launcher':[record['launcherPid']],'managed-both':[sup,runtime],
   'managed-pg':[pg],'managed-concurrent':[record['launcherPid']],'managed-effect':[sup],'managed-correction':[sup]}[mode]
  assert all(pid in [m['pid'] for m in members] for pid in targets)
@@ -82,7 +83,7 @@ def run(mode,native,api,scope,send,fill,script,wait):
    cg=pathlib.Path('/sys/fs/cgroup')/newrecord['controlGroup'].lstrip('/')/'cgroup.procs'
    wait(lambda:not cg.exists() or not cg.read_text().strip(),label='normal stop of the single winning instance',timeout=55)
  if lock:lock.join(timeout=3)
- result={'scriptSha256':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in [BASE/'managed-lifecycle.py',BASE/'native-install.py',BASE/'run-guest.sh']},'status':'INJECTED_REQUIRES_NATIVE_REOPEN','mode':mode,'lifecycle':record,'unitBefore':unit,'processesBefore':members,
+ result={'scriptSha256':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in [BASE/'managed-lifecycle.py',BASE/'native-install.py',BASE/'run-guest.sh']},'status':'INJECTED_REQUIRES_NATIVE_REOPEN','mode':mode,'lifecycle':record,'supervisorLock':saved_lock,'unitBefore':unit,'processesBefore':members,
   'concurrentRecovery':concurrent,'killedPids':targets,'osCgroupCleaned':mode!='managed-pg','manualCleanup':False,
   'notes':'Actual packaged processes killed by pinned pidfd. Compare durable state after normal native reopen; no real external side effects.'}
  (OUT/('result-'+mode+'.json')).write_text(json.dumps(result,indent=2));print(json.dumps(result),flush=True)

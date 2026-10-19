@@ -158,6 +158,8 @@ try:
         wait(text,lambda t:'切换身份' in t or '以 RC Synthetic 进入' in t,'existing identity ready')
         if '以 RC Synthetic 进入' in text():click('以 RC Synthetic 进入');confirm()
     wait(text,lambda t:'切换身份' in t,'active')
+    click('聊天')
+    wait(lambda:script("return Boolean(document.querySelector('textarea'))"),label='actual chat surface ready')
     ready_seconds=time.monotonic()-start
     status=api('/host/v1/product/status'); scope='yuvi:v1:user:'+urllib.parse.quote(status['personId'],safe='')+':character:'+urllib.parse.quote(status['personaId'],safe='')
     if MODE=='diagnose':
@@ -257,6 +259,8 @@ try:
         if MODE in ('restore','reopen-managed'):
             script("for(const key of Object.keys(localStorage)){if(key.startsWith('yuvi.conversation-session.'))localStorage.removeItem(key)};location.reload();return true;")
             wait(text,lambda t:'切换身份' in t and 'Please remember:' not in t,'new conversation after restore')
+            click('聊天')
+            wait(lambda:script("return Boolean(document.querySelector('textarea'))"),label='fresh chat surface mounted')
         records=wait(current,lambda v:any('forest-green' in r['event']['content'] for r in v.get('records',[])),label='committed corrected current after recovery (production event lease may be 300s)',timeout=420)
         send('What is my favorite color?'); wait(text,lambda t:'Your current favorite color is forest-green' in t,'persistent recall')
         if MODE in ('restore','reopen-managed'):

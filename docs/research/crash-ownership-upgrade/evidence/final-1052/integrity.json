@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "checkedFiles": 1778,
+  "checkoutSha": "1052ac93841642e80bf371d34d949c4ae9d0714b",
+  "emptyProductState": true,
+  "noSystemNode": true,
+  "noSystemPG": true,
+  "kernel": "6.1.0-54-cloud-amd64",
+  "systemd": "systemd 252 (252.39-1~deb12u2)"
+}

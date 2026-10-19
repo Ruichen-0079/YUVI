@@ -1,0 +1,527 @@
+{
+  "resourceSample": {
+    "processes": [
+      {
+        "comm": "WebKitWebDriver",
+        "rssKiB": 18616,
+        "lifetimeCpuPercent": 0.2
+      },
+      {
+        "comm": "MainThread",
+        "rssKiB": 53196,
+        "lifetimeCpuPercent": 0.2
+      },
+      {
+        "comm": "MainThread",
+        "rssKiB": 67836,
+        "lifetimeCpuPercent": 0.5
+      },
+      {
+        "comm": "MainThread",
+        "rssKiB": 97816,
+        "lifetimeCpuPercent": 3.8
+      },
+      {
+        "comm": "yuvi-desktop",
+        "rssKiB": 189204,
+        "lifetimeCpuPercent": 5.9
+      },
+      {
+        "comm": "MainThread",
+        "rssKiB": 61716,
+        "lifetimeCpuPercent": 0.3
+      },
+      {
+        "comm": "WebKitNetworkPr",
+        "rssKiB": 70160,
+        "lifetimeCpuPercent": 0.4
+      },
+      {
+        "comm": "WebKitWebProces",
+        "rssKiB": 246768,
+        "lifetimeCpuPercent": 6.9
+      },
+      {
+        "comm": "postgres",
+        "rssKiB": 21660,
+        "lifetimeCpuPercent": 0.0
+      },
+      {
+        "comm": "postgres",
+        "rssKiB": 5628,
+        "lifetimeCpuPercent": 0.0
+      },
+      {
+        "comm": "postgres",
+        "rssKiB": 5692,
+        "lifetimeCpuPercent": 0.0
+      },
+      {
+        "comm": "postgres",
+        "rssKiB": 10168,
+        "lifetimeCpuPercent": 0.0
+      },
+      {
+        "comm": "postgres",
+        "rssKiB": 8056,
+        "lifetimeCpuPercent": 0.0
+      },
+      {
+        "comm": "postgres",
+        "rssKiB": 6188,
+        "lifetimeCpuPercent": 0.0
+      },
+      {
+        "comm": "MainThread",
+        "rssKiB": 143728,
+        "lifetimeCpuPercent": 13.4
+      },
+      {
+        "comm": "postgres",
+        "rssKiB": 18292,
+        "lifetimeCpuPercent": 0.0
+      },
+      {
+        "comm": "postgres",
+        "rssKiB": 26952,
+        "lifetimeCpuPercent": 1.0
+      },
+      {
+        "comm": "postgres",
+        "rssKiB": 29284,
+        "lifetimeCpuPercent": 1.5
+      },
+      {
+        "comm": "postgres",
+        "rssKiB": 27280,
+        "lifetimeCpuPercent": 1.8
+      }
+    ],
+    "rssSumIncludesSharedPages": true,
+    "packageKiB": 201992,
+    "stateKiB": 51408
+  },
+  "completedIngestion": {
+    "finalized-turn:fec28f99-b95d-4e37-b224-c5299e5f18af": {
+      "status": "skipped",
+      "attempt_count": 0,
+      "source_digest": "a67766db2a2b06135348bf9bd13571cacb5d36cac3f96483b30d80298268a8de",
+      "finalized_turn_id": "finalized-turn:fec28f99-b95d-4e37-b224-c5299e5f18af",
+      "complete_event_count": 0,
+      "unchanged_event_count": 0
+    },
+    "accepted-user:d1612027-a3bf-405b-b13c-a506500126a2": {
+      "status": "complete",
+      "attempt_count": 1,
+      "source_digest": "4f89e5e077da0f46ce3d0e26dc45a463787e249ad9fd39dc1d66fc5f30ee1d58",
+      "finalized_turn_id": "accepted-user:d1612027-a3bf-405b-b13c-a506500126a2",
+      "complete_event_count": 1,
+      "unchanged_event_count": 0
+    },
+    "finalized-turn:cf4195d6-2b50-4596-8ccc-abcaf47c0a4a": {
+      "status": "skipped",
+      "attempt_count": 0,
+      "source_digest": "aaf7961f321f8573848d6a3fcfac1bb8b88668942991a71d53766cd9c1a86094",
+      "finalized_turn_id": "finalized-turn:cf4195d6-2b50-4596-8ccc-abcaf47c0a4a",
+      "complete_event_count": 0,
+      "unchanged_event_count": 0
+    },
+    "accepted-user:c517984f-fb13-4eae-89c2-7244d113d5e2": {
+      "status": "complete",
+      "attempt_count": 1,
+      "source_digest": "ef1ced450e129b5dd62eca4fe13a1c415cd972a8a8d8d7dc97e39c425dcc0c5f",
+      "finalized_turn_id": "accepted-user:c517984f-fb13-4eae-89c2-7244d113d5e2",
+      "complete_event_count": 1,
+      "unchanged_event_count": 0
+    }
+  },
+  "tables": [
+    {
+      "table": "character_runtime_owner",
+      "count": 1,
+      "digest": "758b9fc4f2b55ce727cb2a8208523856"
+    },
+    {
+      "table": "context_use_exposures",
+      "count": 6,
+      "digest": "40cc04c9b718cb573fe468d4e9f8ed68"
+    },
+    {
+      "table": "context_use_manifests",
+      "count": 4,
+      "digest": "a0484e2f78cf0688eb2b5a52618c7010"
+    },
+    {
+      "table": "conversation_messages",
+      "count": 4,
+      "digest": "38b85858fd81a8ff220647548b879eff"
+    },
+    {
+      "table": "conversation_reply_components",
+      "count": 2,
+      "digest": "b999ab5b73346bff9e6d934b91cc1c47"
+    },
+    {
+      "table": "conversation_reply_seals",
+      "count": 2,
+      "digest": "f0b33b2a5166397f8a4a586f571535d0"
+    },
+    {
+      "table": "conversation_sessions",
+      "count": 1,
+      "digest": "3abbcd856f991064d758c2f8d7149604"
+    },
+    {
+      "table": "dream_jobs",
+      "count": 2,
+      "digest": "412dfbef41179ea4fd9bef78a9fe42d5"
+    },
+    {
+      "table": "effect_attempts",
+      "count": 11,
+      "digest": "32490b8160188776f4181c14c7355b0f"
+    },
+    {
+      "table": "effect_command_payloads",
+      "count": 1,
+      "digest": "692012daa8d32bea19e1dec9d95e4afe"
+    },
+    {
+      "table": "effect_input_exposures",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "effect_intents",
+      "count": 11,
+      "digest": "97b5afce5433ea5e1435f3c7798e24fd"
+    },
+    {
+      "table": "effect_observations",
+      "count": 17,
+      "digest": "dafafc68c390411bd4c84bf472eab6e4"
+    },
+    {
+      "table": "entities",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "finalized_ingestion_events",
+      "count": 2,
+      "digest": "d65e9962399e9aa0cf021a5071dee575"
+    },
+    {
+      "table": "finalized_ingestion_turns",
+      "count": 4,
+      "digest": "9ccd77d920e7c1b114a6eee9a917802a"
+    },
+    {
+      "table": "journal_event_parents",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "journal_events",
+      "count": 5,
+      "digest": "c4c3deb8eda0318a7d3375524d667f23"
+    },
+    {
+      "table": "journal_namespaces",
+      "count": 1,
+      "digest": "d84d9a8dc77204e99667307f22fd9f9a"
+    },
+    {
+      "table": "journal_payloads",
+      "count": 3,
+      "digest": "34c19ec1ceb281ee9377c122b730a390"
+    },
+    {
+      "table": "journal_source_dedup",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memories",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_authority_admissions",
+      "count": 2,
+      "digest": "6ae6c428b528ff24815d9b928acbe4d7"
+    },
+    {
+      "table": "memory_authority_audit_issues",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_authority_audits",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_authority_index_jobs",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_authority_migration_batches",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_authority_migrations",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_authority_projection_rows",
+      "count": 2,
+      "digest": "4a9d59b7c718ee31c5d70436e3b4072f"
+    },
+    {
+      "table": "memory_authority_records",
+      "count": 2,
+      "digest": "10ef8f76ab61dab22b9c2c8f557e515b"
+    },
+    {
+      "table": "memory_authority_relations",
+      "count": 1,
+      "digest": "763b0e5b3f1eec5bdd286ec242e48d99"
+    },
+    {
+      "table": "memory_authority_scopes",
+      "count": 1,
+      "digest": "012e20d30304a9443d6f1afedb591845"
+    },
+    {
+      "table": "memory_authority_vectors",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_decision_reassessments",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_evidence_admissions",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_host_grants",
+      "count": 1,
+      "digest": "4ccafa18f57ea130cb16317724ca82dc"
+    },
+    {
+      "table": "memory_host_principals",
+      "count": 1,
+      "digest": "a79be31c0516dde8ee96fe4574e9278e"
+    },
+    {
+      "table": "memory_host_sessions",
+      "count": 1,
+      "digest": "d31370950976a1abb953378faee0e286"
+    },
+    {
+      "table": "memory_legacy_workflow_actions",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_legacy_workflow_items",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_legacy_workflows",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_lexical_generations",
+      "count": 1,
+      "digest": "74f0b32c52f1678e7df6a78582c1eab7"
+    },
+    {
+      "table": "memory_lexical_postings",
+      "count": 7,
+      "digest": "b988428c55e9d9430e65647f5ea60a0d"
+    },
+    {
+      "table": "memory_operator_actions",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_product_hosts",
+      "count": 1,
+      "digest": "bcf5bdd13d995d28a2d2d43c05c5dc90"
+    },
+    {
+      "table": "memory_product_pairings",
+      "count": 1,
+      "digest": "a29cdd94bcfbf2a7d4ce457d23b39d6e"
+    },
+    {
+      "table": "memory_projection_deltas",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_projection_rebuilds",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_retrieval_contexts",
+      "count": 4,
+      "digest": "16ccca54cda02b911e31317370573c3e"
+    },
+    {
+      "table": "memory_retrieval_runs",
+      "count": 2,
+      "digest": "10716415f7bfe8a07ef2195aecd57ebb"
+    },
+    {
+      "table": "memory_semantic_jobs",
+      "count": 2,
+      "digest": "162e6ac0debcb5b63f308f05143df63b"
+    },
+    {
+      "table": "native_control_workflow_children",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "native_control_workflows",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "p8_corrections",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "profile_current",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "profile_lifecycle",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "profile_snapshots",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "recent_episodes",
+      "count": 1,
+      "digest": "47fea32ab0311029320fbe50dc5370b9"
+    },
+    {
+      "table": "relations",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "reply_speech_plans",
+      "count": 2,
+      "digest": "6a895017914ea5df22a46f1cdc70dda8"
+    },
+    {
+      "table": "retained_observations",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "speech_audio_results",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "speech_segment_descriptors",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "yuvi_schema_migrations",
+      "count": 45,
+      "digest": "077ad854cfac06858deadc2b1f9ac26d"
+    }
+  ],
+  "immutableRows": {
+    "memory_authority_records": {
+      "yuvi:v1:user:42a3b091-b13f-4368-8d5e-7c0b24172475:character:alice/pgm1_ba34ca3d1eeedbed7e4e5a9cd94c9ab63bce0877a59f6ce078acb833e7fa113d": "fed7fc3b3f93368ed6690eef822cb2be",
+      "yuvi:v1:user:42a3b091-b13f-4368-8d5e-7c0b24172475:character:alice/pgm1_8c6dd9103eaa4a7ca5d4a6245bdd891f5a056abb878213ab7da4017b0a875a7f": "f97f5e9e1f8a0039f15702d0bb4c236c"
+    },
+    "journal_events": {
+      "yuvi:default/jev1_zXyUefztwtVmpF0OVlvm5pkqljH3CIoC": "14c868eb1ec3ebad439b718dba38df7c",
+      "yuvi:default/jev1_vqlg8EDJQzQYhARlaGQSwR_v4OqlNpM7": "cad893580e1bfa32040938e0b1b25a3d",
+      "yuvi:default/jev1_ZWJf0gN87tuQXcLoJTvqPtz9U-1s2X67": "6a9ed425d0db1f68934d55bcd0381f7a",
+      "yuvi:default/jev1_aMn2VfsEgJtD2ISrzw6NNyKOq_5N4DwF": "c56cce154f39fd0f34d64a3e601d0a70",
+      "yuvi:default/jev1_SltXoYegjXlgsBzomGyJnPbyDpE2BR48": "0223bef9a4f76f14390d9789668f0091"
+    },
+    "effect_observations": {
+      "1": "83e28a539901d3a51a8643593a43c118",
+      "2": "ff448bc0df258df329f15d59bf994bee",
+      "3": "8877fb2f8064b24466956cf8252d1ec1",
+      "4": "7e00416d2448f5852b789a530a283748",
+      "5": "8c808296876f96c2cdf189db6e96a5f7",
+      "6": "e17e60ff44f550f9bcc24d2c6da4c7c4",
+      "7": "c8cc10808d0baabaaacaa189a53d90a8",
+      "8": "fe23213e0d809a8fa266cb8138420bbf",
+      "9": "4148befc0795b8baa90640bdb8b5d8f1",
+      "10": "6ae1ca8010956afb1bf376af2a6863f8",
+      "11": "cd464bc0c9006f90085ed686f40c8ee2",
+      "12": "90f6c2dfbaacf85fa68516e8749b8660",
+      "13": "e3df172055f8c026a29c3571bce47a2f",
+      "14": "1a4df69775b160974422441207d6921e",
+      "15": "f4cde12b05a27d050199bef2d83b00a2",
+      "16": "c3c6a4ebd8f207634ed57b51e104c31e",
+      "17": "02f97148d5cdf53521951624e022ec6f"
+    }
+  },
+  "role": {
+    "current_user": "yuvi_runtime",
+    "rolsuper": false,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolbypassrls": false,
+    "schema_create": false,
+    "rewrite_history": false,
+    "truncate_history": false,
+    "projection_insert": true
+  },
+  "identity": {
+    "people": [
+      {
+        "id": "42a3b091-b13f-4368-8d5e-7c0b24172475",
+        "displayName": "RC Synthetic",
+        "personaId": "alice",
+        "notes": ""
+      }
+    ],
+    "nativeOwnerDigest": "3b973198271f4f00744ae63cc6000c4e91201e3b911aa848b4bd658ee2686e64",
+    "ownerAssociations": {
+      "42a3b091-b13f-4368-8d5e-7c0b24172475": "3b973198271f4f00744ae63cc6000c4e91201e3b911aa848b4bd658ee2686e64"
+    },
+    "personAuthorityRevisionById": {
+      "42a3b091-b13f-4368-8d5e-7c0b24172475": "6cfd007f-fa89-4291-bc6c-bcc2bd3c32a5"
+    },
+    "productCommandReceiptDigest": "919ab84fd79af18006440d8d3b3e07790786090df0fa2d3bd63943b3cfb6de54"
+  },
+  "effectCertainties": [
+    {
+      "certainty": "APPLIED",
+      "count": 11
+    }
+  ]
+}

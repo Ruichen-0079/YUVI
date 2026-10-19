@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "mode": "install",
+  "checks": [
+    "Fresh Debian VM has no system Node/PG; actual release launcher owns its services",
+    "Empty first run uses native ownership and normal settings/Secret Service; no pre-created Person or configuration",
+    "Native opt-in initializes bundled private PG and all migrations through the owned Supervisor",
+    "Normal native creation selects the synthetic Person and a restricted Product Host",
+    "Actual native chat flows through bundled Character/Journal/Worker to R5",
+    "Natural correction supersedes the previous fact through the same product entry",
+    "Same actual native window renders Authority current knowledge",
+    "Native history retains the superseded fact and correction",
+    "Private PG application role is restricted; durable SQL and owner identity inventory captured"
+  ],
+  "personId": "42a3b091-b13f-4368-8d5e-7c0b24172475",
+  "personaId": "alice",
+  "scope": "yuvi:v1:user:42a3b091-b13f-4368-8d5e-7c0b24172475:character:alice",
+  "seconds": 8.974181226000013,
+  "windowSeconds": 0.887432031000003,
+  "authenticatedReadySeconds": 6.965050299000012
+}
