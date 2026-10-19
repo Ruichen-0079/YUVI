@@ -1702,7 +1702,8 @@ export class DesktopSupervisor {
             ? {
                 MEMORY_REPOSITORY: "postgres",
                 CONVERSATION_REPOSITORY: "postgres",
-                DATABASE_URL: privatePostgresDatabaseUrl
+                DATABASE_URL: privatePostgresDatabaseUrl,
+                YUVI_PRIVATE_POSTGRES_RUNTIME: "1"
               }
             : {}
         ),

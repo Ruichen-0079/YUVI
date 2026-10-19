@@ -22,4 +22,4 @@ make -j2
 make install
 make -C contrib/pgcrypto -j2 install
 make -C contrib/pg_trgm -j2 install
-make -C "$task_build_dir/pgvector-0.8.6" -j2 PG_CONFIG="$YUVI_LINUX_POSTGRES_HOME/bin/pg_config" install
+make -C "$task_build_dir/pgvector-0.8.6" -j2 OPTFLAGS=-O2 PG_CONFIG="$YUVI_LINUX_POSTGRES_HOME/bin/pg_config" install

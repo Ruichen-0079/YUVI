@@ -8,6 +8,7 @@ import { portableSecretNamespace, readPortablePackageIdentity, resolvePortableSt
 import { CUBISM_CORE_FILENAME, cubismCoreStatus, provisionCubismCore } from './provision-cubism-core.mjs';
 const root = fs.realpathSync(path.dirname(fileURLToPath(import.meta.url)));
 const packageIdentity = readPortablePackageIdentity(root);
+const r5Only = JSON.parse(fs.readFileSync(path.join(root, 'install-manifest.json'), 'utf8')).profile === 'r5';
 const secretNamespace = portableSecretNamespace(packageIdentity);
 const state = resolvePortableStateRoot({ packageRoot: root, identity: packageIdentity });
 const dirs = resolvePortableStateDirs(state);
@@ -63,7 +64,7 @@ try {
       if (fs.existsSync(path.join(dirs.config, name))) throw new Error(`Portable cannot prove isolation with legacy ${name} in ${dirs.config}. Move that file aside and use Product settings.`);
     }
     const runtimePort = 16121, webPort = 15173, sttPort = 19876;
-    for (const port of [runtimePort, webPort, sttPort, 16131, 19881, 19880]) await available(port);
+    for (const port of r5Only ? [runtimePort, webPort] : [runtimePort, webPort, sttPort, 16131, 19881, 19880]) await available(port);
     // Parent provider credentials and Installed state never cross the Portable boundary.
     // Durable Product configuration and secrets are restored only from this release namespace.
     const guiSessionEnv = Object.fromEntries(
@@ -80,6 +81,7 @@ try {
       YUVI_RUNTIME_ENV_DIR: dirs.config, YUVI_SUPERVISOR_STATE_ROOT: dirs.supervisor,
       YUVI_SECRET_NAMESPACE: secretNamespace,
       YUVI_PORTABLE_VERSION: packageIdentity.version,
+      ...(r5Only ? { YUVI_PACKAGE_PROFILE: 'r5', MEMORY_BACKEND: 'legacy', YUVI_PACKAGED_EXTERNAL_SIDECARS: '1', YUVI_AUTOSTART_MEM0: '0', YUVI_AUTOSTART_LOCAL_STT: '0' } : {}),
       YUVI_POSTGRES_MODE: 'private',
       YUVI_MEM0_DATA_DIR: path.join(dirs.data, 'Mem0', 'data'),
       YUVI_MEM0_LOG_DIR: path.join(dirs.data, 'Mem0', 'logs'),
