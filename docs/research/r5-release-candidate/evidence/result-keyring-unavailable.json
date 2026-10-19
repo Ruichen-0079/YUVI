@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Actual packaged keyring-unavailable refuses private access and never overwrites or starts the cluster"
+  ],
+  "seconds": 5.8413721769999825
+}

@@ -1,0 +1,9 @@
+{
+  "status": "INJECTED_REQUIRES_RESTART_VERIFICATION",
+  "checks": [
+    "SIGKILL of the owned private PG produces private API refusal, not successful empty knowledge"
+  ],
+  "observations": {
+    "privateApiRefused": true
+  }
+}

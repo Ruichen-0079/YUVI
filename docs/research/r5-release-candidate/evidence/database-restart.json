@@ -1,0 +1,401 @@
+{
+  "tables": [
+    {
+      "table": "character_runtime_owner",
+      "count": 1,
+      "digest": "f181ef698b069cb3a5a2b9ec083e16c5"
+    },
+    {
+      "table": "context_use_exposures",
+      "count": 9,
+      "digest": "e3645fd3b6fb551033423caa7f66d3d2"
+    },
+    {
+      "table": "context_use_manifests",
+      "count": 6,
+      "digest": "2f2c14b1f6c11e6502e0e64c41bdfb78"
+    },
+    {
+      "table": "conversation_messages",
+      "count": 6,
+      "digest": "741d45635452a76965542c09413eb18a"
+    },
+    {
+      "table": "conversation_reply_components",
+      "count": 3,
+      "digest": "d15fbd245155ff335ad01949d260d66d"
+    },
+    {
+      "table": "conversation_reply_seals",
+      "count": 3,
+      "digest": "559a4289b92e5d34ec1d45b246c39427"
+    },
+    {
+      "table": "conversation_sessions",
+      "count": 1,
+      "digest": "67f47c845c7cea9b2a51d06e14d2c507"
+    },
+    {
+      "table": "dream_jobs",
+      "count": 3,
+      "digest": "209fb61d1c33c3c0b38cff8ef1012f2a"
+    },
+    {
+      "table": "effect_attempts",
+      "count": 16,
+      "digest": "3dbc84117893ebdc66d6a8163f7b0cb1"
+    },
+    {
+      "table": "effect_command_payloads",
+      "count": 1,
+      "digest": "f671fc1b4d632673c9468d6d7415c8e7"
+    },
+    {
+      "table": "effect_input_exposures",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "effect_intents",
+      "count": 16,
+      "digest": "cd8e68a77c4d9312ab96ae8f5727f2eb"
+    },
+    {
+      "table": "effect_observations",
+      "count": 25,
+      "digest": "7d77d5837f50eff8a2447ab473d2661a"
+    },
+    {
+      "table": "entities",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "finalized_ingestion_events",
+      "count": 2,
+      "digest": "70d7c08d708e7bc74c80ed5489e2cf47"
+    },
+    {
+      "table": "finalized_ingestion_turns",
+      "count": 6,
+      "digest": "0dbf87f76d27c0a4742043736bed081b"
+    },
+    {
+      "table": "journal_event_parents",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "journal_events",
+      "count": 7,
+      "digest": "158d36f632047a59ecf39c635c0e2d22"
+    },
+    {
+      "table": "journal_namespaces",
+      "count": 1,
+      "digest": "c836387dcad01d29fa3ce8658d85ca85"
+    },
+    {
+      "table": "journal_payloads",
+      "count": 4,
+      "digest": "689e718f9a6817b5b063d688bfa8e287"
+    },
+    {
+      "table": "journal_source_dedup",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memories",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_authority_admissions",
+      "count": 2,
+      "digest": "0e8df46313b68992e74809c7a30ec493"
+    },
+    {
+      "table": "memory_authority_audit_issues",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_authority_audits",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_authority_index_jobs",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_authority_migration_batches",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_authority_migrations",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_authority_projection_rows",
+      "count": 2,
+      "digest": "fed2cbf4a8903430f2d5fe4fd2f0a84e"
+    },
+    {
+      "table": "memory_authority_records",
+      "count": 2,
+      "digest": "61e7179435a717b007b7b94f2efd59f0"
+    },
+    {
+      "table": "memory_authority_relations",
+      "count": 1,
+      "digest": "c90085378f05f13aa2952800041bc5ec"
+    },
+    {
+      "table": "memory_authority_scopes",
+      "count": 1,
+      "digest": "dc1174bc9321e0b0d3705326cd481bb8"
+    },
+    {
+      "table": "memory_authority_vectors",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_decision_reassessments",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_evidence_admissions",
+      "count": 3,
+      "digest": "8038ce429aa1d230541eb02a115ff57a"
+    },
+    {
+      "table": "memory_host_grants",
+      "count": 1,
+      "digest": "2cca9fac9bc11ecac09ab5657a7b7a23"
+    },
+    {
+      "table": "memory_host_principals",
+      "count": 1,
+      "digest": "d070a4d8a13a4e3736557971041a4e67"
+    },
+    {
+      "table": "memory_host_sessions",
+      "count": 1,
+      "digest": "06e1a9a161728437f93c7080e70d71e2"
+    },
+    {
+      "table": "memory_legacy_workflow_actions",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_legacy_workflow_items",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_legacy_workflows",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_lexical_generations",
+      "count": 1,
+      "digest": "d84c15398b84b98fea009782e670a30b"
+    },
+    {
+      "table": "memory_lexical_postings",
+      "count": 7,
+      "digest": "194079c69e3bc2295d29daef6006d9c0"
+    },
+    {
+      "table": "memory_operator_actions",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_product_hosts",
+      "count": 1,
+      "digest": "7a0d7d0d9ca406610e7d3b97c38eadcc"
+    },
+    {
+      "table": "memory_product_pairings",
+      "count": 1,
+      "digest": "d5cb5674cf37636474233610faf29ac8"
+    },
+    {
+      "table": "memory_projection_deltas",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_projection_rebuilds",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "memory_retrieval_contexts",
+      "count": 6,
+      "digest": "6267b1b55bcffe09a86163bf17697e3b"
+    },
+    {
+      "table": "memory_retrieval_runs",
+      "count": 3,
+      "digest": "d89df448c473a58aaf1f13d9a27e8de8"
+    },
+    {
+      "table": "memory_semantic_jobs",
+      "count": 3,
+      "digest": "5a45b2f333583a3d4e4ed4a0e72126bc"
+    },
+    {
+      "table": "native_control_workflow_children",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "native_control_workflows",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "p8_corrections",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "profile_current",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "profile_lifecycle",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "profile_snapshots",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "recent_episodes",
+      "count": 1,
+      "digest": "4b7a2a830557f4d056e31143f5bdb6a0"
+    },
+    {
+      "table": "relations",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "reply_speech_plans",
+      "count": 3,
+      "digest": "07d25643d06e8274e4207cb09c7de26c"
+    },
+    {
+      "table": "retained_observations",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "speech_audio_results",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "speech_segment_descriptors",
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "table": "yuvi_schema_migrations",
+      "count": 45,
+      "digest": "095e8e0e583ddf5bcd8e1a5810cf7f70"
+    }
+  ],
+  "immutableRows": {
+    "memory_authority_records": {
+      "yuvi:v1:user:5c9990e2-9722-4018-ac4f-e8e3e9afd812:character:alice/pgm1_a3bae133200dadcb2825e59adfa15cef5a51404ae441656da584132c335af8a1": "7a17583a2b692b7c14b9ef2db12f96be",
+      "yuvi:v1:user:5c9990e2-9722-4018-ac4f-e8e3e9afd812:character:alice/pgm1_bb11a3dcffe6b10d7c38380d8448d2e55e9510bb4e362cf359bafdb16a91def8": "ba302926b7b63ab26700b85dcc807218"
+    },
+    "journal_events": {
+      "yuvi:default/jev1_Nj7xTHE0xh_UFH7Na2CDlIwAdgAi0Vkh": "2758dc00891460e4956ed6e780d23ef8",
+      "yuvi:default/jev1_GhKr97WhTd6ubSEjE8aZZLP4TF5LeQeR": "a9345f29821dd50541e6119ba43291e2",
+      "yuvi:default/jev1_bCVmqjBDQgTJfkFgSnyZpSowQcYZalcr": "2dac283e74cf487d76970bcc71220457",
+      "yuvi:default/jev1_vXbQkG6QHHXx3i5kATbfP7wV7Uyg_GUp": "04f2310189215b1218f478ef6a80d67c",
+      "yuvi:default/jev1_y39Rkxm1Bkm1vMhqIpKzel-0Ud8gFn_U": "cb4396035280d2fb46ca6b97eadb685e",
+      "yuvi:default/jev1_PSRxXg0aLP7OklwMk2u7uOEvdEjSphwn": "208f42447170aa4d66bb5ca11f79f092",
+      "yuvi:default/jev1_oUZRyB2JlRtIL5KDYDvtNjlYt69Xelx-": "a127345f55179a263e9577a90a5c15d3"
+    },
+    "effect_observations": {
+      "1": "8aecc2aa45fcaaee01b4bea1fb29b1da",
+      "2": "bfdfc0adcfc3b7a18a0adaaf683c95f9",
+      "3": "c1f1d056d56633f676e40a2cf6dfeb2d",
+      "4": "75af0fa02ef79e7ec521831f95fc8d88",
+      "5": "c748023af8692ff2cbdc1beca26ea79d",
+      "6": "b3125ae56a62fec09c23d528281be81e",
+      "7": "bde257a54e56c0035a1e71cb9a2841fa",
+      "8": "70778423e80a62dda0c0a49064cddd3a",
+      "9": "603e98a71901013bbe70af3f90f9ccfb",
+      "10": "46a694d0e1ff1fe9748bf7a12aefcc65",
+      "11": "90d9d658b7d27a19e23df7f2fc78ac89",
+      "12": "5032f9633b16997658d0e3ed353cc19b",
+      "13": "1e204caa319346e0fd09496e6770f5a8",
+      "14": "1f40b89b0984ca6d5b8b78b59dbf183d",
+      "15": "1f8f62337b1879e2fc7f383b6a94e308",
+      "16": "c739e5bace628bc47e7283d5eded16a0",
+      "17": "7095d6b0b7713f6795f38f4aed1f604b",
+      "18": "011e7d4263a7f8f8648439a0c445fe78",
+      "19": "0a9704c9f1036f111c2baec60dabdca6",
+      "20": "32f8f4053f5d58b900bea008b755bed6",
+      "21": "1cff6e4eac0c9577a1aaad1c7afac548",
+      "22": "feafb3f7ab6b91ee1e3d1e909f72449a",
+      "23": "e814a944050760446d8d84570834c9f6",
+      "24": "d225333d15d898feac1e28b4bd8cde5c",
+      "25": "705b547c726f75d7869313b4b701adc4"
+    }
+  },
+  "role": {
+    "current_user": "yuvi_runtime",
+    "rolsuper": false,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolbypassrls": false,
+    "schema_create": false,
+    "rewrite_history": false,
+    "truncate_history": false,
+    "projection_insert": true
+  },
+  "identity": {
+    "people": [
+      {
+        "id": "5c9990e2-9722-4018-ac4f-e8e3e9afd812",
+        "displayName": "RC Synthetic",
+        "personaId": "alice",
+        "notes": ""
+      }
+    ],
+    "nativeOwnerDigest": "0f3cc6a75bf6a8a6a623653fc3fed19e7e7400a94da8c9d2de4913634fa21ba5",
+    "ownerAssociations": {
+      "5c9990e2-9722-4018-ac4f-e8e3e9afd812": "0f3cc6a75bf6a8a6a623653fc3fed19e7e7400a94da8c9d2de4913634fa21ba5"
+    },
+    "personAuthorityRevisionById": {
+      "5c9990e2-9722-4018-ac4f-e8e3e9afd812": "12feb068-4fa4-4294-85f7-cc272885a67a"
+    },
+    "productCommandReceiptDigest": "efd4e92e968139b141aa77a333dd822b7d5c73cdbb682585aae378f7becd2b79"
+  },
+  "effectCertainties": [
+    {
+      "certainty": "APPLIED",
+      "count": 16
+    }
+  ]
+}

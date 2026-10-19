@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Actual packaged pg-conflict refuses private access and never overwrites or starts the cluster"
+  ],
+  "seconds": 5.8384250250000065
+}

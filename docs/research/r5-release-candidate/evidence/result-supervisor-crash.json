@@ -1,0 +1,20 @@
+{
+  "status": "BLOCKED_AUTOMATIC_RESTART",
+  "checks": [
+    "Owned Supervisor SIGKILL observed; surviving child processes recorded without assuming automatic recovery"
+  ],
+  "observations": {
+    "survivingOwnedProcesses": [
+      {
+        "service": "runtime",
+        "pid": 1342
+      },
+      {
+        "service": "postgres",
+        "pid": 1288
+      }
+    ],
+    "restartRefused": true,
+    "manualOwnedLabCleanup": true
+  }
+}

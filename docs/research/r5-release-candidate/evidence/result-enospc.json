@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "scenario": "160MiB isolated ext4 volume exhausted before packaged startup",
+  "bytesFilled": 77234176,
+  "availableBytesReported": 2048,
+  "seconds": 0.28582844900000737,
+  "exitCode": 1,
+  "error": "ENOSPC",
+  "originalClusterUnchanged": true,
+  "copiedClusterStarted": false,
+  "note": "No initial-install claim; copied synthetic state only, source stopped, no chat or model executed"
+}
