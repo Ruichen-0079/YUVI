@@ -128,6 +128,22 @@ describe("portable provider routing (routing is not ownership)", () => {
     expect(settings.primaryPersonId).toBeNull();
   });
 
+  it("does not let a Person-only file mask native Provider routing or persist its secret", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "yuvi-enrollment-provider-"));
+    const env = { YUVI_RUNTIME_ENV_DIR: dir, OPENAI_COMPATIBLE_API_KEY: "synthetic-key", DEFAULT_CHAT_PROVIDER: "openai-compatible" };
+    try {
+      await fenceProductPersonCommand({ commandHandle: "enroll", intentId: "intent", attemptId: "attempt", fence: "1", payloadDigest: "a".repeat(64) }, env);
+      const saved = readProductSettings(env)!;
+      expect(saved.configurationInherited).toBe(true);
+      expect(await readFile(productPath(env), "utf8")).not.toContain("synthetic-key");
+      const reboot = productEnvironment(env, saved);
+      expect(reboot["OPENAI_COMPATIBLE_API_KEY"]).toBe("synthetic-key");
+      expect(reboot["YUVI_PRODUCT_CONFIGURATION"]).toBeUndefined();
+      const explicit = { ...saved }; delete explicit.configurationInherited;
+      expect(productEnvironment(env, explicit)["YUVI_PRODUCT_CONFIGURATION"]).toBe(JSON.stringify(explicit.configuration));
+    } finally { await rm(dir, { recursive: true, force: true }); }
+  });
+
   it("returns env untouched when no settings are saved", () => {
     expect(productEnvironment({ ...MANAGED_ENV }, null)).toEqual({ ...MANAGED_ENV });
   });

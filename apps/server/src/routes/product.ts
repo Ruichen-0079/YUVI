@@ -54,8 +54,12 @@ export async function registerProductRoutes(
     return next;
   };
   let applyFailure = false;
-  const desired = () =>
-    readProductSettings() ?? importLegacyConfiguration(context.activeRuntimeEnv);
+  const desired = () => {
+    const saved = readProductSettings();
+    return saved?.configurationInherited
+      ? { ...saved, configuration: importLegacyConfiguration(context.activeRuntimeEnv).configuration }
+      : saved ?? importLegacyConfiguration(context.activeRuntimeEnv);
+  };
   function snapshot() {
     const saved = desired();
     const {
@@ -201,6 +205,7 @@ export async function registerProductRoutes(
             if (key !== undefined) p.apiKey = key;
           }
         candidate.configuration = parseProductConfiguration(input);
+        delete candidate.configurationInherited;
         if (body.proactive !== undefined) candidate.proactive = body.proactive;
         createProviderRegistryFromEnv(productEnvironment(context.activeRuntimeEnv, candidate));
       } catch {

@@ -7,6 +7,8 @@ import { emptyProductConfiguration, parseProductConfiguration, type ProductConfi
 export type Person = { id: string; displayName: string; personaId: string; notes: string };
 export type ProductSettings = {
   configuration: ProductConfiguration;
+  /** Person enrollment may create this file before Product Provider configuration is authored. */
+  configurationInherited?: true;
   people: Person[];
   primaryPersonId: string | null;
   proactive: { threshold: number; intervalMs: number };
@@ -55,6 +57,9 @@ export function readProductSettings(env = process.env): ProductSettings | null {
   try {
     const value = JSON.parse(readFileSync(productPath(env), "utf8")) as ProductSettings;
     parseProductConfiguration(value.configuration);
+    if (value.configurationInherited !== undefined &&
+        (value.configurationInherited !== true || canonicalJson(value.configuration) !== canonicalJson(emptyProductConfiguration())))
+      throw new Error("Invalid inherited Provider configuration");
     if (value.productOwnerEnvelope !== undefined) {
       const envelope = value.productOwnerEnvelope;
       if (!envelope || envelope.version !== 1 ||
@@ -225,7 +230,7 @@ export async function fenceProductPersonCommand(input: {
   payloadDigest: string;
 }, env: Record<string, string | undefined> = process.env): Promise<"READY" | "CONFLICT"> {
   return withProductSettingsOwner(() => {
-    const settings = readProductSettings(env) ?? defaultProductSettings();
+    const settings = readProductSettings(env) ?? { ...defaultProductSettings(), configurationInherited: true as const };
     const receipts = settings.productCommandReceipts ?? [];
     const receipt = receipts.find((item) => item.commandHandle === input.commandHandle);
     if (receipt) return receipt.payloadDigest === input.payloadDigest &&
@@ -379,7 +384,7 @@ export function productEnvironment(env: Record<string, string | undefined>, sett
   // managed defaults (19876/19881/19880) keep working when selected, while an
   // explicit external Product endpoint must not be rewritten or rejected.
   const primary = settings.people.find(p => p.id === settings.primaryPersonId);
-  return { ...env, YUVI_PRODUCT_CONFIGURATION: JSON.stringify(settings.configuration), MEMORY_SUBJECT_USER_ID: primary?.id, MEMORY_PERSONA_ID: primary?.personaId ?? env["MEMORY_PERSONA_ID"], PROACTIVE_SCORE_THRESHOLD: String(settings.proactive.threshold), PROACTIVE_EVALUATION_INTERVAL_MS: String(settings.proactive.intervalMs) };
+  return { ...env, YUVI_PRODUCT_CONFIGURATION: settings.configurationInherited ? env["YUVI_PRODUCT_CONFIGURATION"] : JSON.stringify(settings.configuration), MEMORY_SUBJECT_USER_ID: primary?.id, MEMORY_PERSONA_ID: primary?.personaId ?? env["MEMORY_PERSONA_ID"], PROACTIVE_SCORE_THRESHOLD: String(settings.proactive.threshold), PROACTIVE_EVALUATION_INTERVAL_MS: String(settings.proactive.intervalMs) };
 }
 export function embeddingSignature(c: ProductConfiguration): string {
   return JSON.stringify(c.routes.embedding.map(id => { const m = c.models.find(m => m.id === id)!; return [m, c.providers.find(p => p.id === m.providerId)]; }));
