@@ -1,6 +1,6 @@
 # R5 Linux 发布候选：首装与冷恢复切片
 
-基线是 [#335](https://github.com/Ruichen-0079/YUVI/pull/335) 的 `f9f8c984070b4d030fba05c819598217e36aafd9`。接手工作树干净；在原工作树新增 `release/r5-install-recovery`，保留 #322–#335 历史。没有 merge、retarget、rebase、部署或真实数据迁移，没有访问 Alice 的安装、数据库、Provider 密钥或 QQ。
+交付 Draft PR 为 [#336](https://github.com/Ruichen-0079/YUVI/pull/336)，[本 PR 实际 HEAD 的 CI](https://github.com/Ruichen-0079/YUVI/pull/336/checks) 单独记录，保持人工评审状态。基线是 [#335](https://github.com/Ruichen-0079/YUVI/pull/335) 的 `f9f8c984070b4d030fba05c819598217e36aafd9`。接手工作树干净；在原工作树新增 `release/r5-install-recovery`，保留 #322–#335 历史。没有 merge、retarget、rebase、部署或真实数据迁移，没有访问 Alice 的安装、数据库、Provider 密钥或 QQ。
 
 **已完成 A+B 的有界纵向切片：全新 Debian 12 VM 安装独立发行 payload，真实 Tauri/WebKitGTK 首次使用、R5 事实与纠正、系统重启；完整停机备份，在另一台 VM 恢复并通过原生窗口继续使用。它仍不是可批准正式切换的发行版。** C 的旧二进制升级/失败对账和 D 的多格式旧资产盘点消费者留作下一份依赖任务，不能由本批 SQL 演练代替。
 
@@ -114,7 +114,7 @@
 
 ## 本地、CI 与堆叠集成治理
 
-本地 `pnpm check`、`pnpm build`、带显式隔离 PG 的 `pnpm test` 通过：Vitest 4143 passed / 57 skipped，Node 65 passed；Rust 110 passed；打包 78 passed。6 项 Python 保管/并发故障及 launcher 实进程检查另外执行。skip 是未覆盖，详见 [validation.json](evidence/validation.json)。正式 Server/Character 入口和 PG 权限回归属于这批实际运行；未重新把 #334 Chromium 的旧验收标成新发行包验收。CI 在新 Draft 的实际 HEAD 更新后另记，不拿 #335 的绿灯替代。
+本地 `pnpm check`、`pnpm build`、带显式隔离 PG 的 `pnpm test` 通过：Vitest 4143 passed / 57 skipped，Node 65 passed；Rust 110 passed；打包 78 passed。6 项 Python 保管/并发故障及 launcher 实进程检查另外执行。skip 是未覆盖，详见 [validation.json](evidence/validation.json)。正式 Server/Character 入口和 PG 权限回归属于这批实际运行；未重新把 #334 Chromium 的旧验收标成新发行包验收。CI 的最终状态记录在 #336 描述及其 checks 页，须核对当前 HEAD；仓库中的本地证据快照不声称 CI 已通过，不拿 #335 的绿灯替代。
 
 CI 的 `check`、Linux persistence 和 Durable Conformance 运行本仓库的正式源码、迁移、Supervisor/Server 与共用打包工具；Durable Conformance 自建隔离 PG/依赖并测试既有 packaged profile。新增 R5 tar profile 使用同一 Node/Supervisor/Runtime/Web builder、另加受审查的 R5 资源和 PG stage，实际消费包内 SQL。CI 没有启动本报告的 Debian12 原生 VM，也没有构建并端到端验收这份 R5 tar；通过 CI 不能替代本文锁定 artifact 摘要的首装/恢复证据。
 

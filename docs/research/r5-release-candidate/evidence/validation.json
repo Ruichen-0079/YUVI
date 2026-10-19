@@ -44,6 +44,10 @@
   "realModel": "BLOCKED_NO_AUTHORIZED_ISOLATED_PROVIDER",
   "windows": "NOT_RUN",
   "macOS": "NOT_RUN",
-  "ci": "PENDING_NEW_DRAFT",
+  "ci": {
+    "status": "SEE_EXACT_HEAD_CHECKS_AND_PR_DESCRIPTION",
+    "url": "https://github.com/Ruichen-0079/YUVI/pull/336/checks",
+    "note": "Local validation snapshot; CI results recorded separately for the final pushed HEAD, not inherited from #335"
+  },
   "localFinalLogDirectory": "build/release-candidate-validation"
 }
