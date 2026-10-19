@@ -1,5 +1,6 @@
 # YUVI 独立研究
 
+- [项目思想史重建与研究纲领提取](project-history/README.md)：从全部 336 个 PR、提交与 Future Doc 各版本，按时间重建 YUVI 的思想与技术演化；区分研究命题、已验证工程、未验证假设与失败路线；提炼值得继承的研究基础与历史债务成因。
 - [全后端智能效用与系统性设计审计](backend-intelligence-value/README.md)：从真实装配区分实现、连接、可达、消费、效果与干扰；覆盖共享后端和不同入口，保留七组离线探针及原始输入。
 - [生产智能损失与能力可达性审计](production-intelligence-loss/README.md)：从真实入口追踪模型输入、控制、工具与输出；区分 main 和 QQ 分支，提供离线执行探针与最小真实模型对照。
 - [持续内部状态基础研究](persistent-internal-state/README.md)：从持续组织、经历发展与统一因果作用出发，研究理论机制、竞争解释与可证伪实验。未修改生产代码，不提供 API 或版本实施计划。
