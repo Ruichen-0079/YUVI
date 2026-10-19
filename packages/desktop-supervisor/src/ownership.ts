@@ -1,3 +1,4 @@
+import { managedLifecycleOwnsPid } from "./linux-lifecycle.js";
 import fs from "node:fs";
 import path from "node:path";
 import type {
@@ -324,6 +325,8 @@ export function testProcessOwnership(input: {
   }
 
   const processInfo = inspection.info;
+  if (!managedLifecycleOwnsPid(processId)) return makeResult({status:"foreign",owned:false,processId,
+    message:"process is outside the managed Linux lifecycle invocation",metadata,inspection});
   if (processInfo.processId !== processId) {
     return makeResult({
       status: "mismatch",

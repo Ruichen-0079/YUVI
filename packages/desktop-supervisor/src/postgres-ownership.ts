@@ -1,3 +1,4 @@
+import { managedLifecycleOwnsPid } from "./linux-lifecycle.js";
 /**
  * Single strong ownership predicate for private PostgreSQL.
  * Used by adopt, stop, readiness publication, and restart.
@@ -200,6 +201,7 @@ export function evaluatePostgresOwnership(
     return fail(`process is not inspectable (${input.processInspection.status})`);
   }
   const info = input.processInspection.info;
+  if (!managedLifecycleOwnsPid(info.processId)) return fail("PostgreSQL is outside the managed Linux lifecycle invocation");
   const argv = parsePostgresArgv(info.commandLine);
   const expectedName = expectedClusterName(marker.clusterId);
   const expectedExe = input.distribution.postgres;
@@ -268,7 +270,12 @@ export function defaultInvokePgCtlStop(input: {
   layout: PostgresLayout;
   distribution: PostgresDistribution;
 }): boolean {
-  const result = spawnSync(
+  const managed=process.platform==="linux" && Boolean(process.env["YUVI_LINUX_LIFECYCLE_CGROUP"]);
+  const result = managed ? spawnSync(
+    path.resolve(input.distribution.postgres,"../../../desktop/yuvi-desktop"),
+    ["--stop-private-postgres",String(readPostmasterPid(input.layout.data))],
+    {encoding:"utf8",timeout:15_000,windowsHide:true,shell:false}
+  ) : spawnSync(
     input.distribution.pgCtl,
     ["stop", "-D", input.layout.data, "-m", "fast", "-w", "-t", "10"],
     { encoding: "utf8", timeout: 20_000, windowsHide: true, shell: false }
@@ -304,11 +311,11 @@ export function stopPrivatePostgresIfOwned(
     };
   }
   const invoke = input.invokeStop ?? defaultInvokePgCtlStop;
-  invoke({ layout: input.layout, distribution: input.distribution });
+  const completed=invoke({ layout: input.layout, distribution: input.distribution });
   return {
-    invoked: true,
+    invoked: completed,
     owned: true,
-    reason: evidence.reason,
+    reason: completed ? evidence.reason : "Owned PostgreSQL stop did not complete; no numeric PID escalation allowed",
     pid: evidence.pid
   };
 }

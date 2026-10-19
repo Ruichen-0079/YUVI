@@ -9,7 +9,7 @@ test('sealed launcher refuses startup, foreign-boot and unsafe clearance; recove
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'yuvi-recovery-launcher-'));
  try {
   const pkg=path.join(dir,'package'),state=path.join(dir,'state');fs.mkdirSync(pkg);fs.mkdirSync(state,{mode:0o700});fs.mkdirSync(path.join(pkg,'desktop'));
-  for(const name of ['linux-launcher.mjs','portable-state.mjs','provision-cubism-core.mjs'])fs.copyFileSync(new URL(name,sources),path.join(pkg,name));
+  for(const name of ['linux-launcher.mjs','linux-lifecycle.mjs','portable-state.mjs','provision-cubism-core.mjs'])fs.copyFileSync(new URL(name,sources),path.join(pkg,name));
   fs.writeFileSync(path.join(pkg,'desktop/yuvi-desktop'),'Unused; no production process can start in this fixture');
   fs.writeFileSync(path.join(pkg,'install-manifest.json'),JSON.stringify({schemaVersion:1,kind:'yuvi-linux-daily-packaged',platform:'linux-x64',version:'0.1.2',checkoutSha:'a'.repeat(40),profile:'r5'}));
   const gate=path.join(state,'recovery-required.json');fs.writeFileSync(gate,JSON.stringify({schema:'yuvi.cold-recovery-gate.v1',backupId:'test-point',checkoutSha:'a'.repeat(40)}));

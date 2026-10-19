@@ -1019,11 +1019,17 @@ export class DesktopSupervisor {
     const ops = [...this.services.values()].map((s) => s.op).filter(Boolean);
     await Promise.race([Promise.allSettled(ops), sleep(1_500)]);
 
-    const stops = [...this.services.values()]
-      // Always try to stop anything we tracked — Windows does not kill children with parent.
-      .filter((svc) => svc.pid || svc.child || svc.ownership === "owned")
-      .map((svc) => this.stopOwned(svc));
-    const results = await Promise.allSettled(stops);
+    const tracked = [...this.services.values()]
+      .filter((svc) => svc.pid || svc.child || svc.ownership === "owned");
+    const results: PromiseSettledResult<void>[] = [];
+    if (process.env["YUVI_LINUX_LIFECYCLE_CGROUP"]) {
+      // Stop the Writer before its database. OS cgroup teardown is the bounded
+      // backstop if this Supervisor itself is killed during the drain.
+      tracked.sort((a,b) => (a.spec.id==="runtime"?-1:a.spec.id==="postgres"?1:0) - (b.spec.id==="runtime"?-1:b.spec.id==="postgres"?1:0));
+      for (const svc of tracked) results.push(...await Promise.allSettled([this.stopOwned(svc)]));
+    } else {
+      results.push(...await Promise.allSettled(tracked.map((svc) => this.stopOwned(svc))));
+    }
     const failure = results.find(
       (result): result is PromiseRejectedResult => result.status === "rejected"
     );
@@ -1051,6 +1057,25 @@ export class DesktopSupervisor {
         svc.generation += 1;
         return;
       }
+    }
+    if (process.env["YUVI_LINUX_LIFECYCLE_CGROUP"]) {
+      // PG was stopped using a pinned pidfd. Other services retain their live
+      // ChildProcess handle; never escalate via a stale numeric PID/tree.
+      const child=svc.child;
+      if (svc.spec.id!=="postgres" && child && child.exitCode==null && child.signalCode==null) {
+        child.kill("SIGTERM");
+        for (let i=0;i<50 && child.exitCode==null && child.signalCode==null;i++) await sleep(100);
+        if (child.exitCode==null && child.signalCode==null) child.kill("SIGKILL");
+        for (let i=0;i<20 && child.exitCode==null && child.signalCode==null;i++) await sleep(100);
+        if (child.exitCode==null && child.signalCode==null) throw Error("Managed child stop timed out; unit shutdown required");
+      } else if (svc.spec.id!=="postgres" && !child && svc.pid && isProcessAlive(svc.pid)) {
+        throw Error("Managed service lacks a live child handle; unit shutdown required, no PID signal sent");
+      }
+      svc.generation+=1;
+      const metadata=readProcessMetadata(svc.spec.metadataFile);
+      if (metadata?.instanceId===this.config.instanceId && metadata.ownershipToken===this.config.ownershipToken) removeProcessMetadataIfMatches(svc.spec.metadataFile,metadata);
+      svc.child=null;svc.pid=null;svc.startedAt=null;svc.ownership="none";
+      return;
     }
     // Invalidate callbacks from the generation being stopped before sending
     // any signal. A delayed exit/close event must not clear a replacement.

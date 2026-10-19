@@ -256,6 +256,7 @@ export async function prepareLinuxDailyPackage() {
     path.join(REPO_ROOT, "scripts/desktop-package/linux-launcher.mjs"),
     path.join(out, "launcher.mjs")
   );
+  fs.copyFileSync(path.join(REPO_ROOT,"scripts/desktop-package/linux-lifecycle.mjs"),path.join(out,"linux-lifecycle.mjs"));
   fs.copyFileSync(
     path.join(REPO_ROOT, "scripts/desktop-package/portable-state.mjs"),
     path.join(out, "portable-state.mjs")

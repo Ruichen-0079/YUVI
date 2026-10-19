@@ -5,7 +5,7 @@ test "$(id -u)" = 0 || { echo 'Run through the system package administrator.' >&
 . /etc/os-release
 test "$ID:$VERSION_ID:$(uname -m)" = debian:12:x86_64 || { echo 'Only Debian 12 x86_64 is validated.' >&2; exit 1; }
 apt-get update
-deps=(ca-certificates libwebkit2gtk-4.1-0 libayatana-appindicator3-1 librsvg2-2
+deps=(systemd dbus-user-session libpam-systemd ca-certificates libwebkit2gtk-4.1-0 libayatana-appindicator3-1 librsvg2-2
   libssl3 libsecret-1-0 gnome-keyring dbus-x11 libasound2 libxdo3 fonts-dejavu-core)
 if [ "${1:-}" = --test-tools ]; then
   deps+=(xvfb xauth xdotool openbox webkit2gtk-driver python3 libsecret-tools scrot)
