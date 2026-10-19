@@ -93,6 +93,11 @@ try {
     const supervisor = spawn(node, [path.join(root, 'supervisor', 'yuvi-desktop-supervisor.cjs'), '--mode', 'packaged', '--resource-root', root, '--state-root', dirs.data, '--runtime-manifest', path.join(root, 'runtime', 'runtime-manifest.json')], { cwd: state, env, stdio: 'inherit' });
     expectedSupervisorPid = supervisor.pid;
     const desktopEnv = { ...env, YUVI_DESKTOP_SUPERVISOR_BINDING: 'attach' };
+    // Opt-in native WebDriver/renderer settings affect only the desktop process.
+    // They grant no identity or control-plane permission; consent remains native.
+    for (const key of ['TAURI_WEBVIEW_AUTOMATION', 'WEBKIT_DISABLE_DMABUF_RENDERER', 'LIBGL_ALWAYS_SOFTWARE']) {
+      if (process.env[key]) desktopEnv[key] = process.env[key];
+    }
     if (!process.env.GDK_BACKEND && guiSessionEnv.WAYLAND_DISPLAY && guiSessionEnv.DISPLAY) {
       desktopEnv.GDK_BACKEND = 'x11';
     } else if (process.env.GDK_BACKEND) {

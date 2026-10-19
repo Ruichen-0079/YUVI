@@ -8,7 +8,7 @@ apt-get update
 deps=(ca-certificates libwebkit2gtk-4.1-0 libayatana-appindicator3-1 librsvg2-2
   libssl3 libsecret-1-0 gnome-keyring dbus-x11 libasound2 libxdo3 fonts-dejavu-core)
 if [ "${1:-}" = --test-tools ]; then
-  deps+=(xvfb xauth xdotool openbox webkit2gtk-driver python3)
+  deps+=(xvfb xauth xdotool openbox webkit2gtk-driver python3 libsecret-tools)
 elif [ "$#" -ne 0 ]; then
   echo 'Usage: install-linux-r5-dependencies.sh [--test-tools]' >&2; exit 2
 fi
