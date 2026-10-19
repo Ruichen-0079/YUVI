@@ -18,6 +18,7 @@ pub use secrets::{
     SECRET_MEMORY_LLM_API_KEY, SECRET_OPENAI_COMPATIBLE_API_KEY,
 };
 pub use service::ConfigService;
+pub(crate) use schema::MemoryBackend;
 
 use crate::desktop_surface::DesktopSurfaceManager;
 use std::sync::Arc;

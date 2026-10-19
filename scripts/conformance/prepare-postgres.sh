@@ -22,4 +22,16 @@ make -j2
 make install
 make -C contrib/pgcrypto -j2 install
 make -C contrib/pg_trgm -j2 install
-make -C "$task_build_dir/pgvector-0.8.6" -j2 PG_CONFIG="$YUVI_LINUX_POSTGRES_HOME/bin/pg_config" install
+make -C "$task_build_dir/pgvector-0.8.6" -j2 OPTFLAGS=-O2 PG_CONFIG="$YUVI_LINUX_POSTGRES_HOME/bin/pg_config" install
+# The PostgreSQL prefix is a build location, never a runtime dependency.
+# In particular initdb/psql load libpq, which must travel with the distribution.
+task_patchelf=${YUVI_PATCHELF:-patchelf}
+for task_tool in "$YUVI_LINUX_POSTGRES_HOME"/bin/*; do
+  "$task_patchelf" --set-rpath '$ORIGIN/../lib' "$task_tool"
+done
+while IFS= read -r -d '' task_library; do
+  "$task_patchelf" --set-rpath '$ORIGIN' "$task_library"
+done < <(find "$YUVI_LINUX_POSTGRES_HOME/lib" -type f -name '*.so*' -print0)
+mkdir -p "$YUVI_LINUX_POSTGRES_HOME/share/licenses"
+cp "$task_build_dir/postgresql-16.15/COPYRIGHT" "$YUVI_LINUX_POSTGRES_HOME/share/licenses/PostgreSQL.COPYRIGHT"
+cp "$task_build_dir/pgvector-0.8.6/LICENSE" "$YUVI_LINUX_POSTGRES_HOME/share/licenses/pgvector.LICENSE"

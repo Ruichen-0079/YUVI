@@ -1,0 +1,104 @@
+[
+  {
+    "environment": "VM1",
+    "issue": "network",
+    "observed": "First cloud guest had no explicit DHCP and e1000 network; no application test",
+    "resolution": "Added DHCP seed and virtio NIC"
+  },
+  {
+    "environment": "packaging",
+    "issue": "PG library linkage",
+    "observed": "initdb could not load libpq from an absolute build prefix",
+    "resolution": "Relocatable ELF RUNPATH; built against Debian12"
+  },
+  {
+    "environment": "packaging",
+    "issue": "PG resource links",
+    "observed": "Archive audit found .so symlinks escaping to builder paths",
+    "resolution": "Bounded dereferencing copy; escaping paths/cycles rejected"
+  },
+  {
+    "environment": "VM2",
+    "issue": "driver handshake",
+    "observed": "Packaged launcher omitted the opt-in loopback Inspector handshake",
+    "resolution": "Forwarded only explicit native WebDriver loopback settings"
+  },
+  {
+    "environment": "VM3",
+    "issue": "empty companion",
+    "observed": "Unconfigured companion overlay obscured first-run controls",
+    "resolution": "R5 text profile opens only the main window"
+  },
+  {
+    "environment": "VM3",
+    "issue": "WebDriver screenshot",
+    "observed": "Native WebView screenshot backend returned unknown error",
+    "resolution": "Use OS scrot of the same actual Tauri window; DOM and native dialogs remain real"
+  },
+  {
+    "environment": "VM3",
+    "issue": "test readiness",
+    "observed": "A hint contained the enable-button text; later creation was attempted before Runtime ready",
+    "resolution": "Wait for actual native service state"
+  },
+  {
+    "environment": "VM3",
+    "issue": "role",
+    "observed": "Worker semantic job completed but PG rejected INSERT into memory_authority_current view",
+    "resolution": "Explicit active-projection write grant and startup gate; no history-write relaxation"
+  },
+  {
+    "environment": "VM3",
+    "issue": "Persona recovery",
+    "observed": "Person-only ProductStore with no primary dropped configured Persona at restart",
+    "resolution": "Preserve trusted configured Persona without inferring a subject identity"
+  },
+  {
+    "environment": "VM4",
+    "issue": "I/O failure",
+    "observed": "After reboot vda WRITE I/O error aborted ext4 journal; private Host returned 503",
+    "resolution": "Preserved failed VM; reran from empty VM on host ext4; no automatic repair/overwrite. FUSE backing correlation is not a proven root cause"
+  },
+  {
+    "environment": "VM5",
+    "issue": "Provider restart",
+    "observed": "Empty Provider configuration created by Person enrollment masked native routing after reboot",
+    "resolution": "Explicit inherited-configuration marker; no secret copying; explicit Product configuration takes ownership"
+  },
+  {
+    "environment": "regression",
+    "issue": "shared database",
+    "observed": "Legacy shadow migration test saw SOURCE_CHANGED during full DATABASE_URL run",
+    "resolution": "Moved that test into a unique schema; production source-change rejection retained"
+  },
+  {
+    "environment": "VM6",
+    "issue": "fault setup",
+    "observed": "Conflict socket initially hit TIME_WAIT; unavailable-keyring env initially reached Python but not driver",
+    "resolution": "SO_REUSEADDR for the fault socket; apply invalid bus before driver spawn"
+  },
+  {
+    "environment": "VM6",
+    "issue": "test selector",
+    "observed": "Crash probe assumed textarea was in a form",
+    "resolution": "Use the normal chat Send aria selector"
+  },
+  {
+    "environment": "restore1",
+    "issue": "system keyring",
+    "observed": "Restored encrypted login keyring requested OS password",
+    "resolution": "Entered the original public synthetic password in the actual OS unlock dialog; retained password requirement"
+  },
+  {
+    "environment": "restore1",
+    "issue": "Supervisor SIGKILL orphan lifecycle",
+    "observed": "Owned Runtime and PG survived; packaged restart refused occupied port 16121",
+    "resolution": "BLOCKED_AUTOMATIC_RESTART. Preserved evidence; manually stopped only verified owned lab processes, then normal native reopen passed. No automatic recovery claim"
+  },
+  {
+    "environment": "restore1",
+    "issue": "ENOSPC setup assertion",
+    "observed": "First new 160MiB ext4 volume hit ENOSPC on large writes while f_bavail was nonzero; failed before launching application",
+    "resolution": "Preserved first image. New second volume fills at block granularity; real packaged launcher reports ENOSPC and exit1, original cluster unchanged"
+  }
+]

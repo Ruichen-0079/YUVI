@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Actual packaged major-mismatch refuses private access and never overwrites or starts the cluster"
+  ],
+  "seconds": 5.8235437390000016
+}

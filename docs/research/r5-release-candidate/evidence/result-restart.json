@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "mode": "restart",
+  "checks": [
+    "Existing Person and corrected R5 memory recover without re-creation; new native chat recalls the fact",
+    "Same actual native window renders Authority current knowledge",
+    "Native history retains the superseded fact and correction",
+    "Private PG application role is restricted; durable SQL and owner identity inventory captured"
+  ],
+  "personId": "5c9990e2-9722-4018-ac4f-e8e3e9afd812",
+  "personaId": "alice",
+  "scope": "yuvi:v1:user:5c9990e2-9722-4018-ac4f-e8e3e9afd812:character:alice",
+  "seconds": 6.215456975000002
+}

@@ -1,0 +1,53 @@
+{
+  "productionArtifactSha": "e7428c2cd5640b3bd0430e9d1b146e5468a86423",
+  "check": "PASS",
+  "build": "PASS",
+  "vitest": {
+    "passed": 4143,
+    "skipped": 57,
+    "firstRunLogWasEphemeral": "/tmp/yuvi-r5-full-tests-provider.log"
+  },
+  "nodeTests": {
+    "passed": 65,
+    "failed": 0
+  },
+  "rust": {
+    "passed": 110,
+    "failed": 0
+  },
+  "packaging": {
+    "passed": 78,
+    "failed": 0
+  },
+  "recoveryCustody": {
+    "pythonCases": 6,
+    "launcherProcessCases": 1,
+    "status": "PASS"
+  },
+  "actualNative": {
+    "cleanInstall": "PASS",
+    "systemReboot": "PASS",
+    "pgPortConflict": "PASS",
+    "pgMajorMismatch": "PASS",
+    "secretServiceUnavailable": "PASS",
+    "providerAcceptedThenRuntimeSIGKILL": "PASS",
+    "coldSeal": "PASS",
+    "differentVMRestore": "PASS",
+    "revokedHost401": "PASS",
+    "newConversationR5Context": "PASS",
+    "pgSIGKILLThenWALAndNativeReopen": "PASS",
+    "supervisorSIGKILLAutomaticReopen": "BLOCKED_ORPHANS_PORT_OCCUPIED",
+    "supervisorManualOwnedCleanupThenNativeReopen": "PASS",
+    "boundedFullVolumeStartup": "PASS",
+    "originalNativeReopenAfterFullVolume": "PASS"
+  },
+  "realModel": "BLOCKED_NO_AUTHORIZED_ISOLATED_PROVIDER",
+  "windows": "NOT_RUN",
+  "macOS": "NOT_RUN",
+  "ci": {
+    "status": "SEE_EXACT_HEAD_CHECKS_AND_PR_DESCRIPTION",
+    "url": "https://github.com/Ruichen-0079/YUVI/pull/336/checks",
+    "note": "Local validation snapshot; CI results recorded separately for the final pushed HEAD, not inherited from #335"
+  },
+  "localFinalLogDirectory": "build/release-candidate-validation"
+}

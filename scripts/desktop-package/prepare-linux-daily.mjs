@@ -59,7 +59,7 @@ async function ensureLinuxNodeArchive() {
   fs.renameSync(tmp, dest);
   return dest;
 }
-async function prepareLinuxNode(runtimeDir) {
+export async function prepareLinuxNode(runtimeDir) {
   const archive = await ensureLinuxNodeArchive();
   const expected =
     process.env.YUVI_NODE_SHA256?.trim().toLowerCase() || (await fetchSha(NODE_ARCHIVE));

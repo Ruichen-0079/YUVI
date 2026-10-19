@@ -20,7 +20,9 @@ import { registerMemoryOperationRoutes } from "./memory-operations.js";
 import { registerMemoryKnowledgeRoutes } from "./memory-knowledge.js";
 const db = process.env["YUVI_MEMORY_R5_TEST_DATABASE_URL"];
 describe.skipIf(!db)("R5 product API actual PostgreSQL routes", () => {
-  const pool = createPostgresPool(db!);
+  const schema = "r5_api_" + randomUUID().replaceAll("-", "");
+  const admin = createPostgresPool(db!);
+  const pool = createPostgresPool(db!, { options: `-c search_path=${schema},public` });
   const provider = new PostgresMemoryProvider(new PostgresMemoryAuthority(pool));
   const person = "r5-api-" + randomUUID();
   const scope = buildMemoryScope(person, "character-instance:r5-api");
@@ -37,6 +39,7 @@ describe.skipIf(!db)("R5 product API actual PostgreSQL routes", () => {
   const token = "r5-synthetic-api-token";
   let recordId: string;
   beforeAll(async () => {
+    await admin.query(`create schema ${schema}`);
     await applySqlMigrations(pool, await readSqlMigrations());
     await importLegacyMemoryBatch(provider.authority, {
       migrationId: randomUUID(),
@@ -97,6 +100,8 @@ describe.skipIf(!db)("R5 product API actual PostgreSQL routes", () => {
   afterAll(async () => {
     await app.close();
     await pool.end();
+    await admin.query(`drop schema ${schema} cascade`);
+    await admin.end();
   });
   const query = (op: string, s = scope, extra = "") =>
     `/memory/v1/${op}?scope=${encodeURIComponent(s)}${extra}`;

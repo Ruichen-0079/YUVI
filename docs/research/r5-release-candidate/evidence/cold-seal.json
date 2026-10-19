@@ -1,0 +1,675 @@
+{
+  "schema": "yuvi.cold-seal.v1",
+  "backupId": "7fe391e7-800f-4ddf-8a4d-4e558facc18f",
+  "checkoutSha": "e7428c2cd5640b3bd0430e9d1b146e5468a86423",
+  "createdAt": "2026-10-19T07:15:17.051Z",
+  "databaseState": "shut down",
+  "schemaCount": 45,
+  "activeHostGrants": 0,
+  "nativeOwnerDigest": "0f3cc6a75bf6a8a6a623653fc3fed19e7e7400a94da8c9d2de4913634fa21ba5",
+  "snapshot": {
+    "resourceSample": {
+      "processes": [
+        {
+          "comm": "WebKitWebDriver",
+          "rssKiB": 19140,
+          "lifetimeCpuPercent": 0.1
+        },
+        {
+          "comm": "MainThread",
+          "rssKiB": 66848,
+          "lifetimeCpuPercent": 0.9
+        },
+        {
+          "comm": "MainThread",
+          "rssKiB": 91972,
+          "lifetimeCpuPercent": 3.3
+        },
+        {
+          "comm": "yuvi-desktop",
+          "rssKiB": 180112,
+          "lifetimeCpuPercent": 5.8
+        },
+        {
+          "comm": "MainThread",
+          "rssKiB": 60812,
+          "lifetimeCpuPercent": 0.6
+        },
+        {
+          "comm": "WebKitNetworkPr",
+          "rssKiB": 68848,
+          "lifetimeCpuPercent": 0.8
+        },
+        {
+          "comm": "WebKitWebProces",
+          "rssKiB": 247332,
+          "lifetimeCpuPercent": 6.8
+        },
+        {
+          "comm": "postgres",
+          "rssKiB": 21668,
+          "lifetimeCpuPercent": 0.0
+        },
+        {
+          "comm": "postgres",
+          "rssKiB": 5464,
+          "lifetimeCpuPercent": 0.0
+        },
+        {
+          "comm": "postgres",
+          "rssKiB": 5368,
+          "lifetimeCpuPercent": 0.0
+        },
+        {
+          "comm": "postgres",
+          "rssKiB": 9804,
+          "lifetimeCpuPercent": 0.0
+        },
+        {
+          "comm": "postgres",
+          "rssKiB": 8344,
+          "lifetimeCpuPercent": 0.0
+        },
+        {
+          "comm": "postgres",
+          "rssKiB": 6416,
+          "lifetimeCpuPercent": 0.0
+        },
+        {
+          "comm": "MainThread",
+          "rssKiB": 114184,
+          "lifetimeCpuPercent": 7.2
+        },
+        {
+          "comm": "postgres",
+          "rssKiB": 16996,
+          "lifetimeCpuPercent": 0.0
+        },
+        {
+          "comm": "postgres",
+          "rssKiB": 17732,
+          "lifetimeCpuPercent": 0.0
+        },
+        {
+          "comm": "postgres",
+          "rssKiB": 18564,
+          "lifetimeCpuPercent": 0.0
+        },
+        {
+          "comm": "postgres",
+          "rssKiB": 20228,
+          "lifetimeCpuPercent": 0.0
+        },
+        {
+          "comm": "postgres",
+          "rssKiB": 19908,
+          "lifetimeCpuPercent": 0.2
+        }
+      ],
+      "rssSumIncludesSharedPages": true,
+      "packageKiB": 201984,
+      "stateKiB": 68700
+    },
+    "completedIngestion": {
+      "finalized-turn:502c21b0-4c2d-4e51-98d6-b12939eca937": {
+        "status": "skipped",
+        "attempt_count": 0,
+        "source_digest": "99384da67d7969d13fc5eebd3b2ec97a8bc20bfebfdc41bd3e59abc68849ba8d",
+        "finalized_turn_id": "finalized-turn:502c21b0-4c2d-4e51-98d6-b12939eca937",
+        "complete_event_count": 0,
+        "unchanged_event_count": 0
+      },
+      "accepted-user:94c006e4-07e5-4d97-bfa7-dcc0f51a0d1a": {
+        "status": "complete",
+        "attempt_count": 1,
+        "source_digest": "a334eceff19128717bb3c1f980c05aad40a2b464c5befd15e06442b2b334dbd2",
+        "finalized_turn_id": "accepted-user:94c006e4-07e5-4d97-bfa7-dcc0f51a0d1a",
+        "complete_event_count": 1,
+        "unchanged_event_count": 0
+      },
+      "finalized-turn:97ab3574-53e0-409d-b442-ade54f15d4b0": {
+        "status": "skipped",
+        "attempt_count": 0,
+        "source_digest": "9249e6218401116eec76bed5dc9d177de14e47aec65aa36d06a52eab26425625",
+        "finalized_turn_id": "finalized-turn:97ab3574-53e0-409d-b442-ade54f15d4b0",
+        "complete_event_count": 0,
+        "unchanged_event_count": 0
+      },
+      "accepted-user:8e6fe946-c02a-4357-ae4a-7a83a52d3e10": {
+        "status": "skipped",
+        "attempt_count": 0,
+        "source_digest": "8e9a19396c8ee890aaccf70fea41345c14c4e137571b20b1ad8fd4513afb69ff",
+        "finalized_turn_id": "accepted-user:8e6fe946-c02a-4357-ae4a-7a83a52d3e10",
+        "complete_event_count": 0,
+        "unchanged_event_count": 0
+      },
+      "finalized-turn:4dc3bfb8-c0c2-48ea-8c67-f765b3661c9b": {
+        "status": "skipped",
+        "attempt_count": 0,
+        "source_digest": "e304775a49341b33a33df328ba2970b7c9c05b9b85f50ddc3b23e1d1c0927109",
+        "finalized_turn_id": "finalized-turn:4dc3bfb8-c0c2-48ea-8c67-f765b3661c9b",
+        "complete_event_count": 0,
+        "unchanged_event_count": 0
+      },
+      "accepted-user:40148df8-06e0-4332-8de7-9eabd310cd9c": {
+        "status": "complete",
+        "attempt_count": 1,
+        "source_digest": "721d078c12333d7541a9e0f3ff3722d9f4882fd5889395b8ab4e63c0d616118d",
+        "finalized_turn_id": "accepted-user:40148df8-06e0-4332-8de7-9eabd310cd9c",
+        "complete_event_count": 1,
+        "unchanged_event_count": 0
+      },
+      "accepted-user:b951eb19-e988-4d6c-b94b-bd7605bb581a": {
+        "status": "skipped",
+        "attempt_count": 0,
+        "source_digest": "1524b737acdc1acd50a66c738182843a3118d321c978b7326751656c165069b6",
+        "finalized_turn_id": "accepted-user:b951eb19-e988-4d6c-b94b-bd7605bb581a",
+        "complete_event_count": 0,
+        "unchanged_event_count": 0
+      },
+      "finalized-turn:23ff3c10-848b-4f8e-abfd-1842f40c7250": {
+        "status": "skipped",
+        "attempt_count": 0,
+        "source_digest": "1c1638cbd2faa745669cea6185e04f9e362f2eb521a819dc79637841cdfcaad0",
+        "finalized_turn_id": "finalized-turn:23ff3c10-848b-4f8e-abfd-1842f40c7250",
+        "complete_event_count": 0,
+        "unchanged_event_count": 0
+      },
+      "accepted-user:4aa28e75-7279-44b1-8234-53723d219615": {
+        "status": "skipped",
+        "attempt_count": 0,
+        "source_digest": "1e834422ae031498398aae0105d11f7485b1c38f9b901dfaaba3df84ba9e83e9",
+        "finalized_turn_id": "accepted-user:4aa28e75-7279-44b1-8234-53723d219615",
+        "complete_event_count": 0,
+        "unchanged_event_count": 0
+      },
+      "finalized-turn:b20db479-d5c8-4e58-8514-96822ee626b6": {
+        "status": "skipped",
+        "attempt_count": 0,
+        "source_digest": "ac7d8aec5728d4992e974a9754a9071b7020efe8a1aa5869303ac5989d568375",
+        "finalized_turn_id": "finalized-turn:b20db479-d5c8-4e58-8514-96822ee626b6",
+        "complete_event_count": 0,
+        "unchanged_event_count": 0
+      },
+      "accepted-user:837a247d-db3e-479e-a5be-5fa68d64378a": {
+        "status": "skipped",
+        "attempt_count": 0,
+        "source_digest": "07c925e5d8e98dcad2ace5e7d40ef3dee63d776ff398d909fda579d4af462f43",
+        "finalized_turn_id": "accepted-user:837a247d-db3e-479e-a5be-5fa68d64378a",
+        "complete_event_count": 0,
+        "unchanged_event_count": 0
+      }
+    },
+    "tables": [
+      {
+        "table": "character_runtime_owner",
+        "count": 1,
+        "digest": "f181ef698b069cb3a5a2b9ec083e16c5"
+      },
+      {
+        "table": "context_use_exposures",
+        "count": 18,
+        "digest": "66d0d2ef1cddb47466253375dc4d0c45"
+      },
+      {
+        "table": "context_use_manifests",
+        "count": 12,
+        "digest": "c197e701996abe53c4fe6f546f76405c"
+      },
+      {
+        "table": "conversation_messages",
+        "count": 11,
+        "digest": "a5b745d5e28ff42a903e1bcdcedbff53"
+      },
+      {
+        "table": "conversation_reply_components",
+        "count": 5,
+        "digest": "4fbe3db23c650f4f81c923a68a653b95"
+      },
+      {
+        "table": "conversation_reply_seals",
+        "count": 5,
+        "digest": "7bfd687f577d231044344e57bc1e30f9"
+      },
+      {
+        "table": "conversation_sessions",
+        "count": 1,
+        "digest": "5dc9a5a7553c78afddca00d886d4588f"
+      },
+      {
+        "table": "dream_jobs",
+        "count": 5,
+        "digest": "13267640da4f8b640cc21045e19463be"
+      },
+      {
+        "table": "effect_attempts",
+        "count": 29,
+        "digest": "1b6ff163164a74a1a4bc93aaf4ea7b4a"
+      },
+      {
+        "table": "effect_command_payloads",
+        "count": 1,
+        "digest": "f671fc1b4d632673c9468d6d7415c8e7"
+      },
+      {
+        "table": "effect_input_exposures",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "effect_intents",
+        "count": 29,
+        "digest": "ed4f1ce7adce11070338af479d475a27"
+      },
+      {
+        "table": "effect_observations",
+        "count": 46,
+        "digest": "231d275e86a5519ad90b9accfe6c5ef9"
+      },
+      {
+        "table": "entities",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "finalized_ingestion_events",
+        "count": 2,
+        "digest": "70d7c08d708e7bc74c80ed5489e2cf47"
+      },
+      {
+        "table": "finalized_ingestion_turns",
+        "count": 11,
+        "digest": "dff260bb25260bf3f51de44b60cccaf9"
+      },
+      {
+        "table": "journal_event_parents",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "journal_events",
+        "count": 12,
+        "digest": "9f08ddadf3eab8ce30236066d6fe6c85"
+      },
+      {
+        "table": "journal_namespaces",
+        "count": 1,
+        "digest": "14d338bcf301776dcba430d1d031df06"
+      },
+      {
+        "table": "journal_payloads",
+        "count": 7,
+        "digest": "f1652b85a02bea78f3de7aea9d159272"
+      },
+      {
+        "table": "journal_source_dedup",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "memories",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "memory_authority_admissions",
+        "count": 2,
+        "digest": "0e8df46313b68992e74809c7a30ec493"
+      },
+      {
+        "table": "memory_authority_audit_issues",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "memory_authority_audits",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "memory_authority_index_jobs",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "memory_authority_migration_batches",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "memory_authority_migrations",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "memory_authority_projection_rows",
+        "count": 2,
+        "digest": "fed2cbf4a8903430f2d5fe4fd2f0a84e"
+      },
+      {
+        "table": "memory_authority_records",
+        "count": 2,
+        "digest": "61e7179435a717b007b7b94f2efd59f0"
+      },
+      {
+        "table": "memory_authority_relations",
+        "count": 1,
+        "digest": "c90085378f05f13aa2952800041bc5ec"
+      },
+      {
+        "table": "memory_authority_scopes",
+        "count": 1,
+        "digest": "dc1174bc9321e0b0d3705326cd481bb8"
+      },
+      {
+        "table": "memory_authority_vectors",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "memory_decision_reassessments",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "memory_evidence_admissions",
+        "count": 3,
+        "digest": "8038ce429aa1d230541eb02a115ff57a"
+      },
+      {
+        "table": "memory_host_grants",
+        "count": 1,
+        "digest": "2876377794c17d2edfd67a5725a48925"
+      },
+      {
+        "table": "memory_host_principals",
+        "count": 1,
+        "digest": "d070a4d8a13a4e3736557971041a4e67"
+      },
+      {
+        "table": "memory_host_sessions",
+        "count": 1,
+        "digest": "06e1a9a161728437f93c7080e70d71e2"
+      },
+      {
+        "table": "memory_legacy_workflow_actions",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "memory_legacy_workflow_items",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "memory_legacy_workflows",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "memory_lexical_generations",
+        "count": 1,
+        "digest": "d84c15398b84b98fea009782e670a30b"
+      },
+      {
+        "table": "memory_lexical_postings",
+        "count": 7,
+        "digest": "194079c69e3bc2295d29daef6006d9c0"
+      },
+      {
+        "table": "memory_operator_actions",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "memory_product_hosts",
+        "count": 1,
+        "digest": "7a0d7d0d9ca406610e7d3b97c38eadcc"
+      },
+      {
+        "table": "memory_product_pairings",
+        "count": 1,
+        "digest": "d5cb5674cf37636474233610faf29ac8"
+      },
+      {
+        "table": "memory_projection_deltas",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "memory_projection_rebuilds",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "memory_retrieval_contexts",
+        "count": 12,
+        "digest": "a5b7613861e60b066060fbd8ca7f5283"
+      },
+      {
+        "table": "memory_retrieval_runs",
+        "count": 6,
+        "digest": "8221c702f35ae77f72741b7b67e8fc28"
+      },
+      {
+        "table": "memory_semantic_jobs",
+        "count": 6,
+        "digest": "192fb514a6c88f236b00ab0e71fdf4c6"
+      },
+      {
+        "table": "native_control_workflow_children",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "native_control_workflows",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "p8_corrections",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "profile_current",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "profile_lifecycle",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "profile_snapshots",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "recent_episodes",
+        "count": 1,
+        "digest": "9a7ad7f12119da9069dde69f9d7b4036"
+      },
+      {
+        "table": "relations",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "reply_speech_plans",
+        "count": 5,
+        "digest": "ddbfcb8e98dc31c9cc0019ee13d75a34"
+      },
+      {
+        "table": "retained_observations",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "speech_audio_results",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "speech_segment_descriptors",
+        "count": 0,
+        "digest": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "table": "yuvi_schema_migrations",
+        "count": 45,
+        "digest": "095e8e0e583ddf5bcd8e1a5810cf7f70"
+      }
+    ],
+    "immutableRows": {
+      "memory_authority_records": {
+        "yuvi:v1:user:5c9990e2-9722-4018-ac4f-e8e3e9afd812:character:alice/pgm1_a3bae133200dadcb2825e59adfa15cef5a51404ae441656da584132c335af8a1": "7a17583a2b692b7c14b9ef2db12f96be",
+        "yuvi:v1:user:5c9990e2-9722-4018-ac4f-e8e3e9afd812:character:alice/pgm1_bb11a3dcffe6b10d7c38380d8448d2e55e9510bb4e362cf359bafdb16a91def8": "ba302926b7b63ab26700b85dcc807218"
+      },
+      "journal_events": {
+        "yuvi:default/jev1_Nj7xTHE0xh_UFH7Na2CDlIwAdgAi0Vkh": "2758dc00891460e4956ed6e780d23ef8",
+        "yuvi:default/jev1_GhKr97WhTd6ubSEjE8aZZLP4TF5LeQeR": "a9345f29821dd50541e6119ba43291e2",
+        "yuvi:default/jev1_bCVmqjBDQgTJfkFgSnyZpSowQcYZalcr": "2dac283e74cf487d76970bcc71220457",
+        "yuvi:default/jev1_vXbQkG6QHHXx3i5kATbfP7wV7Uyg_GUp": "04f2310189215b1218f478ef6a80d67c",
+        "yuvi:default/jev1_y39Rkxm1Bkm1vMhqIpKzel-0Ud8gFn_U": "cb4396035280d2fb46ca6b97eadb685e",
+        "yuvi:default/jev1_PSRxXg0aLP7OklwMk2u7uOEvdEjSphwn": "208f42447170aa4d66bb5ca11f79f092",
+        "yuvi:default/jev1_oUZRyB2JlRtIL5KDYDvtNjlYt69Xelx-": "a127345f55179a263e9577a90a5c15d3",
+        "yuvi:default/jev1_OHWrUTyF1KvCSuUOxwtHM6iVeH8arrOT": "7f22e66cbaf1ea8231845fcdc5dab4dd",
+        "yuvi:default/jev1_RU5UXvOh1sTublLDw6QyvAuZ46jJXXS4": "2696d934ae880a196c02e6a6907c469e",
+        "yuvi:default/jev1_37SYKGCGd3PGRzSGUfU4_e9lCiENPGJe": "92ef42a626a5a72892e3ff91e3dbdb21",
+        "yuvi:default/jev1_qcsioSM0PuhF-9MFUqU3bPluLZ2V8uKS": "6f819d6c250de29ed41a18216c56c4a3",
+        "yuvi:default/jev1_6Soctg1FKTU26cKuKRz_l7ryyFQRQkDM": "fd777d2805cd9748a06e7477201863bb"
+      },
+      "effect_observations": {
+        "1": "8aecc2aa45fcaaee01b4bea1fb29b1da",
+        "2": "bfdfc0adcfc3b7a18a0adaaf683c95f9",
+        "3": "c1f1d056d56633f676e40a2cf6dfeb2d",
+        "4": "75af0fa02ef79e7ec521831f95fc8d88",
+        "5": "c748023af8692ff2cbdc1beca26ea79d",
+        "6": "b3125ae56a62fec09c23d528281be81e",
+        "7": "bde257a54e56c0035a1e71cb9a2841fa",
+        "8": "70778423e80a62dda0c0a49064cddd3a",
+        "9": "603e98a71901013bbe70af3f90f9ccfb",
+        "10": "46a694d0e1ff1fe9748bf7a12aefcc65",
+        "11": "90d9d658b7d27a19e23df7f2fc78ac89",
+        "12": "5032f9633b16997658d0e3ed353cc19b",
+        "13": "1e204caa319346e0fd09496e6770f5a8",
+        "14": "1f40b89b0984ca6d5b8b78b59dbf183d",
+        "15": "1f8f62337b1879e2fc7f383b6a94e308",
+        "16": "c739e5bace628bc47e7283d5eded16a0",
+        "17": "7095d6b0b7713f6795f38f4aed1f604b",
+        "18": "011e7d4263a7f8f8648439a0c445fe78",
+        "19": "0a9704c9f1036f111c2baec60dabdca6",
+        "40": "d1b883ec022143ba0ab3067fe398d2a2",
+        "20": "32f8f4053f5d58b900bea008b755bed6",
+        "21": "1cff6e4eac0c9577a1aaad1c7afac548",
+        "22": "feafb3f7ab6b91ee1e3d1e909f72449a",
+        "23": "e814a944050760446d8d84570834c9f6",
+        "24": "d225333d15d898feac1e28b4bd8cde5c",
+        "25": "705b547c726f75d7869313b4b701adc4",
+        "26": "9cc7bd7899fb9370cc2614706e1faa1c",
+        "27": "3fe6c3f5c92b89d143fdb45a62ffedaa",
+        "28": "849ffe94b77b5a4363bc373a7aa3dede",
+        "29": "0def5052ca5fad100ad7fa7ec5f1e18d",
+        "30": "9a977196a616a949b0f3690dd2acb159",
+        "31": "7003da5a2f6aefee1731f25473b576a9",
+        "32": "fdf7e46994a60cb9edcd60dc9d0471ca",
+        "33": "e1719200b122c62c7e82732d5427a73a",
+        "34": "ced56b3ef219bd6974012f4d472e4ab9",
+        "35": "8081dcd630983d60be9c8f869b4e14e5",
+        "36": "f0147cd1c781bf1f7539eb945bf69ee9",
+        "37": "8f32292ae509b64f6d5204439a41793b",
+        "38": "717597961fcf0965d894767063e0a818",
+        "39": "a3cedef34b85c1730bc103d08e6645a6",
+        "41": "afeb872f1b1b94c3142954e4105776ab",
+        "43": "db6e191465ac88327a5c326685fa51bc",
+        "45": "e32386e07274f13889aae04ee817f4d1",
+        "42": "410e2bb0afecc50d977071f6d169b4e4",
+        "44": "e9f4d1df8b4021dd107545a620e0f2d9",
+        "46": "b579db439cb6e48f43abff3f4af8ad25"
+      }
+    },
+    "role": {
+      "current_user": "yuvi_runtime",
+      "rolsuper": false,
+      "rolcreaterole": false,
+      "rolcreatedb": false,
+      "rolbypassrls": false,
+      "schema_create": false,
+      "rewrite_history": false,
+      "truncate_history": false,
+      "projection_insert": true
+    },
+    "identity": {
+      "people": [
+        {
+          "id": "5c9990e2-9722-4018-ac4f-e8e3e9afd812",
+          "displayName": "RC Synthetic",
+          "personaId": "alice",
+          "notes": ""
+        }
+      ],
+      "nativeOwnerDigest": "0f3cc6a75bf6a8a6a623653fc3fed19e7e7400a94da8c9d2de4913634fa21ba5",
+      "ownerAssociations": {
+        "5c9990e2-9722-4018-ac4f-e8e3e9afd812": "0f3cc6a75bf6a8a6a623653fc3fed19e7e7400a94da8c9d2de4913634fa21ba5"
+      },
+      "personAuthorityRevisionById": {
+        "5c9990e2-9722-4018-ac4f-e8e3e9afd812": "12feb068-4fa4-4294-85f7-cc272885a67a"
+      },
+      "productCommandReceiptDigest": "efd4e92e968139b141aa77a333dd822b7d5c73cdbb682585aae378f7becd2b79"
+    },
+    "effectCertainties": [
+      {
+        "certainty": "APPLIED",
+        "count": 28
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": ".local/share/YUVI/portable/0.1.2/config/character-owner.json",
+      "bytes": 129,
+      "sha256": "35b28d003f1d2772f9c3d67fdc20eb44d97904e0eda59547f752ae675b1cf5e0"
+    },
+    {
+      "path": ".local/share/YUVI/portable/0.1.2/config/com.yuvi.companion/native-product/owner.json",
+      "bytes": 228,
+      "sha256": "27fcfc7f65a188e3fbe74644e6f083dafe66b7e8782f4dbfee02ad0e2ff583ec"
+    },
+    {
+      "path": ".local/share/YUVI/portable/0.1.2/config/com.yuvi.companion/settings.json",
+      "bytes": 1165,
+      "sha256": "bf5998b1379d2bf0e6feae8ae83dbe739bb8c08129fc68bdfe49bcefa35f8c46"
+    },
+    {
+      "path": ".local/share/YUVI/portable/0.1.2/config/proactive-policy.json",
+      "bytes": 86,
+      "sha256": "ea179530e786ed25dad5a6011508ee1dfc98ce8744b7c286d092d881d632248e"
+    },
+    {
+      "path": ".local/share/YUVI/portable/0.1.2/config/product-settings.json",
+      "bytes": 1989,
+      "sha256": "fb42957d0fb4e1931560eda5323e4f0cadc8e74fe8acd3d9be393488915ede79"
+    },
+    {
+      "path": ".local/share/keyrings/login.keyring",
+      "bytes": 1153,
+      "sha256": "f2d3888b944ff947047646bd519db238f7255221af08fffdd9d1ea222d518ede"
+    },
+    {
+      "path": ".local/share/keyrings/user.keystore",
+      "bytes": 207,
+      "sha256": "25988160acb8a397576010b3874432a95f2f000b489d9b50b9f2118d07bf5bff"
+    }
+  ],
+  "postgresMajor": 16,
+  "postgresVersion": "postgres (PostgreSQL) 16.15",
+  "recoveryScope": "Whole powered-off Debian VM, same OS/user/keyring unlock; source must remain offline",
+  "unverifiedPopulatedAssets": [
+    "expired/deleted Observation",
+    "legacy Mem0/Profile/Dream",
+    "P8 edits"
+  ],
+  "privacyReview": "No private real assets; source remains powered off. Any later deletion or external effect invalidates this recovery point."
+}

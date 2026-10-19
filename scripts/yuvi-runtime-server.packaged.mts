@@ -12,6 +12,7 @@ import { buildServer } from "../apps/server/src/server.ts";
 import { parseMemoryRepositoryEnv } from "../packages/memory/src/env.ts";
 import { readSqlMigrations, runPostgresMigrations } from "../packages/memory/src/migrations.ts";
 import { createProviderRegistryFromEnv } from "../packages/providers/src/index.ts";
+import { provisionPrivateRuntimeRole } from "../packages/memory/src/authority/private-runtime-role.ts";
 
 async function preparePackagedPostgres(): Promise<void> {
   const isPackaged =
@@ -49,6 +50,11 @@ async function preparePackagedPostgres(): Promise<void> {
     logger: console
   });
   console.info("[postgres] database schema is ready.");
+  if (process.env["YUVI_PRIVATE_POSTGRES_RUNTIME"] === "1") {
+    process.env["DATABASE_URL"] = await provisionPrivateRuntimeRole(databaseUrl);
+    delete process.env["YUVI_POSTGRES_PASSWORD"];
+    console.info("[postgres] restricted private Runtime role is ready.");
+  }
 }
 
 async function main(): Promise<void> {

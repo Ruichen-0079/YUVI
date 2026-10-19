@@ -23,6 +23,25 @@ function listFiles(dir, out = []) {
   return out;
 }
 
+// Dereference only in-distribution links. An archive must never retain a link
+// back to a build machine, or silently import a dependency from outside its root.
+function copyDistribution(source, destination, boundary, parents = new Set()) {
+  const real = fs.realpathSync(source);
+  if (real !== boundary && !real.startsWith(boundary + path.sep)) {
+    throw new Error("PostgreSQL distribution link escapes its root.");
+  }
+  const stat = fs.statSync(real);
+  if (stat.isDirectory()) {
+    if (parents.has(real)) throw new Error("PostgreSQL distribution link cycle.");
+    const next = new Set(parents).add(real);
+    ensureDir(destination);
+    for (const name of fs.readdirSync(real)) copyDistribution(path.join(real, name), path.join(destination, name), boundary, next);
+  } else if (stat.isFile()) {
+    fs.copyFileSync(real, destination);
+    fs.chmodSync(destination, stat.mode & 0o777);
+  } else throw new Error("Unsupported PostgreSQL distribution entry.");
+}
+
 function inspectMajor(file, spawnSyncImpl) {
   const result = spawnSyncImpl(file, ["--version"], {
     encoding: "utf8",
@@ -116,7 +135,7 @@ export function stageLinuxPostgresDistribution(options = {}) {
   const validated = validateLinuxPostgresDistribution(source, options);
   fs.rmSync(destination, { recursive: true, force: true });
   ensureDir(path.dirname(destination));
-  fs.cpSync(source, destination, { recursive: true, dereference: true, preserveTimestamps: true });
+  copyDistribution(source, destination, fs.realpathSync(source));
   const staged = validateLinuxPostgresDistribution(destination, options);
   fs.writeFileSync(
     path.join(destination, "yuvi-postgres-distribution.json"),

@@ -1,0 +1,16 @@
+{
+  "schema": "yuvi.cold-machine-backup.v1",
+  "backupId": "7fe391e7-800f-4ddf-8a4d-4e558facc18f",
+  "createdAt": "2026-10-19T07:16:24.053670+00:00",
+  "checkoutSha": "e7428c2cd5640b3bd0430e9d1b146e5468a86423",
+  "diskSha256": "2dc9662a52f9ccc15aa4a52ce5ed1a9c18cf0e9dfc3eb78bd711b7dd8260a521",
+  "seedSha256": "c8592c99542a46bba4e7c48c4cdd6350911cc76ffd3fb8c9d594d1c10cf6e86f",
+  "sealSha256": "01d432ed0c8262c6f4abfefffa89f200a785cad9f27dcf1d78c4b32bf28b03e1",
+  "releaseManifestSha256": "666b9e468633d079afda73e1c8ba66699a53f72cacf2d637bcc5e291c1bee8dc",
+  "recoveryBoundary": "Whole stopped VM filesystem including PG, ProductStore, native owner, encrypted system keyring and static assets; same OS/user/keyring password required.",
+  "limitations": [
+    "Not online/PITR or cross-OS account/keyring restore",
+    "No global historical-backup privacy erasure",
+    "Source resume or newer deletions/effects require external reconciliation; never restore an older database automatically"
+  ]
+}

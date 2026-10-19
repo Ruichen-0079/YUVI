@@ -44,7 +44,7 @@ jobs:
       - name: Provision isolated packaged prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libssl-dev bison flex
+          sudo apt-get install -y build-essential libssl-dev bison flex patchelf
           echo "YUVI_LINUX_POSTGRES_HOME=$RUNNER_TEMP/yuvi-postgresql-16" >> "$GITHUB_ENV"
           echo "YUVI_POSTGRES_HOME=$RUNNER_TEMP/yuvi-postgresql-16" >> "$GITHUB_ENV"
           echo "YUVI_LINUX_MEM0_PYTHON=$RUNNER_TEMP/yuvi-python/bin/python" >> "$GITHUB_ENV"

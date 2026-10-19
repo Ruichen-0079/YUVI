@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "verifiedOldRows": {
+    "memory_authority_records": 2,
+    "journal_events": 12,
+    "effect_observations": 46
+  },
+  "identityUnchanged": true,
+  "oldHostStatus": 401
+}

@@ -244,7 +244,11 @@ pub fn run() {
       // always-on-top and Subtitle overlay policy) resolve inside the surface
       // seam, as before.
       let main_window = DesktopSurfaceManager::ensure(&app.handle(), SurfaceId::Main)?;
-      DesktopSurfaceManager::ensure(&app.handle(), SurfaceId::Companion)?;
+      // The text-only R5 release does not distribute a licensed avatar/Core.
+      // Its empty always-on-top companion would obscure first-run consent.
+      if std::env::var("YUVI_PACKAGE_PROFILE").as_deref() != Ok("r5") {
+        DesktopSurfaceManager::ensure(&app.handle(), SurfaceId::Companion)?;
+      }
       main_window.set_focus()?;
       tray::build_tray(&app.handle())?;
 

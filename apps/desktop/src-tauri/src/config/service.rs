@@ -36,6 +36,11 @@ impl ConfigService {
         fs::create_dir_all(&config_dir).ok();
         let settings_path = config_dir.join("settings.json");
         let (mut settings, load_error) = load_or_default(&settings_path, &config_dir);
+        if !settings_path.exists() && std::env::var("YUVI_PACKAGE_PROFILE").as_deref() == Ok("r5") {
+            // The R5-only distribution has no legacy Mem0 sidecar. Keep first
+            // run inactive until the native activation ceremony explicitly opts in.
+            settings.memory.backend = super::schema::MemoryBackend::Legacy;
+        }
         if portable {
             // Release transport addresses are fixed by the Portable launcher.
             // Rebase old/default addresses without replacing Product preferences.

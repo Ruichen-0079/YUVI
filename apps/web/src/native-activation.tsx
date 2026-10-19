@@ -3,6 +3,7 @@ import { setDesktopRuntimeBinding } from "./desktop-runtime.js";
 import { NativeMemoryPermission } from "./native-product-permissions.js";
 import { ProductAuthorityMemory } from "./product-authority-memory.js";
 import { useEffect, useState, useRef, type ReactNode } from "react";
+import { fetchUserSettings, saveUserSettings, setUserSecret } from "./user-settings-client.js";
 import {
   nativeActivation,
   nativeIdentityChanged,
@@ -152,15 +153,20 @@ export function NativeActivation({ children }: { children: ReactNode }): JSX.Ele
         </button>
       ) : (
         <>
+          <NativeProviderSetup />
           {view.serviceUnavailable && (
             <>
-              <p role="status">本机身份服务尚未就绪。首次使用可以启用此桌面的本机记忆。</p>
+              <p role="status">{view.memoryConfigured
+                ? "已启用本机记忆，身份服务暂不可用。请检查本机服务状态；不会重新创建已有身份或覆盖数据。"
+                : "本机身份服务尚未就绪。首次使用可以启用此桌面的本机记忆。"}</p>
+              {view.memoryConfigured ? <button disabled={busy} onClick={() => void refresh().catch((e) => setError(String(e)))}>重新连接</button> : <>
               <button
                 disabled={busy || view.pending || view.revocationPending}
                 onClick={() => void act("enable")}
               >
                 启用本机记忆
               </button>
+              </>}
             </>
           )}
           {view.people.map((person) => (
@@ -211,4 +217,50 @@ export function NativeActivation({ children }: { children: ReactNode }): JSX.Ele
       )}
     </main>
   );
+}
+
+/** First install must be configurable before a private identity/Runtime exists. */
+function NativeProviderSetup(): JSX.Element {
+  const [baseUrl, setBaseUrl] = useState("");
+  const [chat, setChat] = useState("");
+  const [reasoning, setReasoning] = useState("");
+  const [key, setKey] = useState("");
+  const [configured, setConfigured] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  useEffect(() => {
+    let live = true;
+    void fetchUserSettings().then((view) => {
+      if (!live) return;
+      setBaseUrl(view.settings.openaiCompatible.baseUrl);
+      setChat(view.settings.chat.model);
+      setReasoning(view.settings.cognition.model);
+      setConfigured(view.secrets.openaiCompatibleApiKey);
+    }).catch((e) => { if (live) setMessage(String(e)); });
+    return () => { live = false; };
+  }, []);
+  async function save() {
+    setBusy(true);
+    setMessage("");
+    try {
+      await saveUserSettings({ openaiCompatible: { baseUrl }, chat: { provider: "openai-compatible", model: chat }, cognition: { provider: "openai-compatible", model: reasoning } });
+      if (key.trim()) {
+        await setUserSecret("models.openaiCompatibleApiKey", key);
+        setConfigured(true);
+        setKey("");
+      }
+      setMessage("服务设置已保存。可以继续启用本机记忆。");
+    } catch (e) { setMessage(String(e)); }
+    finally { setBusy(false); }
+  }
+  return <details className="native-provider-setup">
+    <summary>配置对话服务{configured ? "（密钥已保存）" : "（首次使用需要配置）"}</summary>
+    <p>填写你获准使用的服务。保存设置和密钥均需原生确认；已有密钥不会回显。</p>
+    <label>服务地址 <input aria-label="服务地址" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} /></label>
+    <label>对话模型 <input aria-label="对话模型" value={chat} onChange={(e) => setChat(e.target.value)} /></label>
+    <label>推理模型 <input aria-label="推理模型" value={reasoning} onChange={(e) => setReasoning(e.target.value)} /></label>
+    <label>服务密钥 <input aria-label="服务密钥" type="password" autoComplete="new-password" value={key} onChange={(e) => setKey(e.target.value)} /></label>
+    <button disabled={busy || !baseUrl.trim() || !chat.trim() || !reasoning.trim() || (!configured && !key.trim())} onClick={() => void save()}>保存对话服务</button>
+    {message && <p role="status">{message}</p>}
+  </details>;
 }

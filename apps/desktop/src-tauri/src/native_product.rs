@@ -424,7 +424,8 @@ pub async fn native_product_activation(
     Ok(people) => people,
     Err(_) if matches!(action.as_str(), "status" | "own") => {
       return Ok(
-        json!({"owned":true,"people":[],"person":null,"pending":vault.pending.is_some(),"revocationPending":vault.suspended,"serviceUnavailable":true}),
+        json!({"owned":true,"people":[],"person":null,"pending":vault.pending.is_some(),"revocationPending":vault.suspended,"serviceUnavailable":true,
+        "memoryConfigured":matches!(app.state::<crate::config::ConfigState>().service.current_settings()?.memory.backend, crate::config::MemoryBackend::Postgres)}),
       )
     }
     Err(error) => return Err(error),
