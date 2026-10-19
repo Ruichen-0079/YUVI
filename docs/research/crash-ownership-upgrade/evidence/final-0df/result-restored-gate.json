@@ -1,0 +1,6 @@
+{
+  "status": "PASS",
+  "diagnostic": "Warning: Permanently added '[127.0.0.1]:22298' (ED25519) to the list of known hosts.\n6c976664-3385-4095-8522-0a97ae47605d\nRECOVERY_REVIEW_REQUIRED: this state is sealed. Restore or source-resume requires the external recovery registry and deletion/execution audit; no services were started.\n",
+  "wrongBootReviewRefused": true,
+  "reviewStartsNoServices": true
+}

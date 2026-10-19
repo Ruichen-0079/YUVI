@@ -1,0 +1,24 @@
+{
+  "artifactInputSha": "0dfd1908a64beaff53f1ffcf789c23a875457814",
+  "artifactSha256": "2cca76c7cd9ba6a407c751f24e238670faa45a3075ec5d3753691e57ed6c1492",
+  "pnpmCheck": "PASS",
+  "pnpmBuild": "PASS",
+  "pnpmTest": {
+    "status": "PASS",
+    "vitestPassed": 4145,
+    "vitestSkipped": 57,
+    "nodePassed": 69
+  },
+  "rustReleaseDebian12": {
+    "passed": 112,
+    "failed": 0
+  },
+  "packaging": {
+    "passed": 78,
+    "failed": 0
+  },
+  "CI": "New final HEAD pending; previous b36 PR Check failed atomic lock race, retained and fixed",
+  "realModel": "BLOCKED_NO_AUTHORIZED_ISOLATED_PROVIDER",
+  "platform": "Debian12 Linux x86_64 only",
+  "logs": "build/crash-ownership-validation"
+}

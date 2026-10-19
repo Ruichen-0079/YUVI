@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "refused": true,
+  "diagnostic": "RECONCILIATION_REQUIRED",
+  "backupId": "50dcaa67-64cc-4e15-9aa6-5719ddd9dfff",
+  "registry": "RESTORE_ACTIVATED_RECONCILIATION_REQUIRED"
+}

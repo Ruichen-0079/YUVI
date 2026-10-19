@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Native logout revokes the final product Host before the cold backup",
+    "Owned services stopped, PG control state is shut down, next launch refuses the recovery gate"
+  ]
+}

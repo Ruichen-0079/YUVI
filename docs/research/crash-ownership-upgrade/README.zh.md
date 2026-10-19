@@ -23,11 +23,11 @@ Linux R5 文字 profile 现在由 **systemd 用户 transient service** 包含正
 
 ## 最终发行包与现场
 
-实际最终输入 `1052ac93841642e80bf371d34d949c4ae9d0714b`；tar `build/desktop/YUVI-R5-0.1.2-1052ac938416-linux-x64.tar.gz`，SHA256 `481dfd40a4b3c98666faf7e9e1727663b97e5a36a83d04a9917fe74b5f1d0bfd`。之后提交只补测试工具/证据/报告。此前 `d319b3eda1576b311d4dc98cfeb17827c73abe8d` 的原生实验为先导样本，保留在 evidence 根目录，**不替代最终包实验**。
+实际最终输入 `0dfd1908a64beaff53f1ffcf789c23a875457814`；tar `build/desktop/YUVI-R5-0.1.2-0dfd1908a64b-linux-x64.tar.gz`，SHA256 `2cca76c7cd9ba6a407c751f24e238670faa45a3075ec5d3753691e57ed6c1492`。之后 A 提交只补证据/报告。`1052ac9` 是原子锁修复前的完整实验，原始材料保留在 `evidence/final-1052`。此前 `d319b3eda1576b311d4dc98cfeb17827c73abe8d` 的原生实验为先导样本，保留在 evidence 根目录，**不替代最终包实验**。
 
-最终 VM `ownership2` 是新官方 Debian12 x86_64/KVM，按 apt 合同联网安装系统库及单独测试工具，没有复用 PG、源码、node_modules、Person、Owner 或 keyring。内核 `6.1.0-54-cloud-amd64`、systemd 252.39、cgroup v2、Xvfb/Openbox、真实 WebKitGTK 软件渲染。[1778 文件完整性与空状态](evidence/final-1052/integrity.json)、[发行 manifest](evidence/final-1052/release-manifest.json)、[原生二进制来源](evidence/final-1052/build-provenance.json)。不是 Chromium 或预配置开发 Server。
+最终 VM `ownership3` 是新官方 Debian12 x86_64/KVM，按 apt 合同联网安装系统库及单独测试工具，没有复用 PG、源码、node_modules、Person、Owner 或 keyring。内核 `6.1.0-54-cloud-amd64`、systemd 252.39、cgroup v2、Xvfb/Openbox、真实 WebKitGTK 软件渲染。[1778 文件完整性与空状态](evidence/final-0df/integrity.json)、[发行 manifest](evidence/final-0df/release-manifest.json)、[原生二进制来源](evidence/final-0df/build-provenance.json)。不是 Chromium 或预配置开发 Server。
 
-最终包重新完成正常所有权、Provider Fixture/Secret Service 设置、R5 opt-in、PG 001–045 初始化、Person 创建、Character/Journal/Worker 形成事实、自然纠正、原生 current/历史和系统重启。[首装](evidence/final-1052/result-install.json)、[重启](evidence/final-1052/result-restart.json)、[真实数据库与受限角色](evidence/final-1052/database-install.json)。没有 SQL 预写记忆/身份或 operator Harness 创建 Person。
+最终包重新完成正常所有权、Provider Fixture/Secret Service 设置、R5 opt-in、PG 001–045 初始化、Person 创建、Character/Journal/Worker 形成事实、自然纠正、原生 current/历史和系统重启。[首装](evidence/final-0df/result-install.json)、[重启](evidence/final-0df/result-restart.json)、[真实数据库与受限角色](evidence/final-0df/database-install.json)。没有 SQL 预写记忆/身份或 operator Harness 创建 Person。
 
 ## 故障矩阵
 
@@ -50,23 +50,23 @@ Linux R5 文字 profile 现在由 **systemd 用户 transient service** 包含正
 | 13 相似路径/不同归属 | PASS：上面的无关程序使用相似 Runtime 路径、相同 Node、相同 UID 和成功 health，cgroup 不属于本应用；没有接管或终止 |
 | 14 reboot/冷恢复的旧 metadata | PASS：新 boot 下正常原生恢复；整机恢复前 gate/错误 boot 拒绝，审查后新 InvocationID/cgroup 使用原身份 |
 
-[Supervisor](evidence/final-1052/result-managed-supervisor.json)、[Launcher](evidence/final-1052/result-managed-launcher.json)、[同时死亡](evidence/final-1052/result-managed-both.json)、[PG](evidence/final-1052/result-managed-pg.json)、[PG 原生重开日志](evidence/final-1052/pg-reopen-navigation-aware.txt)、[纠正](evidence/final-1052/result-managed-correction.json)、[纠正恢复](evidence/final-1052/result-managed-correction-reopen.json)、[派发](evidence/final-1052/result-managed-effect.json)、[并发恢复](evidence/final-1052/result-managed-concurrent.json)、[独立实例](evidence/final-1052/result-managed-negative-active.json)、[实际 PID 复用与 kernel lock](evidence/final-1052/result-managed-pid-reuse-port.json)。复用实验原始 `scope` 文案仍写 pointer；实际选择的是记录过的 Supervisor 旧锁，`oldKernelIdentity` 提供原始 boot/ticks。`pgControlUnchanged` 只指端口拒绝阶段，后面的合法原生聊天当然允许数据库进展。
+[Supervisor](evidence/final-0df/result-managed-supervisor.json)、[Launcher](evidence/final-0df/result-managed-launcher.json)、[同时死亡](evidence/final-0df/result-managed-both.json)、[PG](evidence/final-0df/result-managed-pg.json)、[完整矩阵日志](evidence/final-0df/matrix-transcript.txt)、[纠正](evidence/final-0df/result-managed-correction.json)、[纠正恢复](evidence/final-0df/result-managed-correction-reopen.json)、[派发](evidence/final-0df/result-managed-effect.json)、[并发恢复](evidence/final-0df/result-managed-concurrent.json)、[独立实例](evidence/final-0df/result-managed-negative-active.json)、[实际 PID 复用与 kernel lock](evidence/final-0df/result-managed-pid-reuse-port.json)。复用实验原始 `scope` 文案仍写 pointer；实际选择的是记录过的 Supervisor 旧锁，`oldKernelIdentity` 提供原始 boot/ticks。`pgControlUnchanged` 只指端口拒绝阶段，后面的合法原生聊天当然允许数据库进展。
 
 没有观察到误杀、双 Runtime 写入、重复派发或历史/A9 回执改写。该结论限于所列实验，不是任意故障组合、磁盘损坏、内核/manager 失效或长期负载证明。不能证明的历史进程仍需人工调查，产品拒绝信号是正确行为。
 
 ## 原冷恢复协议回归
 
-没有换成简单文件复制。最终包 native logout 撤销所有 grant、drain 摄取，正式 launcher 先写并 fsync gate 再关闭 Writer/PG；控制状态 `shut down`。完整关机后独立 qcow2/seed/manifest，POSIX 私有目录和外部单次登记。新 VM `ownership-restore` 首次启动与错误 boot review 拒绝；明确审查源关闭、删除与执行水位后，外部登记先失效，再发当前 boot 的 clearance。
+没有换成简单文件复制。最终包 native logout 撤销所有 grant、drain 摄取，正式 launcher 先写并 fsync gate 再关闭 Writer/PG；控制状态 `shut down`。完整关机后独立 qcow2/seed/manifest，POSIX 私有目录和外部单次登记。新 VM `ownership3-restore` 首次启动与错误 boot review 拒绝；明确审查源关闭、删除与执行水位后，外部登记先失效，再发当前 boot 的 clearance。
 
-[冷封存](evidence/final-1052/cold-seal.json)、[机器备份 manifest](evidence/final-1052/backup-manifest.json)、[恢复前拒绝](evidence/final-1052/result-restored-gate.json)、[原生恢复](evidence/final-1052/result-restore.json)、[逐行比较](evidence/final-1052/restore-comparison.json)、[恢复 SQL](evidence/final-1052/database-restore.json)、[第二次旧点拒绝](evidence/final-1052/old-point-reuse.json)、[实际模型输入](evidence/final-1052/fixture-transcripts-restore.json)、[原生历史截图](evidence/final-1052/native-history-restore.png)。旧 Cookie 401，Person/owner/创建回执与旧不可变行一致，已完成摄取不重做；新会话实际 system Memory context 含纠正事实，没有靠旧用户对话偷渡答案。
+[冷封存](evidence/final-0df/cold-seal.json)、[机器备份 manifest](evidence/final-0df/backup-manifest.json)、[恢复前拒绝](evidence/final-0df/result-restored-gate.json)、[原生恢复](evidence/final-0df/result-restore.json)、[逐行比较](evidence/final-0df/restore-comparison.json)、[恢复 SQL](evidence/final-0df/database-restore.json)、[第二次旧点拒绝](evidence/final-0df/old-point-reuse.json)、[实际模型输入](evidence/final-0df/fixture-transcripts-restore.json)、[原生历史截图](evidence/final-0df/native-history-restore.png)。旧 Cookie 401，Person/owner/创建回执与旧不可变行一致，已完成摄取不重做；新会话实际 system Memory context 含纠正事实，没有靠旧用户对话偷渡答案。
 
 同 OS/user/keyring 的边界不变，仍需要原 Secret Service 解锁，不支持跨账户/PITR/全域隐私删除。未填充的过期/已删除 Observation、Legacy/Mem0/Profile/Dream 和 P8 动态编辑继续列为未验收。源保持关闭；恢复目标产生进展后不重置登记或启动旧点。
 
 ## 本地、失败记录与复跑
 
-最终生产输入的 `pnpm check`、构建及带显式隔离 PG 的全仓测试通过：Vitest **4144 passed / 57 skipped**、Node **69 passed**；Debian12 release/custom-protocol Rust **112 passed**，打包 **78 passed**，恢复 Python 6 项和 launcher 实进程回归通过。skip 仍是未覆盖。[validation](evidence/final-1052/validation.json)。CI 按新 Draft 的实际最终 HEAD 单独记录，不拿 #336 或先导包的绿灯替代。
+最终生产输入的 `pnpm check`、构建及带显式隔离 PG 的全仓测试通过：Vitest **4145 passed / 57 skipped**、Node **69 passed**；Debian12 release/custom-protocol Rust **112 passed**，打包 **78 passed**，恢复 Python 6 项和 launcher 实进程回归通过。skip 仍是未覆盖。[validation](evidence/final-0df/validation.json)。CI 按新 Draft 的实际最终 HEAD 单独记录，不拿 #336 或先导包的绿灯替代。
 
-[先导失败](evidence/attempts.json)、[最终包测试设置记录](evidence/final-1052/attempts.json)：首次全仓 WebSocket 测试固定 20ms 查询持久回执导致失败，改为等待实际 immutable receipt，未放宽结果；纠正验收首次 180s 小于生产 300s 租约，保留失败后按原 TTL 恢复；一次 reload 后未等 Chat textarea 挂载，改为正常选择聊天与等待真实 DOM，未修改应用。原始本地日志在 `build/crash-ownership-validation`。
+[先导失败](evidence/attempts.json)、[1052 包测试设置记录](evidence/final-1052/attempts.json)：首次全仓 WebSocket 测试固定 20ms 查询持久回执导致失败，改为等待实际 immutable receipt，未放宽结果；纠正验收首次 180s 小于生产 300s 租约，保留失败后按原 TTL 恢复；一次 reload 后未等 Chat textarea 挂载，改为正常选择聊天与等待真实 DOM，未修改应用。原始本地日志在 `build/crash-ownership-validation`。
 
 构建/空白 VM/冷恢复入口继续用 [#336 操作合同](../../../scripts/release-candidate/README.zh.md)。新增工具 `managed-lifecycle-guest.py`、`managed-negative-active-guest.py`、`reused-pid-port-guest.py` 只接受明确的 `yuvi-rc` 合成 VM；最后一个仅 VM root 用来复用 PID，绝不能在宿主或生产运行。guest 工具路径分别为 `/home/tester/managed-lifecycle.py`、`negative-active.py`、`reused-pid-port.py`。原生 driver 调用模式：`managed-supervisor / managed-launcher / managed-both / managed-pg / managed-correction / managed-effect / managed-concurrent`，每次后正常 `reopen-managed`，另外 reboot、seal、restore。不要重跑有单次断言的 effect 或覆盖已有实验材料来伪造成功；使用新 VM。
 
@@ -78,4 +78,4 @@ Linux R5 文字 profile 现在由 **systemd 用户 transient service** 包含正
 
 没有获准独立 Provider，真实模型实验仍 BLOCKED；Fixture usage 不是语言/Token/费用成绩。Windows/macOS、完整 Avatar/语音 profile、Wayland/GPU、隐私删除/PITR、全量迁移、QQ PRIVATE/GROUP、Truthfulness 与长尾检索、多 Scope 长期负载等原阻断保留。建议人工按原依赖链审查 #322–#336，再审查本 PR A 和后续 PR B；合并、发行运行、私人资产迁移仍是独立动作。
 
-CI 补充：#337 初次 PR Check 在 `instance-lock` 发现空文件发布窗口，push/其它工作流虽通过也不覆盖失败。后续生产修复改为完整临时记录 + atomic hard-link claim；不可解析/无有效 PID 的旧锁保守拒绝，不再自动删除。测试同时等待旧 publisher 的明确完成 ACK，并专门验证不完整锁不能被夺取。此变更需要新包验收，1052 的原始实验仍保留，不能直接充当新包通过。
+CI 补充：#337 初次 PR Check 在 `instance-lock` 发现空文件发布窗口，push/其它工作流虽通过也不覆盖失败。后续生产修复改为完整临时记录 + atomic hard-link claim；不可解析/无有效 PID 的旧锁保守拒绝，不再自动删除。测试同时等待旧 publisher 的明确完成 ACK，并专门验证不完整锁不能被夺取。此变更已用 0df 包在全新 ownership3 VM 重新完成首装、十四项矩阵、系统重启及整机冷恢复；1052 的原始实验仍保留。

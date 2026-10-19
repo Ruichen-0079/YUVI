@@ -1,0 +1,7 @@
+{
+  "checkoutSha": "0dfd1908a64beaff53f1ffcf789c23a875457814",
+  "version": "0.1.2",
+  "baseline": "Debian 12 / glibc 2.36",
+  "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+  "sha256": "30ba26c10edf2db50adde29a143612777cec8f2fb7677554bc5a8e7b2cad1578"
+}

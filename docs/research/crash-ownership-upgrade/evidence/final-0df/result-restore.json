@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "mode": "restore",
+  "checks": [
+    "Unresolved accepted dispatch is not replayed and is never rewritten as APPLIED",
+    "Restored Person, native owner, creation receipts, Journal and A9 evidence are identical; revoked Host remains 401",
+    "Fresh conversation receives the corrected R5 fact in its actual model context",
+    "Existing Person and corrected R5 memory recover without re-creation; new native chat recalls the fact",
+    "Same actual native window renders Authority current knowledge",
+    "Native history retains the superseded fact and correction",
+    "Private PG application role is restricted; durable SQL and owner identity inventory captured"
+  ],
+  "personId": "2038f396-34aa-410d-a98a-e96314f3b8d8",
+  "personaId": "alice",
+  "scope": "yuvi:v1:user:2038f396-34aa-410d-a98a-e96314f3b8d8:character:alice",
+  "seconds": 7.6349335740000015,
+  "windowSeconds": 0.9778125760000052,
+  "authenticatedReadySeconds": 5.683324863000003
+}

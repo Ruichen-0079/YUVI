@@ -1,0 +1,9 @@
+RECOVERY_RECONCILIATION_REQUIRED: missing or incompatible deletion/execution review.
+Recovery review recorded. No services started; explicitly launch YUVI and confirm the existing native identity.
+PASS Unresolved accepted dispatch is not replayed and is never rewritten as APPLIED
+PASS Restored Person, native owner, creation receipts, Journal and A9 evidence are identical; revoked Host remains 401
+PASS Fresh conversation receives the corrected R5 fact in its actual model context
+PASS Existing Person and corrected R5 memory recover without re-creation; new native chat recalls the fact
+PASS Same actual native window renders Authority current knowledge
+PASS Native history retains the superseded fact and correction
+PASS Private PG application role is restricted; durable SQL and owner identity inventory captured
