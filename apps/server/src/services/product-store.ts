@@ -379,7 +379,7 @@ export function productEnvironment(env: Record<string, string | undefined>, sett
   // managed defaults (19876/19881/19880) keep working when selected, while an
   // explicit external Product endpoint must not be rewritten or rejected.
   const primary = settings.people.find(p => p.id === settings.primaryPersonId);
-  return { ...env, YUVI_PRODUCT_CONFIGURATION: JSON.stringify(settings.configuration), MEMORY_SUBJECT_USER_ID: primary?.id, MEMORY_PERSONA_ID: primary?.personaId, PROACTIVE_SCORE_THRESHOLD: String(settings.proactive.threshold), PROACTIVE_EVALUATION_INTERVAL_MS: String(settings.proactive.intervalMs) };
+  return { ...env, YUVI_PRODUCT_CONFIGURATION: JSON.stringify(settings.configuration), MEMORY_SUBJECT_USER_ID: primary?.id, MEMORY_PERSONA_ID: primary?.personaId ?? env["MEMORY_PERSONA_ID"], PROACTIVE_SCORE_THRESHOLD: String(settings.proactive.threshold), PROACTIVE_EVALUATION_INTERVAL_MS: String(settings.proactive.intervalMs) };
 }
 export function embeddingSignature(c: ProductConfiguration): string {
   return JSON.stringify(c.routes.embedding.map(id => { const m = c.models.find(m => m.id === id)!; return [m, c.providers.find(p => p.id === m.providerId)]; }));

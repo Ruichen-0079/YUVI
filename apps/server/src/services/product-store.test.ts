@@ -119,6 +119,15 @@ describe("portable provider routing (routing is not ownership)", () => {
     expect(out["YUVI_PORTABLE_VERSION"]).toBeUndefined();
   });
 
+  it("keeps the configured Character when native enrollment has no global primary Person", () => {
+    const settings = settingsWith([], [], {});
+    settings.people = [{ id: "native-person", displayName: "Synthetic", personaId: "alice", notes: "" }];
+    const out = productEnvironment({ MEMORY_PERSONA_ID: "alice", MEMORY_SUBJECT_USER_ID: "legacy-subject" }, settings);
+    expect(out["MEMORY_PERSONA_ID"]).toBe("alice");
+    expect(out["MEMORY_SUBJECT_USER_ID"]).toBeUndefined();
+    expect(settings.primaryPersonId).toBeNull();
+  });
+
   it("returns env untouched when no settings are saved", () => {
     expect(productEnvironment({ ...MANAGED_ENV }, null)).toEqual({ ...MANAGED_ENV });
   });

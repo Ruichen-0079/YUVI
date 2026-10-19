@@ -72,13 +72,18 @@ try {
     } finally { fs.closeSync(fd); }
     if (gate.schema !== 'yuvi.cold-recovery-gate.v1' || clearance.schema !== 'yuvi.cold-recovery-clearance.v1' ||
         clearance.backupId !== gate.backupId || clearance.checkoutSha !== packageIdentity.checkoutSha ||
+        clearance.targetBootId !== fs.readFileSync('/proc/sys/kernel/random/boot_id', 'utf8').trim() ||
         !['SEALED_RESTORE', 'SOURCE_RESUME_INVALIDATES_BACKUP'].includes(clearance.action) ||
         clearance.deletionReview !== 'NO_UNRECONCILED_DELETIONS' || clearance.executionReview !== 'NO_POST_POINT_EFFECTS') {
       throw new Error('RECOVERY_RECONCILIATION_REQUIRED: missing or incompatible deletion/execution review.');
     }
     const receipt = path.join(state, `recovery-review-${gate.backupId}.json`);
-    const out = fs.openSync(receipt, 'wx', 0o600);
-    try { fs.writeFileSync(out, JSON.stringify(clearance)); fs.fsyncSync(out); } finally { fs.closeSync(out); }
+    if (fs.existsSync(receipt)) {
+      if (fs.readFileSync(receipt, 'utf8') !== JSON.stringify(clearance)) throw new Error('Conflicting recovery review; state remains closed.');
+    } else {
+      const out = fs.openSync(receipt, 'wx', 0o600);
+      try { fs.writeFileSync(out, JSON.stringify(clearance)); fs.fsyncSync(out); } finally { fs.closeSync(out); }
+    }
     fs.unlinkSync(recoveryGate);
     const dir = fs.openSync(state, 'r');
     try { fs.fsyncSync(dir); } finally { fs.closeSync(dir); }

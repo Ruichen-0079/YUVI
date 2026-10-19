@@ -33,14 +33,16 @@ test("Portable launcher keeps instance identity isolated while restoring durable
 
   // Product-owned routing/defaults are restored from the versioned config root instead of
   // being reset by the launcher on every restart.
-  assert.doesNotMatch(launcher, /MEMORY_BACKEND:\s*'legacy'/);
-  assert.doesNotMatch(launcher, /YUVI_AUTOSTART_LOCAL_STT:\s*'0'/);
-  assert.doesNotMatch(launcher, /YUVI_AUTOSTART_TTS:\s*'0'/);
+  const fullProfile = launcher.replace(/\.\.\.\(r5Only \? \{[^\n]+\} : \{\}\),/g, "");
+  assert.match(launcher, /r5Only \? \{ YUVI_PACKAGE_PROFILE: 'r5'/);
+  assert.doesNotMatch(fullProfile, /MEMORY_BACKEND:\s*'legacy'/);
+  assert.doesNotMatch(fullProfile, /YUVI_AUTOSTART_LOCAL_STT:\s*'0'/);
+  assert.doesNotMatch(fullProfile, /YUVI_AUTOSTART_TTS:\s*'0'/);
 
   // A9 packages and owns private PostgreSQL + Mem0. Portable must no longer disable them.
-  assert.doesNotMatch(launcher, /YUVI_PACKAGED_EXTERNAL_SIDECARS:\s*'1'/);
+  assert.doesNotMatch(fullProfile, /YUVI_PACKAGED_EXTERNAL_SIDECARS:\s*'1'/);
   assert.doesNotMatch(launcher, /YUVI_POSTGRES_MODE:\s*'external'/);
-  assert.doesNotMatch(launcher, /YUVI_AUTOSTART_MEM0:\s*'0'/);
+  assert.doesNotMatch(fullProfile, /YUVI_AUTOSTART_MEM0:\s*'0'/);
 });
 
 test("Portable starts presentation after its control plane without a Runtime lifecycle deadline", () => {

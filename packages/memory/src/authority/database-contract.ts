@@ -45,11 +45,14 @@ export async function assertMemoryAuthorityDatabase(
     exists(select 1 from unnest(array['namespace','persona_id','person_id','actor_id','source_ref','attempt_id','expires_at','evidence_digest','image_digest','commit_digest']) c
       where has_column_privilege('retained_observations',c,'UPDATE'))) as rewrites_observation_authority,
    not exists(select 1 from unnest(array['memory_product_pairings','memory_product_hosts']) t cross join unnest(array['SELECT','INSERT','UPDATE']) p where not has_table_privilege(t,p)) as product_host_access,
+   (has_table_privilege('memory_authority_current','INSERT') and has_table_privilege('memory_authority_current','UPDATE') and has_table_privilege('memory_authority_current','DELETE')) as projection_write_access,
    (select relkind='v' from pg_class where oid=to_regclass('memory_authority_current')) as active_view
    from pg_roles r where rolname=current_user`)
   ).rows[0];
   if (!role || role["active_view"] !== true || role["product_host_access"] !== true)
     throw new MemoryAuthorityError("MEMORY_AUTHORITY_SCHEMA_NOT_READY");
+  if (role["projection_write_access"] !== true)
+    throw new MemoryAuthorityError("MEMORY_AUTHORITY_PROJECTION_WRITE_REQUIRED");
   const restricted =
     !role["superuser"] &&
     !role["creates_roles"] &&

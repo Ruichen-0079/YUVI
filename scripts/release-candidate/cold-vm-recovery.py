@@ -3,6 +3,7 @@
 An external private registry is deliberately not part of the historical backup.
 """
 import argparse, hashlib, json, os, pathlib, stat, subprocess, datetime
+import re, fcntl
 
 def digest(p):
     h=hashlib.sha256()
@@ -54,10 +55,19 @@ def main():
     r=sub.add_parser('restore')
     for k in ['backup','registry','disk']:r.add_argument('--'+k,required=True)
     c=sub.add_parser('clearance')
-    for k in ['backup','registry','audit','output']:c.add_argument('--'+k,required=True)
+    for k in ['backup','registry','audit','output','target-boot-id']:c.add_argument('--'+k,required=True)
     c.add_argument('--resume-source',action='store_true')
     a=p.parse_args()
+    # Serialize custody transitions; a second concurrent clearance cannot revive a point.
+    registry=pathlib.Path(a.registry).absolute();private_parent(registry.parent)
+    backup_dir=pathlib.Path(a.destination if a.command=='backup' else a.backup).resolve()
+    if registry.resolve().is_relative_to(backup_dir):raise ValueError('Recovery custody registry must be external to the historical backup')
+    lock=os.open(str(registry)+'.lock',os.O_CREAT|os.O_RDWR|os.O_NOFOLLOW,0o600)
+    info=os.fstat(lock)
+    if info.st_uid!=os.getuid() or info.st_mode & 0o077 or not stat.S_ISREG(info.st_mode):raise ValueError('Private owned registry lock required')
+    fcntl.flock(lock,fcntl.LOCK_EX)
     if a.command=='backup':
+        require_new(a.registry)
         out=require_new(a.destination);out.mkdir(mode=0o700)
         seal=read(a.seal);release=read(a.release)
         if seal['databaseState']!='shut down' or seal['activeHostGrants']!=0 or seal['schemaCount']!=45 or not seal.get('nativeOwnerDigest'):
@@ -67,6 +77,7 @@ def main():
         # qemu-img's exclusive image lock rejects an active VM. Never force-share.
         subprocess.run(['qemu-img','check',a.disk],check=True)
         subprocess.run(['qemu-img','convert','-c','-O','qcow2',a.disk,str(out/'machine.qcow2')],check=True)
+        os.chmod(out/'machine.qcow2',0o600)
         info=json.loads(subprocess.check_output(['qemu-img','info','--output=json',str(out/'machine.qcow2')]))
         if info.get('backing-filename'):raise ValueError('Backup still depends on source image')
         write(out/'seal.json',seal);write(out/'release.json',release)
@@ -87,11 +98,14 @@ def main():
         if audit.get('backupId')!=m['backupId'] or audit.get('deletionReview')!='NO_UNRECONCILED_DELETIONS' or audit.get('executionReview')!='NO_POST_POINT_EFFECTS' or not audit.get('reviewer') or not audit.get('basis'):
             raise ValueError('DELETION_AND_EXECUTION_AUDIT_REQUIRED')
         output=require_new(a.output)
-        if a.resume_source:
-            # This receipt must become durable BEFORE the original source may write again.
-            r['state']='SOURCE_RESUMED_RECONCILIATION_REQUIRED';write(a.registry,r)
+        if not re.fullmatch(r'[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}',a.target_boot_id):raise ValueError('Explicit target Linux boot identity required')
+        # Invalidate the historical point BEFORE either source or restored target
+        # may write. Multiple staged copies remain closed; no old clearance can
+        # activate another VM/boot. A crash here requires audit, never rollback.
+        r['state']='SOURCE_RESUMED_RECONCILIATION_REQUIRED' if a.resume_source else 'RESTORE_ACTIVATED_RECONCILIATION_REQUIRED'
+        write(a.registry,r)
         write(output,{'schema':'yuvi.cold-recovery-clearance.v1','backupId':m['backupId'],'checkoutSha':m['checkoutSha'],
-          'action':'SOURCE_RESUME_INVALIDATES_BACKUP' if a.resume_source else 'SEALED_RESTORE',
+          'action':'SOURCE_RESUME_INVALIDATES_BACKUP' if a.resume_source else 'SEALED_RESTORE','targetBootId':a.target_boot_id,
           'deletionReview':audit['deletionReview'],'executionReview':audit['executionReview'],'reviewer':audit['reviewer'],'basis':audit['basis'],
           'manifestSha256':digest(pathlib.Path(a.backup)/'manifest.json')})
         print(json.dumps({'status':'REVIEW_RECORDED_NOT_STARTED','backupId':m['backupId']}))

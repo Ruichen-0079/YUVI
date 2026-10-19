@@ -7,6 +7,7 @@ import { assertMemoryAuthorityDatabase } from "./database-contract.js";
 export async function provisionPrivateRuntimeRole(ownerUrl: string): Promise<string> {
   const url = new URL(ownerUrl);
   if (
+    !["postgres:", "postgresql:"].includes(url.protocol) ||
     !["127.0.0.1", "localhost"].includes(url.hostname) ||
     url.username !== "yuvi" || url.pathname !== "/yuvi" || !url.password || url.search
   ) throw Error("PRIVATE_RUNTIME_DATABASE_BINDING_INVALID");
@@ -26,11 +27,12 @@ export async function provisionPrivateRuntimeRole(ownerUrl: string): Promise<str
     await connection.query("grant connect on database yuvi to yuvi_runtime");
     await connection.query("grant usage on schema public to yuvi_runtime");
     await connection.query("grant select on all tables in schema public to yuvi_runtime");
-    // Views remain read-only; write permissions belong to their explicit tables.
+    // Base tables own writes; only the existing active-projection view is writable.
     const tables = await connection.query("select quote_ident(relname) as name from pg_class where relnamespace='public'::regnamespace and relkind in ('r','p')");
     for (const table of tables.rows) {
       await connection.query(`grant insert,update,delete on public.${table["name"]} to yuvi_runtime`);
     }
+    await connection.query("grant insert,update,delete on memory_authority_current to yuvi_runtime");
     await connection.query("grant usage,select on all sequences in schema public to yuvi_runtime");
     await connection.query("revoke truncate on all tables in schema public from yuvi_runtime");
     await connection.query("revoke update,delete on memory_authority_records,memory_authority_relations,memory_authority_admissions,context_use_manifests,context_use_exposures,journal_events,journal_event_parents,retained_observations from yuvi_runtime");
