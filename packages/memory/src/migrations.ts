@@ -169,5 +169,9 @@ function stripOptionalQuotes(value: string): string {
 }
 
 function defaultMigrationsDir(): string {
-  return join(dirname(fileURLToPath(import.meta.url)), "../migrations");
+  // Bundled Runtime has no monorepo module layout. Its authenticated packaged
+  // bootstrap selects the immutable SQL directory used by both migration and
+  // the read-only Authority digest gate.
+  return process.env["YUVI_RUNTIME_MIGRATIONS_DIR"]?.trim() ||
+    join(dirname(fileURLToPath(import.meta.url)), "../migrations");
 }
