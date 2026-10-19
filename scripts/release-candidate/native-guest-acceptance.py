@@ -69,6 +69,25 @@ def wd(route,body=None,method=None):
     v=result.get('value');
     if isinstance(v,dict) and v.get('error'):raise RuntimeError(str(v))
     return v
+# A restored headless OS may ask to unlock its original encrypted login keyring.
+# Enter only this public Fixture password through the real OS dialog, never bypass Secret Service.
+def unlock_fixture_keyring():
+    assert os.uname().nodename=='yuvi-rc' and pathlib.Path.home()==pathlib.Path('/home/tester')
+    deadline=time.monotonic()+180
+    while time.monotonic()<deadline:
+        wins=subprocess.run(['xdotool','search','--onlyvisible','--name','^Unlock Login Keyring$'],capture_output=True,text=True).stdout.splitlines()
+        for win in wins:
+            try:
+                pid=subprocess.check_output(['xdotool','getwindowpid',win],text=True).strip()
+                if b'gcr-prompter' not in pathlib.Path('/proc/'+pid+'/cmdline').read_bytes():continue
+                subprocess.run(['xdotool','windowfocus','--sync',win],check=True)
+                subprocess.run(['xdotool','type','--window',win,'--clearmodifiers','synthetic-test-keyring-password'],check=True)
+                subprocess.run(['xdotool','key','--window',win,'Return'],check=True)
+                print('OS login keyring unlocked through its native dialog using the known synthetic test password',flush=True)
+                return
+            except (OSError,subprocess.CalledProcessError):pass
+        time.sleep(.25)
+threading.Thread(target=unlock_fixture_keyring,daemon=True).start()
 session=None; fault_socket=None; original_version=None
 def script(s,args=[]):return wd('/session/'+session+'/execute/sync',{'script':s,'args':args})
 def text():return script('return document.body.innerText')
@@ -99,13 +118,14 @@ try:
     start=time.monotonic()
     if MODE=='pg-conflict':
         import socket
-        fault_socket=socket.socket();fault_socket.bind(('127.0.0.1',55432));fault_socket.listen()
+        fault_socket=socket.socket();fault_socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1);fault_socket.bind(('127.0.0.1',55432));fault_socket.listen()
     if MODE=='major-mismatch':
         version_file=pathlib.Path('/home/tester/.local/share/YUVI/portable/0.1.2/data/Postgres/data/PG_VERSION')
         original_version=version_file.read_bytes();assert original_version.strip()==b'16'
         version_file.write_bytes(b'15\n')
     s=wd('/session',{'capabilities':{'alwaysMatch':{'tauri:options':{'application':str(PACKAGE/'yuvi'),'args':[]}}}});session=s['sessionId']
     wait(text,lambda t:'确认本机所有权' in t or '当前身份' in t or '以 RC Synthetic 进入' in t,'native window')
+    window_seconds=time.monotonic()-start
     screenshot('first-window')
     if MODE in ('pg-conflict','major-mismatch','keyring-unavailable'):
         view=wait(lambda:native('native_product_activation',{'action':'status'}),lambda v:v.get('serviceUnavailable') and v.get('memoryConfigured'),'closed configured identity')
@@ -138,12 +158,49 @@ try:
         wait(text,lambda t:'切换身份' in t or '以 RC Synthetic 进入' in t,'existing identity ready')
         if '以 RC Synthetic 进入' in text():click('以 RC Synthetic 进入');confirm()
     wait(text,lambda t:'切换身份' in t,'active')
+    ready_seconds=time.monotonic()-start
     status=api('/host/v1/product/status'); scope='yuvi:v1:user:'+urllib.parse.quote(status['personId'],safe='')+':character:'+urllib.parse.quote(status['personaId'],safe='')
     if MODE=='diagnose':
         import runpy
         q=runpy.run_path('/home/tester/guest-db.py')['sql']
         print(q("select json_build_object('jobs',(select json_agg(t) from (select status,result,error_code,provider_model from memory_semantic_jobs)t))"),flush=True)
     current=lambda:api('/memory/v1/current?'+urllib.parse.urlencode({'scope':scope}))
+    if MODE in ('pg-crash','supervisor-crash'):
+        import runpy,signal
+        lab=pathlib.Path('/home/tester/.local/share/YUVI/portable/0.1.2')
+        baseline=runpy.run_path('/home/tester/guest-db.py')['capture']()
+        assert any('forest-green' in r['event']['content'] for r in current().get('records',[]))
+        snapshot=native('get_service_status')
+        runtime=next(x for x in snapshot['services'] if x['id']=='runtime')
+        pgpid=int((lab/'data/Postgres/data/postmaster.pid').read_text().splitlines()[0])
+        pgcmd=pathlib.Path('/proc/'+str(pgpid)+'/cmdline').read_bytes()
+        assert b'/home/tester/yuvi/postgres/bin/postgres' in pgcmd and str(lab/'data/Postgres/data').encode() in pgcmd
+        if MODE=='pg-crash':
+            os.kill(pgpid,signal.SIGKILL)
+            def closed():
+                try:api('/memory/v1/current?'+urllib.parse.urlencode({'scope':scope}));return False
+                except (RuntimeError,AssertionError):return True
+            wait(closed,label='private API refuses disconnected PG',timeout=30)
+            passed('SIGKILL of the owned private PG produces private API refusal, not successful empty knowledge')
+            screenshot('fault-'+MODE)
+            observations={'privateApiRefused':True}
+        else:
+            pointer=json.loads((lab/'supervisor/active-instance.json').read_text())
+            supervisorpid=pointer['pid']
+            assert b'/home/tester/yuvi/supervisor/yuvi-desktop-supervisor.cjs' in pathlib.Path('/proc/'+str(supervisorpid)+'/cmdline').read_bytes()
+            os.kill(supervisorpid,signal.SIGKILL)
+            wait(lambda:not pathlib.Path('/proc/'+str(supervisorpid)).exists(),label='supervisor process death')
+            time.sleep(2)
+            observations={'survivingOwnedProcesses':[]}
+            for label,pid,expected in [('runtime',runtime['pid'],b'/home/tester/yuvi/runtime/yuvi-runtime-server.mjs'),('postgres',pgpid,b'/home/tester/yuvi/postgres/bin/postgres')]:
+                try:
+                    if expected in pathlib.Path('/proc/'+str(pid)+'/cmdline').read_bytes():observations['survivingOwnedProcesses'].append({'service':label,'pid':pid})
+                except FileNotFoundError:pass
+            passed('Owned Supervisor SIGKILL observed; surviving child processes recorded without assuming automatic recovery')
+            session=None
+        (ROOT/('database-before-'+MODE+'.json')).write_text(json.dumps(baseline,indent=2))
+        (ROOT/('result-'+MODE+'.json')).write_text(json.dumps({'status':'INJECTED_REQUIRES_RESTART_VERIFICATION','checks':checks,'observations':observations},indent=2))
+        sys.exit(0)
     if MODE in ('install','activate','diagnose'):
         send('Please remember: my favorite color is lake-blue.')
         wait(current,lambda x:any('lake-blue' in r['event']['content'] for r in x.get('records',[])),'R5 fact',timeout=120)
@@ -157,6 +214,7 @@ try:
             before=json.loads(pathlib.Path('/home/tester/cold-seal.json').read_text())['snapshot']
             after=runpy.run_path('/home/tester/guest-db.py')['capture']()
             assert before['identity']==after['identity'], 'Person/owner/creation receipt changed'
+            assert all(after['completedIngestion'].get(k)==v for k,v in before['completedIngestion'].items()), 'Completed user input was ingested again'
             for table,rows in before['immutableRows'].items():
                 assert all(after['immutableRows'][table].get(k)==v for k,v in rows.items()), 'Historical row changed: '+table
             old=json.loads((ROOT/'revoked-credential.private.json').read_text())
@@ -173,8 +231,16 @@ try:
             passed('Unresolved accepted dispatch is not replayed and is never rewritten as APPLIED')
             passed('Restored Person, native owner, creation receipts, Journal and A9 evidence are identical; revoked Host remains 401')
             (ROOT/'restore-comparison.json').write_text(json.dumps({'status':'PASS','verifiedOldRows':{k:len(v) for k,v in before['immutableRows'].items()},'identityUnchanged':True,'oldHostStatus':401},indent=2))
+        if MODE=='restore':
+            script("for(const key of Object.keys(localStorage)){if(key.startsWith('yuvi.conversation-session.'))localStorage.removeItem(key)};location.reload();return true;")
+            wait(text,lambda t:'切换身份' in t and 'Please remember:' not in t,'new conversation after restore')
         records=current();assert any('forest-green' in r['event']['content'] for r in records.get('records',[]))
         send('What is my favorite color?'); wait(text,lambda t:'Your current favorite color is forest-green' in t,'persistent recall')
+        if MODE=='restore':
+            last=next(x for x in reversed(transcripts) if x['model']=='fixture-chat')
+            assert 'forest-green' in last['input'][0]['content'], 'Recall did not receive actual R5 context'
+            assert not any(m.get('role')=='user' and ('Correction:' in str(m.get('content')) or 'Please remember:' in str(m.get('content'))) for m in last['input']), 'Recall leaked old conversation instead of a fresh session'
+            passed('Fresh conversation receives the corrected R5 fact in its actual model context')
         passed('Existing Person and corrected R5 memory recover without re-creation; new native chat recalls the fact')
     if MODE=='seal':
         vault=pathlib.Path('/home/tester/.local/share/YUVI/portable/0.1.2/config/com.yuvi.companion/native-product/owner.json')
@@ -192,7 +258,7 @@ try:
         sys.exit(0)
     if MODE=='crash':
         fill('textarea','RC_UNKNOWN_PROBE: acknowledge this synthetic execution probe.')
-        script("document.querySelector('textarea').closest('form').querySelector('button[type=submit]').click();return true;")
+        script("const e=document.querySelector('textarea');const b=e.closest('form')?.querySelector('button[type=submit]')||document.querySelector('[aria-label=\"Send message\"],[aria-label=\"发送消息\"]');if(!b||b.disabled)throw Error('Send unavailable');b.click();return true;")
         wait(lambda:(ROOT/'fixture-unknown-accepted.json').exists(),label='provider accepted unresolved request')
         runtime=next(x for x in native('get_service_status')['services'] if x['id']=='runtime')
         assert runtime['ownership']=='owned' and b'/home/tester/yuvi/runtime/yuvi-runtime-server.mjs' in pathlib.Path('/proc/'+str(runtime['pid'])+'/cmdline').read_bytes()
@@ -214,7 +280,7 @@ try:
     database=runpy.run_path('/home/tester/guest-db.py')['capture']()
     (ROOT/('database-'+MODE+'.json')).write_text(json.dumps(database,indent=2))
     passed('Private PG application role is restricted; durable SQL and owner identity inventory captured')
-    (ROOT/('result-'+MODE+'.json')).write_text(json.dumps({'status':'PASS','mode':MODE,'checks':checks,'personId':status['personId'],'personaId':status['personaId'],'scope':scope,'seconds':time.monotonic()-start},indent=2))
+    (ROOT/('result-'+MODE+'.json')).write_text(json.dumps({'status':'PASS','mode':MODE,'checks':checks,'personId':status['personId'],'personaId':status['personaId'],'scope':scope,'seconds':time.monotonic()-start,'windowSeconds':window_seconds,'authenticatedReadySeconds':ready_seconds},indent=2))
 except Exception as e:
     try:(ROOT/('failure-view-'+MODE+'.txt')).write_text(text());screenshot('failure-'+MODE)
     except:pass

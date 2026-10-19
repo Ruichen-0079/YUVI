@@ -12,6 +12,9 @@ set -e
 printf "%s" "synthetic-test-keyring-password" | gnome-keyring-daemon --unlock --components=secrets
 openbox > /home/tester/openbox.log 2>&1 &
 task_wm_pid=$!
+if [ "$1" = keyring-unavailable ]; then
+  export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/yuvi-test-unavailable-secret-bus
+fi
 setsid /home/tester/tauri-driver --port 4444 --native-driver /usr/bin/WebKitWebDriver > /home/tester/driver.log 2>&1 &
 task_driver_pid=$!
 cleanup() {
@@ -20,8 +23,5 @@ cleanup() {
   kill "$task_wm_pid" 2>/dev/null || true
 }
 trap cleanup EXIT
-if [ "$1" = keyring-unavailable ]; then
-  export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/yuvi-test-unavailable-secret-bus
-fi
 python3 /home/tester/native-install.py "$1"
 ' shell "${1:-install}"

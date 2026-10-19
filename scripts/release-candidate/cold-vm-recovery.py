@@ -3,13 +3,21 @@
 An external private registry is deliberately not part of the historical backup.
 """
 import argparse, hashlib, json, os, pathlib, stat, subprocess, datetime
-import re, fcntl
+import re, fcntl, shutil
 
 def digest(p):
     h=hashlib.sha256()
     with open(p,'rb') as f:
         for b in iter(lambda:f.read(1024*1024),b''):h.update(b)
     return h.hexdigest()
+def sync_file(p):
+    fd=os.open(p,os.O_RDONLY|os.O_NOFOLLOW)
+    try:os.fsync(fd)
+    finally:os.close(fd)
+def sync_directory(p):
+    fd=os.open(p,os.O_RDONLY|os.O_DIRECTORY)
+    try:os.fsync(fd)
+    finally:os.close(fd)
 def read(p):return json.loads(pathlib.Path(p).read_text())
 def private_parent(p):
     p=pathlib.Path(p).resolve();p.mkdir(mode=0o700,parents=True,exist_ok=True)
@@ -41,6 +49,7 @@ def verify(backup,registry):
     if m['schema']!='yuvi.cold-machine-backup.v1' or r['schema']!='yuvi.cold-recovery-registry.v1':raise ValueError('Recovery schema mismatch')
     if r['state']!='SEALED' or r['backupId']!=m['backupId'] or r['manifestSha256']!=digest(backup/'manifest.json'):
         raise ValueError('RECONCILIATION_REQUIRED: source resumed, a later recovery point exists, or custody changed. Review A9 effects and privacy deletions; no automatic rollback.')
+    if digest(backup/'seed.iso')!=m['seedSha256']:raise ValueError('BACKUP_BOOT_METADATA_INTEGRITY_FAILED')
     if digest(backup/'machine.qcow2')!=m['diskSha256']:raise ValueError('BACKUP_INTEGRITY_FAILED')
     if digest(backup/'seal.json')!=m['sealSha256'] or digest(backup/'release.json')!=m['releaseManifestSha256']:raise ValueError('BACKUP_METADATA_INTEGRITY_FAILED')
     seal=read(backup/'seal.json')
@@ -51,7 +60,7 @@ def verify(backup,registry):
 def main():
     p=argparse.ArgumentParser(description=__doc__);sub=p.add_subparsers(dest='command',required=True)
     b=sub.add_parser('backup')
-    for k in ['disk','seal','release','serial','destination','registry']:b.add_argument('--'+k,required=True)
+    for k in ['disk','seed','seal','release','serial','destination','registry']:b.add_argument('--'+k,required=True)
     r=sub.add_parser('restore')
     for k in ['backup','registry','disk']:r.add_argument('--'+k,required=True)
     c=sub.add_parser('clearance')
@@ -80,18 +89,24 @@ def main():
         os.chmod(out/'machine.qcow2',0o600)
         info=json.loads(subprocess.check_output(['qemu-img','info','--output=json',str(out/'machine.qcow2')]))
         if info.get('backing-filename'):raise ValueError('Backup still depends on source image')
+        shutil.copyfile(a.seed,out/'seed.iso');os.chmod(out/'seed.iso',0o600)
+        sync_file(out/'machine.qcow2');sync_file(out/'seed.iso')
         write(out/'seal.json',seal);write(out/'release.json',release)
         manifest={'schema':'yuvi.cold-machine-backup.v1','backupId':seal['backupId'],'createdAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),
-          'checkoutSha':release['checkoutSha'],'diskSha256':digest(out/'machine.qcow2'),'sealSha256':digest(out/'seal.json'),'releaseManifestSha256':digest(out/'release.json'),
+          'checkoutSha':release['checkoutSha'],'diskSha256':digest(out/'machine.qcow2'),'seedSha256':digest(out/'seed.iso'),'sealSha256':digest(out/'seal.json'),'releaseManifestSha256':digest(out/'release.json'),
           'recoveryBoundary':'Whole stopped VM filesystem including PG, ProductStore, native owner, encrypted system keyring and static assets; same OS/user/keyring password required.',
           'limitations':['Not online/PITR or cross-OS account/keyring restore','No global historical-backup privacy erasure','Source resume or newer deletions/effects require external reconciliation; never restore an older database automatically']}
         write(out/'manifest.json',manifest)
+        sync_directory(out.parent)
         write(a.registry,{'schema':'yuvi.cold-recovery-registry.v1','backupId':manifest['backupId'],'manifestSha256':digest(out/'manifest.json'),'state':'SEALED'})
         print(json.dumps({'status':'BACKUP_COMPLETE','backupId':seal['backupId'],'bytes':(out/'machine.qcow2').stat().st_size}))
     elif a.command=='restore':
         m,_=verify(a.backup,a.registry);disk=require_new(a.disk)
+        seed=require_new(disk.parent/'seed.iso')
         subprocess.run(['qemu-img','convert','-O','qcow2',str(pathlib.Path(a.backup)/'machine.qcow2'),str(disk)],check=True)
         os.chmod(disk,0o600)
+        shutil.copyfile(pathlib.Path(a.backup)/'seed.iso',seed);os.chmod(seed,0o600)
+        sync_file(disk);sync_file(seed);sync_directory(disk.parent)
         print(json.dumps({'status':'RESTORED_BLOCKED_PENDING_REVIEW','backupId':m['backupId'],'disk':str(disk)}))
     else:
         m,r=verify(a.backup,a.registry);audit=read(a.audit)

@@ -6,11 +6,12 @@ class RecoveryCustody(unittest.TestCase):
  def setUp(self):
   self.tmp=tempfile.TemporaryDirectory();self.root=pathlib.Path(self.tmp.name);self.backup=self.root/'backup';self.backup.mkdir(mode=0o700)
   self.registry=self.root/'registry.json'
+  self.put(self.backup/'seed.iso',b'synthetic VM boot metadata')
   self.put(self.backup/'machine.qcow2',b'synthetic sealed bytes')
   self.put(self.backup/'seal.json',{'backupId':'test-backup','databaseState':'shut down','activeHostGrants':0})
   self.put(self.backup/'release.json',{'checkoutSha':'a'*40})
   m={'schema':'yuvi.cold-machine-backup.v1','backupId':'test-backup','checkoutSha':'a'*40,
-    'diskSha256':self.sha('machine.qcow2'),'sealSha256':self.sha('seal.json'),'releaseManifestSha256':self.sha('release.json')}
+    'diskSha256':self.sha('machine.qcow2'),'seedSha256':self.sha('seed.iso'),'sealSha256':self.sha('seal.json'),'releaseManifestSha256':self.sha('release.json')}
   self.put(self.backup/'manifest.json',m)
   self.put(self.registry,{'schema':'yuvi.cold-recovery-registry.v1','state':'SEALED','backupId':'test-backup','manifestSha256':self.sha('manifest.json')})
   self.audit=self.root/'audit.json';self.put(self.audit,{'backupId':'test-backup','deletionReview':'NO_UNRECONCILED_DELETIONS','executionReview':'NO_POST_POINT_EFFECTS','reviewer':'synthetic test','basis':'Source stopped; no external effects'})
@@ -27,6 +28,9 @@ class RecoveryCustody(unittest.TestCase):
  def test_concurrent_clearances_cannot_both_activate(self):
   with concurrent.futures.ThreadPoolExecutor() as pool:results=list(pool.map(self.clearance,['a.json','b.json']))
   self.assertEqual(sum(r.returncode==0 for r in results),1)
+ def test_tampered_boot_metadata_stays_closed(self):
+  self.put(self.backup/'seed.iso',b'changed bootstrap authorization');self.assertIn('BACKUP_BOOT_METADATA_INTEGRITY_FAILED',self.clearance().stderr)
+  self.assertEqual(json.loads(self.registry.read_text())['state'],'SEALED')
  def test_tampered_snapshot_stays_closed(self):
   self.put(self.backup/'machine.qcow2',b'changed');self.assertIn('BACKUP_INTEGRITY_FAILED',self.clearance().stderr)
   self.assertEqual(json.loads(self.registry.read_text())['state'],'SEALED')

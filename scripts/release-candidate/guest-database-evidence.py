@@ -24,4 +24,11 @@ def capture():
  assert role['current_user']=='yuvi_runtime' and role['projection_insert'] and not any(role[x] for x in ['rolsuper','rolcreaterole','rolcreatedb','rolbypassrls','schema_create','rewrite_history','truncate_history'])
  settings=json.loads((ROOT/'config/product-settings.json').read_text());vault=json.loads((ROOT/'config/com.yuvi.companion/native-product/owner.json').read_text())
  identity={'people':settings['people'],'nativeOwnerDigest':hashlib.sha256(vault['ownerId'].encode()).hexdigest(),'ownerAssociations':{k:hashlib.sha256(v.encode()).hexdigest() for k,v in settings.get('nativeOwnerByPersonId',{}).items()},'personAuthorityRevisionById':settings.get('personAuthorityRevisionById'), 'productCommandReceiptDigest':hashlib.sha256(json.dumps(settings.get('productCommandReceipts'),sort_keys=True).encode()).hexdigest()}
- return {'tables':inventory,'immutableRows':immutable,'role':role,'identity':identity,'effectCertainties':json.loads(sql("select coalesce(json_agg(t),'[]') from (select evidence->>'certainty' certainty,count(*) from effect_observations where category='TERMINAL' group by 1)t"))}
+ completed=json.loads(sql("select coalesce(json_object_agg(finalized_turn_id,to_jsonb(t)),'{}') from (select finalized_turn_id,source_digest,status,attempt_count,complete_event_count,unchanged_event_count from finalized_ingestion_turns where status in ('complete','skipped'))t"))
+ processes=[]
+ for line in subprocess.check_output(['ps','-eo','comm=,rss=,pcpu='],text=True).splitlines():
+  name,rss,cpu=line.split()
+  if name in ('MainThread','postgres','yuvi-desktop') or name.startswith('WebKit'):
+   processes.append({'comm':name,'rssKiB':int(rss),'lifetimeCpuPercent':float(cpu)})
+ resources={'processes':processes,'rssSumIncludesSharedPages':True,'packageKiB':int(subprocess.check_output(['du','-sk',str(PKG)],text=True).split()[0]),'stateKiB':int(subprocess.check_output(['du','-sk',str(ROOT)],text=True).split()[0])}
+ return {'resourceSample':resources,'completedIngestion':completed,'tables':inventory,'immutableRows':immutable,'role':role,'identity':identity,'effectCertainties':json.loads(sql("select coalesce(json_agg(t),'[]') from (select evidence->>'certainty' certainty,count(*) from effect_observations where category='TERMINAL' group by 1)t"))}
