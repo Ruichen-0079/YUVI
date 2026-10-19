@@ -98,6 +98,9 @@ try {
     for (const key of ['TAURI_WEBVIEW_AUTOMATION', 'WEBKIT_DISABLE_DMABUF_RENDERER', 'LIBGL_ALWAYS_SOFTWARE']) {
       if (process.env[key]) desktopEnv[key] = process.env[key];
     }
+    if (process.env.TAURI_WEBVIEW_AUTOMATION === 'true' && /^127\.0\.0\.1:\d+$/.test(process.env.WEBKIT_INSPECTOR_SERVER || '')) {
+      desktopEnv.WEBKIT_INSPECTOR_SERVER = process.env.WEBKIT_INSPECTOR_SERVER;
+    }
     if (!process.env.GDK_BACKEND && guiSessionEnv.WAYLAND_DISPLAY && guiSessionEnv.DISPLAY) {
       desktopEnv.GDK_BACKEND = 'x11';
     } else if (process.env.GDK_BACKEND) {
