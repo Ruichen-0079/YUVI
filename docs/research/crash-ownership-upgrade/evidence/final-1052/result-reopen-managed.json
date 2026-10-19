@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "mode": "reopen-managed",
+  "checks": [
+    "Accepted unresolved effect remains un-replayed and is never rewritten as APPLIED",
+    "Managed crash preserves old immutable rows, Person, owner, creation receipts and completed ingestion",
+    "Fresh conversation receives the corrected R5 fact in its actual model context",
+    "Existing Person and corrected R5 memory recover without re-creation; new native chat recalls the fact",
+    "Same actual native window renders Authority current knowledge",
+    "Native history retains the superseded fact and correction",
+    "Private PG application role is restricted; durable SQL and owner identity inventory captured"
+  ],
+  "personId": "42a3b091-b13f-4368-8d5e-7c0b24172475",
+  "personaId": "alice",
+  "scope": "yuvi:v1:user:42a3b091-b13f-4368-8d5e-7c0b24172475:character:alice",
+  "seconds": 7.147250801000041,
+  "windowSeconds": 0.977518066000016,
+  "authenticatedReadySeconds": 5.0501270780000596
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "issue": "Native test navigation race after reload",
+    "observed": "PG/WAL recovered, private API and immutable rows passed; textarea had not mounted or Chat tab was not selected",
+    "resolution": "Preserved first failure log. Select the real Chat tab and wait for its textarea, then normal native reopen passed. No application/permission change."
+  },
+  {
+    "issue": "Forensic archive began before QEMU poweroff completed",
+    "observed": "qemu-img refused the image lock; no archive key/output existed yet",
+    "resolution": "Waited for full shutdown, retried; complete decrypt plus exact disk SHA matched before retiring the local copy. No force-share or repair."
+  }
+]

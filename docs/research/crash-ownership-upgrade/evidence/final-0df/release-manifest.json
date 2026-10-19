@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "kind": "yuvi-linux-daily-packaged",
+  "platform": "linux-x64",
+  "profile": "r5",
+  "checkoutSha": "0dfd1908a64beaff53f1ffcf789c23a875457814",
+  "version": "0.1.2",
+  "nodeVersion": "24.20.0",
+  "baseline": "Debian 12 / glibc 2.36",
+  "installation": "extract immutable archive + install declared system packages; run ./yuvi",
+  "components": [
+    "bundled-node",
+    "supervisor",
+    "runtime",
+    "migrations-001-045",
+    "postgresql-16-pgvector",
+    "native-desktop",
+    "web",
+    "offline-fonts"
+  ],
+  "excluded": [
+    "Mem0",
+    "STT/TTS sidecars and models",
+    "licensed Cubism Core",
+    "provider credentials",
+    "user identity and data"
+  ],
+  "network": "System dependency installation requires apt network or a separately supplied offline OS repository. Application archive is self-contained after OS dependencies. Language providers require their configured network service.",
+  "secretStorage": "Unlocked user Secret Service; no plaintext production fallback"
+}

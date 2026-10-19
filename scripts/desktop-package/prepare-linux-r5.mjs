@@ -36,7 +36,7 @@ fs.cpSync(path.join(REPO_ROOT, "apps/web/dist"), path.join(out, "web/dist"), { r
 for (const [source, target] of [
   [desktop, "desktop/yuvi-desktop"], [desktop + ".provenance.json", "desktop/build-provenance.json"],
   [path.join(REPO_ROOT, "apps/desktop/src-tauri/icons/128x128@2x.png"), "desktop/yuvi.png"],
-  ...[ ["yuvi-linux", "yuvi"], ["linux-launcher.mjs", "launcher.mjs"], ["portable-state.mjs", "portable-state.mjs"],
+  ...[ ["yuvi-linux", "yuvi"], ["linux-launcher.mjs", "launcher.mjs"], ["linux-lifecycle.mjs", "linux-lifecycle.mjs"], ["portable-state.mjs", "portable-state.mjs"],
     ["provision-cubism-core.mjs", "provision-cubism-core.mjs"], ["linux-static-web-server.mjs", "web/static-server.mjs"],
     ["install-linux-r5-dependencies.sh", "install-system-dependencies.sh"]
   ].map(([s,t]) => [path.join(REPO_ROOT, "scripts/desktop-package", s), t])

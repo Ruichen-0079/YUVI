@@ -1,0 +1,17 @@
+PASS final atomic candidate fresh native install
+RUN managed-supervisor
+PASS managed-supervisor and native reopen
+RUN managed-launcher
+PASS managed-launcher and native reopen
+RUN managed-both
+PASS managed-both and native reopen
+RUN managed-pg
+PASS managed-pg and native reopen
+RUN managed-correction
+PASS managed-correction and native reopen
+RUN managed-effect
+PASS managed-effect and native reopen
+RUN managed-concurrent
+PASS managed-concurrent and native reopen
+{"staleKernelLockRetiredByNormalNativeStartup": true, "oldKernelIdentity": {"pid": 6040, "startedAt": "2026-10-19T18:24:42.945Z", "linuxIdentity": {"bootId": "168244f5-f323-435a-9ebd-b1b902b4e67b", "startTicks": "26822"}}, "replacementAliveAfterNativeChat": true, "status": "PASS", "actualPidReuse": true, "oldSupervisorPid": 6040, "replacementProcess": {"pid": 6040, "uid": 1000, "startTicks": "63188", "executable": "/home/tester/yuvi/runtime/node", "cgroup": "0::/user.slice/user-1000.slice/session-37.scope", "healthyLookalike": {"status": "ok", "runtimeInstanceId": "unrelated-lookalike"}}, "productExit": 1, "diagnostic": "PORT_OCCUPIED_NO_ADOPTION_OR_SIGNAL", "pgControlUnchanged": true, "unrelatedProcessRemainedAlive": true, "scope": "Same UID and Node executable, similar path and healthy HTTP endpoint; actual old pointer PID recycled outside the application cgroup"}
+PASS final atomic real PID reuse and native restart

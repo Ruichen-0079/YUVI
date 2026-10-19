@@ -1,4 +1,6 @@
 #[cfg(target_os = "linux")]
+pub mod managed_postgres;
+#[cfg(target_os = "linux")]
 mod webview_media;
 mod archive_drop;
 mod config;

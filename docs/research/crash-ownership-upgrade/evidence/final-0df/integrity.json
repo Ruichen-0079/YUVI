@@ -1,0 +1,1 @@
+{"status": "PASS", "checkoutSha": "0dfd1908a64beaff53f1ffcf789c23a875457814", "checkedFiles": 1778, "noSystemNode": true, "noSystemPostgres": true, "scope": "Final restore verifies all immutable payload hashes; empty-state first-run evidenced separately by result-install"}

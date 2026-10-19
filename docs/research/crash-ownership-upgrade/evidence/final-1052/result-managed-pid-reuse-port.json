@@ -1,0 +1,31 @@
+{
+  "staleKernelLockRetiredByNormalNativeStartup": true,
+  "oldKernelIdentity": {
+    "pid": 6091,
+    "startedAt": "2026-10-19T17:38:20.119Z",
+    "linuxIdentity": {
+      "bootId": "9c24a0db-9316-4cdb-a2a7-d99dd66f26d9",
+      "startTicks": "38496"
+    }
+  },
+  "replacementAliveAfterNativeChat": true,
+  "status": "PASS",
+  "actualPidReuse": true,
+  "oldSupervisorPid": 6091,
+  "replacementProcess": {
+    "pid": 6091,
+    "uid": 1000,
+    "startTicks": "82196",
+    "executable": "/home/tester/yuvi/runtime/node",
+    "cgroup": "0::/user.slice/user-1000.slice/session-43.scope",
+    "healthyLookalike": {
+      "status": "ok",
+      "runtimeInstanceId": "unrelated-lookalike"
+    }
+  },
+  "productExit": 1,
+  "diagnostic": "PORT_OCCUPIED_NO_ADOPTION_OR_SIGNAL",
+  "pgControlUnchanged": true,
+  "unrelatedProcessRemainedAlive": true,
+  "scope": "Same UID and Node executable, similar path and healthy HTTP endpoint; actual old pointer PID recycled outside the application cgroup"
+}

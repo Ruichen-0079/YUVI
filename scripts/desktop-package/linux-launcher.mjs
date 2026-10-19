@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import net from 'node:net';
 import { spawn } from 'node:child_process';
+import { enterManagedLifecycle } from './linux-lifecycle.mjs';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { portableSecretNamespace, readPortablePackageIdentity, resolvePortableStateDirs, resolvePortableStateRoot } from './portable-state.mjs';
@@ -109,6 +110,8 @@ try {
     for (const name of ['.env', '.env.local']) {
       if (fs.existsSync(path.join(dirs.config, name))) throw new Error(`Portable cannot prove isolation with legacy ${name} in ${dirs.config}. Move that file aside and use Product settings.`);
     }
+    const lifecycle = r5Only ? await enterManagedLifecycle({root,state,supervisorDir:dirs.supervisor,checkoutSha:packageIdentity.checkoutSha}) : null;
+    if (lifecycle?.delegated) { process.exitCode = lifecycle.exitCode; } else {
     const runtimePort = 16121, webPort = 15173, sttPort = 19876;
     for (const port of r5Only ? [runtimePort, webPort] : [runtimePort, webPort, sttPort, 16131, 19881, 19880]) await available(port);
     // Parent provider credentials and Installed state never cross the Portable boundary.
@@ -120,6 +123,7 @@ try {
     );
     const env = {
       ...guiSessionEnv,
+      ...(lifecycle ? { YUVI_LINUX_LIFECYCLE_CGROUP: lifecycle.cgroup } : {}),
       PATH: '/usr/bin:/bin', HOME: dirs.home, LANG: process.env.LANG || 'C.UTF-8',
       XDG_CONFIG_HOME: dirs.config, XDG_DATA_HOME: dirs.data, XDG_CACHE_HOME: dirs.cache,
       TMPDIR: dirs.tmp, TMP: dirs.tmp, TEMP: dirs.tmp,
@@ -162,11 +166,11 @@ try {
     };
     process.on('SIGINT', stop); process.on('SIGTERM', stop);
     supervisor.once('error', stop);
-    supervisor.once('exit', code => {
+    supervisor.once('exit', (code, signal) => {
       closing = true;
       web?.kill('SIGTERM');
       desktop?.kill('SIGTERM');
-      process.exitCode = process.exitCode || code || 0;
+      process.exitCode = process.exitCode || code || (signal ? 1 : 0);
     });
 
     // A9: the Supervisor first publishes only its authenticated control plane.
@@ -194,6 +198,7 @@ try {
       web = spawn(node, [path.join(root, 'web', 'static-server.mjs'), '--root', path.join(root, 'web', 'dist'), '--port', String(webPort), '--runtime-port', String(runtimePort)], { cwd: state, env: { ...env, YUVI_EXPECTED_SUPERVISOR_PID: String(expectedSupervisorPid) }, stdio: 'inherit' });
       web.once('error', stop); web.once('exit', stop);
       console.log(`YUVI desktop shell started. Browser fallback: http://127.0.0.1:${webPort}/#/webui\nRun ./yuvi stop to shut down.`);
+    }
     }
   } else throw new Error('Usage: ./yuvi [start|stop|status|prepare-backup|review-recovery /absolute/clearance.json|cubism-core]');
 } catch (error) { console.error(error.message); process.exitCode = 1; }

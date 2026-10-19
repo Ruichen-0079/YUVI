@@ -1,0 +1,32 @@
+validate	Test	2026-10-19T18:02:19.1546652Z packages/database test: ^[[2m Test Files ^[[22m ^[[1m^[[32m1 passed^[[39m^[[22m^[[90m (1)^[[39m
+validate	Test	2026-10-19T18:02:19.1680037Z packages/database test: ^[[2m      Tests ^[[22m ^[[1m^[[32m2 passed^[[39m^[[22m^[[90m (2)^[[39m
+validate	Test	2026-10-19T18:02:19.4235780Z packages/prompt-builder test: ^[[2m Test Files ^[[22m ^[[1m^[[32m3 passed^[[39m^[[22m^[[90m (3)^[[39m
+validate	Test	2026-10-19T18:02:19.4277240Z packages/prompt-builder test: ^[[2m      Tests ^[[22m ^[[1m^[[32m40 passed^[[39m^[[22m^[[90m (40)^[[39m
+validate	Test	2026-10-19T18:02:20.5051459Z packages/host-environment test: ^[[2m Test Files ^[[22m ^[[1m^[[32m1 passed^[[39m^[[22m^[[90m (1)^[[39m
+validate	Test	2026-10-19T18:02:20.5099272Z packages/host-environment test: ^[[2m      Tests ^[[22m ^[[1m^[[32m16 passed^[[39m^[[22m^[[90m (16)^[[39m
+validate	Test	2026-10-19T18:02:22.0508196Z packages/protocol test: ^[[2m Test Files ^[[22m ^[[1m^[[32m6 passed^[[39m^[[22m^[[90m (6)^[[39m
+validate	Test	2026-10-19T18:02:22.0542098Z packages/protocol test: ^[[2m      Tests ^[[22m ^[[1m^[[32m55 passed^[[39m^[[22m^[[90m (55)^[[39m
+validate	Test	2026-10-19T18:02:22.4094749Z packages/character-abi test: ^[[2m Test Files ^[[22m ^[[1m^[[32m7 passed^[[39m^[[22m^[[90m (7)^[[39m
+validate	Test	2026-10-19T18:02:22.4096394Z packages/character-abi test: ^[[2m      Tests ^[[22m ^[[1m^[[32m83 passed^[[39m^[[22m^[[90m (83)^[[39m
+validate	Test	2026-10-19T18:02:22.4392807Z packages/character-harness test$ vitest run --passWithNoTests && pnpm run test:runtime-import
+validate	Test	2026-10-19T18:02:24.5535626Z packages/config test: ^[[2m Test Files ^[[22m ^[[1m^[[32m1 passed^[[39m^[[22m^[[90m (1)^[[39m
+validate	Test	2026-10-19T18:02:24.5584650Z packages/config test: ^[[2m      Tests ^[[22m ^[[1m^[[32m15 passed^[[39m^[[22m^[[90m (15)^[[39m
+validate	Test	2026-10-19T18:02:24.8495577Z packages/event-bus test: ^[[2m Test Files ^[[22m ^[[1m^[[32m1 passed^[[39m^[[22m^[[90m (1)^[[39m
+validate	Test	2026-10-19T18:02:24.8577470Z packages/event-bus test: ^[[2m      Tests ^[[22m ^[[1m^[[32m5 passed^[[39m^[[22m^[[90m (5)^[[39m
+validate	Test	2026-10-19T18:02:25.9127141Z packages/journal test: ^[[2m Test Files ^[[22m ^[[33m1 skipped^[[39m^[[90m (1)^[[39m
+validate	Test	2026-10-19T18:02:25.9185545Z packages/journal test: ^[[2m      Tests ^[[22m ^[[33m13 skipped^[[39m^[[90m (13)^[[39m
+validate	Test	2026-10-19T18:02:26.4890383Z packages/character-harness test: ^[[2m Test Files ^[[22m ^[[1m^[[32m14 passed^[[39m^[[22m^[[90m (14)^[[39m
+validate	Test	2026-10-19T18:02:26.4907617Z packages/character-harness test: ^[[2m      Tests ^[[22m ^[[1m^[[32m135 passed^[[39m^[[22m^[[90m (135)^[[39m
+validate	Test	2026-10-19T18:02:30.5406146Z packages/effects test: ^[[2m Test Files ^[[22m ^[[1m^[[32m2 passed^[[39m^[[22m^[[2m | ^[[22m^[[33m2 skipped^[[39m^[[90m (4)^[[39m
+validate	Test	2026-10-19T18:02:30.5476409Z packages/effects test: ^[[2m      Tests ^[[22m ^[[1m^[[32m50 passed^[[39m^[[22m^[[2m | ^[[22m^[[33m79 skipped^[[39m^[[90m (129)^[[39m
+validate	Test	2026-10-19T18:02:34.6386474Z packages/desktop-supervisor test:  ^[[31m❯^[[39m src/instance-lock.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m | ^[[22m^[[31m1 failed^[[39m^[[2m)^[[22m^[[90m 162^[[2mms^[[22m^[[39m
+validate	Test	2026-10-19T18:02:34.7542587Z packages/providers test: ^[[2m Test Files ^[[22m ^[[1m^[[32m19 passed^[[39m^[[22m^[[90m (19)^[[39m
+validate	Test	2026-10-19T18:02:34.7636193Z packages/providers test: ^[[2m      Tests ^[[22m ^[[1m^[[32m386 passed^[[39m^[[22m^[[2m | ^[[22m^[[33m1 skipped^[[39m^[[90m (387)^[[39m
+validate	Test	2026-10-19T18:02:36.8547737Z packages/desktop-supervisor test: ^[[31m⎯⎯⎯⎯⎯⎯⎯^[[1m^[[7m Failed Tests 1 ^[[27m^[[22m⎯⎯⎯⎯⎯⎯⎯^[[39m
+validate	Test	2026-10-19T18:02:36.8551868Z packages/desktop-supervisor test: ^[[31m^[[1m^[[7m FAIL ^[[27m^[[22m^[[39m src/instance-lock.test.ts^[[2m > ^[[22mSupervisor instance lock^[[2m > ^[[22mrefuses a second competing owner while the holder is alive
+validate	Test	2026-10-19T18:02:36.8567915Z packages/desktop-supervisor test: ^[[31m^[[1mAssertionError^[[22m: expected function to throw an error, but it didn't^[[39m
+validate	Test	2026-10-19T18:02:36.8569998Z packages/desktop-supervisor test: ^[[36m ^[[2m❯^[[22m src/instance-lock.test.ts:^[[2m60:57^[[22m^[[39m
+validate	Test	2026-10-19T18:02:36.8787569Z packages/desktop-supervisor test: ^[[2m Test Files ^[[22m ^[[1m^[[31m1 failed^[[39m^[[22m^[[2m | ^[[22m^[[1m^[[32m22 passed^[[39m^[[22m^[[2m | ^[[22m^[[33m1 skipped^[[39m^[[90m (24)^[[39m
+validate	Test	2026-10-19T18:02:36.8790031Z packages/desktop-supervisor test: ^[[2m      Tests ^[[22m ^[[1m^[[31m1 failed^[[39m^[[22m^[[2m | ^[[22m^[[1m^[[32m226 passed^[[39m^[[22m^[[2m | ^[[22m^[[33m5 skipped^[[39m^[[90m (232)^[[39m
+validate	Test	2026-10-19T18:02:36.8810089Z packages/desktop-supervisor test: ::error file=/home/runner/work/YUVI/YUVI/packages/desktop-supervisor/src/instance-lock.test.ts,title=src/instance-lock.test.ts > Supervisor instance lock > refuses a second competing owner while the holder is alive,line=60,column=57::AssertionError: expected function to throw an error, but it didn't%0A ❯ src/instance-lock.test.ts:60:57%0A%0A
+validate	Test	2026-10-19T18:02:36.9116043Z  ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @companion/desktop-supervisor@0.1.0 test: `vitest run --passWithNoTests`

@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "mode": "reopen-managed",
+  "checks": [
+    "Managed crash preserves old immutable rows, Person, owner, creation receipts and completed ingestion",
+    "Fresh conversation receives the corrected R5 fact in its actual model context",
+    "Existing Person and corrected R5 memory recover without re-creation; new native chat recalls the fact",
+    "Same actual native window renders Authority current knowledge",
+    "Native history retains the superseded fact and correction",
+    "Private PG application role is restricted; durable SQL and owner identity inventory captured"
+  ],
+  "personId": "42a3b091-b13f-4368-8d5e-7c0b24172475",
+  "personaId": "alice",
+  "scope": "yuvi:v1:user:42a3b091-b13f-4368-8d5e-7c0b24172475:character:alice",
+  "seconds": 6.73360022899999,
+  "windowSeconds": 0.8907054069999845,
+  "authenticatedReadySeconds": 4.955797189999998
+}

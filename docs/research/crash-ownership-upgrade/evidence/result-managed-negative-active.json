@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "activeLifecycle": {
+    "schema": "yuvi.linux-lifecycle.v1",
+    "unit": "yuvi-r5-a528c877c111ac5da44ede928362a5dd.service",
+    "description": "YUVI R5 d319b3eda1576b311d4dc98cfeb17827c73abe8d 967651c61d78a1ef06273082e47101bf",
+    "checkoutSha": "d319b3eda1576b311d4dc98cfeb17827c73abe8d",
+    "packageRoot": "/home/tester/yuvi",
+    "stateRoot": "/home/tester/.local/share/YUVI/portable/0.1.2",
+    "bootId": "c3bf51e5-7332-4dfe-bcf7-fffd405199cf",
+    "invocationId": "801580d1faef4e63a6835420bd7f6139",
+    "controlGroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/yuvi-r5-a528c877c111ac5da44ede928362a5dd.service",
+    "launcherPid": 8302,
+    "startTicks": "41226"
+  },
+  "differentInstallAndState": {
+    "refused": "PORT_OCCUPIED",
+    "privatePGNotInitialized": true,
+    "exitCode": 1
+  },
+  "concurrentLaunchersAgainstActiveInstance": [
+    {
+      "exitCode": 1,
+      "diagnostic": "LIFECYCLE_RUNNING"
+    },
+    {
+      "exitCode": 1,
+      "diagnostic": "LIFECYCLE_RUNNING"
+    }
+  ],
+  "originalInvocationUnchanged": true,
+  "noSignalsSentByTest": true
+}

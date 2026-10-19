@@ -804,9 +804,13 @@ describe.skipIf(!databaseUrl)(
       expect(reply["payload"].content).toBe("Hello world.");
       await new Promise((r) => setTimeout(r, 20));
       expect(received.filter((e: any) => e.type === "agent.reply")).toHaveLength(1);
-      expect((await latestPublication("WEBSOCKET"))?.evidence?.layer).toBe(
-        "LOCAL_GATEWAY_WRITE_ACCEPTED"
-      );
+      // Socket delivery precedes the asynchronous durable receipt commit.
+      // Assert the real persisted outcome rather than assuming a 20 ms budget.
+      await vi.waitFor(async () => {
+        expect((await latestPublication("WEBSOCKET"))?.evidence?.layer).toBe(
+          "LOCAL_GATEWAY_WRITE_ACCEPTED"
+        );
+      }, { timeout: 4000 });
       socket.close();
     });
     it("proactive POST and internal live subscriber use the same committed component fanout", async () => {
