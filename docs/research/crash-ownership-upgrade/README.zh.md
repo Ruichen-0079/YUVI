@@ -77,3 +77,5 @@ Linux R5 文字 profile 现在由 **systemd 用户 transient service** 包含正
 原 Supervisor SIGKILL 阻断已关闭，但 **不能切换真实 Alice**。PR B 必须完成真正旧二进制升级、版本兼容、阶段失败和新事实后禁止错误回退；#325 旧 runner `42809` 风险没有被本切片消除。旧资产 D 仍无新增 Mem0/Profile/Dream 格式消费者，不能由旧 SQL 空表或 R5 新事实推导迁移完成。
 
 没有获准独立 Provider，真实模型实验仍 BLOCKED；Fixture usage 不是语言/Token/费用成绩。Windows/macOS、完整 Avatar/语音 profile、Wayland/GPU、隐私删除/PITR、全量迁移、QQ PRIVATE/GROUP、Truthfulness 与长尾检索、多 Scope 长期负载等原阻断保留。建议人工按原依赖链审查 #322–#336，再审查本 PR A 和后续 PR B；合并、发行运行、私人资产迁移仍是独立动作。
+
+CI 补充：#337 初次 PR Check 在 `instance-lock` 发现空文件发布窗口，push/其它工作流虽通过也不覆盖失败。后续生产修复改为完整临时记录 + atomic hard-link claim；不可解析/无有效 PID 的旧锁保守拒绝，不再自动删除。测试同时等待旧 publisher 的明确完成 ACK，并专门验证不完整锁不能被夺取。此变更需要新包验收，1052 的原始实验仍保留，不能直接充当新包通过。
