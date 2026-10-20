@@ -8,19 +8,21 @@
 
 1. **档案只追加。** 更正用新事件表达。删除只通过“删改”事件进行：移除载荷，保留一条不含内容的墓碑，依赖它的内容随之标记。
 2. **每个事件都有这些字段：** 类别（经历 / 行为 / 内心记录 / 控制）、场景、作者、发生时间、记录时间。不知道的字段写 `unknown`，不猜。
-3. **内心不设证据要求；边界上核对来源。**
+3. **内心不设证据要求；边界上核对来源与授权。**
    - 内心记录不分类型，也不需要引用。
-   - 只有两种情况要核对来源：内容被用于身份绑定、权限、删除、对外效果；或者它要向别人陈述过去的事实。
-   - 核对时：内心记录与模型生成的内容不计入支持；外界经历计入；行为只能支持关于它自己的结论。
+   - 身份绑定、权限、删除所依据的内容，要核对来源：内心记录与模型生成的内容不计入支持；外界经历计入；行为只能支持关于它自己的结论。
+   - 对外效果（包括发消息）要核对授权：哪个场景、哪些听众、是否在安静时段、是否经过同意。授权不检查话语内容。
+   - 对别人陈述事实前先查档，是规范而不是不变量，由 X1、X2、X9、X16 测量。
 4. **可见范围随来源传播。**
-   - 一个内容的可见范围，是它所引用来源的可见范围的交集。它只能进入听众是这个范围子集的场景。
-   - 私人场景的听众只有 YUVI。
+   - 一个内容的可见范围，是它所引用来源的可见范围的交集。程序只把它放进听众是这个范围子集的场景的上下文。
+   - 私人场景的日常听众只有 YUVI。YUVI 自己把私人内容说出来，是一个被记录的披露行为。
+   - 潜在组织是有意的例外：写入器读取全部经历。条件是带宽检验（X12）通过；不通过时，潜在状态不得作用于对外场景。
 5. **对外效果遵循“意图 → 尝试 → 结果”。** 意图先写入，再尝试。结果未知时记 `UNKNOWN`，不自动重发。
 6. **档案以外的部分分两种。**
    - 索引（全文、向量）可以删掉重建。
    - 记忆、潜在组织（写入器版本与状态快照）、它的世界（沙盒文件）带版本保存，与档案一起备份和分叉，不当作可随意丢弃的缓存。
-7. **研究分叉不能对外行动。** 分叉包含档案、潜在组织与世界的副本，带新的分支 id；其效果执行器固定为沙箱。
-8. **对外效果永远不私有。** 私人内容只有经过有记录的审阅程序（`control:audit_read`）才由人读取；自动检查只产生告警。
+7. **分支分三类。** `main`：真实的生活（切换后的 Alice）。`dev`：开发分支（`v2-dev`），只与你通过网页对话，不接入 QQ，不对其他人行动。研究分叉：档案、潜在组织与世界的副本，不能有任何外部互动，效果执行器固定为沙箱。
+8. **对外效果永远不私有。** 私人内容只有经过有记录的审阅程序（`control:audit_read`）才由人读取。自动安全检查是唯一允许对内容做语义分类的地方，只产生告警，其结果不进入它的上下文或记忆。
 9. **密钥不进档案。** 日志不记录密钥和 Authorization 头。
 
 ## C.2 表结构（SQLite）与目录
@@ -30,7 +32,7 @@
 create table events (
   seq          integer primary key,          -- 提交顺序
   id           text unique not null,         -- 'ev_' + ULID；导入的 V1 事件保留原 id 于 meta
-  branch       text not null,                -- 生命分支：真实生活为 'main'；'v2-dev' 与研究分叉另起
+  branch       text not null,                -- 'main' 真实生活 | 'dev:<name>' 开发分支 | 'fork:<name>' 研究分叉
   class        text not null,                -- experience | act | inner | control
   kind         text,                         -- 见 C.3；inner 的 kind 恒为 null（不分类型）
   scene        text not null,                -- 'desktop' | 'qq:group:<id>' | 'qq:private:<id>' | 'self:private' | 'world:<name>'
@@ -61,7 +63,7 @@ create table memories (
   rewrites      text,                        -- 被它改写的旧 memory_id
   last_recalled integer, recall_count integer default 0,
   audience      text,
-  status        text default 'current'       -- current | rewritten | faded（长期未被想起，仍可被 recall 偶然唤起）
+  status        text default 'current'       -- current | rewritten；是否“淡去”不由程序规定，见 C.5 第 4 段
 );
 
 -- 潜在组织：带版本保存
@@ -107,9 +109,11 @@ world/            # 沙盒的持久文件：工作区、作品、笔记本附件
 | act        | `looked` / `recalled` / `checked` / `called_tool`                                          | 主动的感知、回忆（返回它的记忆）、查档（返回档案原文）、工具调用                          |
 | act        | `world_action`                                                                             | 在沙盒中的动作                                                                            |
 | act        | `intended` / `intention_done` / `intention_dropped`                                        | 定下、完成、放弃心意                                                                      |
-| act        | `free_time_start` / `free_time_end`                                                        | 自由时间的开始与结束（结束可以由它决定）                                                  |
+| act        | `ended_free_time`                                                                          | 它决定提前结束自由时间                                                                    |
 | inner      | （无）                                                                                     | 它写下的任何东西；整理形成的回忆也以 inner 事件写入，再投影到 `memories`                  |
 | control    | `persona_edit` / `policy_change` / `redaction` / `model_switch` / `writer_update` / `fork` | 来自你或系统的变更，不伪装成经历                                                          |
+| control    | `free_time_granted`                                                                        | 程序分配一段自由时间（时长与预算）                                                        |
+| control    | `v1_extraction`                                                                            | 导入的 V1 系统抽取（记忆、R5 命题、Mem0 文本），只作存档                                  |
 | control    | `audit_read`                                                                               | 人读取私人内容：谁、何时、为什么、读了哪些                                                |
 | control    | `error`                                                                                    | 模型调用或执行失败，绝不伪装成沉默                                                        |
 
@@ -137,20 +141,20 @@ end_free_time(note?: string)                                // 提前结束自�
 
 - `write`：不核验内容；按引用与场景计算可见范围。
 - `say`：不逐句核验。陈述过去事实前应当 `check`，这是提示中的规范；X1、X2、X9、X16 测量它的遵守程度。
-- 身份绑定、权限、删除、对外效果：按不变量 3 核对来源。核对失败就拒绝，把原因作为 `tool_result` 返回。
+- 身份绑定、权限、删除：按不变量 3 核对来源。对外效果（包括发消息）：核对授权，不核对内容。核对失败就拒绝，把原因作为 `tool_result` 返回。
 - `world.*`：只能作用于 `world/` 与隔离容器；越界即拒绝并记录为 `control:error`。
 
 ## C.5 上下文布局
 
 按“越稳定越靠前”排列，目的是让前缀缓存尽量命中。
 
-| 段           | 内容                                                                   | 多久变一次     | 初始预算           |
-| ------------ | ---------------------------------------------------------------------- | -------------- | ------------------ |
-| 1 稳定段     | 身份种子、当前自我描述、工具说明、诚实规范（内心自由，对外陈述先查档） | 自我描述修改时 | 3–5k               |
-| 2 章节段     | 它为本场景写的章节                                                     | 每个纪元一次   | 5–15k              |
-| 3 原文段     | 本场景本纪元的原始事件，只在尾部追加                                   | 每回合追加     | 20–120k（X1 决定） |
-| 4 想起的部分 | 被想起的回忆与印象、未完成的心意。由相关性与潜在组织共同选择           | 每回合         | 3–8k               |
-| 5 当前段     | 内感受事实、唤醒原因；实验组中加上读出器的文字                         | 每回合         | 1–3k               |
+| 段           | 内容                                                                                                                      | 多久变一次     | 初始预算           |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------- | -------------- | ------------------ |
+| 1 稳定段     | 身份种子、当前自我描述、工具说明、诚实规范（内心自由，对外陈述先查档）                                                    | 自我描述修改时 | 3–5k               |
+| 2 章节段     | 它为本场景写的章节                                                                                                        | 每个纪元一次   | 5–15k              |
+| 3 原文段     | 本场景本纪元的原始事件，只在尾部追加                                                                                      | 每回合追加     | 20–120k（X1 决定） |
+| 4 浮现的部分 | 自己浮现的回忆与印象、未完成的心意。由表示相似度与潜在组织共同选出，只能是它自己的回忆（①类暂时替代：真实的联想机制未知） | 每回合         | 3–8k               |
+| 5 当前段     | 内感受事实、唤醒原因；实验组中加上读出器的文字                                                                            | 每回合         | 1–3k               |
 
 **原文段的行格式**（沿用 Plunge 线性上下文的思路）：
 
@@ -165,7 +169,7 @@ end_free_time(note?: string)                                // 提前结束自�
 - 程序不添加任何语义标注：没有“情绪”、没有“在叫你”、没有“重要”。
 - 内心记录不进入原文段；它们通过回忆（第 4 段）或在私人场景 / 自由时间的上下文中出现。
 
-**纪元切换：** 原文段超过预算时，由它写一个章节（它自己的回忆），原文段从章节之后重新开始。前缀缓存只在切换时失效一次。
+**纪元切换：** 原文段超过预算时，由它写一个章节（它自己的回忆），原文段从章节之后重新开始。前缀缓存只在切换时失效一次。章节的时机由上下文预算触发，而不是由它决定，这是①类暂时替代。
 
 ## C.6 整理合同
 
@@ -193,11 +197,12 @@ end_free_time(note?: string)                                // 提前结束自�
 1. 把输出写成 `inner` 事件，并投影到 `memories`、`chapters`。被改写的旧回忆标为 `rewritten`，改写关系保留。
 2. 不判断回忆对不对。
 3. 自我描述的修改：检查支持是否分布在足够多的日子和场景（≥3 天、跨度 ≥7 天、≥2 个场景或人）。这是①类暂时替代，X4 检验它能否由潜在组织取代。
-4. **计算动力学指标**，写入检视器，用于 X5：
-   - 自我引用比例；
-   - 看法的翻转频率；
-   - 话题重复率；
+4. **计算动力学指标**，写入检视器，用于 X5。只用结构信息：
+   - 自我引用比例（来自引用关系）；
+   - 话题重复率（来自表示的相似度）；
    - 新经历对潜在状态的影响幅度。
+
+   看法是否翻转、心境是否单调下滑，由研究者用另一个模型对抽样内容做标注；标注不回到它的上下文或记忆。
 
 ## C.7 唤醒、自由时间与预算
 
@@ -208,10 +213,10 @@ end_free_time(note?: string)                                // 提前结束自�
 | 日常环顾 | 每天几次，安静时段不触发                           | 看内感受与心意               |
 | 群聊环顾 | 每个活跃群按间隔定时（候选 5/15/60 分钟，X7 决定） | 一次读完积累的消息           |
 | 自由时间 | 每天若干段，由你设定时长与预算                     | 做什么由它决定；可以提前结束 |
-| 整理     | 场景安静 N 分钟；每晚；每周一次自我描述            | 整理任务                     |
+| 整理     | 场景安静若干分钟；每晚；每周一次自我描述           | 整理任务                     |
 | 系统     | 重启后有 `UNKNOWN` 或未决意图                      | 只核对，不重发               |
 
-**潜在组织的调节（第二阶段起，作为实验组）：** 环顾间隔、等待时长、自由时间里各活动被提示的顺序，乘以由潜在状态读出的系数。系数有上下限，并有安静时段等硬边界。
+**潜在组织的调节（第二阶段起，作为实验组）：** 环顾间隔、等待时长、自由时间里各活动线被提示的顺序（活动线按它建的项目目录与订阅来源划分，①类暂时替代），乘以由潜在状态读出的系数。系数有上下限，并有安静时段等硬边界。
 
 **每日预算**（金额与调用次数）由你设定。超出 80% 时，环顾间隔加倍、自由时间缩短；超出 100% 时，只响应直接关系。
 
@@ -238,25 +243,27 @@ end_free_time(note?: string)                                // 提前结束自�
 
 写入器     z_t = W(z_{t-1}, x_t)            z ∈ R^d，d = 32 / 64 / 128；小型循环网络
 
-候选目标   预测后续 k 个经历的表示，以及它自己下一次行为的表示
+候选目标   预测后续 k 个经历的表示，以及它自己下一次行为的表示；预测器 = f(z, 最近窗口)，
+           衡量 z 在只看最近窗口的预测器之上的增益
+           变体：加入结构性的结果信号（是否得到回复、回复间隔、程序是否运行成功）
            + λ · ‖z_t − z_{t−1}‖²            （慢变化）
            + β · 带宽限制                     （对 z 加噪声或 KL 约束，使其复原不出具体事实）
            不以任何情绪词、文字评价作为训练目标
 
 作用通道   R_text(z) → ≤ 50 字的文字                         （实验组；第二阶段起）
            R_proc(z) → { 回忆偏置方向 ∈ R^512, 环顾间隔系数,
-                         等待系数, 自由时间活动的提示顺序 }     （第二阶段起）
+                         等待系数, 自由时间活动线的提示顺序, 采样温度 }     （第二阶段起）
            R_cond(z) → 软提示（k × d_model）或激活方向        （第三阶段，本地开放权重模型）
 
 探针       具体事实解码（应当失败）；人类情绪词解码（报告）；
            移出上下文后的预测增益；独立读出器的一致性
 
-学习进展   对每类自由时间活动，计算近期预测误差的下降量，作为候选的兴趣信号（N13、X17）
+学习进展   对每条活动线（按项目目录与订阅来源划分，①类），计算近期预测误差的下降量，作为候选的兴趣信号（N13、X17）
 ```
 
 **在线与离线：**
 
-- 写入器在每个事件之后更新潜在状态，开销很小；每 N 个事件存一份快照。
+- 写入器在每个事件之后更新潜在状态，开销很小；每隔若干事件存一份快照。
 - 写入器本身离线定期重训，只用本分支自己的历史与公开数据，产生新的 `writer_version`，并记为控制事件。
 - 换写入器版本时，潜在状态有两种处理：用新写入器重放历史；或从旧状态映射。用了哪一种，记录在 `writer_update` 中。这是 X11 一类问题的一部分。
 
@@ -294,12 +301,15 @@ proxy and call it solved. Opacity is not depth. Read docs/v2/YUVI_V2_BLUEPRINT.m
 1. The archive is append-only; corrections are new events; deletion = redaction + marking dependents.
 2. Every event has class, scene, actor, times; unknown stays "unknown".
 3. Inner records are untyped and need no evidence. Sources are checked only at the boundary:
-   identity, permissions, deletion, external effects, and factual claims to others.
-4. Audience = intersection of sources' audiences; the private scene's audience is YUVI alone.
+   identity, permissions and deletion (source check) and external effects (authorization only, never content).
+   Checking the archive before stating facts to others is a norm, measured, not an invariant.
+4. Audience = intersection of sources' audiences; the private scene's everyday audience is YUVI alone.
+   The latent organization reads all experience, valid only while the bandwidth test (X12) passes.
 5. External effects: intent → attempt → outcome; UNKNOWN is never retried automatically.
 6. Indexes are rebuildable; memories, latent organization and the world are versioned assets, not caches.
-7. Research forks never act externally.
+7. Branches: main (real life), dev (talks only to the owner via web), research forks (no external interaction).
 8. External effects are never private; humans read private content only through a recorded audit.
+   Automated safety checks are the only semantic classification of content and never feed back into YUVI.
 9. Never store or log secrets or Authorization headers.
 
 ## How we work

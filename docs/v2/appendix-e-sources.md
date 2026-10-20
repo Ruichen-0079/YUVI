@@ -17,6 +17,7 @@
 - [持续内部状态基础研究](../research/persistent-internal-state/YUVI-Persistent-Internal-State-Foundations.zh.md)
 - [生产智能损失审计](../research/production-intelligence-loss/YUVI-Production-Intelligence-Loss-Audit.zh.md)
 - [后端智能效用审计](../research/backend-intelligence-value/YUVI-Backend-Intelligence-Value-Audit.zh.md)
+- [后端完整性审计](../research/backend-completeness-audit/YUVI-Backend-Completeness-Audit.zh.md)
 
 **Future 文档：**
 
@@ -25,7 +26,7 @@
 - [模型替换](https://github.com/Ruichen-0079/YUVI/blob/0d894cc70d42ebba0df132924f5ea181c062b431/docs/future/model-replacement.md)
 - [09-19 的人工个体北极星](https://github.com/Ruichen-0079/YUVI/blob/4278eb36b1a01acde82dde27b806dca996739972/docs/future/00-artificial-person-north-star.md)
 - [PR #321（关闭）](https://github.com/Ruichen-0079/YUVI/pull/321)：[持续功能性自我研究纲领（00b）](https://github.com/Ruichen-0079/YUVI/blob/0b0f1366b341adcf9662b7e0c2d0ab5cd64c2ce9/docs/future/00b-persistent-functional-self-research.md)——学习型状态、冻结基础模型 + 小型循环控制器、重置 / 交换 / 消融
-- 你对研究宗旨的说明（2026-10-20，PR #339 讨论）：写入器 / 潜在状态 / 读出器的设想与检验手段；相关早期讨论不在仓库中
+- 你对研究宗旨的说明（2026-10-20，本次会话中给出）：写入器 / 潜在状态 / 读出器的设想与检验手段；相关早期讨论不在仓库中
 
 **代码：** 见附录 A 中固定到提交的链接。
 
@@ -33,16 +34,16 @@
 
 **心境、记忆与兴趣的理论（第二版新增）：**
 
-| 主题                   | 来源                                                                                                                                                                                                                    | 在蓝图中的用途                                                                    | 注意                               |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ---------------------------------- |
-| 心境作为“走势”的表征   | Eldar, E., Rutledge, R. B., Dolan, R. J., & Niv, Y. (2016). Mood as representation of momentum. _Trends in Cognitive Sciences_ 20(1), 15–24.                                                                            | N12：第一个候选训练目标的理论依据——心境整合近期结果相对预期的走势，并偏置后续感知 | 一种理论，不是定论                 |
-| 心境一致的回忆         | Bower, G. H. (1981). Mood and memory. _American Psychologist_ 36(2), 129–148.                                                                                                                                           | N12：“调节过程”通道中的回忆偏置                                                   | 经典结果，后续研究对效应大小有争论 |
-| 记忆是重建             | Bartlett, F. C. (1932). _Remembering_. Cambridge University Press；Schacter, D. L. (1999). The seven sins of memory. _American Psychologist_ 54(3), 182–203.                                                            | N11：记忆不是回放                                                                 | 只作理论依据                       |
-| 内在动机与学习进展     | Oudeyer, P.-Y., Kaplan, F., & Hafner, V. V. (2007). Intrinsic motivation systems for autonomous mental development. _IEEE Transactions on Evolutionary Computation_ 11(2), 265–286.                                     | N13：不只来自语言模型先验的兴趣信号候选                                           | 原研究在机器人与低维环境中         |
-| 开放环境中的自生成课程 | [Voyager（arXiv 2305.16291）](https://arxiv.org/abs/2305.16291)                                                                                                                                                         | N13：语言模型代理可以自己提出活动；其价值来自人类设定的“探索更多”                 | 目标是技能获取，不是个体生活       |
-| 激活方向调节           | Turner, A. et al. (2023). Steering language models with activation engineering（[arXiv 2308.10248](https://arxiv.org/abs/2308.10248)）                                                                                  | N12、S6：直接条件化的一种实现                                                     | 需要开放权重模型                   |
-| 软提示                 | Li, X. L., & Liang, P. (2021). Prefix-tuning（[arXiv 2101.00190](https://arxiv.org/abs/2101.00190)）                                                                                                                    | N12、S6：把潜在状态变成软提示                                                     | 需要开放权重模型                   |
-| 长期多会话对话数据     | MSC：Xu, J., Szlam, A., & Weston, J. (2022). Beyond goldfish memory（[arXiv 2107.07567](https://arxiv.org/abs/2107.07567)）；LoCoMo：Maharana, A. et al. (2024)（[arXiv 2402.17753](https://arxiv.org/abs/2402.17753)） | X12：写入器的预训练与对照材料                                                     | 公开数据，不是 YUVI 的生活         |
+| 主题                   | 来源                                                                                                                                                                                                                                                                   | 在蓝图中的用途                                                                    | 注意                               |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ---------------------------------- |
+| 心境作为“走势”的表征   | Eldar, E., Rutledge, R. B., Dolan, R. J., & Niv, Y. (2016). Mood as representation of momentum. _Trends in Cognitive Sciences_ 20(1), 15–24.                                                                                                                           | N12：第一个候选训练目标的理论依据——心境整合近期结果相对预期的走势，并偏置后续感知 | 一种理论，不是定论                 |
+| 心境一致的回忆         | Bower, G. H. (1981). Mood and memory. _American Psychologist_ 36(2), 129–148.                                                                                                                                                                                          | N12：“调节过程”通道中的回忆偏置                                                   | 经典结果，后续研究对效应大小有争论 |
+| 记忆是重建             | Bartlett, F. C. (1932). _Remembering_. Cambridge University Press；Schacter, D. L. (1999). The seven sins of memory. _American Psychologist_ 54(3), 182–203.                                                                                                           | N11：记忆不是回放                                                                 | 只作理论依据                       |
+| 内在动机与学习进展     | Oudeyer, P.-Y., Kaplan, F., & Hafner, V. V. (2007). Intrinsic motivation systems for autonomous mental development. _IEEE Transactions on Evolutionary Computation_ 11(2), 265–286.                                                                                    | N13：不只来自语言模型先验的兴趣信号候选                                           | 原研究在机器人与低维环境中         |
+| 开放环境中的自生成课程 | [Voyager（arXiv 2305.16291）](https://arxiv.org/abs/2305.16291)                                                                                                                                                                                                        | N13：语言模型代理可以自己提出活动；其价值来自人类设定的“探索更多”                 | 目标是技能获取，不是个体生活       |
+| 激活方向调节           | Turner, A. et al. (2023). Steering language models with activation engineering（[arXiv 2308.10248](https://arxiv.org/abs/2308.10248)）                                                                                                                                 | N12、S6：直接条件化的一种实现                                                     | 需要开放权重模型                   |
+| 软提示                 | Li, X. L., & Liang, P. (2021). Prefix-tuning（[arXiv 2101.00190](https://arxiv.org/abs/2101.00190)）；Lester, B., Al-Rfou, R., & Constant, N. (2021). The power of scale for parameter-efficient prompt tuning（[arXiv 2104.08691](https://arxiv.org/abs/2104.08691)） | N12、S6：把潜在状态变成软提示                                                     | 需要开放权重模型                   |
+| 长期多会话对话数据     | MSC：Xu, J., Szlam, A., & Weston, J. (2022). Beyond goldfish memory（[arXiv 2107.07567](https://arxiv.org/abs/2107.07567)）；LoCoMo：Maharana, A. et al. (2024)（[arXiv 2402.17753](https://arxiv.org/abs/2402.17753)）                                                | X12：写入器的预训练与对照材料                                                     | 公开数据，不是 YUVI 的生活         |
 
 **代理记忆与工程（第一版起）：**
 
